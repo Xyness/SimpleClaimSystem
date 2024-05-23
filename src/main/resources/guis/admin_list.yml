@@ -1,0 +1,55 @@
+# ********************************************
+# *  GUI settings : list of player's claims  *
+# ********************************************
+
+# PlaceholderAPI support for gui title and custom items titles/lores
+# ItemsAdder support for material and custom_model_data
+# Make sure the slot is between 0 and (rows-count * 9)
+# Materials : https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+# Don't forget to enable custom_model_data if you're using it
+
+gui-title: "Admin claims (Page %page%)"
+rows: 6
+
+# This is the interval of slots in which the claims will be displayed
+# list-end-slot must be > list-start-slot
+list-start-slot: 0
+list-end-slot: 44
+
+custom_items: {}
+  # example_item:
+    # title: "§aThis is an example item!"
+    # lore: "§fline 1\n§byou can put differents lines!\n§dline 3\n§cDisable this item in guis/list.yml"
+    # slot: 45
+    # material: DIAMOND_SWORD
+    # custom_model_data: false
+    # custom_model_data_value: 0
+    # action: "RIGHT:CMD:CONSOLE:say i clicked on the example item!"
+
+items:
+
+  # /!\ DON'T CHANGE NAME OF ITEMS (like "back-page-list")
+
+  # Bottom items
+  back-page-list:
+    slot: 48
+    material: ARROW
+    custom_model_data: false
+    custom_model_data_value: 0
+  back-page-settings:
+    slot: 48
+    material: ARROW
+    custom_model_data: false
+    custom_model_data_value: 0
+  next-page-list:
+    slot: 50
+    material: ARROW
+    custom_model_data: false
+    custom_model_data_value: 0
+    
+  # Claim item
+  # Slots can be configure just above with list-start-slot and list-end-slot
+  claim-item:
+    material: OAK_SIGN
+    custom_model_data: false
+    custom_model_data_value: 0
