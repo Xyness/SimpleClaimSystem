@@ -135,7 +135,7 @@ public class ClaimEvents implements Listener {
                 }
                 
                 if(clickedSlot == ClaimGuis.getItemSlot("settings", "my-claims")) {
-                	if (!player.hasPermission("scs.command.claims")) {
+                	if (!player.hasPermission("scs.command.claim.list")) {
                     	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                     	return;
                 	}

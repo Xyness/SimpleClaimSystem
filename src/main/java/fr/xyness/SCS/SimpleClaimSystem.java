@@ -64,7 +64,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	static ClaimEventsEnterLeave claimEventsEL;
 	static CPlayerMain playerMain;
 	static ClaimDynmap claimDynmap;
-	static String Version = "1.9-Beta";
+	static String Version = "1.9-Beta2";
 	public static HikariDataSource dataSource;
 	private static final boolean isFolia = Bukkit.getVersion().contains("Folia");
 	private static boolean isUpdateAvailable;
@@ -350,7 +350,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         	try (Connection connection = dataSource.getConnection()) {
         		try (Statement stmt = connection.createStatement()) {
                     String sql = "CREATE TABLE IF NOT EXISTS scs_claims " +
-                            "(id_pk INT AUTO_INCREMENT PRIMARY KEY, " +
+                            "(id_pk INTEGER PRIMARY KEY AUTOINCREMENT, " +
                             "id INT, " +
                             "uuid VARCHAR(36), " +
                             "name VARCHAR(36), " +
@@ -365,6 +365,9 @@ public class SimpleClaimSystem extends JavaPlugin {
                             "isSale TINYINT(1) DEFAULT 0, " +
                             "SalePrice DOUBLE DEFAULT 0, " +
                             "Bans VARCHAR(1020) DEFAULT '')";
+                    stmt.executeUpdate(sql);
+                    sql = "ALTER TABLE scs_claims\r\n"
+                    		+ "MODIFY COLUMN id_pk INTEGER PRIMARY KEY AUTOINCREMENT;";
                     stmt.executeUpdate(sql);
         		} catch (SQLException e) {
             		Bukkit.getServer().getConsoleSender().sendMessage("§c✗ Error creating tables, disabling plugin.");

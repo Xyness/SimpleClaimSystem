@@ -86,6 +86,7 @@ public class ClaimMain {
     public static void clearAll() {
     	claimsId.clear();
     	playerLocations.clear();
+    	listClaims.clear();
     }
     
     public static void sendActionBar(Player player, String message) {
@@ -393,107 +394,112 @@ public class ClaimMain {
         }
     }
     
-    // Method to convert claims (from flat files to database)
+ // Method to convert claims (from flat files to database)
     public static void convertClaims() {
-    	File playerDataFolder = new File(plugin.getDataFolder(), "claims");
-    	if(playerDataFolder.exists()) {
+        File playerDataFolder = new File(plugin.getDataFolder(), "claims");
+        if (playerDataFolder.exists()) {
             File[] files = playerDataFolder.listFiles();
             if (files == null) {
-            	Bukkit.getServer().getConsoleSender().sendMessage("§a✓ 0 claims converted");
-            	return;
+                Bukkit.getServer().getConsoleSender().sendMessage("§a✓ 0 claims converted");
+                return;
             }
-            
+
             World world;
             Chunk chunk;
             int i = 0;
-    		for (File file : files) {
-                if (file.isFile() && file.getName().endsWith(".yml")) {
-                	FileConfiguration playerConfig = YamlConfiguration.loadConfiguration(file);
-                	String owner = playerConfig.getString("a_name");
-                	String uuid = "";
-                	if(file.getName().contains("admin.yml")) {
-                		uuid = "aucun";
-                		owner = "admin";
-                	} else {
-                		OfflinePlayer op = Bukkit.getOfflinePlayer(owner);
-                		uuid = op.getUniqueId().toString();
-                	}
-                	String final_uuid = uuid;
-                	String owner_final = owner;
-                	for (String key : playerConfig.getConfigurationSection("claims").getKeys(false)) {
-                        int x = playerConfig.getInt("claims." + key + ".X");
-                        int z = playerConfig.getInt("claims." + key + ".Z");
-                        world = Bukkit.getServer().getWorld(playerConfig.getString("claims." + key + ".World"));
-                        chunk = world.getChunkAt(x,z);
-                        
-                        if(!playerConfig.isSet("claims." + key + ".Location.X")) playerConfig.set("claims." + key + ".Location.X", getChunkCenterX(chunk));
-                        double loc_x = playerConfig.getDouble("claims." + key + ".Location.X");
-                        if(!playerConfig.isSet("claims." + key + ".Location.Y")) playerConfig.set("claims." + key + ".Location.Y", getChunkCenterY(chunk));
-                        double loc_y = playerConfig.getDouble("claims." + key + ".Location.Y");
-                        if(!playerConfig.isSet("claims." + key + ".Location.Z")) playerConfig.set("claims." + key + ".Location.Z", getChunkCenterZ(chunk));
-                        double loc_z = playerConfig.getDouble("claims." + key + ".Location.Z");
-                        float yaw = (float) playerConfig.getDouble("claims." + key + ".Location.Yaw");
-                        float pitch = (float) playerConfig.getDouble("claims." + key + ".Location.Pitch");
-                        Location spawn_loc = new Location(world,loc_x,loc_y,loc_z,yaw,pitch);
-                        String Location = String.valueOf(spawn_loc.getX())+";"+String.valueOf(spawn_loc.getY())+";"+String.valueOf(spawn_loc.getZ())+";"+String.valueOf(spawn_loc.getYaw())+";"+String.valueOf(spawn_loc.getPitch());
-                        
-                        if(!playerConfig.isSet("claims." + key + ".Name")) playerConfig.set("claims." + key + ".Name", "Claim");
-                        String name = playerConfig.getString("claims." + key + ".Name");
-                        if(!playerConfig.isSet("claims."+key+".Description")) playerConfig.set("claims."+key+".Description",ClaimLanguage.getMessage("default-description"));
-                        String description = playerConfig.getString("claims."+key+".Description");
-                        
-                        String members_final = playerConfig.getString("claims."+key+".Members");
-                        String Permissions = playerConfig.getString("claims."+key+".Permissions");
-                        boolean isSale = false;
-                        if(playerConfig.isSet("claims."+key+".isSale")) {
-                        	isSale = playerConfig.getBoolean("claims."+key+".isSale");
+            try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
+                String insertQuery = "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions, isSale, SalePrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+                    for (File file : files) {
+                        if (file.isFile() && file.getName().endsWith(".yml")) {
+                            FileConfiguration playerConfig = YamlConfiguration.loadConfiguration(file);
+                            String owner = playerConfig.getString("a_name");
+                            String uuid = "";
+                            if (file.getName().contains("admin.yml")) {
+                                uuid = "aucun";
+                                owner = "admin";
+                            } else {
+                                OfflinePlayer op = Bukkit.getOfflinePlayer(owner);
+                                uuid = op.getUniqueId().toString();
+                            }
+                            String final_uuid = uuid;
+                            String owner_final = owner;
+                            for (String key : playerConfig.getConfigurationSection("claims").getKeys(false)) {
+                                if (!playerConfig.isSet("claims." + key + ".X")) continue;
+                                if (!playerConfig.isSet("claims." + key + ".Z")) continue;
+                                if (!playerConfig.isSet("claims." + key + ".World")) continue;
+                                if (!playerConfig.isSet("claims." + key + ".Location.Yaw")) continue;
+                                if (!playerConfig.isSet("claims." + key + ".Location.Pitch")) continue;
+                                if (!playerConfig.isSet("claims." + key + ".Location.X")) continue;
+                                if (!playerConfig.isSet("claims." + key + ".Location.Y")) continue;
+                                if (!playerConfig.isSet("claims." + key + ".Location.Z")) continue;
+                                if (!playerConfig.isSet("claims." + key + ".Name")) continue;
+                                if (!playerConfig.isSet("claims." + key + ".Description")) continue;
+                                if (!playerConfig.isSet("claims." + key + ".Members")) continue;
+                                if (!playerConfig.isSet("claims." + key + ".Permissions")) continue;
+
+                                int x = playerConfig.getInt("claims." + key + ".X");
+                                int z = playerConfig.getInt("claims." + key + ".Z");
+                                world = Bukkit.getServer().getWorld(playerConfig.getString("claims." + key + ".World"));
+                                chunk = world.getChunkAt(x, z);
+
+                                double loc_x = playerConfig.getDouble("claims." + key + ".Location.X");
+                                double loc_y = playerConfig.getDouble("claims." + key + ".Location.Y");
+                                double loc_z = playerConfig.getDouble("claims." + key + ".Location.Z");
+                                float yaw = (float) playerConfig.getDouble("claims." + key + ".Location.Yaw");
+                                float pitch = (float) playerConfig.getDouble("claims." + key + ".Location.Pitch");
+                                Location spawn_loc = new Location(world, loc_x, loc_y, loc_z, yaw, pitch);
+                                String Location = spawn_loc.getX() + ";" + spawn_loc.getY() + ";" + spawn_loc.getZ() + ";" + spawn_loc.getYaw() + ";" + spawn_loc.getPitch();
+                                String name = playerConfig.getString("claims." + key + ".Name");
+                                String description = playerConfig.getString("claims." + key + ".Description");
+                                String members_final = playerConfig.getString("claims." + key + ".Members");
+                                String Permissions = playerConfig.getString("claims." + key + ".Permissions");
+                                boolean isSale = false;
+                                if (playerConfig.isSet("claims." + key + ".isSale")) {
+                                    isSale = playerConfig.getBoolean("claims." + key + ".isSale");
+                                }
+                                double saleprice = 0;
+                                if (playerConfig.isSet("claims." + key + ".SalePrice")) {
+                                    saleprice = playerConfig.getDouble("claims." + key + ".SalePrice");
+                                }
+
+                                preparedStatement.setInt(1, Integer.parseInt(key)); // Assuming key is a string representing an integer
+                                preparedStatement.setString(2, final_uuid);
+                                preparedStatement.setString(3, owner_final);
+                                preparedStatement.setString(4, name);
+                                preparedStatement.setString(5, description);
+                                preparedStatement.setInt(6, x);
+                                preparedStatement.setInt(7, z);
+                                preparedStatement.setString(8, playerConfig.getString("claims." + key + ".World"));
+                                preparedStatement.setString(9, Location);
+                                preparedStatement.setString(10, members_final);
+                                preparedStatement.setString(11, Permissions);
+                                preparedStatement.setBoolean(12, isSale);
+                                preparedStatement.setDouble(13, saleprice);
+                                preparedStatement.executeUpdate();
+                                i++;
+                            }
+                            try {
+                                playerConfig.save(file);
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
-                        double saleprice = 0;
-                        if(playerConfig.isSet("claims."+key+".SalePrice")) {
-                        	saleprice = playerConfig.getDouble("claims."+key+".SalePrice");
-                        }
-                        try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-        	                String insertQuery = "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions, isSale, SalePrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        	                try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
-        	                	preparedStatement.setString(1, key);
-        	                	preparedStatement.setString(2, final_uuid);
-        	                	preparedStatement.setString(3, owner_final);
-        	                    preparedStatement.setString(4, name);
-        	                    preparedStatement.setString(5, description);
-        	                    preparedStatement.setString(6, String.valueOf(chunk.getX()));
-        	                    preparedStatement.setString(7, String.valueOf(chunk.getZ()));
-        	                    preparedStatement.setString(8, playerConfig.getString("claims." + key + ".World"));
-        	                    preparedStatement.setString(9, Location);
-        	                    preparedStatement.setString(10, members_final);
-        	                    preparedStatement.setString(11, Permissions);
-        	                    preparedStatement.setBoolean(12, isSale);
-        	                    preparedStatement.setDouble(13, saleprice);
-        	                    preparedStatement.executeUpdate();
-        	                }
-            	            
-            	        } catch (SQLException e) {
-            	            e.printStackTrace();
-            	        }
-                        i++;
                     }
-                	try {
-                        playerConfig.save(file);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
-            }
-    		Bukkit.getServer().getConsoleSender().sendMessage("§a✓ "+String.valueOf(i)+" claims converted");
-    		Bukkit.getServer().getConsoleSender().sendMessage("§6Safe reloading..");
-    		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "aclaim reload");
-    		
-            // Delete the claims folder after conversion
-            if (deleteFolder(playerDataFolder)) {
-                Bukkit.getServer().getConsoleSender().sendMessage("§aClaims folder deleted successfully.");
-            } else {
-                Bukkit.getServer().getConsoleSender().sendMessage("§cFailed to delete claims folder.");
-            }
-    	}
+                Bukkit.getServer().getConsoleSender().sendMessage("§a✓ " + i + " claims converted");
+                // Delete the claims folder after conversion
+                if (deleteFolder(playerDataFolder)) {
+                    Bukkit.getServer().getConsoleSender().sendMessage("§aOld claims folder deleted successfully.");
+                } else {
+                    Bukkit.getServer().getConsoleSender().sendMessage("§cFailed to delete old claims folder.");
+                }
+            } catch (SQLException e1) {
+				e1.printStackTrace();
+			}
+        }
     }
     
     // Delete a folder
@@ -511,62 +517,8 @@ public class ClaimMain {
         return folder.delete();
     }
     
-    // Check for new perms or old perms format, then update it
-    private static String checkClaimSectionDB(String perms, String id) {
-    	if(perms.contains(":") || perms.contains(";")) {
-    		Map<String,Boolean> settings = new HashMap<>();
-    		String[] parts = perms.split(";");
-    		for(String keys : parts) {
-    			String[] values = keys.split(":");
-    			settings.put(values[0], Boolean.parseBoolean(values[1]));
-    		}
-    		StringBuilder sb = new StringBuilder();
-    		for(String perm_key : ClaimSettings.getDefaultValues().keySet()) {
-    			if(settings.get(perm_key)) {
-    				sb.append("1");
-    			} else {
-    				sb.append("0");
-    			}
-    		}
-			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-				String updateQuery = "UPDATE scs_claims SET Permissions = ? WHERE id_pk = ?";
-	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	            	preparedStatement.setString(1, sb.toString());
-	            	preparedStatement.setString(2, id);
-	                preparedStatement.executeUpdate();
-	            }
-	            
-	        } catch (SQLException e) {
-	            e.printStackTrace();
-	        }
-			return sb.toString();
-    	}
-    	String perm = perms;
-    	if(perm.length() != ClaimSettings.getDefaultValuesCode().length()) {
-    		int diff = ClaimSettings.getDefaultValuesCode().length() - perm.length();
-    		StringBuilder permCompleted = new StringBuilder(perm);
-    		for (int i = 0; i < diff; i++) {
-    		    permCompleted.append(ClaimSettings.getDefaultValuesCode().charAt(ClaimSettings.getDefaultValuesCode().length()+i-1));
-    		}
-    		String permFinal = permCompleted.toString();
-			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-				String updateQuery = "UPDATE scs_claims SET Permissions = ? WHERE id_pk = ?";
-	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	            	preparedStatement.setString(1, permFinal);
-	            	preparedStatement.setString(2, id);
-	                preparedStatement.executeUpdate();
-	            }
-	            
-	        } catch (SQLException e) {
-	            e.printStackTrace();
-	        }
-			return permFinal;
-    	}
-    	return perms;
-    }
-    
     // Method to load claims
-    private void loadClaims() {
+    private static void loadClaims() {
     	
     	if(!ClaimSettings.getBooleanSetting("database")) {
         	File playerDataFolder = new File(plugin.getDataFolder(), "claims");
@@ -584,7 +536,66 @@ public class ClaimMain {
         	sb.append("0");
         }
         ClaimSettings.setDefaultValuesCode(sb.toString());
-    	
+        
+        // Checking perms (for update or new features)
+        try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
+            connection.setAutoCommit(false); // Start transaction
+            String insertQuery = "UPDATE scs_claims SET Permissions = ? WHERE id_pk = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
+                String getQuery = "SELECT * FROM scs_claims";
+                try (PreparedStatement stat = connection.prepareStatement(getQuery);
+                    ResultSet resultSet = stat.executeQuery()) {
+
+                    int batchCount = 0;
+
+                    while (resultSet.next()) {
+                        String perms = resultSet.getString("Permissions");
+                        int id = resultSet.getInt("id_pk");
+                        if (perms.contains(":") || perms.contains(";")) {
+                            Map<String, Boolean> settings = new HashMap<>();
+                            String[] parts = perms.split(";");
+                            for (String keys : parts) {
+                                String[] values = keys.split(":");
+                                settings.put(values[0], Boolean.parseBoolean(values[1]));
+                            }
+                            sb = new StringBuilder();
+                            for (String perm_key : ClaimSettings.getDefaultValues().keySet()) {
+                                sb.append(settings.getOrDefault(perm_key, false) ? "1" : "0");
+                            }
+                            preparedStatement.setString(1, sb.toString());
+                            preparedStatement.setInt(2, id);
+                            preparedStatement.addBatch();
+                            batchCount++;
+                        } else {
+                            String perm = perms;
+                            if (perm.length() != ClaimSettings.getDefaultValuesCode().length()) {
+                                int diff = ClaimSettings.getDefaultValuesCode().length() - perm.length();
+                                StringBuilder permCompleted = new StringBuilder(perm);
+                                for (int i = 0; i < diff; i++) {
+                                    permCompleted.append(ClaimSettings.getDefaultValuesCode().charAt(perm.length() + i));
+                                }
+                                String permFinal = permCompleted.toString();
+                                preparedStatement.setString(1, permFinal);
+                                preparedStatement.setInt(2, id);
+                                preparedStatement.addBatch();
+                                batchCount++;
+                            }
+                        }
+                    }
+
+                    if (batchCount > 0) {
+                        preparedStatement.executeBatch();
+                        connection.commit(); // Commit transaction
+                    }
+                }
+            } catch (SQLException e) {
+                connection.rollback(); // Rollback transaction in case of error
+                e.printStackTrace();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        
 		int i = 0;
 		int max_i = 0;
 		try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -593,7 +604,7 @@ public class ClaimMain {
 		        try (ResultSet resultSet = preparedStatement.executeQuery()) {
 		            while (resultSet.next()) {
 		            	max_i++;
-		            	String permissions = checkClaimSectionDB(resultSet.getString("Permissions"),resultSet.getString("id_pk"));
+		            	String permissions = resultSet.getString("Permissions");
 		            	String id = resultSet.getString("id");
 		            	String owner = resultSet.getString("name");
 		            	String name = resultSet.getString("claim_name");
