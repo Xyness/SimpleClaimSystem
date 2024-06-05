@@ -19,7 +19,6 @@ import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
-import fr.xyness.SCS.Commands.ClaimCommand;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Guis.*;
@@ -30,12 +29,7 @@ import org.bukkit.boss.BossBar;
 
 public class ClaimEventsEnterLeave implements Listener {
 	
-	private JavaPlugin plugin;
 	private static Map<Player,BossBar> bossBars = new HashMap<>();
-	
-	public ClaimEventsEnterLeave(JavaPlugin plugin) {
-		this.plugin = plugin;
-	}
 	
 	public static void setBossBarColor(BarColor color){
 		for(BossBar b : bossBars.values()) {
@@ -45,18 +39,18 @@ public class ClaimEventsEnterLeave implements Listener {
 	
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
-		if(!ClaimSettings.getBooleanSetting("bossbar")) return;
 		Player player = event.getPlayer();
+		CPlayerMain.addPlayerPermSetting(player);
 		if(player.hasPermission("scs.admin")) {
 			if(SimpleClaimSystem.isUpdateAvailable()) {
 				player.sendMessage(SimpleClaimSystem.getUpdateMessage());
 			}
 		}
+		if(!ClaimSettings.getBooleanSetting("bossbar")) return;
 		BossBar b = Bukkit.getServer().createBossBar("", BarColor.valueOf(ClaimSettings.getSetting("bossbar-color")), BarStyle.SOLID);
 		bossBars.put(player, b);
 		b.setVisible(false);
 		b.addPlayer(player);
-		CPlayerMain.addPlayerPermSetting(player);
 		if(ClaimMain.checkIfClaimExists(player.getLocation().getChunk())){
 			String owner = ClaimMain.getOwnerInClaim(player.getLocation().getChunk());
         	if(owner.equals("admin")) {
@@ -83,43 +77,21 @@ public class ClaimEventsEnterLeave implements Listener {
 	
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
-		if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
-    			Player player = event.getPlayer();
-    			if(bossBars.containsKey(player)) bossBars.remove(player);
-    			ClaimGui.removeChunk(player);
-    			ClaimListGui.removeClaimsChunk(player);
-    			ClaimListGui.removeClaimsLoc(player);
-    			ClaimListGui.removeLastChunk(player);
-    			ClaimMembersGui.removeChunk(player);
-    			ClaimMembersGui.removeClaimsLoc(player);
-    			ClaimsGui.removeClaimsChunk(player);
-    			ClaimsGui.removeClaimsLoc(player);
-    			ClaimsGui.removePlayerFilter(player);
-    			AdminClaimGui.removeChunk(player);
-    			AdminClaimListGui.removeClaimsChunk(player);
-    			AdminClaimListGui.removeClaimsLoc(player);
-    			AdminClaimListGui.removeLastChunk(player);
-    		});
-		} else {
-			Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
-    			Player player = event.getPlayer();
-    			if(bossBars.containsKey(player)) bossBars.remove(player);
-    			ClaimGui.removeChunk(player);
-    			ClaimListGui.removeClaimsChunk(player);
-    			ClaimListGui.removeClaimsLoc(player);
-    			ClaimListGui.removeLastChunk(player);
-    			ClaimMembersGui.removeChunk(player);
-    			ClaimMembersGui.removeClaimsLoc(player);
-    			ClaimsGui.removeClaimsChunk(player);
-    			ClaimsGui.removeClaimsLoc(player);
-    			ClaimsGui.removePlayerFilter(player);
-    			AdminClaimGui.removeChunk(player);
-    			AdminClaimListGui.removeClaimsChunk(player);
-    			AdminClaimListGui.removeClaimsLoc(player);
-    			AdminClaimListGui.removeLastChunk(player);
-			});
-		}
+		Player player = event.getPlayer();
+		if(bossBars.containsKey(player)) bossBars.remove(player);
+		ClaimGui.removeChunk(player);
+		ClaimListGui.removeClaimsChunk(player);
+		ClaimListGui.removeClaimsLoc(player);
+		ClaimListGui.removeLastChunk(player);
+		ClaimMembersGui.removeChunk(player);
+		ClaimMembersGui.removeClaimsLoc(player);
+		ClaimsGui.removeClaimsChunk(player);
+		ClaimsGui.removeClaimsLoc(player);
+		ClaimsGui.removePlayerFilter(player);
+		AdminClaimGui.removeChunk(player);
+		AdminClaimListGui.removeClaimsChunk(player);
+		AdminClaimListGui.removeClaimsLoc(player);
+		AdminClaimListGui.removeLastChunk(player);
 	}
 	
 	@EventHandler

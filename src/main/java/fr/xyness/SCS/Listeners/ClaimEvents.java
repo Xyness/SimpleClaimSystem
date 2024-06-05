@@ -34,9 +34,11 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.ClickType;
@@ -1241,6 +1243,34 @@ public class ClaimEvents implements Listener {
         }
     }
 	
+    @EventHandler
+    public void onEntityChangeBlock(EntityChangeBlockEvent event) {
+        if (event.getEntityType() == EntityType.WITHER || event.getEntityType() == EntityType.WITHER_SKULL) {
+            Block block = event.getBlock();
+            if (ClaimMain.checkIfClaimExists(block.getLocation().getChunk()) && !ClaimMain.canPermCheck(block.getLocation().getChunk(), "Explosions")) {
+            	event.setCancelled(true);
+            }
+        }
+    }
+
+    @EventHandler
+    public void onProjectileHit(ProjectileHitEvent event) {
+        if (event.getEntityType() == EntityType.WITHER_SKULL) {
+            if (event.getHitBlock() != null) {
+            	Block block = event.getHitBlock();
+                if (ClaimMain.checkIfClaimExists(block.getLocation().getChunk()) && !ClaimMain.canPermCheck(block.getLocation().getChunk(), "Explosions")) {
+                	event.setCancelled(true);
+                }
+            }
+            if (event.getHitEntity() != null) {
+        		Chunk chunk = event.getHitEntity().getLocation().getChunk();
+        		if(ClaimMain.checkIfClaimExists(chunk) && !ClaimMain.canPermCheck(chunk, "Explosions")) {
+        			event.setCancelled(true);
+        		}
+            }
+        }
+    }
+	
 	@EventHandler
 	public void onPlayerBreak(BlockBreakEvent event){
 		if(event.isCancelled()) return;
@@ -1455,6 +1485,11 @@ public class ClaimEvents implements Listener {
                 	Player player = (Player) event.getRemover();
                 	if(player.hasPermission("scs.bypass")) return;
                 	if(ClaimMain.checkMembre(chunk, player)) return;
+                	if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
+                		event.setCancelled(true);
+                		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+                		return;
+                	}
                 	if(!ClaimMain.canPermCheck(chunk, "Paintings")) {
                 		event.setCancelled(true);
                 		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("paintings"));
@@ -1469,6 +1504,11 @@ public class ClaimEvents implements Listener {
                 	Player player = (Player) event.getRemover();
                 	if(player.hasPermission("scs.bypass")) return;
                 	if(ClaimMain.checkMembre(chunk, player)) return;
+                	if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
+                		event.setCancelled(true);
+                		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+                		return;
+                	}
                 	if(!ClaimMain.canPermCheck(chunk, "Itemframes")) {
                 		event.setCancelled(true);
                 		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("itemframes"));

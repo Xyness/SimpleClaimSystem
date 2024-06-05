@@ -8,38 +8,28 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
-import java.sql.DriverManager;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.boss.BarColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.EntityType;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dynmap.DynmapAPI;
 import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
-import org.jetbrains.annotations.NotNull;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -50,7 +40,6 @@ import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Listeners.*;
 import fr.xyness.SCS.Support.*;
-import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 
 public class SimpleClaimSystem extends JavaPlugin {
 	
@@ -64,7 +53,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	static ClaimEventsEnterLeave claimEventsEL;
 	static CPlayerMain playerMain;
 	static ClaimDynmap claimDynmap;
-	static String Version = "1.9-Beta2";
+	static String Version = "1.9";
 	public static HikariDataSource dataSource;
 	private static final boolean isFolia = Bukkit.getVersion().contains("Folia");
 	private static boolean isUpdateAvailable;
@@ -366,9 +355,6 @@ public class SimpleClaimSystem extends JavaPlugin {
                             "SalePrice DOUBLE DEFAULT 0, " +
                             "Bans VARCHAR(1020) DEFAULT '')";
                     stmt.executeUpdate(sql);
-                    sql = "ALTER TABLE scs_claims\r\n"
-                    		+ "MODIFY COLUMN id_pk INTEGER PRIMARY KEY AUTOINCREMENT;";
-                    stmt.executeUpdate(sql);
         		} catch (SQLException e) {
             		Bukkit.getServer().getConsoleSender().sendMessage("§c✗ Error creating tables, disabling plugin.");
             		configC = "false";
@@ -485,7 +471,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         CPlayerMain.setPlayersConfigSettings(playersSettings);
         
         // Register listener of enter/leave claim
-        claimEventsEL = new ClaimEventsEnterLeave(plugin);
+        claimEventsEL = new ClaimEventsEnterLeave();
         plugin.getServer().getPluginManager().registerEvents(claimEventsEL, plugin);
         
         // Add of enabled/disabled settings
