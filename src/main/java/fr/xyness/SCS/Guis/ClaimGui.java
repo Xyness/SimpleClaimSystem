@@ -207,7 +207,7 @@ public class ClaimGui implements InventoryHolder {
             meta.setBasePotionData(new PotionData(PotionType.INVISIBILITY));
 
             // Masquer les attributs comme la défense d'armure
-            meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+            meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
             item.setItemMeta(meta);
@@ -223,10 +223,10 @@ public class ClaimGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(ClaimLanguage.getMessage("next-page-title").replaceAll("%page%", String.valueOf(page)));
             meta.setLore(getLore(ClaimLanguage.getMessage("next-page-lore").replaceAll("%page%", String.valueOf(page))));
-            meta.setBasePotionData(new PotionData(PotionType.JUMP));
+            meta.setBasePotionData(new PotionData(PotionType.LEAPING));
 
             // Masquer les attributs comme la défense d'armure
-            meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+            meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
             item.setItemMeta(meta);

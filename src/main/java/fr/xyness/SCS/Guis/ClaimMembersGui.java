@@ -269,7 +269,7 @@ public class ClaimMembersGui implements InventoryHolder {
             meta.setLore(getLore(ClaimLanguage.getMessage("previous-page-lore").replaceAll("%page%", String.valueOf(page))));
 
             // Masquer les attributs comme la défense d'armure
-            meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+            meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
             item.setItemMeta(meta);
@@ -305,7 +305,7 @@ public class ClaimMembersGui implements InventoryHolder {
             meta.setLore(getLore(ClaimLanguage.getMessage("previous-page-settings-lore")));
 
             // Masquer les attributs comme la défense d'armure
-            meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+            meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
             item.setItemMeta(meta);
@@ -341,7 +341,7 @@ public class ClaimMembersGui implements InventoryHolder {
             meta.setLore(getLore(ClaimLanguage.getMessage("next-page-lore").replaceAll("%page%", String.valueOf(page))));
 
             // Masquer les attributs comme la défense d'armure
-            meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+            meta.addItemFlags(ItemFlag.HIDE_ADDITIONAL_TOOLTIP);
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
 
             item.setItemMeta(meta);

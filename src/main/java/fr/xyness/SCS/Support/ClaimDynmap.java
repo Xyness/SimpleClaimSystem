@@ -1,5 +1,6 @@
 package fr.xyness.SCS.Support;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.dynmap.DynmapAPI;
@@ -15,7 +16,6 @@ public class ClaimDynmap {
     private static DynmapAPI dynmapAPI;
     private static MarkerAPI markerAPI;
     private static MarkerSet markerSet;
-    private static String template_name = ClaimSettings.getSetting("dynmap-hover-text");
     
     public ClaimDynmap(DynmapAPI d, MarkerAPI m, MarkerSet m2) {
     	this.dynmapAPI = d;
@@ -49,11 +49,13 @@ public class ClaimDynmap {
 		String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 		AreaMarker marker = markerSet.findAreaMarker(markerId);
 	    if (marker != null) {
-	    	String t = template_name;
+	    	String t = ClaimSettings.getSetting("dynmap-hover-text");
 	    	t = t.replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
 	    	t = t.replaceAll("%owner%", ClaimMain.getOwnerInClaim(chunk));
 	        marker.setLabel(t);
+	        Bukkit.getConsoleSender().sendMessage(t);
 	    }
+	    Bukkit.getConsoleSender().sendMessage("lancé");
 	}
 	
 	public static void deleteMarker(Chunk chunk) {
