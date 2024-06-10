@@ -34,6 +34,8 @@ import org.dynmap.markers.MarkerSet;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import de.bluecolored.bluemap.api.BlueMapAPI;
+
 import fr.xyness.SCS.Commands.*;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
@@ -53,7 +55,8 @@ public class SimpleClaimSystem extends JavaPlugin {
 	static ClaimEventsEnterLeave claimEventsEL;
 	static CPlayerMain playerMain;
 	static ClaimDynmap claimDynmap;
-	static String Version = "1.9";
+	static ClaimBluemap claimBluemap;
+	static String Version = "1.9#2";
 	public static HikariDataSource dataSource;
 	private static final boolean isFolia = Bukkit.getVersion().contains("Folia");
 	private static boolean isUpdateAvailable;
@@ -184,6 +187,18 @@ public class SimpleClaimSystem extends JavaPlugin {
                 	claimDynmap = new ClaimDynmap(dynmapAPI,markerAPI,markerSet);
                 }
         	}
+        } else {
+        	ClaimSettings.addSetting("dynmap", "false");
+        }
+        
+        // Checking Bluemap
+        Plugin bluemap = Bukkit.getPluginManager().getPlugin("bluemap");
+        if(bluemap != null) {
+        	ClaimSettings.addSetting("bluemap", "true");
+	        BlueMapAPI.onEnable(api -> {
+	            // Register marker set
+	        	claimBluemap = new ClaimBluemap(api,plugin);
+	        });
         } else {
         	ClaimSettings.addSetting("dynmap", "false");
         }
@@ -374,6 +389,14 @@ public class SimpleClaimSystem extends JavaPlugin {
         configC = plugin.getConfig().getString("dynmap-hover-text");
         ClaimSettings.addSetting("dynmap-hover-text", configC);
         
+        // Add Bluemap settings
+        configC = plugin.getConfig().getString("bluemap-claim-border-color");
+        ClaimSettings.addSetting("bluemap-claim-border-color", configC);
+        configC = plugin.getConfig().getString("bluemap-claim-fill-color");
+        ClaimSettings.addSetting("bluemap-claim-fill-color", configC);
+        configC = plugin.getConfig().getString("bluemap-hover-text");
+        ClaimSettings.addSetting("bluemap-hover-text", configC);
+        
         // Add disabled worlds
         Set<String> worlds = new HashSet<>(plugin.getConfig().getStringList("worlds-disabled"));
         ClaimSettings.setDisabledWorlds(worlds);
@@ -397,6 +420,10 @@ public class SimpleClaimSystem extends JavaPlugin {
         // Checking if enter/leave messages in a claim in the title/subtitle are enabled
         configC = plugin.getConfig().getString("enter-leave-title-messages");
         ClaimSettings.addSetting("enter-leave-title-messages", configC);
+        
+        // Checking if enter/leave messages in a claim in the chat are enabled
+        configC = plugin.getConfig().getString("enter-leave-chat-messages");
+        ClaimSettings.addSetting("enter-leave-chat-messages", configC);
         
         // Checking if claims where Visitors is false are displayed in the /claims gui
         configC = plugin.getConfig().getString("claims-visitors-off-visible");

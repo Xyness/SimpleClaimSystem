@@ -13,16 +13,35 @@ import fr.xyness.SCS.Config.ClaimSettings;
 
 public class ClaimDynmap {
 	
+	
+	// ***************
+	// *  Variables  *
+	// ***************
+	
+	
     private static DynmapAPI dynmapAPI;
     private static MarkerAPI markerAPI;
     private static MarkerSet markerSet;
+    
+    
+	// ******************
+	// *  Constructors  *
+	// ******************
+    
     
     public ClaimDynmap(DynmapAPI d, MarkerAPI m, MarkerSet m2) {
     	this.dynmapAPI = d;
     	this.markerAPI = m;
     	this.markerSet = m2;
     }
+    
+    
+	// ********************
+	// *  Others Methods  *
+	// ********************
+    
 
+    // Method to create the chunk area on the dynmap
 	public static void createChunkZone(Chunk chunk, String name, String owner) {
 		String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 	    AreaMarker existingMarker = markerSet.findAreaMarker(markerId);
@@ -32,9 +51,12 @@ public class ClaimDynmap {
 	    int z = chunk.getZ() * 16;
 	    double[] xCorners = {x, x + 16, x + 16, x};
 	    double[] zCorners = {z, z, z + 16, z + 16};
+    	String t = ClaimSettings.getSetting("dynmap-hover-text");
+    	t = t.replaceAll("%claim-name%", name);
+    	t = t.replaceAll("%owner%", owner);
 	    AreaMarker marker = markerSet.createAreaMarker(
 	        markerId,
-	        name + " - Owner: " + owner,
+	        t,
 	        false,
 	        world.getName(),
 	        xCorners,
@@ -45,6 +67,7 @@ public class ClaimDynmap {
 	    marker.setFillStyle(0.5, Integer.parseInt(ClaimSettings.getSetting("dynmap-claim-fill-color"), 16));
 	}
 	
+	// Method to update the tooltip name of the given chunk on the dynmap
 	public static void updateName(Chunk chunk) {
 		String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 		AreaMarker marker = markerSet.findAreaMarker(markerId);
@@ -53,11 +76,10 @@ public class ClaimDynmap {
 	    	t = t.replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
 	    	t = t.replaceAll("%owner%", ClaimMain.getOwnerInClaim(chunk));
 	        marker.setLabel(t);
-	        Bukkit.getConsoleSender().sendMessage(t);
 	    }
-	    Bukkit.getConsoleSender().sendMessage("lancé");
 	}
 	
+	// Method to delete a chunk area from the dynmap
 	public static void deleteMarker(Chunk chunk) {
 		String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 	    AreaMarker marker = markerSet.findAreaMarker(markerId);

@@ -11,9 +11,22 @@ import org.bukkit.entity.Player;
 
 public class ClaimWorldGuard {
 	
+	
+	// ***************
+	// *  Variables  *
+	// ***************
+	
+	
 	public static boolean registered = false;
 	public static final StateFlag SCS_CLAIM_FLAG = new StateFlag("scs-claim", true);
 	
+	
+	// ********************
+	// *  Others Methods  *
+	// ********************
+	
+	
+	// Method to register the flag "scs-claim"
 	public static void registerCustomFlag() {
 		if(!registered) {
 			FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
@@ -22,11 +35,13 @@ public class ClaimWorldGuard {
 		}
 	}
     
+	// Method to check if the flag "scs-claim" is enable/disable in a region
     public static boolean checkClaimFlagInRegion(ProtectedRegion region) {
         StateFlag.State flagValue = region.getFlag(SCS_CLAIM_FLAG);
         return flagValue == StateFlag.State.ALLOW;
     }
     
+    // Method to check if the flag "scs-claim" is enable/disable at the player's location
     public static boolean checkFlagClaim(Player player) {
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
         RegionQuery query = container.createQuery();

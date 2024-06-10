@@ -20,6 +20,11 @@ dynmap-claim-border-color: FF0000
 dynmap-claim-fill-color: 00FF00
 dynmap-hover-text: "%claim-name% - Owner: %owner%"
 
+# Bluemap support
+bluemap-claim-border-color: 80FF0000
+bluemap-claim-fill-color: 8033CC33
+bluemap-hover-text: "%claim-name% - Owner: %owner%"
+
 # Worlds where claims are disabled
 worlds-disabled:
 - example_world
@@ -38,6 +43,9 @@ enter-leave-messages: true
 
 # Enable/Disable the enter/leave message in the title and subtitle
 enter-leave-title-messages: true
+
+# Enable/Disable the enter/leave message in the chat
+enter-leave-chat-messages: true
 
 # Should claims with the Visitors setting disabled be displayed in /claims?
 claims-visitors-off-visible: true

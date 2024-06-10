@@ -1,5 +1,6 @@
 package fr.xyness.SCS;
 
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Set;
@@ -36,14 +37,14 @@ public class Claim {
 	public Claim(Chunk chunk, String owner, Set<String> members, Location location, String name, String description, LinkedHashMap<String, Boolean> permissions, boolean sale, Double price, Set<String> bans) {
 		this.chunk = chunk;
 		this.owner = owner;
-		this.members = members;
+		this.members = new HashSet<>(members);
 		this.location = location;
 		this.name = name;
 		this.description = description;
-		this.permissions = permissions;
+		this.permissions = new LinkedHashMap<>(permissions);
 		this.sale = sale;
 		this.price = price;
-		this.bans = bans;
+		this.bans = new HashSet<>(bans);
 	}
     
     

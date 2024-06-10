@@ -15,13 +15,33 @@ import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.Config.ClaimLanguage;
 
 public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
+	
+	
+	// ***************
+	// *  Variables  *
+	// ***************
+	
+	
     private static ClaimPlaceholdersExpansion instance;
 
+    
+	// ******************
+	// *  Constructors  *
+	// ******************
+    
+    
+    // Main constructor
     public ClaimPlaceholdersExpansion() {
         instance = this;
     }
     
-    // Méthode pour obtenir l'instance
+    
+	// ********************
+	// *  Others Methods  *
+	// ********************
+    
+    
+    // Method to get the instance
     public static ClaimPlaceholdersExpansion getExpansionInstance() {
         return instance;
     }

@@ -29,14 +29,21 @@ import org.bukkit.boss.BossBar;
 
 public class ClaimEventsEnterLeave implements Listener {
 	
+	
+	// ***************
+	// *  Variables  *
+	// ***************
+	
+	
 	private static Map<Player,BossBar> bossBars = new HashMap<>();
 	
-	public static void setBossBarColor(BarColor color){
-		for(BossBar b : bossBars.values()) {
-			b.setColor(color);
-		}
-	}
 	
+	// ******************
+	// *  EventHandler  *
+	// ******************
+	
+	
+	// Register the player and update his bossbar
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event) {
 		Player player = event.getPlayer();
@@ -75,6 +82,7 @@ public class ClaimEventsEnterLeave implements Listener {
 		}
 	}
 	
+	// Delete the player's bossbar and clear his data
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
@@ -84,7 +92,7 @@ public class ClaimEventsEnterLeave implements Listener {
 		ClaimListGui.removeClaimsLoc(player);
 		ClaimListGui.removeLastChunk(player);
 		ClaimMembersGui.removeChunk(player);
-		ClaimMembersGui.removeClaimsLoc(player);
+		ClaimMembersGui.removeClaimMember(player);
 		ClaimsGui.removeClaimsChunk(player);
 		ClaimsGui.removeClaimsLoc(player);
 		ClaimsGui.removePlayerFilter(player);
@@ -94,6 +102,7 @@ public class ClaimEventsEnterLeave implements Listener {
 		AdminClaimListGui.removeLastChunk(player);
 	}
 	
+	// Update his bossbar and send enabled messages on teleport
 	@EventHandler
 	public void onPlayerTeleport(PlayerTeleportEvent event) {
     	Chunk to = event.getTo().getChunk();
@@ -127,18 +136,19 @@ public class ClaimEventsEnterLeave implements Listener {
     	
 	}
 	
+	// Update his bossbar and send enabled messages on respawn
 	@EventHandler
 	public void onPlayerRespawn(PlayerRespawnEvent event) {
 		Player player = event.getPlayer();
 		Chunk to = event.getRespawnLocation().getChunk();
     	String ownerTO = ClaimMain.getOwnerInClaim(to);
-    	if(ClaimSettings.getBooleanSetting("enter-leave-messages")) enterleaveMessages(player,to,to,ownerTO,ownerTO);
     	if(ClaimSettings.getBooleanSetting("bossbar")) bossbarMessages(player,to,ownerTO);
     	CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
     	if(cPlayer.getClaimAutoclaim()) ClaimMain.createClaim(player, to);
     	if(cPlayer.getClaimAutomap()) ClaimMain.getMap(player,to);
 	}
 	
+	// Update his bossbar and send enabled messages on changing chunk
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
         if (hasChangedChunk(event)) {
@@ -158,10 +168,47 @@ public class ClaimEventsEnterLeave implements Listener {
         	if(cPlayer.getClaimAutomap()) ClaimMain.getMap(player,to);
         	if(ownerTO.equals(ownerFROM)) return;
         	if(ClaimSettings.getBooleanSetting("enter-leave-messages")) enterleaveMessages(player,to,from,ownerTO,ownerFROM);
+        	if(ClaimSettings.getBooleanSetting("enter-leave-chat-messages")) enterleaveChatMessages(player,to,from,ownerTO,ownerFROM);
         	if(ClaimSettings.getBooleanSetting("enter-leave-title-messages")) enterleavetitleMessages(player,to,from,ownerTO,ownerFROM);
         }
     }
     
+    
+	// ********************
+	// *  Others Methods  *
+	// ********************
+    
+    
+	// Update the color of all bossbars
+	public static void setBossBarColor(BarColor color){
+		for(BossBar b : bossBars.values()) {
+			b.setColor(color);
+		}
+	}
+	
+	// Send the claim enter message to the player (chat)
+    private void enterleaveChatMessages(Player player, Chunk to, Chunk from, String ownerTO, String ownerFROM) {
+    	if(ClaimMain.checkIfClaimExists(to)) {
+        	if(ownerTO.equals("admin")) {
+        		player.sendMessage(ClaimLanguage.getMessage("enter-protected-area-chat").replaceAll("%name%", ClaimMain.getClaimNameByChunk(to)));
+            	return;
+        	}
+        	String message = ClaimLanguage.getMessage("enter-territory-chat").replaceAll("%owner%", ownerTO).replaceAll("%player%", player.getName()).replaceAll("%name%", ClaimMain.getClaimNameByChunk(to));
+        	player.sendMessage(message);
+        	return;
+        }
+        if(ClaimMain.checkIfClaimExists(from)) {
+        	if(ownerFROM.equals("admin")) {
+        		player.sendMessage(ClaimLanguage.getMessage("leave-protected-area-chat").replaceAll("%name%", ClaimMain.getClaimNameByChunk(from)));
+            	return;
+        	}
+        	String message = ClaimLanguage.getMessage("leave-territory-chat").replaceAll("%owner%", ownerFROM).replaceAll("%player%", player.getName()).replaceAll("%name%", ClaimMain.getClaimNameByChunk(from));
+        	player.sendMessage(message);
+        	return;
+        }
+    }
+    
+    // Send the claim enter message to the player (action bar)
     private void enterleaveMessages(Player player, Chunk to, Chunk from, String ownerTO, String ownerFROM) {
     	if(ClaimMain.checkIfClaimExists(to)) {
         	if(ownerTO.equals("admin")) {
@@ -183,6 +230,7 @@ public class ClaimEventsEnterLeave implements Listener {
         }
     }
     
+    // Send the claim enter message to the player (title)
     private void enterleavetitleMessages(Player player, Chunk to, Chunk from, String ownerTO, String ownerFROM) {
     	if(ClaimMain.checkIfClaimExists(to)) {
         	if(ownerTO.equals("admin")) {
@@ -202,6 +250,7 @@ public class ClaimEventsEnterLeave implements Listener {
         }
     }
     
+    // Method to check if the player has a bossbar
     public static BossBar checkBossBar(Player player) {
 		BossBar b;
 		if(bossBars.containsKey(player)) {
@@ -214,6 +263,7 @@ public class ClaimEventsEnterLeave implements Listener {
 		return b;
     }
     
+    // Update the bossbar message
     public static void bossbarMessages(Player player, Chunk to, String ownerTO) {
     	if(!ClaimSettings.getBooleanSetting("bossbar")) return;
     	if(ClaimMain.checkIfClaimExists(to)) {
@@ -242,6 +292,7 @@ public class ClaimEventsEnterLeave implements Listener {
     	return;
     }
 
+    // Check if the player has changed chunk
     private boolean hasChangedChunk(PlayerMoveEvent event) {
         int fromChunkX = event.getFrom().getChunk().getX();
         int fromChunkZ = event.getFrom().getChunk().getZ();
@@ -250,6 +301,7 @@ public class ClaimEventsEnterLeave implements Listener {
         return fromChunkX != toChunkX || fromChunkZ != toChunkZ;
     }
     
+    // Method to active the bossbar of a player
     public static void activeBossBar(Player player, Chunk chunk) {
     	if(!ClaimSettings.getBooleanSetting("bossbar")) return;
     	if(player == null) return;
@@ -278,6 +330,7 @@ public class ClaimEventsEnterLeave implements Listener {
         }
     }
     
+    // Method to disable the bossbar of a player
     public static void disableBossBar(Player player) {
     	if(!ClaimSettings.getBooleanSetting("bossbar")) return;
     	if(player == null) return;
