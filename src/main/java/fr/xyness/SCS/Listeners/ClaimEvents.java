@@ -64,6 +64,13 @@ import fr.xyness.SCS.Guis.*;
 
 public class ClaimEvents implements Listener {
 	
+	
+	// ******************
+	// *  EventHandler  *
+	// ******************
+	
+	
+	// Check for claim chat
 	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
@@ -80,6 +87,7 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
+	// Gui event
 	@EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
     	Player player = (Player) event.getWhoClicked();
@@ -1193,6 +1201,7 @@ public class ClaimEvents implements Listener {
         }
 	}
 	
+	// PvP setting
     @EventHandler
     public void onPlayerHit(EntityDamageByEntityEvent event) {
     	if(event.isCancelled()) return;
@@ -1219,6 +1228,7 @@ public class ClaimEvents implements Listener {
         return;
     }
     
+    // Monsters setting
     @EventHandler
     public void onCreatureSpawn(CreatureSpawnEvent event) {
 		Chunk chunk = event.getLocation().getChunk();
@@ -1232,6 +1242,7 @@ public class ClaimEvents implements Listener {
 		}
     }
 	
+    // Explosions setting
 	@EventHandler
     public void onEntityExplode(EntityExplodeEvent event) {
         Iterator<Block> blockIterator = event.blockList().iterator();
@@ -1243,6 +1254,7 @@ public class ClaimEvents implements Listener {
         }
     }
 	
+	// Explosions setting
     @EventHandler
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
         if (event.getEntityType() == EntityType.WITHER || event.getEntityType() == EntityType.WITHER_SKULL) {
@@ -1253,6 +1265,7 @@ public class ClaimEvents implements Listener {
         }
     }
 
+    // Explosions setting
     @EventHandler
     public void onProjectileHit(ProjectileHitEvent event) {
         if (event.getEntityType() == EntityType.WITHER_SKULL) {
@@ -1271,6 +1284,7 @@ public class ClaimEvents implements Listener {
         }
     }
 	
+    // Destroy setting
 	@EventHandler
 	public void onPlayerBreak(BlockBreakEvent event){
 		if(event.isCancelled()) return;
@@ -1286,6 +1300,7 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
+	// Build setting
 	@EventHandler
 	public void onPlayerPlace(BlockPlaceEvent event){
 		if(event.isCancelled()) return;
@@ -1301,6 +1316,7 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
+	// Build setting
 	@EventHandler
 	public void onHangingPlace(HangingPlaceEvent event) {
 		if(event.isCancelled()) return;
@@ -1316,6 +1332,7 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
+	// Build setting
 	@EventHandler
     public void onBucketUse(PlayerBucketEmptyEvent event) {
 		if(event.isCancelled()) return;
@@ -1331,6 +1348,7 @@ public class ClaimEvents implements Listener {
 		}
     }
 	
+	// Build setting
 	@EventHandler
 	public void onEntityPlace(EntityPlaceEvent event) {
 		if(event.isCancelled()) return;
@@ -1346,6 +1364,7 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
+	// Buttons, trapdoors, doors, fencegates, levers, repeaters/comparators, bells, containers, tripwires, items and pressure plates settings
 	@EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
 		Player player = event.getPlayer();
@@ -1442,6 +1461,7 @@ public class ClaimEvents implements Listener {
 		}
     }
 	
+	// Armorstands setting
 	@EventHandler
     public void onPlayerInteractEntity(PlayerInteractAtEntityEvent event) {
         if (event.getRightClicked() instanceof ArmorStand) {
@@ -1459,6 +1479,7 @@ public class ClaimEvents implements Listener {
         }
     }
 	
+	// Itemframes setting
 	@EventHandler
     public void onPlayerInteractEntity2(PlayerInteractEntityEvent event) {
         if (event.getRightClicked().getType() == EntityType.ITEM_FRAME || event.getRightClicked().getType() == EntityType.GLOW_ITEM_FRAME) {
@@ -1476,6 +1497,7 @@ public class ClaimEvents implements Listener {
         }
     }
 	
+	// Destroy and paintings settings
 	@EventHandler
     public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
         if (event.getEntity().getType() == EntityType.PAINTING) {
@@ -1518,12 +1540,7 @@ public class ClaimEvents implements Listener {
         }
     }
 	
-	
-	// *****************************
-	// *   PROTECTION DES CLAIMS   *
-	// *****************************
-	
-	
+	// Liquids setting
 	@EventHandler
     public void onLiquidFlow(BlockFromToEvent event) {
     	Block block = event.getBlock();
@@ -1538,6 +1555,7 @@ public class ClaimEvents implements Listener {
     	}
     }
     
+	// Redstone setting
 	@EventHandler
     public void onDispense(BlockDispenseEvent event) {
     	Block block = event.getBlock();
@@ -1551,6 +1569,7 @@ public class ClaimEvents implements Listener {
     	}
     }
     
+	// Redstone setting
 	@EventHandler
     public void onPistonExtend(BlockPistonExtendEvent event) {
         Block piston = event.getBlock();
@@ -1564,6 +1583,7 @@ public class ClaimEvents implements Listener {
         }
     }
 
+	// Redstone setting
 	@EventHandler
     public void onPistonRetract(BlockPistonRetractEvent event) {
         Block piston = event.getBlock();
@@ -1576,8 +1596,86 @@ public class ClaimEvents implements Listener {
             event.setCancelled(true);
         }
     }
+    
+	// Frostwalker setting
+    @EventHandler
+    public void onFrostWalkerUse(EntityBlockFormEvent event) {
+    	Chunk chunk = event.getBlock().getLocation().getChunk();
+    	if(!ClaimMain.checkIfClaimExists(chunk)) return;
+    	if(ClaimMain.canPermCheck(chunk, "Frostwalker")) return;
+        if (event.getNewState().getType() == Material.FROSTED_ICE) {
+            Entity entity = event.getEntity();
+            if (entity instanceof Player) {
+                Player player = (Player) entity;
+                if(player.hasPermission("scs.bypass")) return;
+                ItemStack boots = player.getInventory().getBoots();
+                if (boots != null && boots.containsEnchantment(Enchantment.FROST_WALKER)) {
+                	if(ClaimMain.checkMembre(chunk, player)) return;
+                    event.setCancelled(true);
+                }
+            }
+        }
+    }
+    
+    // Firespread setting
+    @EventHandler
+    public void onBlockSpread(BlockSpreadEvent event) {
+        if (event.getNewState().getType() == Material.FIRE) {
+            Chunk chunk = event.getBlock().getLocation().getChunk();
+            if(!ClaimMain.checkIfClaimExists(chunk)) return;
+            if(ClaimMain.canPermCheck(chunk, "Firespread")) return;
+            event.setCancelled(true);
+        }
+    }
+    
+    // Firespread setting
+    @EventHandler
+    public void onBlockIgnite(BlockIgniteEvent event) {
+        Chunk chunk = event.getBlock().getLocation().getChunk();
+        if(!ClaimMain.checkIfClaimExists(chunk)) return;
+        if(ClaimMain.canPermCheck(chunk, "Firespread")) return;
+        event.setCancelled(true);
+    }
+    
+    // Firespread setting
+    @EventHandler
+    public void onBlockBurn(BlockBurnEvent event) {
+        Chunk chunk = event.getBlock().getLocation().getChunk();
+        if(!ClaimMain.checkIfClaimExists(chunk)) return;
+        if(ClaimMain.canPermCheck(chunk, "Firespread")) return;
+        event.setCancelled(true);
+    }
+    
+    // Damages setting
+    @EventHandler
+    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
+        Entity entity = event.getEntity();
+        Chunk chunk = entity.getLocation().getChunk();
 
-    // Fonction qui vérifie si les blocs qui sont affectés par le piston ne sont pas dans un chunk claim
+        if(!ClaimMain.checkIfClaimExists(chunk)) return;
+
+        if (!(entity instanceof Player)) {
+            Entity damager = event.getDamager();
+
+            if (damager instanceof Player) {
+                processDamageByPlayer((Player) damager, chunk, event);
+            } else if (damager instanceof Projectile) {
+                Projectile projectile = (Projectile) damager;
+                ProjectileSource shooter = projectile.getShooter();
+                if (shooter instanceof Player) {
+                    processDamageByPlayer((Player) shooter, chunk, event);
+                }
+            }
+        }
+    }
+    
+    
+	// ********************
+	// *  Others Methods  *
+	// ********************
+    
+
+    // Function that checks if the blocks that are affected by the piston are not in a chunk claim
     private boolean canPistonMoveBlock(List<Block> blocks, BlockFace direction, Chunk pistonChunk, boolean retractOrNot) {
     	if(retractOrNot) {
 	        for (Block block : blocks) {
@@ -1607,73 +1705,7 @@ public class ClaimEvents implements Listener {
         return true;
     }
     
-    @EventHandler
-    public void onFrostWalkerUse(EntityBlockFormEvent event) {
-    	Chunk chunk = event.getBlock().getLocation().getChunk();
-    	if(!ClaimMain.checkIfClaimExists(chunk)) return;
-    	if(ClaimMain.canPermCheck(chunk, "Frostwalker")) return;
-        if (event.getNewState().getType() == Material.FROSTED_ICE) {
-            Entity entity = event.getEntity();
-            if (entity instanceof Player) {
-                Player player = (Player) entity;
-                if(player.hasPermission("scs.bypass")) return;
-                ItemStack boots = player.getInventory().getBoots();
-                if (boots != null && boots.containsEnchantment(Enchantment.FROST_WALKER)) {
-                	if(ClaimMain.checkMembre(chunk, player)) return;
-                    event.setCancelled(true);
-                }
-            }
-        }
-    }
-    
-    @EventHandler
-    public void onBlockSpread(BlockSpreadEvent event) {
-        if (event.getNewState().getType() == Material.FIRE) {
-            Chunk chunk = event.getBlock().getLocation().getChunk();
-            if(!ClaimMain.checkIfClaimExists(chunk)) return;
-            if(ClaimMain.canPermCheck(chunk, "Firespread")) return;
-            event.setCancelled(true);
-        }
-    }
-    
-    @EventHandler
-    public void onBlockIgnite(BlockIgniteEvent event) {
-        Chunk chunk = event.getBlock().getLocation().getChunk();
-        if(!ClaimMain.checkIfClaimExists(chunk)) return;
-        if(ClaimMain.canPermCheck(chunk, "Firespread")) return;
-        event.setCancelled(true);
-    }
-    
-    @EventHandler
-    public void onBlockBurn(BlockBurnEvent event) {
-        Chunk chunk = event.getBlock().getLocation().getChunk();
-        if(!ClaimMain.checkIfClaimExists(chunk)) return;
-        if(ClaimMain.canPermCheck(chunk, "Firespread")) return;
-        event.setCancelled(true);
-    }
-    
-    @EventHandler
-    public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
-        Entity entity = event.getEntity();
-        Chunk chunk = entity.getLocation().getChunk();
-
-        if(!ClaimMain.checkIfClaimExists(chunk)) return;
-
-        if (!(entity instanceof Player)) {
-            Entity damager = event.getDamager();
-
-            if (damager instanceof Player) {
-                processDamageByPlayer((Player) damager, chunk, event);
-            } else if (damager instanceof Projectile) {
-                Projectile projectile = (Projectile) damager;
-                ProjectileSource shooter = projectile.getShooter();
-                if (shooter instanceof Player) {
-                    processDamageByPlayer((Player) shooter, chunk, event);
-                }
-            }
-        }
-    }
-
+    // Damages setting
     private void processDamageByPlayer(Player player, Chunk chunk, EntityDamageByEntityEvent event) {
         if(player.hasPermission("scs.bypass")) return;
         if(ClaimMain.checkMembre(chunk, player)) return;

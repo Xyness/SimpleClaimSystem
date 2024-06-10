@@ -36,6 +36,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Listeners.ClaimEventsEnterLeave;
+import fr.xyness.SCS.Support.ClaimBluemap;
 import fr.xyness.SCS.Support.ClaimDynmap;
 import fr.xyness.SCS.Support.ClaimVault;
 import net.md_5.bungee.api.ChatMessageType;
@@ -82,15 +83,29 @@ public class ClaimMain {
     	listClaims.clear();
     }
     
+    // Method to send action bar message to a player
     public static void sendActionBar(Player player, String message) {
     	player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
+    }
+    
+    // Method to get plugin instance (for guis)
+    public static JavaPlugin getPlugin() {
+    	return plugin;
     }
     
     
 	// ********************
 	// *  CLAIMS Methods  *
 	// ********************
-
+    
+    
+    // Get claim from chunk
+    public static Claim getClaimFromChunk(Chunk chunk) {
+    	if(listClaims.containsKey(chunk)) {
+    		return listClaims.get(chunk);
+    	}
+    	return null;
+    }
     
     // Get player's claims count from his name
     public static int getPlayerClaimsCount(String playerName) {
@@ -387,7 +402,7 @@ public class ClaimMain {
         }
     }
     
- // Method to convert claims (from flat files to database)
+    // Method to convert claims (from flat files to database)
     public static void convertClaims() {
         File playerDataFolder = new File(plugin.getDataFolder(), "claims");
         if (playerDataFolder.exists()) {
@@ -757,6 +772,7 @@ public class ClaimMain {
         }
         
         if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.createChunkZone(chunk, claim_name, playerName);
+        if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.createChunkZone(chunk, claim_name, playerName);
     	
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
@@ -2256,6 +2272,7 @@ public class ClaimMain {
     		});
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
+    			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET claim_name = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2280,6 +2297,7 @@ public class ClaimMain {
     		}
     		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
+    			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET claim_name = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2315,6 +2333,7 @@ public class ClaimMain {
     		});
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
+    			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET claim_name = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2339,6 +2358,7 @@ public class ClaimMain {
     		}
     		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
+    			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET claim_name = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2431,6 +2451,7 @@ public class ClaimMain {
         	if(claimsId.get(owner).isEmpty()) claimsId.remove(owner);
         	listClaims.remove(chunk);
         	if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
+        	if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
         	if(SimpleClaimSystem.isFolia()) {
         		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
         			for(Entity e : chunk.getEntities()) {
@@ -2502,6 +2523,7 @@ public class ClaimMain {
     		});
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
+    			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
     	    	String id = claimsId.get(owner).get(chunk);
     	    	String uuid = player.getUniqueId().toString();
     	    	if(owner.equals("admin")) uuid = "aucun";
@@ -2531,6 +2553,7 @@ public class ClaimMain {
 			}
     		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
+    			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
     	    	String id = claimsId.get(owner).get(chunk);
     	    	String uuid = player.getUniqueId().toString();
     	    	if(owner.equals("admin")) uuid = "aucun";
@@ -2568,6 +2591,7 @@ public class ClaimMain {
     	for(Chunk chunk : chunks) {
     		if(!listClaims.containsKey(chunk)) continue;
     		if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
+    		if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
         	ids.add(Integer.parseInt(claimsId.get(player.getName()).get(chunk)));
         	claimsId.get(playerName).remove(chunk);
         	if(claimsId.get(playerName).isEmpty()) claimsId.remove(playerName);
@@ -2643,6 +2667,7 @@ public class ClaimMain {
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
+    			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String deleteQuery = "DELETE FROM scs_claims WHERE id = ? AND uuid = ? AND name = ? AND X = ? AND Z = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
@@ -2660,6 +2685,8 @@ public class ClaimMain {
     		});
     	} else {
     		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
+    			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String deleteQuery = "DELETE FROM scs_claims WHERE id = ? AND uuid = ? AND name = ? AND X = ? AND Z = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
@@ -2907,6 +2934,8 @@ public class ClaimMain {
     	        members.remove(owner);
     	        claim.setMembers(members);
     	        String members_string = String.join(";", members);
+    			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
+    			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
     	        Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
     				for(Entity e : chunk.getEntities()) {
     					if(!(e instanceof Player)) continue;
@@ -2987,6 +3016,8 @@ public class ClaimMain {
     	        members.remove(owner);
     	        claim.setMembers(members);
     	        String members_string = String.join(";", members);
+    			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
+    			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
     	        Bukkit.getScheduler().runTask(plugin, stask -> {
     				for(Entity e : chunk.getEntities()) {
     					if(!(e instanceof Player)) continue;
@@ -3047,6 +3078,7 @@ public class ClaimMain {
     			int nextKey = findFreeId(playerName);
     			claim.setOwner(playerName);
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
+    			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
     			claim.setName("claim-"+String.valueOf(nextKey));
     	        Map<Chunk,String> newid = new HashMap<>();
     	        if(claimsId.get(playerName) != null) {
@@ -3114,6 +3146,7 @@ public class ClaimMain {
     			int nextKey = findFreeId(playerName);
     			claim.setOwner(playerName);
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
+    			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
     			claim.setName("claim-"+String.valueOf(nextKey));
     	        Map<Chunk,String> newid = new HashMap<>();
     	        if(claimsId.get(playerName) != null) {

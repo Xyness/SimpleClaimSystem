@@ -2,7 +2,7 @@ name: SimpleClaimSystem
 version: 1.9
 main: fr.xyness.SCS.SimpleClaimSystem
 authors: [Xyness]
-softdepend: [PlaceholderAPI, ItemsAdder, WorldGuard, Vault, dynmap]
+softdepend: [PlaceholderAPI, ItemsAdder, WorldGuard, Vault, dynmap, bluemap]
 api-version: 1.19
 folia-supported: true
 commands:

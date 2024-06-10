@@ -182,6 +182,10 @@ enter-territory-title: "§e%owner%"
 enter-territory-subtitle: "§fYou enter the territory of"
 leave-territory-title: "§e%owner%"
 leave-territory-subtitle: "§fYou leave the territory of"
+enter-protected-area-chat: "§fYou enter a §eprotected area"
+leave-protected-area-chat: "§fYou leave a §eprotected area"
+enter-territory-chat: "§fYou enter the territory of §e%owner%"
+leave-territory-chat: "§fYou leave the territory of §e%owner%"
 
 
 # > Gui messages
