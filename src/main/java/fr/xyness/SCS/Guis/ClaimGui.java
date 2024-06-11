@@ -83,157 +83,78 @@ public class ClaimGui implements InventoryHolder {
 
     // Method to initialize items for the gui
     public void initializeItems(Player player, Chunk chunk) {
-    	
-    	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(ClaimMain.getPlugin(), task -> {
-    			String default_statut_disabled = ClaimLanguage.getMessage("status-disabled");
-    	    	String default_statut_enabled = ClaimLanguage.getMessage("status-enabled");
-    	    	String default_choix_disabled = ClaimLanguage.getMessage("choice-disabled");
-    	    	String default_choix_enabled = ClaimLanguage.getMessage("choice-enabled");
-    	    	
-    	    	String statut;
-    	    	String choix;
-    	    	List<String> lore;
-    	    	String lower_name;
-    	    	String playerName = player.getName();
-    	    	
-    	    	chunks.put(player, chunk);
-    	    	Set<String> items = new HashSet<>(ClaimGuis.getItems("settings"));
-    	    	for(String key : items) {
-    	    		lower_name = key.toLowerCase();
-    	    		lore = new ArrayList<>(getLore(ClaimLanguage.getMessageWP(lower_name+"-lore",playerName)));
-    	    		if(ClaimGuis.isAPerm(key)) {
-    	    	    	statut = default_statut_disabled;
-    	    			choix = default_choix_disabled;
-    	    			if(ClaimMain.canPermCheck(chunk, key)) {
-    	    				statut = default_statut_enabled;
-    	    				choix = default_choix_enabled;
-    	    			}
-    	    			if(ClaimSettings.isEnabled(key)) {
-    	    				lore.add(choix);
-    	    			} else {
-    	    				lore.add(ClaimLanguage.getMessage("choice-setting-disabled"));
-    	    			}
-    	    			if(ClaimGuis.getItemCheckCustomModelData("settings", key)) {
-    	    				inv.setItem(ClaimGuis.getItemSlot("settings", key), createItemWMD(ClaimLanguage.getMessageWP(lower_name+"-title",playerName).replaceAll("%status%", statut),
-    	    						lore,
-    	    						ClaimGuis.getItemMaterialMD("settings", key),
-    	    						ClaimGuis.getItemCustomModelData("settings", key)));
-    	    			} else {
-    	    				inv.setItem(ClaimGuis.getItemSlot("settings", key), createItem(ClaimGuis.getItemMaterial("settings", key),
-    	    						ClaimLanguage.getMessageWP(lower_name+"-title",playerName).replaceAll("%status%", statut),
-    	    						lore));
-    	    			}
-    	    		} else {
-    	    			String title = ClaimLanguage.getMessageWP(lower_name+"-title",playerName).replaceAll("%coords%", ClaimMain.getClaimCoords(chunk)).replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk));
-    	    			if(ClaimGuis.getItemCheckCustomModelData("settings", key)) {
-    	    				inv.setItem(ClaimGuis.getItemSlot("settings", key), createItemWMD(title,
-    	    						lore,
-    	    						ClaimGuis.getItemMaterialMD("settings", key),
-    	    						ClaimGuis.getItemCustomModelData("settings", key)));
-    	    			} else {
-    	    				inv.setItem(ClaimGuis.getItemSlot("settings", key), createItem(ClaimGuis.getItemMaterial("settings", key),
-    	    						title,
-    	    						lore));
-    	    			}
-    	    		}
-    	    	}
-    	    	
-    	    	Set<String> custom_items = new HashSet<>(ClaimGuis.getCustomItems("settings"));
-    	    	for(String key : custom_items) {
-    	    		lore = new ArrayList<>(getLoreWP(ClaimGuis.getCustomItemLore("settings", key),player));
-    	    		String title = ClaimGuis.getCustomItemTitle("settings", key);
-    	    		if(ClaimSettings.getBooleanSetting("placeholderapi")) {
-    	    			title = PlaceholderAPI.setPlaceholders(player, title);
-    	    		}
-    				if(ClaimGuis.getCustomItemCheckCustomModelData("settings", key)) {
-    					inv.setItem(ClaimGuis.getCustomItemSlot("settings", key), createItemWMD(title,
-    							lore,
-    							ClaimGuis.getCustomItemMaterialMD("settings", key),
-    							ClaimGuis.getCustomItemCustomModelData("settings", key)));
-    				} else {
-    					inv.setItem(ClaimGuis.getCustomItemSlot("settings", key), createItem(ClaimGuis.getCustomItemMaterial("settings", key),
-    							title,
-    							lore));
-    				}
-    	    	}
-    		});
-    	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(ClaimMain.getPlugin(), task -> {
-    			String default_statut_disabled = ClaimLanguage.getMessage("status-disabled");
-    	    	String default_statut_enabled = ClaimLanguage.getMessage("status-enabled");
-    	    	String default_choix_disabled = ClaimLanguage.getMessage("choice-disabled");
-    	    	String default_choix_enabled = ClaimLanguage.getMessage("choice-enabled");
-    	    	
-    	    	String statut;
-    	    	String choix;
-    	    	List<String> lore;
-    	    	String lower_name;
-    	    	String playerName = player.getName();
-    	    	
-    	    	chunks.put(player, chunk);
-    	    	Set<String> items = new HashSet<>(ClaimGuis.getItems("settings"));
-    	    	for(String key : items) {
-    	    		lower_name = key.toLowerCase();
-    	    		lore = new ArrayList<>(getLore(ClaimLanguage.getMessageWP(lower_name+"-lore",playerName)));
-    	    		if(ClaimGuis.isAPerm(key)) {
-    	    	    	statut = default_statut_disabled;
-    	    			choix = default_choix_disabled;
-    	    			if(ClaimMain.canPermCheck(chunk, key)) {
-    	    				statut = default_statut_enabled;
-    	    				choix = default_choix_enabled;
-    	    			}
-    	    			if(ClaimSettings.isEnabled(key)) {
-    	    				lore.add(choix);
-    	    			} else {
-    	    				lore.add(ClaimLanguage.getMessage("choice-setting-disabled"));
-    	    			}
-    	    			if(ClaimGuis.getItemCheckCustomModelData("settings", key)) {
-    	    				inv.setItem(ClaimGuis.getItemSlot("settings", key), createItemWMD(ClaimLanguage.getMessageWP(lower_name+"-title",playerName).replaceAll("%status%", statut),
-    	    						lore,
-    	    						ClaimGuis.getItemMaterialMD("settings", key),
-    	    						ClaimGuis.getItemCustomModelData("settings", key)));
-    	    			} else {
-    	    				inv.setItem(ClaimGuis.getItemSlot("settings", key), createItem(ClaimGuis.getItemMaterial("settings", key),
-    	    						ClaimLanguage.getMessageWP(lower_name+"-title",playerName).replaceAll("%status%", statut),
-    	    						lore));
-    	    			}
-    	    		} else {
-    	    			String title = ClaimLanguage.getMessageWP(lower_name+"-title",playerName).replaceAll("%coords%", ClaimMain.getClaimCoords(chunk)).replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk));
-    	    			if(ClaimGuis.getItemCheckCustomModelData("settings", key)) {
-    	    				inv.setItem(ClaimGuis.getItemSlot("settings", key), createItemWMD(title,
-    	    						lore,
-    	    						ClaimGuis.getItemMaterialMD("settings", key),
-    	    						ClaimGuis.getItemCustomModelData("settings", key)));
-    	    			} else {
-    	    				inv.setItem(ClaimGuis.getItemSlot("settings", key), createItem(ClaimGuis.getItemMaterial("settings", key),
-    	    						title,
-    	    						lore));
-    	    			}
-    	    		}
-    	    	}
-    	    	
-    	    	Set<String> custom_items = new HashSet<>(ClaimGuis.getCustomItems("settings"));
-    	    	for(String key : custom_items) {
-    	    		lore = new ArrayList<>(getLoreWP(ClaimGuis.getCustomItemLore("settings", key),player));
-    	    		String title = ClaimGuis.getCustomItemTitle("settings", key);
-    	    		if(ClaimSettings.getBooleanSetting("placeholderapi")) {
-    	    			title = PlaceholderAPI.setPlaceholders(player, title);
-    	    		}
-    				if(ClaimGuis.getCustomItemCheckCustomModelData("settings", key)) {
-    					inv.setItem(ClaimGuis.getCustomItemSlot("settings", key), createItemWMD(title,
-    							lore,
-    							ClaimGuis.getCustomItemMaterialMD("settings", key),
-    							ClaimGuis.getCustomItemCustomModelData("settings", key)));
-    				} else {
-    					inv.setItem(ClaimGuis.getCustomItemSlot("settings", key), createItem(ClaimGuis.getCustomItemMaterial("settings", key),
-    							title,
-    							lore));
-    				}
-    	    	}
-    		});
-    	}
 
+		String default_statut_disabled = ClaimLanguage.getMessage("status-disabled");
+    	String default_statut_enabled = ClaimLanguage.getMessage("status-enabled");
+    	String default_choix_disabled = ClaimLanguage.getMessage("choice-disabled");
+    	String default_choix_enabled = ClaimLanguage.getMessage("choice-enabled");
+    	
+    	String statut;
+    	String choix;
+    	List<String> lore;
+    	String lower_name;
+    	String playerName = player.getName();
+    	
+    	chunks.put(player, chunk);
+    	Set<String> items = new HashSet<>(ClaimGuis.getItems("settings"));
+    	for(String key : items) {
+    		lower_name = key.toLowerCase();
+    		lore = new ArrayList<>(getLore(ClaimLanguage.getMessageWP(lower_name+"-lore",playerName)));
+    		if(ClaimGuis.isAPerm(key)) {
+    	    	statut = default_statut_disabled;
+    			choix = default_choix_disabled;
+    			if(ClaimMain.canPermCheck(chunk, key)) {
+    				statut = default_statut_enabled;
+    				choix = default_choix_enabled;
+    			}
+    			if(ClaimSettings.isEnabled(key)) {
+    				lore.add(choix);
+    			} else {
+    				lore.add(ClaimLanguage.getMessage("choice-setting-disabled"));
+    			}
+    			if(ClaimGuis.getItemCheckCustomModelData("settings", key)) {
+    				inv.setItem(ClaimGuis.getItemSlot("settings", key), createItemWMD(ClaimLanguage.getMessageWP(lower_name+"-title",playerName).replaceAll("%status%", statut),
+    						lore,
+    						ClaimGuis.getItemMaterialMD("settings", key),
+    						ClaimGuis.getItemCustomModelData("settings", key)));
+    			} else {
+    				inv.setItem(ClaimGuis.getItemSlot("settings", key), createItem(ClaimGuis.getItemMaterial("settings", key),
+    						ClaimLanguage.getMessageWP(lower_name+"-title",playerName).replaceAll("%status%", statut),
+    						lore));
+    			}
+    		} else {
+    			String title = ClaimLanguage.getMessageWP(lower_name+"-title",playerName).replaceAll("%coords%", ClaimMain.getClaimCoords(chunk)).replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk));
+    			if(ClaimGuis.getItemCheckCustomModelData("settings", key)) {
+    				inv.setItem(ClaimGuis.getItemSlot("settings", key), createItemWMD(title,
+    						lore,
+    						ClaimGuis.getItemMaterialMD("settings", key),
+    						ClaimGuis.getItemCustomModelData("settings", key)));
+    			} else {
+    				inv.setItem(ClaimGuis.getItemSlot("settings", key), createItem(ClaimGuis.getItemMaterial("settings", key),
+    						title,
+    						lore));
+    			}
+    		}
+    	}
+    	
+    	Set<String> custom_items = new HashSet<>(ClaimGuis.getCustomItems("settings"));
+    	for(String key : custom_items) {
+    		lore = new ArrayList<>(getLoreWP(ClaimGuis.getCustomItemLore("settings", key),player));
+    		String title = ClaimGuis.getCustomItemTitle("settings", key);
+    		if(ClaimSettings.getBooleanSetting("placeholderapi")) {
+    			title = PlaceholderAPI.setPlaceholders(player, title);
+    		}
+			if(ClaimGuis.getCustomItemCheckCustomModelData("settings", key)) {
+				inv.setItem(ClaimGuis.getCustomItemSlot("settings", key), createItemWMD(title,
+						lore,
+						ClaimGuis.getCustomItemMaterialMD("settings", key),
+						ClaimGuis.getCustomItemCustomModelData("settings", key)));
+			} else {
+				inv.setItem(ClaimGuis.getCustomItemSlot("settings", key), createItem(ClaimGuis.getCustomItemMaterial("settings", key),
+						title,
+						lore));
+			}
+    	}
     }
     
     // Method to split the lore for lines

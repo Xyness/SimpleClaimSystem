@@ -93,8 +93,11 @@ public class ClaimEventsEnterLeave implements Listener {
 		ClaimListGui.removeLastChunk(player);
 		ClaimMembersGui.removeChunk(player);
 		ClaimMembersGui.removeClaimMember(player);
-		ClaimsGui.removeClaimsChunk(player);
-		ClaimsGui.removeClaimsLoc(player);
+		ClaimsOwnerGui.removeClaimsChunk(player);
+		ClaimsOwnerGui.removeClaimsLoc(player);
+		ClaimsOwnerGui.removeOwner(player);
+		ClaimsOwnerGui.removePlayerFilter(player);
+		ClaimsGui.removeOwner(player);
 		ClaimsGui.removePlayerFilter(player);
 		AdminClaimGui.removeChunk(player);
 		AdminClaimListGui.removeClaimsChunk(player);

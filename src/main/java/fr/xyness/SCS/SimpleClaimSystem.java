@@ -56,7 +56,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	static CPlayerMain playerMain;
 	static ClaimDynmap claimDynmap;
 	static ClaimBluemap claimBluemap;
-	static String Version = "1.9#2";
+	static String Version = "1.9#3";
 	public static HikariDataSource dataSource;
 	private static final boolean isFolia = Bukkit.getVersion().contains("Folia");
 	private static boolean isUpdateAvailable;
@@ -183,7 +183,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             	DynmapAPI dynmapAPI = (DynmapAPI) dynmap;
             	MarkerAPI markerAPI = dynmapAPI.getMarkerAPI();
                 if (markerAPI != null) {
-                	MarkerSet markerSet = markerAPI.createMarkerSet("SimpleClaimSystem", "claims", null, false);
+                	MarkerSet markerSet = markerAPI.createMarkerSet("SimpleClaimSystem", "Claims", null, false);
                 	claimDynmap = new ClaimDynmap(dynmapAPI,markerAPI,markerSet);
                 }
         	}
@@ -233,6 +233,11 @@ public class SimpleClaimSystem extends JavaPlugin {
         if (!check_gui.exists()) {
         	check_gui.getParentFile().mkdirs();
         	plugin.saveResource("guis/admin_list.yml", false);
+        }
+        check_gui = new File(plugin.getDataFolder()+File.separator+"guis", "claims_owner.yml");
+        if (!check_gui.exists()) {
+        	check_gui.getParentFile().mkdirs();
+        	plugin.saveResource("guis/claims_owner.yml", false);
         }
         ClaimGuis.loadGuiSettings(plugin,check_itemsadder);
 
