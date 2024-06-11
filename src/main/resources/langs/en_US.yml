@@ -191,6 +191,10 @@ leave-territory-chat: "§fYou leave the territory of §e%owner%"
 # > Gui messages
 # Use \n for new line only for lores messages
 
+owner-claim-title: "§e%owner%"
+owner-claim-lore: "§7Claims: §b%claim-amount%"
+owner-claim-access: "§7▸ §fDisplay his claims"
+
 access-all-claim-title: "§e%name% §b(Territory of %owner%)"
 access-all-claim-lore: "§7%description%\n \n§7Members:\n%members%\n \n"
 access-all-claim-lore-deny-visitors: "§cThis claim does not allow visitors"
@@ -198,7 +202,6 @@ access-all-claim-lore-allow-visitors: "§7▸ §fLeft-click to teleport"
 all-claim-buyable-price: "§7The claim is for sale!\n§7Price: §6%price%⛃\n \n" # Visible only if in sale
 all-claim-is-buyable: "§7▸ §fShift-left-click to buy" # Visible only if in sale
 
-admin-claims-title-gui: "Admin claims (Page %page%)"
 access-claim-title: "§e%name% §b(%coords%)"
 access-claim-lore: "§7%description%\n \n§7Members:\n%members%\n \n"
 access-claim-clickable: "§7▸ §fLeft-click to teleport\n§7▸ §fShift-left-click to remove\n§7▸ §fRight-click to open settings"
@@ -219,6 +222,7 @@ next-page-lore: "§7Go to page %page%\n§7▸ §fClick to access"
 previous-page-settings-lore: "§7Go to settings\n§7▸ §fClick to access"
 previous-chunk-title: "§ePrevious settings"
 previous-chunk-lore: "§7Go back to settings of %name%"
+previous-page-claims-lore: "§7Go back to the claims list"
 
 status-disabled: "§cDisabled ✘"
 status-enabled: "§aEnabled ✔"
@@ -326,7 +330,8 @@ manage-members-title: "§eMembers"
 manage-members-lore: "§7Manage members\n§7▸ §fClick to access"
 
 filter-title: "§eFilter"
-filter-lore: "§7Change filter\n%status_color_1%➲ All claims\n%status_color_2%➲ Claims for sale\n§7▸ §fClick to change"
+filter-new-lore: "§7Change filter\n%status_color_1%➲ All owners\n%status_color_2%➲ Owners with claims in sale\n%status_color_3%➲ Online owners\n%status_color_4%➲ Offline owners\n§7▸ §fClick to change"
+filter-owner-lore: "§7Change filter\n%status_color_1%➲ All claims\n%status_color_2%➲ Claims in sale\n§7▸ §fClick to change"
 status_color_active_filter: "§a"
 status_color_inactive_filter: "§8"
 

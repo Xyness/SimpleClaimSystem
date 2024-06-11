@@ -1050,6 +1050,10 @@ public class ClaimEvents implements Listener {
                 	String filter = ClaimsGui.getPlayerFilter(player);
                 	if(filter.equals("all")) {
                 		filter = "sales";
+                	} else if (filter.equals("sales")) {
+                		filter = "online";
+                	} else if (filter.equals("online")) {
+                		filter = "offline";
                 	} else {
                 		filter = "all";
                 	}
@@ -1059,7 +1063,166 @@ public class ClaimEvents implements Listener {
 	            }
                 
 	            if(clickedSlot >= ClaimGuis.getGuiMinSlot("claims") && clickedSlot <= ClaimGuis.getGuiMaxSlot("claims")) {
-	            	Chunk chunk = ClaimsGui.getClaimChunk(player, clickedSlot);
+	            	String filter = ClaimsGui.getPlayerFilter(player);
+	            	if(filter.equals("sales")) {
+	            		ClaimsOwnerGui menu = new ClaimsOwnerGui(player,1,filter,ClaimsGui.getOwner(player, clickedSlot));
+	            		menu.openInventory(player);
+	            		return;
+	            	}
+	            	ClaimsOwnerGui menu = new ClaimsOwnerGui(player,1,"all",ClaimsGui.getOwner(player, clickedSlot));
+	            	menu.openInventory(player);
+	            	return;
+	            }
+	            
+	            String action = ClaimGuis.getCustomItemAction("claims", clickedSlot);
+	            if(action == null || action.isEmpty() || action.equalsIgnoreCase("none")) return;
+	            String[] parts = action.split(":");
+	            
+	            if(parts[0].equalsIgnoreCase("left") && event.getClick() == ClickType.LEFT) {
+	            	if(parts.length<2) return;
+		            if(parts[1].equalsIgnoreCase("close_inventory")) {
+		            	player.closeInventory();
+		            	return;
+		            }
+		            if(parts[1].equalsIgnoreCase("cmd")) {
+		            	if(parts.length<3) return;
+		            	if(parts[2].equalsIgnoreCase("console")) {
+		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
+		            		return;
+		            	}
+		            	if(parts[2].equalsIgnoreCase("player")) {
+		            		Bukkit.dispatchCommand(player, parts[3]);
+		            		return;
+		            	}
+		            	return;
+		            }
+		            if(parts[1].equalsIgnoreCase("msg")) {
+		            	if(parts.length<3) return;
+		            	player.sendMessage(parts[2]);
+		            	return;
+		            }
+	            	return;
+	            }
+	            if(parts[0].equalsIgnoreCase("right") && event.getClick() == ClickType.RIGHT) {
+	            	if(parts.length<2) return;
+		            if(parts[1].equalsIgnoreCase("close_inventory")) {
+		            	player.closeInventory();
+		            	return;
+		            }
+		            if(parts[1].equalsIgnoreCase("cmd")) {
+		            	if(parts.length<3) return;
+		            	if(parts[2].equalsIgnoreCase("console")) {
+		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
+		            		return;
+		            	}
+		            	if(parts[2].equalsIgnoreCase("player")) {
+		            		Bukkit.dispatchCommand(player, parts[3]);
+		            		return;
+		            	}
+		            	return;
+		            }
+		            if(parts[1].equalsIgnoreCase("msg")) {
+		            	if(parts.length<3) return;
+		            	player.sendMessage(parts[2]);
+		            	return;
+		            }
+	            	return;
+	            }
+	            if(parts[0].equalsIgnoreCase("shift_left") && event.getClick() == ClickType.SHIFT_LEFT) {
+	            	if(parts.length<2) return;
+		            if(parts[1].equalsIgnoreCase("close_inventory")) {
+		            	player.closeInventory();
+		            	return;
+		            }
+		            if(parts[1].equalsIgnoreCase("cmd")) {
+		            	if(parts.length<3) return;
+		            	if(parts[2].equalsIgnoreCase("console")) {
+		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
+		            		return;
+		            	}
+		            	if(parts[2].equalsIgnoreCase("player")) {
+		            		Bukkit.dispatchCommand(player, parts[3]);
+		            		return;
+		            	}
+		            	return;
+		            }
+		            if(parts[1].equalsIgnoreCase("msg")) {
+		            	if(parts.length<3) return;
+		            	player.sendMessage(parts[2]);
+		            	return;
+		            }
+	            	return;
+	            }
+	            if(parts[0].equalsIgnoreCase("shift_right") && event.getClick() == ClickType.SHIFT_RIGHT) {
+	            	if(parts.length<2) return;
+		            if(parts[1].equalsIgnoreCase("close_inventory")) {
+		            	player.closeInventory();
+		            	return;
+		            }
+		            if(parts[1].equalsIgnoreCase("cmd")) {
+		            	if(parts.length<3) return;
+		            	if(parts[2].equalsIgnoreCase("console")) {
+		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
+		            		return;
+		            	}
+		            	if(parts[2].equalsIgnoreCase("player")) {
+		            		Bukkit.dispatchCommand(player, parts[3]);
+		            		return;
+		            	}
+		            	return;
+		            }
+		            if(parts[1].equalsIgnoreCase("msg")) {
+		            	if(parts.length<3) return;
+		            	player.sendMessage(parts[2]);
+		            	return;
+		            }
+	            	return;
+	            }
+                return;
+        	}
+        	
+        	if (holder instanceof ClaimsOwnerGui) {
+        		event.setCancelled(true);
+                ItemStack clickedItem = event.getCurrentItem();
+                if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
+                int clickedSlot = event.getSlot();
+                
+                if (clickedSlot == ClaimGuis.getItemSlot("claims_owner", "back-page-list")) {
+                	if(cPlayer.getGuiPage() == 1) {
+                		ClaimsGui menu = new ClaimsGui(player,1,"all");
+                		menu.openInventory(player);
+                		return;
+                	}
+	            	int page = cPlayer.getGuiPage()-1;
+	            	cPlayer.setGuiPage(page);
+                    ClaimsOwnerGui menu = new ClaimsOwnerGui(player,page,ClaimsOwnerGui.getPlayerFilter(player),ClaimsOwnerGui.getOwner(player));
+                    menu.openInventory(player);
+	                return;
+	            }
+                
+	            if (clickedSlot == ClaimGuis.getItemSlot("claims_owner", "next-page-list")) {
+	            	int page = cPlayer.getGuiPage()+1;
+	            	cPlayer.setGuiPage(page);
+	            	ClaimsOwnerGui menu = new ClaimsOwnerGui(player,page,ClaimsOwnerGui.getPlayerFilter(player),ClaimsOwnerGui.getOwner(player));
+                    menu.openInventory(player);
+	                return;
+	            }
+	            
+	            if (clickedSlot == ClaimGuis.getItemSlot("claims_owner", "filter")) {
+	            	cPlayer.setGuiPage(1);
+                	String filter = ClaimsOwnerGui.getPlayerFilter(player);
+                	if(filter.equals("all")) {
+                		filter = "sales";
+                	} else {
+                		filter = "all";
+                	}
+                    ClaimsOwnerGui menu = new ClaimsOwnerGui(player,1,filter,ClaimsOwnerGui.getOwner(player));
+                    menu.openInventory(player);
+	                return;
+	            }
+                
+	            if(clickedSlot >= ClaimGuis.getGuiMinSlot("claims_owner") && clickedSlot <= ClaimGuis.getGuiMaxSlot("claims_owner")) {
+	            	Chunk chunk = ClaimsOwnerGui.getClaimChunk(player, clickedSlot);
 	            	if(event.getClick() == ClickType.LEFT) {
 	            		if(player.hasPermission("scs.command.claim.tp")) {
 				            if(!ClaimMain.canPermCheck(chunk, "Visitors") && !ClaimMain.getOwnerInClaim(chunk).equals(player.getName())) {
@@ -1067,7 +1230,7 @@ public class ClaimEvents implements Listener {
 				            	return;
 				            }
 			            	player.closeInventory();
-				        	ClaimMain.goClaim(player, ClaimsGui.getClaimLoc(player, clickedSlot));
+				        	ClaimMain.goClaim(player, ClaimsOwnerGui.getClaimLoc(player, clickedSlot));
 				        	return;
 	            		}
 	            		player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
@@ -1091,7 +1254,7 @@ public class ClaimEvents implements Listener {
 	            	}
 	            }
 	            
-	            String action = ClaimGuis.getCustomItemAction("claims", clickedSlot);
+	            String action = ClaimGuis.getCustomItemAction("claims_owner", clickedSlot);
 	            if(action == null || action.isEmpty() || action.equalsIgnoreCase("none")) return;
 	            String[] parts = action.split(":");
 	            

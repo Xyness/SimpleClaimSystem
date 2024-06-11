@@ -28,6 +28,7 @@ import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
 
 import dev.lone.itemsadder.api.CustomStack;
+import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
@@ -44,8 +45,7 @@ public class ClaimsGui implements InventoryHolder {
 	
 	
 	private Inventory inv;
-    private static Map<Player,Map<Integer,Location>> claimsLoc = new HashMap<>();
-    private static Map<Player,Map<Integer,Chunk>> claimsChunk = new HashMap<>();
+    private static Map<Player,Map<Integer,String>> players = new HashMap<>();
     private static Map<Player,String> playerFilter = new HashMap<>();
     
     
@@ -82,301 +82,109 @@ public class ClaimsGui implements InventoryHolder {
     	}
     }
     
-    // Get the claim location (by slot) for a player
-    public static Location getClaimLoc(Player player, int slot) {
-    	return claimsLoc.get(player).get(slot);
+    // Get the owner (by slot) for a player
+    public static String getOwner(Player player, int slot) {
+    	return players.get(player).get(slot);
     }
     
-    // Remove the claim location for a player
-    public static void removeClaimsLoc(Player player) {
-    	if(claimsLoc.containsKey(player)) {
-    		claimsLoc.remove(player);
-    	}
-    }
-    
-    // Get the claim chunk (by slot) for a player
-    public static Chunk getClaimChunk(Player player, int slot) {
-    	return claimsChunk.get(player).get(slot);
-    }
-    
-    // Remove the claim chunk for a player
-    public static void removeClaimsChunk(Player player) {
-    	if(claimsChunk.containsKey(player)) {
-    		claimsChunk.remove(player);
+    // Remove the owner for a player
+    public static void removeOwner(Player player) {
+    	if(players.containsKey(player)) {
+    		players.remove(player);
     	}
     }
 
     // Method to initialize items for the gui
     public void initializeItems(Player player, int page, String filter) {
     	
-    	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(ClaimMain.getPlugin(), task -> {
-    			int min_member_slot = ClaimGuis.getGuiMinSlot("claims");
-            	int max_member_slot = ClaimGuis.getGuiMaxSlot("claims");
-            	int items_count = max_member_slot - min_member_slot + 1;
-            	playerFilter.put(player, filter);
-            	
-                if(page > 1) {
-                	inv.setItem(ClaimGuis.getItemSlot("claims", "back-page-list"), backPage(page-1));
-                }
-                
-                Set<Chunk> claims;
-                if(filter.equals("sales")) {
-                	claims = ClaimMain.getClaimsChunkInSale();
-                } else {
-                	claims = ClaimMain.getAllClaimsChunk();
-                }
-                inv.setItem(ClaimGuis.getItemSlot("claims", "filter"), filter(filter));
-                
-                List<String> lore = new ArrayList<>(getLore(ClaimLanguage.getMessage("access-all-claim-lore")));
-                Map<Integer,Location> claims_loc = new HashMap<>();
-                Map<Integer,Chunk> claims_chunk = new HashMap<>();
-                int startItem = (page - 1) * items_count;
-            	int i = min_member_slot;
-            	int count = 0;
-                for(Chunk c : claims) {
-                	if (count++ < startItem) continue;
-                    if(i == max_member_slot+1) { 
-                    	inv.setItem(ClaimGuis.getItemSlot("claims", "next-page-list"), nextPage(page+1));
-                    	break;
-                    }
-                    if(ClaimMain.getOwnerInClaim(c).equals("admin")) continue;
-                    if(!ClaimMain.canPermCheck(c, "Visitors") && !ClaimSettings.getBooleanSetting("claims-visitors-off-visible")) continue;
-                    List<String> lore2 = new ArrayList<>();
-                    for(String s : lore) {
-                    	s = s.replaceAll("%description%", ClaimMain.getClaimDescription(c));
-                    	s = s.replaceAll("%name%", ClaimMain.getClaimNameByChunk(c)).replaceAll("%coords%", String.valueOf(ClaimMain.getClaimCoords(c)));
-                    	if(s.contains("%members%")) {
-                    		String members = getMembers(c);
-                    		if(members.contains("\n")) {
-                            	String[] parts = members.split("\n");
-                            	for(String ss : parts) {
-                            		lore2.add(ss);
-                            	}
-                            } else {
-                            	lore2.add(members);
-                            }
-                    	} else {
-                    		lore2.add(s);
-                    	}
-                    }
-                    if(ClaimSettings.getBooleanSetting("economy")) {
-        	            if(ClaimMain.claimIsInSale(c)) {
-        	            	String[] m = ClaimLanguage.getMessageWP("all-claim-buyable-price",ClaimMain.getOwnerInClaim(c)).replaceAll("%price%", String.valueOf(ClaimMain.getClaimPrice(c))).split("\n");
-        	            	for(String part : m) {
-        	            		lore2.add(part);
-        	            	}
-        	            	lore2.add(ClaimLanguage.getMessage("all-claim-is-buyable"));
-        	            }
-                    }
-                    if(ClaimMain.canPermCheck(c, "Visitors") || ClaimMain.getOwnerInClaim(c).equals(player.getName())) {
-                    	lore2.add(ClaimLanguage.getMessage("access-all-claim-lore-allow-visitors"));
-                    } else {
-                    	lore2.add(ClaimLanguage.getMessage("access-all-claim-lore-deny-visitors"));
-                    }
-                    lore2 = getLoreWP(lore2,ClaimMain.getOwnerInClaim(c));
-                    claims_chunk.put(i, c);
-                    claims_loc.put(i, ClaimMain.getClaimLocationByChunk(c));
-                    
-                    if(ClaimGuis.getItemCheckCustomModelData("claims", "claim-item")) {
-                    	inv.setItem(i, createItemWMD(ClaimLanguage.getMessageWP("access-all-claim-title",ClaimMain.getOwnerInClaim(c)).replaceAll("%owner%", ClaimMain.getOwnerInClaim(c)).replaceAll("%name%", ClaimMain.getClaimNameByChunk(c)).replaceAll("%coords%", String.valueOf(ClaimMain.getClaimCoords(c))),
-        						lore2,
-        						ClaimGuis.getItemMaterialMD("claims", "claim-item"),
-        						ClaimGuis.getItemCustomModelData("claims", "claim-item")));
-                    	i++;
-                    	continue;
-                    }
-                	if(ClaimGuis.getItemMaterialMD("claims", "claim-item").contains("PLAYER_HEAD")) {
-                		ItemStack item = new ItemStack(Material.PLAYER_HEAD, 1);
-                        SkullMeta meta = (SkullMeta) item.getItemMeta();
-                        meta.setOwner(ClaimMain.getOwnerInClaim(c));
-                        meta.setDisplayName(ClaimLanguage.getMessageWP("access-all-claim-title",ClaimMain.getOwnerInClaim(c)).replaceAll("%owner%", ClaimMain.getOwnerInClaim(c)).replaceAll("%name%", ClaimMain.getClaimNameByChunk(c)).replaceAll("%coords%", String.valueOf(ClaimMain.getClaimCoords(c))));
-                        meta.setLore(lore2);
-                        item.setItemMeta(meta);
-                        
-                        inv.setItem(i, item);
-                        i++;
-                        continue;
-                	}
-                	ItemStack item = new ItemStack(ClaimGuis.getItemMaterial("claims", "claim-item"),1);
-                	ItemMeta meta = item.getItemMeta();
-                    meta.setDisplayName(ClaimLanguage.getMessageWP("access-all-claim-title",ClaimMain.getOwnerInClaim(c)).replaceAll("%owner%", ClaimMain.getOwnerInClaim(c)).replaceAll("%name%", ClaimMain.getClaimNameByChunk(c)).replaceAll("%coords%", String.valueOf(ClaimMain.getClaimCoords(c))));
-                    meta.setLore(lore2);
-                    item.setItemMeta(meta);
-                    inv.setItem(i, item);
-                    i++;
-                }
-                claimsChunk.put(player, claims_chunk);
-                claimsLoc.put(player, claims_loc);
-                
-            	Set<String> custom_items = new HashSet<>(ClaimGuis.getCustomItems("claims"));
-            	for(String key : custom_items) {
-            		lore = new ArrayList<>(getLoreP(ClaimGuis.getCustomItemLore("claims", key),player));
-            		String title = ClaimGuis.getCustomItemTitle("claims", key);
-            		if(ClaimSettings.getBooleanSetting("placeholderapi")) {
-            			title = PlaceholderAPI.setPlaceholders(player, title);
-            		}
-        			if(ClaimGuis.getCustomItemCheckCustomModelData("claims", key)) {
-        				inv.setItem(ClaimGuis.getCustomItemSlot("claims", key), createItemWMD(title,
-        						lore,
-        						ClaimGuis.getCustomItemMaterialMD("claims", key),
-        						ClaimGuis.getCustomItemCustomModelData("claims", key)));
-        			} else {
-        				inv.setItem(ClaimGuis.getCustomItemSlot("claims", key), createItem(ClaimGuis.getCustomItemMaterial("claims", key),
-        						title,
-        						lore));
-        			}
-            	}
-    		});
-    	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(ClaimMain.getPlugin(), task -> {
-    			int min_member_slot = ClaimGuis.getGuiMinSlot("claims");
-            	int max_member_slot = ClaimGuis.getGuiMaxSlot("claims");
-            	int items_count = max_member_slot - min_member_slot + 1;
-            	playerFilter.put(player, filter);
-            	
-                if(page > 1) {
-                	inv.setItem(ClaimGuis.getItemSlot("claims", "back-page-list"), backPage(page-1));
-                }
-                
-                Set<Chunk> claims;
-                if(filter.equals("sales")) {
-                	claims = ClaimMain.getClaimsChunkInSale();
-                } else {
-                	claims = ClaimMain.getAllClaimsChunk();
-                }
-                inv.setItem(ClaimGuis.getItemSlot("claims", "filter"), filter(filter));
-                
-                List<String> lore = new ArrayList<>(getLore(ClaimLanguage.getMessage("access-all-claim-lore")));
-                Map<Integer,Location> claims_loc = new HashMap<>();
-                Map<Integer,Chunk> claims_chunk = new HashMap<>();
-                int startItem = (page - 1) * items_count;
-            	int i = min_member_slot;
-            	int count = 0;
-                for(Chunk c : claims) {
-                	if (count++ < startItem) continue;
-                    if(i == max_member_slot+1) { 
-                    	inv.setItem(ClaimGuis.getItemSlot("claims", "next-page-list"), nextPage(page+1));
-                    	break;
-                    }
-                    if(ClaimMain.getOwnerInClaim(c).equals("admin")) continue;
-                    if(!ClaimMain.canPermCheck(c, "Visitors") && !ClaimSettings.getBooleanSetting("claims-visitors-off-visible")) continue;
-                    List<String> lore2 = new ArrayList<>();
-                    for(String s : lore) {
-                    	s = s.replaceAll("%description%", ClaimMain.getClaimDescription(c));
-                    	s = s.replaceAll("%name%", ClaimMain.getClaimNameByChunk(c)).replaceAll("%coords%", String.valueOf(ClaimMain.getClaimCoords(c)));
-                    	if(s.contains("%members%")) {
-                    		String members = getMembers(c);
-                    		if(members.contains("\n")) {
-                            	String[] parts = members.split("\n");
-                            	for(String ss : parts) {
-                            		lore2.add(ss);
-                            	}
-                            } else {
-                            	lore2.add(members);
-                            }
-                    	} else {
-                    		lore2.add(s);
-                    	}
-                    }
-                    if(ClaimSettings.getBooleanSetting("economy")) {
-        	            if(ClaimMain.claimIsInSale(c)) {
-        	            	String[] m = ClaimLanguage.getMessageWP("all-claim-buyable-price",ClaimMain.getOwnerInClaim(c)).replaceAll("%price%", String.valueOf(ClaimMain.getClaimPrice(c))).split("\n");
-        	            	for(String part : m) {
-        	            		lore2.add(part);
-        	            	}
-        	            	lore2.add(ClaimLanguage.getMessage("all-claim-is-buyable"));
-        	            }
-                    }
-                    if(ClaimMain.canPermCheck(c, "Visitors") || ClaimMain.getOwnerInClaim(c).equals(player.getName())) {
-                    	lore2.add(ClaimLanguage.getMessage("access-all-claim-lore-allow-visitors"));
-                    } else {
-                    	lore2.add(ClaimLanguage.getMessage("access-all-claim-lore-deny-visitors"));
-                    }
-                    lore2 = getLoreWP(lore2,ClaimMain.getOwnerInClaim(c));
-                    claims_chunk.put(i, c);
-                    claims_loc.put(i, ClaimMain.getClaimLocationByChunk(c));
-                    
-                    if(ClaimGuis.getItemCheckCustomModelData("claims", "claim-item")) {
-                    	inv.setItem(i, createItemWMD(ClaimLanguage.getMessageWP("access-all-claim-title",ClaimMain.getOwnerInClaim(c)).replaceAll("%owner%", ClaimMain.getOwnerInClaim(c)).replaceAll("%name%", ClaimMain.getClaimNameByChunk(c)).replaceAll("%coords%", String.valueOf(ClaimMain.getClaimCoords(c))),
-        						lore2,
-        						ClaimGuis.getItemMaterialMD("claims", "claim-item"),
-        						ClaimGuis.getItemCustomModelData("claims", "claim-item")));
-                    	i++;
-                    	continue;
-                    }
-                	if(ClaimGuis.getItemMaterialMD("claims", "claim-item").contains("PLAYER_HEAD")) {
-                		ItemStack item = new ItemStack(Material.PLAYER_HEAD, 1);
-                        SkullMeta meta = (SkullMeta) item.getItemMeta();
-                        meta.setOwner(ClaimMain.getOwnerInClaim(c));
-                        meta.setDisplayName(ClaimLanguage.getMessageWP("access-all-claim-title",ClaimMain.getOwnerInClaim(c)).replaceAll("%owner%", ClaimMain.getOwnerInClaim(c)).replaceAll("%name%", ClaimMain.getClaimNameByChunk(c)).replaceAll("%coords%", String.valueOf(ClaimMain.getClaimCoords(c))));
-                        meta.setLore(lore2);
-                        item.setItemMeta(meta);
-                        
-                        inv.setItem(i, item);
-                        i++;
-                        continue;
-                	}
-                	ItemStack item = new ItemStack(ClaimGuis.getItemMaterial("claims", "claim-item"),1);
-                	ItemMeta meta = item.getItemMeta();
-                    meta.setDisplayName(ClaimLanguage.getMessageWP("access-all-claim-title",ClaimMain.getOwnerInClaim(c)).replaceAll("%owner%", ClaimMain.getOwnerInClaim(c)).replaceAll("%name%", ClaimMain.getClaimNameByChunk(c)).replaceAll("%coords%", String.valueOf(ClaimMain.getClaimCoords(c))));
-                    meta.setLore(lore2);
-                    item.setItemMeta(meta);
-                    inv.setItem(i, item);
-                    i++;
-                }
-                claimsChunk.put(player, claims_chunk);
-                claimsLoc.put(player, claims_loc);
-                
-            	Set<String> custom_items = new HashSet<>(ClaimGuis.getCustomItems("claims"));
-            	for(String key : custom_items) {
-            		lore = new ArrayList<>(getLoreP(ClaimGuis.getCustomItemLore("claims", key),player));
-            		String title = ClaimGuis.getCustomItemTitle("claims", key);
-            		if(ClaimSettings.getBooleanSetting("placeholderapi")) {
-            			title = PlaceholderAPI.setPlaceholders(player, title);
-            		}
-        			if(ClaimGuis.getCustomItemCheckCustomModelData("claims", key)) {
-        				inv.setItem(ClaimGuis.getCustomItemSlot("claims", key), createItemWMD(title,
-        						lore,
-        						ClaimGuis.getCustomItemMaterialMD("claims", key),
-        						ClaimGuis.getCustomItemCustomModelData("claims", key)));
-        			} else {
-        				inv.setItem(ClaimGuis.getCustomItemSlot("claims", key), createItem(ClaimGuis.getCustomItemMaterial("claims", key),
-        						title,
-        						lore));
-        			}
-            	}
-    		});
-    	}
+		int min_member_slot = ClaimGuis.getGuiMinSlot("claims");
+    	int max_member_slot = ClaimGuis.getGuiMaxSlot("claims");
+    	int items_count = max_member_slot - min_member_slot + 1;
+    	playerFilter.put(player, filter);
     	
-    	
-    }
-    
-    // Method to get members from a claim chunk
-    public static String getMembers(Chunk chunk) {
-    	Set<String> members = ClaimMain.getClaimMembers(chunk);
-        if(!(members.size()>0)) {
-        	return ClaimLanguage.getMessage("claim-list-no-member");
+        if(page > 1) {
+        	inv.setItem(ClaimGuis.getItemSlot("claims", "back-page-list"), backPage(page-1));
         }
-        StringBuilder factionsList = new StringBuilder();
-        int i = 0;
-    	for(String membre : ClaimMain.getClaimMembers(chunk)) {
-    		Player p = Bukkit.getPlayer(membre);
-    		String fac = "§a"+membre;
-    		if(p == null) {
-    			fac = "§c"+membre;
-    		}
-    		factionsList.append(fac);
-            if (i < members.size() - 1) {
-            	factionsList.append("§7, ");
+        
+        List<String> lore = new ArrayList<>(getLore(ClaimLanguage.getMessage("owner-claim-lore")));
+        Map<Integer,String> owners = new HashMap<>();
+        
+        Set<String> powners;
+        if(filter.equals("sales")) {
+        	powners = ClaimMain.getClaimsOwnersWithSales();
+        } else if (filter.equals("online")) {
+        	powners = ClaimMain.getClaimsOnlineOwners();
+        } else if (filter.equals("offline")) {
+        	powners = ClaimMain.getClaimsOfflineOwners();
+        } else {
+        	powners = ClaimMain.getClaimsOwners();
+        }
+        inv.setItem(ClaimGuis.getItemSlot("claims", "filter"), filter(filter));
+        
+        int startItem = (page - 1) * items_count;
+    	int i = min_member_slot;
+    	int count = 0;
+        for(String owner : powners) {
+        	if (count++ < startItem) continue;
+            if(i == max_member_slot+1) { 
+            	inv.setItem(ClaimGuis.getItemSlot("claims", "next-page-list"), nextPage(page+1));
+            	break;
             }
-            if ((i + 1) % 4 == 0 && i < members.size() - 1) {
-                factionsList.append("\n");
+            List<String> lore2 = new ArrayList<>();
+            for(String s : lore) {
+            	s = s.replaceAll("%claim-amount%", String.valueOf(ClaimMain.getPlayerClaimsCount(owner)));
+            	lore2.add(s);
             }
+            lore2.add(ClaimLanguage.getMessage("owner-claim-access"));
+            lore2 = getLoreWP(lore2,owner);
+            owners.put(i, owner);
+            
+            if(ClaimGuis.getItemCheckCustomModelData("claims", "claim-item")) {
+            	inv.setItem(i, createItemWMD(ClaimLanguage.getMessageWP("owner-claim-title",owner).replaceAll("%owner%", owner),
+            			lore2,
+						ClaimGuis.getItemMaterialMD("claims", "claim-item"),
+						ClaimGuis.getItemCustomModelData("claims", "claim-item")));
+            	i++;
+            	continue;
+            }
+        	if(ClaimGuis.getItemMaterialMD("claims", "claim-item").contains("PLAYER_HEAD")) {
+        		ItemStack item = CacheGui.getPlayerHead(owner);
+                SkullMeta meta = (SkullMeta) item.getItemMeta();
+                meta.setDisplayName(ClaimLanguage.getMessageWP("owner-claim-title",owner).replaceAll("%owner%", owner));
+                meta.setLore(lore2);
+                item.setItemMeta(meta);
+                inv.setItem(i, item);
+                i++;
+                continue;
+        	}
+        	ItemStack item = new ItemStack(ClaimGuis.getItemMaterial("claims", "claim-item"),1);
+        	ItemMeta meta = item.getItemMeta();
+            meta.setDisplayName(ClaimLanguage.getMessageWP("owner-claim-title",owner).replaceAll("%owner%", owner));
+            meta.setLore(lore2);
+            item.setItemMeta(meta);
+            inv.setItem(i, item);
             i++;
+        }
+        players.put(player, owners);
+        
+    	Set<String> custom_items = new HashSet<>(ClaimGuis.getCustomItems("claims"));
+    	for(String key : custom_items) {
+    		lore = new ArrayList<>(getLoreP(ClaimGuis.getCustomItemLore("claims", key),player));
+    		String title = ClaimGuis.getCustomItemTitle("claims", key);
+    		if(ClaimSettings.getBooleanSetting("placeholderapi")) {
+    			title = PlaceholderAPI.setPlaceholders(player, title);
+    		}
+			if(ClaimGuis.getCustomItemCheckCustomModelData("claims", key)) {
+				inv.setItem(ClaimGuis.getCustomItemSlot("claims", key), createItemWMD(title,
+						lore,
+						ClaimGuis.getCustomItemMaterialMD("claims", key),
+						ClaimGuis.getCustomItemCustomModelData("claims", key)));
+			} else {
+				inv.setItem(ClaimGuis.getCustomItemSlot("claims", key), createItem(ClaimGuis.getCustomItemMaterial("claims", key),
+						title,
+						lore));
+			}
     	}
-    	String result = factionsList.toString();
-    	return result;
     }
     
     // Method to split the lore for lines
@@ -493,11 +301,9 @@ public class ClaimsGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(ClaimLanguage.getMessage("previous-page-title").replaceAll("%page%", String.valueOf(page)));
             meta.setLore(getLore(ClaimLanguage.getMessage("previous-page-lore").replaceAll("%page%", String.valueOf(page))));
-
-            // Masquer les attributs comme la défense d'armure
-            meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-
+            meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
             item.setItemMeta(meta);
         }
 
@@ -528,19 +334,33 @@ public class ClaimsGui implements InventoryHolder {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            String lore_filter = ClaimLanguage.getMessage("filter-lore");
+            String lore_filter = ClaimLanguage.getMessage("filter-new-lore");
             if(filter.equals("sales")) {
-            	lore_filter = lore_filter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_inactive_filter")).replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_active_filter"));
+            	lore_filter = lore_filter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+            			.replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_active_filter"))
+            			.replaceAll("%status_color_3%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+            			.replaceAll("%status_color_4%", ClaimLanguage.getMessage("status_color_inactive_filter"));
+            } else if (filter.equals("online")) {
+            	lore_filter = lore_filter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+            			.replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+            			.replaceAll("%status_color_3%", ClaimLanguage.getMessage("status_color_active_filter"))
+            			.replaceAll("%status_color_4%", ClaimLanguage.getMessage("status_color_inactive_filter"));
+            } else if (filter.equals("offline")) {
+            	lore_filter = lore_filter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+            			.replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+            			.replaceAll("%status_color_3%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+            			.replaceAll("%status_color_4%", ClaimLanguage.getMessage("status_color_active_filter"));
             } else {
-            	lore_filter = lore_filter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_active_filter")).replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_inactive_filter"));
+            	lore_filter = lore_filter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_active_filter"))
+            			.replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+            			.replaceAll("%status_color_3%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+            			.replaceAll("%status_color_4%", ClaimLanguage.getMessage("status_color_inactive_filter"));
             }
             meta.setDisplayName(ClaimLanguage.getMessage("filter-title"));
             meta.setLore(getLore(lore_filter));
-
-            // Masquer les attributs comme la défense d'armure
-            meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
             meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-
+            meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
             item.setItemMeta(meta);
         }
 

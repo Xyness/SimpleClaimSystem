@@ -35,6 +35,7 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
+import fr.xyness.SCS.Guis.CacheGui;
 import fr.xyness.SCS.Listeners.ClaimEventsEnterLeave;
 import fr.xyness.SCS.Support.ClaimBluemap;
 import fr.xyness.SCS.Support.ClaimDynmap;
@@ -151,9 +152,73 @@ public class ClaimMain {
                 .collect(Collectors.toSet());
     }
     
+    // Get chunks in sale from owner
+    public static Set<Chunk> getChunksinSaleFromOwner(String owner){
+        return listClaims.entrySet().stream()
+                .filter(entry -> {
+                	return entry.getValue().getOwner().equals(owner) && entry.getValue().getSale();
+                })
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+    }
+    
     // Get all chunks of the server (claimed chunks)
     public static Set<Chunk> getAllClaimsChunk(){
     	return listClaims.keySet();
+    }
+    
+    // Get all chunks of the server (claimed chunks) where owner is online
+    public static Set<Chunk> getAllClaimsChunkOwnerOnline(){
+        return listClaims.values().stream()
+                .filter(entry -> {
+                    Player owner = Bukkit.getPlayer(entry.getOwner());
+                    return owner != null && owner.isOnline();
+                })
+                .map(entry -> entry.getChunk())
+                .collect(Collectors.toSet());
+    }
+    
+    // Get all chunks of the server (claimed chunks) where owner is offline
+    public static Set<Chunk> getAllClaimsChunkOwnerOffline(){
+        return listClaims.values().stream()
+                .filter(entry -> {
+                    Player owner = Bukkit.getPlayer(entry.getOwner());
+                    return owner == null;
+                })
+                .map(entry -> entry.getChunk())
+                .collect(Collectors.toSet());
+    }
+    
+    // Get all the online owners of the server
+    public static Set<String> getClaimsOnlineOwners(){
+        return listClaims.values().stream()
+                .filter(entry -> {
+                    Player owner = Bukkit.getPlayer(entry.getOwner());
+                    return owner != null && owner.isOnline();
+                })
+                .map(Claim::getOwner)
+                .collect(Collectors.toSet());
+    }
+    
+    // Get all the offline owners of the server
+    public static Set<String> getClaimsOfflineOwners(){
+        return listClaims.values().stream()
+                .filter(entry -> {
+                    Player owner = Bukkit.getPlayer(entry.getOwner());
+                    return owner == null;
+                })
+                .map(Claim::getOwner)
+                .collect(Collectors.toSet());
+    }
+    
+    // Get all the owners with claims in sale
+    public static Set<String> getClaimsOwnersWithSales(){
+        return listClaims.values().stream()
+                .filter(entry -> {
+                    return entry.getSale();
+                })
+                .map(Claim::getOwner)
+                .collect(Collectors.toSet());
     }
     
     // Get the chunk from the claim name
@@ -615,6 +680,7 @@ public class ClaimMain {
 		            	String permissions = resultSet.getString("Permissions");
 		            	String id = resultSet.getString("id");
 		            	String owner = resultSet.getString("name");
+		            	if(!owner.equals("admin")) CacheGui.addPlayerHead(owner);
 		            	String name = resultSet.getString("claim_name");
 		            	String description = resultSet.getString("claim_description");
 		            	int X = resultSet.getInt("X");
