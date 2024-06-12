@@ -5,7 +5,7 @@ SimpleClaimSystem is a plugin allowing you to protect your constructions in a ch
 https://xyness.gitbook.io/simpleclaimsystem
 
 ## Contact
-[![Discord](https://discord.gg/xyness)
+[Discord](https://discord.gg/xyness)
 
 ## bStats
 [![](https://bstats.org/signatures/bukkit/SimpleCLaimSystem.svg)]([https://bstats.org/plugin/bukkit/Skyllia/20874](https://bstats.org/plugin/bukkit/SimpleClaimSystem/21435))
