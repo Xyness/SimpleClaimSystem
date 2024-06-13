@@ -56,7 +56,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	static CPlayerMain playerMain;
 	static ClaimDynmap claimDynmap;
 	static ClaimBluemap claimBluemap;
-	static String Version = "1.9#4";
+	static String Version = "1.9#5";
 	public static HikariDataSource dataSource;
 	private static final boolean isFolia = Bukkit.getVersion().contains("Folia");
 	private static boolean isUpdateAvailable;

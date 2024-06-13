@@ -271,7 +271,11 @@ public class ClaimMain {
         int delay = cPlayer.getDelay();
         
     	if (player.hasPermission("scs.bypass") || delay == 0) {
-    		player.teleport(loc);
+    		if(SimpleClaimSystem.isFolia()) {
+    			player.teleportAsync(loc);
+    		} else {
+    			player.teleport(loc);
+    		}
     		player.sendMessage(ClaimLanguage.getMessage("teleportation-success"));
             return;
     	}
@@ -302,7 +306,7 @@ public class ClaimMain {
                 }
 
                 if (counter[0] <= 0) {
-                    player.teleport(loc);
+                	player.teleportAsync(loc);
                     player.sendMessage(ClaimLanguage.getMessage("teleportation-success"));
                     playerLocations.remove(player);
                     task.cancel();
@@ -816,7 +820,8 @@ public class ClaimMain {
     	
     	displayChunk(player,chunk);
     	cPlayer.setClaimsCount(cPlayer.getClaimsCount()+1);
-		player.sendMessage(ClaimLanguage.getMessage("create-claim-success"));
+    	int nb = cPlayer.getMaxClaims()-cPlayer.getClaimsCount();
+		player.sendMessage(ClaimLanguage.getMessage("create-claim-success").replaceAll("%remaining-claims%", String.valueOf(nb)));
 		
     	String uuid = player.getUniqueId().toString();
     	int id = findFreeId(playerName);
@@ -920,21 +925,6 @@ public class ClaimMain {
     	}
     	
     	displayChunk(player,chunk);
-        if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
-    			for(Entity e : chunk.getEntities()) {
-    				if(!(e instanceof Player)) continue;
-    				Player p = (Player) e;
-    				ClaimEventsEnterLeave.activeBossBar(p,chunk);
-    			}
-    		});
-        } else {
-			for(Entity e : chunk.getEntities()) {
-				if(!(e instanceof Player)) continue;
-				Player p = (Player) e;
-				ClaimEventsEnterLeave.activeBossBar(p,chunk);
-			}
-        }
 		player.sendMessage(ClaimLanguage.getMessage("create-protected-area-success"));
 		
     	String uuid = "aucun";
@@ -947,7 +937,7 @@ public class ClaimMain {
         Location location = player.getLocation();
         String location_string = String.valueOf(location.getX()+";"+location.getY()+";"+location.getZ()+";"+location.getYaw()+";"+location.getPitch());
         LinkedHashMap<String,Boolean> perms = new LinkedHashMap<>(ClaimSettings.getDefaultValues());
-        listClaims.put(chunk, new Claim(chunk,"",new HashSet<>(),location,claim_name,description,perms,false,0.0,new HashSet<>()));
+        listClaims.put(chunk, new Claim(chunk,"admin",new HashSet<>(),location,claim_name,description,perms,false,0.0,new HashSet<>()));
         if(claimsId.containsKey("admin")) {
         	claimsId.get("admin").put(chunk, String.valueOf(id));
         } else {
@@ -959,13 +949,20 @@ public class ClaimMain {
         if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.createChunkZone(chunk, claim_name, "admin");
         
     	if(SimpleClaimSystem.isFolia()) {
+      		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+    			for(Entity e : chunk.getEntities()) {
+    				if(!(e instanceof Player)) continue;
+    				Player p = (Player) e;
+    				ClaimEventsEnterLeave.activeBossBar(p,chunk);
+    			}
+    		});
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
         		try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String insertQuery = "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
 	                	preparedStatement.setInt(1, id);
 	                	preparedStatement.setString(2, uuid);
-	                	preparedStatement.setString(3, playerName);
+	                	preparedStatement.setString(3, "admin");
 	                    preparedStatement.setString(4, claim_name);
 	                    preparedStatement.setString(5, description);
 	                    preparedStatement.setString(6, X);
@@ -981,13 +978,18 @@ public class ClaimMain {
     	        }
     		});
     	} else {
+			for(Entity e : chunk.getEntities()) {
+				if(!(e instanceof Player)) continue;
+				Player p = (Player) e;
+				ClaimEventsEnterLeave.activeBossBar(p,chunk);
+			}
     		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
         		try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String insertQuery = "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
 	                	preparedStatement.setInt(1, id);
 	                	preparedStatement.setString(2, uuid);
-	                	preparedStatement.setString(3, playerName);
+	                	preparedStatement.setString(3, "admin");
 	                    preparedStatement.setString(4, claim_name);
 	                    preparedStatement.setString(5, description);
 	                    preparedStatement.setString(6, X);
@@ -1176,7 +1178,8 @@ public class ClaimMain {
     	        }
     		});
     	}
-    	player.sendMessage(ClaimLanguage.getMessage("create-claim-radius-success").replaceAll("%number%", String.valueOf(chunksToClaim.size())));
+    	int nb = cPlayer.getMaxClaims()-cPlayer.getClaimsCount();
+    	player.sendMessage(ClaimLanguage.getMessage("create-claim-radius-success").replaceAll("%number%", String.valueOf(chunksToClaim.size())).replaceAll("%remaining-claims%", String.valueOf(nb)));
     	return true;
     }
     
