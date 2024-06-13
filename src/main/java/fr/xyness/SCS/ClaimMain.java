@@ -35,8 +35,8 @@ import com.zaxxer.hikari.HikariDataSource;
 
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
-import fr.xyness.SCS.Guis.CacheGui;
 import fr.xyness.SCS.Listeners.ClaimEventsEnterLeave;
+import fr.xyness.SCS.Others.CacheGui;
 import fr.xyness.SCS.Support.ClaimBluemap;
 import fr.xyness.SCS.Support.ClaimDynmap;
 import fr.xyness.SCS.Support.ClaimVault;

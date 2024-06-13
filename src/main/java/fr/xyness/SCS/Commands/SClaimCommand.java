@@ -1,34 +1,20 @@
 package fr.xyness.SCS.Commands;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-import org.bukkit.Location;
-import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import com.sk89q.worldguard.protection.regions.ProtectedRegion;
-
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
-import fr.xyness.SCS.Guis.ClaimGui;
-import fr.xyness.SCS.Guis.ClaimListGui;
-import fr.xyness.SCS.Guis.ClaimMembersGui;
-import fr.xyness.SCS.Support.ClaimWorldGuard;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
-import net.md_5.bungee.api.chat.TextComponent;
 
 public class SClaimCommand implements CommandExecutor,TabCompleter {
 	

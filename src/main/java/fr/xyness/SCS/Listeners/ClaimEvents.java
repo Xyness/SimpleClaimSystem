@@ -1064,6 +1064,7 @@ public class ClaimEvents implements Listener {
                 
 	            if(clickedSlot >= ClaimGuis.getGuiMinSlot("claims") && clickedSlot <= ClaimGuis.getGuiMaxSlot("claims")) {
 	            	String filter = ClaimsGui.getPlayerFilter(player);
+	            	cPlayer.setGuiPage(1);
 	            	if(filter.equals("sales")) {
 	            		ClaimsOwnerGui menu = new ClaimsOwnerGui(player,1,filter,ClaimsGui.getOwner(player, clickedSlot));
 	            		menu.openInventory(player);
@@ -1796,6 +1797,9 @@ public class ClaimEvents implements Listener {
     public void onBlockIgnite(BlockIgniteEvent event) {
         Chunk chunk = event.getBlock().getLocation().getChunk();
         if(!ClaimMain.checkIfClaimExists(chunk)) return;
+        Player player = event.getPlayer();
+    	if(player.hasPermission("scs.bypass")) return;
+    	if(ClaimMain.checkMembre(chunk, player)) return;
         if(ClaimMain.canPermCheck(chunk, "Firespread")) return;
         event.setCancelled(true);
     }

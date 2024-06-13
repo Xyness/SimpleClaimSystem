@@ -1,39 +1,30 @@
 package fr.xyness.SCS.Guis;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.potion.PotionData;
-import org.bukkit.potion.PotionType;
 
 import dev.lone.itemsadder.api.CustomStack;
-import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
+import fr.xyness.SCS.Others.CacheGui;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 public class ClaimsGui implements InventoryHolder {
@@ -94,97 +85,124 @@ public class ClaimsGui implements InventoryHolder {
     	}
     }
 
-    // Method to initialize items for the gui
+    // Method to initialize items for the GUI
     public void initializeItems(Player player, int page, String filter) {
-    	
-		int min_member_slot = ClaimGuis.getGuiMinSlot("claims");
-    	int max_member_slot = ClaimGuis.getGuiMaxSlot("claims");
-    	int items_count = max_member_slot - min_member_slot + 1;
-    	playerFilter.put(player, filter);
-    	
-        if(page > 1) {
-        	inv.setItem(ClaimGuis.getItemSlot("claims", "back-page-list"), backPage(page-1));
-        }
-        
-        List<String> lore = new ArrayList<>(getLore(ClaimLanguage.getMessage("owner-claim-lore")));
-        Map<Integer,String> owners = new HashMap<>();
-        
-        Set<String> powners;
-        if(filter.equals("sales")) {
-        	powners = ClaimMain.getClaimsOwnersWithSales();
-        } else if (filter.equals("online")) {
-        	powners = ClaimMain.getClaimsOnlineOwners();
-        } else if (filter.equals("offline")) {
-        	powners = ClaimMain.getClaimsOfflineOwners();
+        if (SimpleClaimSystem.isFolia()) {
+            Bukkit.getAsyncScheduler().runNow(ClaimMain.getPlugin(), task -> {
+                loadItems(player, page, filter);
+            });
         } else {
-        	powners = ClaimMain.getClaimsOwners();
+            Bukkit.getScheduler().runTaskAsynchronously(ClaimMain.getPlugin(), task -> {
+                loadItems(player, page, filter);
+            });
         }
+    }
+
+    // Method to load items
+    private void loadItems(Player player, int page, String filter) {
+        int min_member_slot = ClaimGuis.getGuiMinSlot("claims");
+        int max_member_slot = ClaimGuis.getGuiMaxSlot("claims");
+        int items_count = max_member_slot - min_member_slot + 1;
+        playerFilter.put(player, filter);
+
+        if (page > 1) {
+            inv.setItem(ClaimGuis.getItemSlot("claims", "back-page-list"), backPage(page - 1));
+        }
+
+        List<String> loreTemplate = new ArrayList<>(getLore(ClaimLanguage.getMessage("owner-claim-lore")));
+        Map<Integer, String> owners = new HashMap<>();
+
+        Set<String> powners = getPownersByFilter(filter);
+
         inv.setItem(ClaimGuis.getItemSlot("claims", "filter"), filter(filter));
-        
+
         int startItem = (page - 1) * items_count;
-    	int i = min_member_slot;
-    	int count = 0;
-        for(String owner : powners) {
-        	if (count++ < startItem) continue;
-            if(i == max_member_slot+1) { 
-            	inv.setItem(ClaimGuis.getItemSlot("claims", "next-page-list"), nextPage(page+1));
-            	break;
+        int i = min_member_slot;
+        int count = 0;
+
+        for (String owner : powners) {
+            if (count++ < startItem) continue;
+            if (i == max_member_slot + 1) {
+                inv.setItem(ClaimGuis.getItemSlot("claims", "next-page-list"), nextPage(page + 1));
+                break;
             }
-            List<String> lore2 = new ArrayList<>();
-            for(String s : lore) {
-            	s = s.replaceAll("%claim-amount%", String.valueOf(ClaimMain.getPlayerClaimsCount(owner)));
-            	lore2.add(s);
+
+            List<String> lore = new ArrayList<>();
+            for (String s : loreTemplate) {
+                lore.add(s.replaceAll("%claim-amount%", String.valueOf(ClaimMain.getPlayerClaimsCount(owner))));
             }
-            lore2.add(ClaimLanguage.getMessage("owner-claim-access"));
-            lore2 = getLoreWP(lore2,owner);
+            lore.add(ClaimLanguage.getMessage("owner-claim-access"));
+            lore = getLoreWP(lore, owner);
             owners.put(i, owner);
-            
-            if(ClaimGuis.getItemCheckCustomModelData("claims", "claim-item")) {
-            	inv.setItem(i, createItemWMD(ClaimLanguage.getMessageWP("owner-claim-title",owner).replaceAll("%owner%", owner),
-            			lore2,
-						ClaimGuis.getItemMaterialMD("claims", "claim-item"),
-						ClaimGuis.getItemCustomModelData("claims", "claim-item")));
-            	i++;
-            	continue;
-            }
-        	if(ClaimGuis.getItemMaterialMD("claims", "claim-item").contains("PLAYER_HEAD")) {
-        		ItemStack item = CacheGui.getPlayerHead(owner);
-                SkullMeta meta = (SkullMeta) item.getItemMeta();
-                meta.setDisplayName(ClaimLanguage.getMessageWP("owner-claim-title",owner).replaceAll("%owner%", owner));
-                meta.setLore(lore2);
-                item.setItemMeta(meta);
-                inv.setItem(i, item);
-                i++;
-                continue;
-        	}
-        	ItemStack item = new ItemStack(ClaimGuis.getItemMaterial("claims", "claim-item"),1);
-        	ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(ClaimLanguage.getMessageWP("owner-claim-title",owner).replaceAll("%owner%", owner));
-            meta.setLore(lore2);
-            item.setItemMeta(meta);
+
+            ItemStack item = createOwnerClaimItem(owner, lore);
             inv.setItem(i, item);
             i++;
         }
+
         players.put(player, owners);
-        
-    	Set<String> custom_items = new HashSet<>(ClaimGuis.getCustomItems("claims"));
-    	for(String key : custom_items) {
-    		lore = new ArrayList<>(getLoreP(ClaimGuis.getCustomItemLore("claims", key),player));
-    		String title = ClaimGuis.getCustomItemTitle("claims", key);
-    		if(ClaimSettings.getBooleanSetting("placeholderapi")) {
-    			title = PlaceholderAPI.setPlaceholders(player, title);
-    		}
-			if(ClaimGuis.getCustomItemCheckCustomModelData("claims", key)) {
-				inv.setItem(ClaimGuis.getCustomItemSlot("claims", key), createItemWMD(title,
-						lore,
-						ClaimGuis.getCustomItemMaterialMD("claims", key),
-						ClaimGuis.getCustomItemCustomModelData("claims", key)));
-			} else {
-				inv.setItem(ClaimGuis.getCustomItemSlot("claims", key), createItem(ClaimGuis.getCustomItemMaterial("claims", key),
-						title,
-						lore));
-			}
-    	}
+
+        Set<String> custom_items = new HashSet<>(ClaimGuis.getCustomItems("claims"));
+        for (String key : custom_items) {
+            List<String> lore = new ArrayList<>(getLoreP(ClaimGuis.getCustomItemLore("claims", key), player));
+            String title = ClaimGuis.getCustomItemTitle("claims", key);
+            if (ClaimSettings.getBooleanSetting("placeholderapi")) {
+                title = PlaceholderAPI.setPlaceholders(player, title);
+            }
+            inv.setItem(ClaimGuis.getCustomItemSlot("claims", key), createCustomItem(key, title, lore));
+        }
+    }
+
+    // Method to get the owners by filter
+    private Set<String> getPownersByFilter(String filter) {
+        switch (filter) {
+            case "sales":
+                return ClaimMain.getClaimsOwnersWithSales();
+            case "online":
+                return ClaimMain.getClaimsOnlineOwners();
+            case "offline":
+                return ClaimMain.getClaimsOfflineOwners();
+            default:
+                return ClaimMain.getClaimsOwners();
+        }
+    }
+
+    // Method to create the item
+    private ItemStack createOwnerClaimItem(String owner, List<String> lore) {
+        if (ClaimGuis.getItemCheckCustomModelData("claims", "claim-item")) {
+            return createItemWMD(ClaimLanguage.getMessageWP("owner-claim-title", owner).replaceAll("%owner%", owner),
+                    lore,
+                    ClaimGuis.getItemMaterialMD("claims", "claim-item"),
+                    ClaimGuis.getItemCustomModelData("claims", "claim-item"));
+        }
+        if (ClaimGuis.getItemMaterialMD("claims", "claim-item").contains("PLAYER_HEAD")) {
+            ItemStack item = CacheGui.getPlayerHead(owner);
+            SkullMeta meta = (SkullMeta) item.getItemMeta();
+            meta.setDisplayName(ClaimLanguage.getMessageWP("owner-claim-title", owner).replaceAll("%owner%", owner));
+            meta.setLore(lore);
+            item.setItemMeta(meta);
+            return item;
+        }
+        ItemStack item = new ItemStack(ClaimGuis.getItemMaterial("claims", "claim-item"), 1);
+        ItemMeta meta = item.getItemMeta();
+        meta.setDisplayName(ClaimLanguage.getMessageWP("owner-claim-title", owner).replaceAll("%owner%", owner));
+        meta.setLore(lore);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    // Method to create custom item
+    private ItemStack createCustomItem(String key, String title, List<String> lore) {
+        if (ClaimGuis.getCustomItemCheckCustomModelData("claims", key)) {
+            return createItemWMD(title,
+                    lore,
+                    ClaimGuis.getCustomItemMaterialMD("claims", key),
+                    ClaimGuis.getCustomItemCustomModelData("claims", key));
+        } else {
+            return createItem(ClaimGuis.getCustomItemMaterial("claims", key),
+                    title,
+                    lore);
+        }
     }
     
     // Method to split the lore for lines
