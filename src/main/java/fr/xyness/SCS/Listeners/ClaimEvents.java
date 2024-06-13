@@ -1613,7 +1613,7 @@ public class ClaimEvents implements Listener {
 	                return;
 	            }
 	        }
-	        if(!ClaimMain.canPermCheck(chunk, "Items")) {
+	        if(!ClaimMain.canPermCheck(chunk, "Items") && !ClaimMain.checkMembre(chunk, player)) {
                 Material item = event.getMaterial();
                 if(ClaimSettings.isRestrictedItem(item)) {
                     event.setCancelled(true);

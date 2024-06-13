@@ -739,10 +739,6 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	if(sender instanceof Player) {
         		Player player = (Player) sender;
             	if(args[0].equalsIgnoreCase("tp")) {
-            		if(!ClaimSettings.getBooleanSetting("teleportation")) {
-            			player.sendMessage(ClaimLanguage.getMessage("teleportation-disabled"));
-            			return true;
-            		}
             		Chunk chunk = ClaimMain.getAdminChunkByName(args[1]);
             		if(chunk == null) {
             			player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
@@ -795,7 +791,11 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         			Chunk c = ClaimMain.getChunkByClaimName(args[1], args[2]);
         			if(c == null) return false;
         			Location loc = ClaimMain.getClaimLocationByChunk(c);
-        			player.teleport(loc);
+            		if(SimpleClaimSystem.isFolia()) {
+            			player.teleportAsync(loc);
+            		} else {
+            			player.teleport(loc);
+            		}
         			player.sendMessage(ClaimLanguage.getMessage("player-teleport-to-other-claim-aclaim").replaceAll("%name%", args[2]).replaceAll("%player%", args[1]));
         			return true;
         		}

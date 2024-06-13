@@ -10,9 +10,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
-
 public class CacheGui {
 
 	
