@@ -17,14 +17,10 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.potion.PotionData;
-import org.bukkit.potion.PotionType;
 
 import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.ClaimMain;
-import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;

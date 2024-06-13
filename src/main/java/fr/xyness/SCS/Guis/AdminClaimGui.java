@@ -19,7 +19,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.ClaimMain;
-import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;

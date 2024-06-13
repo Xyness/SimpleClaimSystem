@@ -21,10 +21,10 @@ import org.bukkit.inventory.meta.SkullMeta;
 
 import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.ClaimMain;
-import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
+import fr.xyness.SCS.Others.CacheGui;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 public class ClaimListGui implements InventoryHolder {

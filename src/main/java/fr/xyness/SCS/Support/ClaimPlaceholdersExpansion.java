@@ -2,7 +2,6 @@ package fr.xyness.SCS.Support;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
-import java.util.List;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
