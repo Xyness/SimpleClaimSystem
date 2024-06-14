@@ -336,9 +336,7 @@ public class ClaimMembersGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(name);
             meta.setLore(lore);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-            meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
             item.setItemMeta(meta);
         }
         return item;
@@ -360,9 +358,7 @@ public class ClaimMembersGui implements InventoryHolder {
             meta.setDisplayName(name);
             meta.setLore(lore);
             meta.setCustomModelData(model_data);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-            meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
             item.setItemMeta(meta);
         }
         return item;
@@ -394,11 +390,7 @@ public class ClaimMembersGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(ClaimLanguage.getMessage("previous-page-title").replaceAll("%page%", String.valueOf(page)));
             meta.setLore(getLore(ClaimLanguage.getMessage("previous-page-lore").replaceAll("%page%", String.valueOf(page))));
-
-            // Masquer les attributs comme la défense d'armure
-            meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
-            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
             item.setItemMeta(meta);
         }
 
@@ -431,11 +423,7 @@ public class ClaimMembersGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(ClaimLanguage.getMessage("previous-page-settings-title"));
             meta.setLore(getLore(ClaimLanguage.getMessage("previous-page-settings-lore")));
-
-            // Masquer les attributs comme la défense d'armure
-            meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
-            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
             item.setItemMeta(meta);
         }
 
@@ -468,11 +456,7 @@ public class ClaimMembersGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(ClaimLanguage.getMessage("next-page-title").replaceAll("%page%", String.valueOf(page)));
             meta.setLore(getLore(ClaimLanguage.getMessage("next-page-lore").replaceAll("%page%", String.valueOf(page))));
-
-            // Masquer les attributs comme la défense d'armure
-            meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
-            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
-
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
             item.setItemMeta(meta);
         }
 

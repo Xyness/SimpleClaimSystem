@@ -56,9 +56,9 @@ public class SimpleClaimSystem extends JavaPlugin {
 	static CPlayerMain playerMain;
 	static ClaimDynmap claimDynmap;
 	static ClaimBluemap claimBluemap;
-	static String Version = "1.9#5";
+	static String Version = "1.9#6";
 	public static HikariDataSource dataSource;
-	private static final boolean isFolia = Bukkit.getVersion().contains("Folia");
+	private static boolean isFolia = false;
 	private static boolean isUpdateAvailable;
 	private static String updateMessage;
 	
@@ -79,10 +79,10 @@ public class SimpleClaimSystem extends JavaPlugin {
 		Bukkit.getServer().getConsoleSender().sendMessage("§b============================================================");
         if(loadConfig(this,false)) {
         	Bukkit.getServer().getConsoleSender().sendMessage(" ");
-        	Bukkit.getServer().getConsoleSender().sendMessage("§a✓ SimpleClaimSystem is enabled !");
-        	Bukkit.getServer().getConsoleSender().sendMessage("§a→ Discord for support : §f§nhttps://discord.gg/xyness");
-        	Bukkit.getServer().getConsoleSender().sendMessage("§a→ Documentation : §f§nhttps://xyness.gitbook.io/simpleclaimsystem");
-        	Bukkit.getServer().getConsoleSender().sendMessage("§a→ Developped by Xyness");
+        	Bukkit.getServer().getConsoleSender().sendMessage("§aSimpleClaimSystem is enabled !");
+        	Bukkit.getServer().getConsoleSender().sendMessage("§aDiscord for support : §f§nhttps://discord.gg/xyness");
+        	Bukkit.getServer().getConsoleSender().sendMessage("§aDocumentation : §f§nhttps://xyness.gitbook.io/simpleclaimsystem");
+        	Bukkit.getServer().getConsoleSender().sendMessage("§aDevelopped by Xyness");
         } else {
         	Bukkit.getServer().getPluginManager().disablePlugin(this);
         }
@@ -96,10 +96,10 @@ public class SimpleClaimSystem extends JavaPlugin {
             dataSource.close();
         }
         Bukkit.getServer().getConsoleSender().sendMessage("§4============================================================");
-        Bukkit.getServer().getConsoleSender().sendMessage("§c✗ SimpleClaimSystem is disabled !");
-    	Bukkit.getServer().getConsoleSender().sendMessage("§c→ Discord for support : §f§nhttps://discord.gg/xyness");
-    	Bukkit.getServer().getConsoleSender().sendMessage("§c→ Documentation : §f§nhttps://xyness.gitbook.io/simpleclaimsystem");
-    	Bukkit.getServer().getConsoleSender().sendMessage("§c→ Developped by Xyness");
+        Bukkit.getServer().getConsoleSender().sendMessage("§cSimpleClaimSystem is disabled !");
+    	Bukkit.getServer().getConsoleSender().sendMessage("§cDiscord for support : §f§nhttps://discord.gg/xyness");
+    	Bukkit.getServer().getConsoleSender().sendMessage("§cDocumentation : §f§nhttps://xyness.gitbook.io/simpleclaimsystem");
+    	Bukkit.getServer().getConsoleSender().sendMessage("§cDevelopped by Xyness");
         Bukkit.getServer().getConsoleSender().sendMessage("§4============================================================");
     }
 	
@@ -117,12 +117,29 @@ public class SimpleClaimSystem extends JavaPlugin {
 	// ********************
 	
 	
+	// Set the folia check
+	public static void checkFolia() {
+		if(Bukkit.getVersion().contains("folia")) {
+			isFolia = true;
+			return;
+		}
+		try {
+			Class.forName("io.papermc.paper.threadedregions.scheduler.AsyncScheduler");
+			isFolia = true;
+			return;
+		} catch (ClassNotFoundException e) {
+		    isFolia = false;
+		    return;
+		}
+	}
+	
     // Function to load/reload config
     public static boolean loadConfig(JavaPlugin plugin, boolean reload) {
     	if(reload) Bukkit.getServer().getConsoleSender().sendMessage("§b============================================================");
     	plugin.saveDefaultConfig();
     	plugin.reloadConfig();
         updateConfigWithDefaults(plugin);
+        checkFolia();
         
         // Unregister of all
         HandlerList.unregisterAll(plugin);
