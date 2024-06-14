@@ -140,6 +140,7 @@ public class ClaimMain {
     // Get all the owners of the server
     public static Set<String> getClaimsOwners(){
         return listClaims.values().stream()
+        		.filter(entry -> !entry.getOwner().equals("admin"))
                 .map(Claim::getOwner)
                 .collect(Collectors.toSet());
     }
@@ -194,7 +195,7 @@ public class ClaimMain {
         return listClaims.values().stream()
                 .filter(entry -> {
                     Player owner = Bukkit.getPlayer(entry.getOwner());
-                    return owner != null && owner.isOnline();
+                    return owner != null && owner.isOnline() && !entry.getOwner().equals("admin");
                 })
                 .map(Claim::getOwner)
                 .collect(Collectors.toSet());
@@ -205,7 +206,7 @@ public class ClaimMain {
         return listClaims.values().stream()
                 .filter(entry -> {
                     Player owner = Bukkit.getPlayer(entry.getOwner());
-                    return owner == null;
+                    return owner == null && !entry.getOwner().equals("admin");
                 })
                 .map(Claim::getOwner)
                 .collect(Collectors.toSet());
@@ -215,7 +216,7 @@ public class ClaimMain {
     public static Set<String> getClaimsOwnersWithSales(){
         return listClaims.values().stream()
                 .filter(entry -> {
-                    return entry.getSale();
+                    return entry.getSale() && !entry.getOwner().equals("admin");
                 })
                 .map(Claim::getOwner)
                 .collect(Collectors.toSet());

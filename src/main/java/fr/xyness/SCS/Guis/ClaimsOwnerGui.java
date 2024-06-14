@@ -244,7 +244,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
                 meta.setDisplayName(ClaimLanguage.getMessage(key.equals("next-page-list") ? "next-page-title" : "previous-page-title").replaceAll("%page%", String.valueOf(page)));
                 meta.setLore(getLore(ClaimLanguage.getMessage(key.equals("next-page-list") ? "next-page-lore" : "previous-page-lore").replaceAll("%page%", String.valueOf(page))));
         	}
-            meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS, ItemFlag.HIDE_ATTRIBUTES);
+        	meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
             item.setItemMeta(meta);
         }
         return item;
@@ -272,7 +272,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
             }
             meta.setDisplayName(ClaimLanguage.getMessage("filter-title"));
             meta.setLore(getLore(loreFilter));
-            meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS, ItemFlag.HIDE_ATTRIBUTES);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
             item.setItemMeta(meta);
         }
         return item;
@@ -285,7 +285,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(name);
             meta.setLore(lore);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ITEM_SPECIFICS);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
             item.setItemMeta(meta);
         }
         return item;
@@ -300,7 +300,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
             meta.setDisplayName(name);
             meta.setLore(lore);
             meta.setCustomModelData(modelData);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ITEM_SPECIFICS);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
             item.setItemMeta(meta);
         }
         return item;
