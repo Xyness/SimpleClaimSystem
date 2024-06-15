@@ -110,7 +110,7 @@ public class ClaimEventsEnterLeave implements Listener {
     	Chunk to = event.getTo().getChunk();
     	if(!ClaimMain.checkIfClaimExists(to)) return;
     	Player player = event.getPlayer();
-    	if(ClaimMain.checkBan(to, player)) {
+    	if(ClaimMain.checkBan(to, player.getName())) {
     		event.setCancelled(true);
     		ClaimMain.sendActionBar(player, ClaimLanguage.getMessage("player-banned"));
     		return;
@@ -160,7 +160,7 @@ public class ClaimEventsEnterLeave implements Listener {
         	String ownerFROM = ClaimMain.getOwnerInClaim(from);
         	Player player = event.getPlayer();
         	CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
-        	if(ClaimMain.checkBan(to, player)) {
+        	if(ClaimMain.checkBan(to, player.getName())) {
         		player.teleport(event.getFrom());
         		ClaimMain.sendActionBar(player, ClaimLanguage.getMessage("player-banned"));
         		return;

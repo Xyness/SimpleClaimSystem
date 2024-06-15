@@ -9,6 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -648,15 +649,27 @@ public class ClaimMain {
                             String perm = perms;
                             if (perm.length() != ClaimSettings.getDefaultValuesCode().length()) {
                                 int diff = ClaimSettings.getDefaultValuesCode().length() - perm.length();
-                                StringBuilder permCompleted = new StringBuilder(perm);
-                                for (int i = 0; i < diff; i++) {
-                                    permCompleted.append(ClaimSettings.getDefaultValuesCode().charAt(perm.length() + i));
+                                if(diff < 0) {
+                                	StringBuilder permCompleted = new StringBuilder(perm);
+                                	for(int i = 0; i < perm.length()-diff; i++) {
+                                		permCompleted.append(ClaimSettings.getDefaultValuesCode().charAt(perm.length() + i));
+                                	}
+                                    String permFinal = permCompleted.toString();
+                                    preparedStatement.setString(1, permFinal);
+                                    preparedStatement.setInt(2, id);
+                                    preparedStatement.addBatch();
+                                    batchCount++;
+                                } else {
+                                    StringBuilder permCompleted = new StringBuilder(perm);
+                                    for (int i = 0; i < diff; i++) {
+                                        permCompleted.append(ClaimSettings.getDefaultValuesCode().charAt(perm.length() + i));
+                                    }
+                                    String permFinal = permCompleted.toString();
+                                    preparedStatement.setString(1, permFinal);
+                                    preparedStatement.setInt(2, id);
+                                    preparedStatement.addBatch();
+                                    batchCount++;
                                 }
-                                String permFinal = permCompleted.toString();
-                                preparedStatement.setString(1, permFinal);
-                                preparedStatement.setInt(2, id);
-                                preparedStatement.addBatch();
-                                batchCount++;
                             }
                         }
                     }
@@ -970,7 +983,7 @@ public class ClaimMain {
 	                    preparedStatement.setString(7, Z);
 	                    preparedStatement.setString(8, World);
 	                    preparedStatement.setString(9, location_string);
-	                    preparedStatement.setString(10, playerName);
+	                    preparedStatement.setString(10, "");
 	                    preparedStatement.setString(11, ClaimSettings.getDefaultValuesCode());
 	                    preparedStatement.executeUpdate();
 	                }
@@ -997,7 +1010,7 @@ public class ClaimMain {
 	                    preparedStatement.setString(7, Z);
 	                    preparedStatement.setString(8, World);
 	                    preparedStatement.setString(9, location_string);
-	                    preparedStatement.setString(10, playerName);
+	                    preparedStatement.setString(10, "");
 	                    preparedStatement.setString(11, ClaimSettings.getDefaultValuesCode());
 	                    preparedStatement.executeUpdate();
 	                }
@@ -1345,6 +1358,58 @@ public class ClaimMain {
     public static boolean checkMembre(Chunk chunk, Player player) {
     	if(!listClaims.containsKey(chunk)) return false;
     	return listClaims.get(chunk).getMembers().contains(player.getName());
+    }
+    
+    // Check if a playername is member of a claim
+    public static boolean checkMembre(Chunk chunk, String targetName) {
+    	if(!listClaims.containsKey(chunk)) return false;
+        Iterator<String> iterator = listClaims.get(chunk).getMembers().iterator();
+        while (iterator.hasNext()) {
+            String currentString = iterator.next();
+            if (currentString.equalsIgnoreCase(targetName)) {
+                return true;
+            }
+        }
+    	return false;
+    }
+    
+    // Check if a playername is banned from a claim
+    public static boolean checkBan(Chunk chunk, String targetName) {
+    	if(!listClaims.containsKey(chunk)) return false;
+        Iterator<String> iterator = listClaims.get(chunk).getBans().iterator();
+        while (iterator.hasNext()) {
+            String currentString = iterator.next();
+            if (currentString.equalsIgnoreCase(targetName)) {
+                return true;
+            }
+        }
+    	return false;
+    }
+    
+    // Get the real name of the player from claim members
+    public static String getRealNameFromClaimMembers(Chunk chunk, String targetName) {
+    	if(!listClaims.containsKey(chunk)) return targetName;
+        Iterator<String> iterator = listClaims.get(chunk).getMembers().iterator();
+        while (iterator.hasNext()) {
+            String currentString = iterator.next();
+            if (currentString.equalsIgnoreCase(targetName)) {
+                return currentString;
+            }
+        }
+    	return targetName;
+    }
+    
+    // Get the real name of the player from claim bans
+    public static String getRealNameFromClaimBans(Chunk chunk, String targetName) {
+    	if(!listClaims.containsKey(chunk)) return targetName;
+        Iterator<String> iterator = listClaims.get(chunk).getBans().iterator();
+        while (iterator.hasNext()) {
+            String currentString = iterator.next();
+            if (currentString.equalsIgnoreCase(targetName)) {
+                return currentString;
+            }
+        }
+    	return targetName;
     }
     
     // Check if a player is ban from a claim
@@ -1985,14 +2050,20 @@ public class ClaimMain {
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Members = CONCAT(Members, ';', ?) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	                preparedStatement.setString(2, "aucun");
-    	                preparedStatement.setString(3, "admin");
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner("admin")) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getMembers());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, "aucun");
+        	                preparedStatement.setString(3, "admin");
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
-    	            
     	        } catch (SQLException e) {
     	            e.printStackTrace();
     	        }
@@ -2001,14 +2072,20 @@ public class ClaimMain {
     	} else {
     		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Members = CONCAT(Members, ';', ?) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	                preparedStatement.setString(2, "aucun");
-    	                preparedStatement.setString(3, "admin");
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner("admin")) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getMembers());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, "aucun");
+        	                preparedStatement.setString(3, "admin");
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
-    	            
     	        } catch (SQLException e) {
     	            e.printStackTrace();
     	        }
@@ -2025,15 +2102,23 @@ public class ClaimMain {
     		.filter(claim -> playerName.equals(claim.getOwner()))
     		.forEach(claim -> claim.addBan(name));
     	removeAllClaimMembers(player,name);
+
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Bans = CONCAT(Bans, ';', ?) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	                preparedStatement.setString(2, player.getUniqueId().toString());
-    	                preparedStatement.setString(3, playerName);
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner(playerName)) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getBans());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, player.getUniqueId().toString());
+        	                preparedStatement.setString(3, player.getName());
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
     	            
     	        } catch (SQLException e) {
@@ -2044,12 +2129,19 @@ public class ClaimMain {
     	} else {
     		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Bans = CONCAT(Bans, ';', ?) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	                preparedStatement.setString(2, player.getUniqueId().toString());
-    	                preparedStatement.setString(3, playerName);
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner(playerName)) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getBans());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, player.getUniqueId().toString());
+        	                preparedStatement.setString(3, player.getName());
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
     	            
     	        } catch (SQLException e) {
@@ -2070,14 +2162,19 @@ public class ClaimMain {
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Bans = TRIM(BOTH ';' FROM REPLACE(REPLACE(REPLACE(CONCAT(';', Bans, ';'), CONCAT(';', ?, ';'), ';'), CONCAT(';', ?), ''), CONCAT(?, ';'), '')) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	            	preparedStatement.setString(2, name);
-    	            	preparedStatement.setString(3, name);
-    	                preparedStatement.setString(4, player.getUniqueId().toString());
-    	                preparedStatement.setString(5, playerName);
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner(playerName)) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getBans());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, player.getUniqueId().toString());
+        	                preparedStatement.setString(3, player.getName());
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
     	            
     	        } catch (SQLException e) {
@@ -2088,14 +2185,19 @@ public class ClaimMain {
     	} else {
     		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Bans = TRIM(BOTH ';' FROM REPLACE(REPLACE(REPLACE(CONCAT(';', Bans, ';'), CONCAT(';', ?, ';'), ';'), CONCAT(';', ?), ''), CONCAT(?, ';'), '')) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	            	preparedStatement.setString(2, name);
-    	            	preparedStatement.setString(3, name);
-    	                preparedStatement.setString(4, player.getUniqueId().toString());
-    	                preparedStatement.setString(5, playerName);
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner(playerName)) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getBans());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, player.getUniqueId().toString());
+        	                preparedStatement.setString(3, player.getName());
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
     	            
     	        } catch (SQLException e) {
@@ -2116,12 +2218,19 @@ public class ClaimMain {
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Bans = CONCAT(Bans, ';', ?) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	                preparedStatement.setString(2, "aucun");
-    	                preparedStatement.setString(3, "admin");
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner("admin")) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getBans());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, "aucun");
+        	                preparedStatement.setString(3, "admin");
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
     	            
     	        } catch (SQLException e) {
@@ -2132,12 +2241,19 @@ public class ClaimMain {
     	} else {
     		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Bans = CONCAT(Bans, ';', ?) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	                preparedStatement.setString(2, "aucun");
-    	                preparedStatement.setString(3, "admin");
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner("admin")) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getBans());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, "aucun");
+        	                preparedStatement.setString(3, "admin");
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
     	            
     	        } catch (SQLException e) {
@@ -2157,14 +2273,19 @@ public class ClaimMain {
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Bans = TRIM(BOTH ';' FROM REPLACE(REPLACE(REPLACE(CONCAT(';', Bans, ';'), CONCAT(';', ?, ';'), ';'), CONCAT(';', ?), ''), CONCAT(?, ';'), '')) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	            	preparedStatement.setString(2, name);
-    	            	preparedStatement.setString(3, name);
-    	                preparedStatement.setString(4, "aucun");
-    	                preparedStatement.setString(5, "admin");
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner("admin")) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getBans());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, "aucun");
+        	                preparedStatement.setString(3, "admin");
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
     	            
     	        } catch (SQLException e) {
@@ -2175,14 +2296,19 @@ public class ClaimMain {
     	} else {
     		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Bans = TRIM(BOTH ';' FROM REPLACE(REPLACE(REPLACE(CONCAT(';', Bans, ';'), CONCAT(';', ?, ';'), ';'), CONCAT(';', ?), ''), CONCAT(?, ';'), '')) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	            	preparedStatement.setString(2, name);
-    	            	preparedStatement.setString(3, name);
-    	                preparedStatement.setString(4, "aucun");
-    	                preparedStatement.setString(5, "admin");
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner("admin")) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getBans());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, "aucun");
+        	                preparedStatement.setString(3, "admin");
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
     	            
     	        } catch (SQLException e) {
@@ -2203,12 +2329,19 @@ public class ClaimMain {
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Members = CONCAT(Members, ';', ?) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	                preparedStatement.setString(2, player.getUniqueId().toString());
-    	                preparedStatement.setString(3, playerName);
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner(playerName)) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getMembers());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, player.getUniqueId().toString());
+        	                preparedStatement.setString(3, playerName);
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
     	            
     	        } catch (SQLException e) {
@@ -2219,12 +2352,19 @@ public class ClaimMain {
     	} else {
     		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Members = CONCAT(Members, ';', ?) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	                preparedStatement.setString(2, player.getUniqueId().toString());
-    	                preparedStatement.setString(3, playerName);
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner(playerName)) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getMembers());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, player.getUniqueId().toString());
+        	                preparedStatement.setString(3, playerName);
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
     	            
     	        } catch (SQLException e) {
@@ -2244,16 +2384,20 @@ public class ClaimMain {
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Members = TRIM(BOTH ';' FROM REPLACE(REPLACE(REPLACE(CONCAT(';', Members, ';'), CONCAT(';', ?, ';'), ';'), CONCAT(';', ?), ''), CONCAT(?, ';'), '')) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	            	preparedStatement.setString(2, name);
-    	            	preparedStatement.setString(3, name);
-    	                preparedStatement.setString(4, "aucun");
-    	                preparedStatement.setString(5, "admin");
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner("admin")) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getMembers());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, "aucun");
+        	                preparedStatement.setString(3, "admin");
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
-    	            
     	        } catch (SQLException e) {
     	            e.printStackTrace();
     	        }
@@ -2262,16 +2406,20 @@ public class ClaimMain {
     	} else {
     		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Members = TRIM(BOTH ';' FROM REPLACE(REPLACE(REPLACE(CONCAT(';', Members, ';'), CONCAT(';', ?, ';'), ';'), CONCAT(';', ?), ''), CONCAT(?, ';'), '')) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	            	preparedStatement.setString(2, name);
-    	            	preparedStatement.setString(3, name);
-    	                preparedStatement.setString(4, "aucun");
-    	                preparedStatement.setString(5, "admin");
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner("admin")) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getMembers());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, "aucun");
+        	                preparedStatement.setString(3, "admin");
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
-    	            
     	        } catch (SQLException e) {
     	            e.printStackTrace();
     	        }
@@ -2290,14 +2438,19 @@ public class ClaimMain {
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Members = TRIM(BOTH ';' FROM REPLACE(REPLACE(REPLACE(CONCAT(';', Members, ';'), CONCAT(';', ?, ';'), ';'), CONCAT(';', ?), ''), CONCAT(?, ';'), '')) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	            	preparedStatement.setString(2, name);
-    	            	preparedStatement.setString(3, name);
-    	                preparedStatement.setString(4, player.getUniqueId().toString());
-    	                preparedStatement.setString(5, playerName);
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner(playerName)) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getMembers());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, player.getUniqueId().toString());
+        	                preparedStatement.setString(3, playerName);
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
     	            
     	        } catch (SQLException e) {
@@ -2308,14 +2461,19 @@ public class ClaimMain {
     	} else {
     		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
-    				String updateQuery = "UPDATE scs_claims SET Members = TRIM(BOTH ';' FROM REPLACE(REPLACE(REPLACE(CONCAT(';', Members, ';'), CONCAT(';', ?, ';'), ';'), CONCAT(';', ?), ''), CONCAT(?, ';'), '')) WHERE uuid = ? AND name = ?";
+    	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-    	            	preparedStatement.setString(1, name);
-    	            	preparedStatement.setString(2, name);
-    	            	preparedStatement.setString(3, name);
-    	                preparedStatement.setString(4, player.getUniqueId().toString());
-    	                preparedStatement.setString(5, playerName);
-    	                preparedStatement.executeUpdate();
+    	            	for(Chunk chunk : getChunksFromOwner(playerName)) {
+    	            		Claim claim = listClaims.get(chunk);
+    	            		String banString = String.join(";", claim.getMembers());
+        	            	preparedStatement.setString(1, banString);
+        	                preparedStatement.setString(2, player.getUniqueId().toString());
+        	                preparedStatement.setString(3, playerName);
+        	                preparedStatement.setString(4, String.valueOf(chunk.getX()));
+        	                preparedStatement.setString(5, String.valueOf(chunk.getZ()));
+        	                preparedStatement.addBatch();
+    	            	}
+    	                preparedStatement.executeBatch();
     	            }
     	            
     	        } catch (SQLException e) {
@@ -2704,6 +2862,77 @@ public class ClaimMain {
 	                String deleteQuery = "DELETE FROM scs_claims WHERE id IN (" + idsString + ") AND uuid = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
 	                    preparedStatement.setString(1, uuid);
+	                    preparedStatement.executeUpdate();
+	                }
+	            } catch (SQLException e) {
+	                e.printStackTrace();
+	            }
+	    		return;
+    		});
+    	}
+    	return true;
+    }
+    
+    // Method to delete all player's claims
+    public static boolean deleteAllClaim(String playerName) {
+    	Set<Chunk> chunks = getChunksFromOwner(playerName);
+    	Player player = Bukkit.getPlayer(playerName);
+    	String uuid = "";
+    	if(player == null) {
+    		uuid = Bukkit.getOfflinePlayer(playerName).getUniqueId().toString();
+    	} else {
+    		uuid = player.getUniqueId().toString();
+    	}
+    	List<Integer> ids = new ArrayList<>();
+    	int i = 0;
+    	CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
+    	cPlayer.setClaimsCount(0);
+    	for(Chunk chunk : chunks) {
+    		if(!listClaims.containsKey(chunk)) continue;
+    		if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
+    		if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
+        	ids.add(Integer.parseInt(claimsId.get(playerName).get(chunk)));
+        	claimsId.get(playerName).remove(chunk);
+        	if(claimsId.get(playerName).isEmpty()) claimsId.remove(playerName);
+        	listClaims.remove(chunk);
+        	if(SimpleClaimSystem.isFolia()) {
+        		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+        			for(Entity e : chunk.getEntities()) {
+        				if(!(e instanceof Player)) continue;
+        				Player p = (Player) e;
+        				ClaimEventsEnterLeave.disableBossBar(p);
+        			}
+        		});
+        	} else {
+    			for(Entity e : chunk.getEntities()) {
+    				if(!(e instanceof Player)) continue;
+    				Player p = (Player) e;
+    				ClaimEventsEnterLeave.disableBossBar(p);
+    			}
+        	}
+            i++;
+    	}
+		String idsString = String.join(",", ids.stream().map(String::valueOf).toArray(String[]::new));
+		final String uuid_final = uuid;
+    	if(SimpleClaimSystem.isFolia()) {
+    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
+	                String deleteQuery = "DELETE FROM scs_claims WHERE id IN (" + idsString + ") AND uuid = ?";
+	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
+	                    preparedStatement.setString(1, uuid_final);
+	                    preparedStatement.executeUpdate();
+	                }
+	            } catch (SQLException e) {
+	                e.printStackTrace();
+	            }
+	    		return;
+    		});
+    	} else {
+    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
+	                String deleteQuery = "DELETE FROM scs_claims WHERE id IN (" + idsString + ") AND uuid = ?";
+	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
+	                    preparedStatement.setString(1, uuid_final);
 	                    preparedStatement.executeUpdate();
 	                }
 	            } catch (SQLException e) {
@@ -3413,8 +3642,8 @@ public class ClaimMain {
 	    Chunk centerChunk = to;
 	    int centerX = centerChunk.getX();
 	    int centerZ = centerChunk.getZ();
-	    boolean isClaimed = ClaimMain.checkIfClaimExists(centerChunk);
-	    String name = isClaimed ? ClaimLanguage.getMessage("map-actual-claim-name-message").replaceAll("%name%", ClaimMain.getClaimNameByChunk(centerChunk)) : ClaimLanguage.getMessage("map-no-claim-name-message");
+	    boolean isClaimed = checkIfClaimExists(centerChunk);
+	    String name = isClaimed ? ClaimLanguage.getMessage("map-actual-claim-name-message").replaceAll("%name%", getClaimNameByChunk(centerChunk)) : ClaimLanguage.getMessage("map-no-claim-name-message");
 	    String coords = ClaimLanguage.getMessage("map-coords-message").replaceAll("%coords%", String.valueOf(centerChunk.getX())+","+String.valueOf(centerChunk.getZ()));
 	    String directionS = ClaimLanguage.getMessage("map-direction-message").replaceAll("%direction%", direction);
 	    String colorRelationNoClaim = ClaimLanguage.getMessage("map-no-claim-color");
@@ -3430,7 +3659,7 @@ public class ClaimMain {
 	            int relX = offset[0];
 	            int relZ = offset[1];
 	            Chunk chunk = world.getChunkAt(centerX + relX, centerZ + relZ);
-	            if(ClaimMain.checkIfClaimExists(chunk)) {
+	            if(checkIfClaimExists(chunk)) {
 	            	String color = getRelation(player,chunk);
 	            	if(chunk.equals(centerChunk)) {
 	            		mapMessage.append(color+mapCursor+colorRelationNoClaim);

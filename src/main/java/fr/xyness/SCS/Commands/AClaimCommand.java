@@ -21,6 +21,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -73,10 +74,12 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         		completions.add("set-bossbar-color");
         		completions.add("set-teleportation");
         		completions.add("set-teleportation-moving");
-        		completions.add("add-blocked-container");
+        		completions.add("add-blocked-interact-block");
+        		completions.add("add-blocked-entity");
         		completions.add("add-blocked-item");
-        		completions.add("remove-blocked-container");
+        		completions.add("remove-blocked-interact-block");
         		completions.add("remove-blocked-item");
+        		completions.add("remove-blocked-entity");
         		completions.add("add-disabled-world");
         		completions.add("remove-disabled-world");
         		completions.add("set-status-setting");
@@ -146,14 +149,24 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         		completions.addAll(ClaimGuis.getPerms());
         		return completions;
         	}
-        	if (args.length == 2 && (args[0].equalsIgnoreCase("add-blocked-container") || args[0].equalsIgnoreCase("add-blocked-item"))) {
+        	if (args.length == 2 && (args[0].equalsIgnoreCase("add-blocked-interact-block") || args[0].equalsIgnoreCase("add-blocked-item"))) {
         		for(Material mat : Material.values()) {
         			completions.add(mat.toString());
         		}
         		return completions;
         	}
-        	if (args.length == 2 && args[0].equalsIgnoreCase("remove-blocked-container")) {
+        	if (args.length == 2 && args[0].equalsIgnoreCase("add-blocked-entity")) {
+        		for(EntityType e : EntityType.values()) {
+        			completions.add(e.toString());
+        		}
+        		return completions;
+        	}
+        	if (args.length == 2 && args[0].equalsIgnoreCase("remove-blocked-interact-block")) {
         		completions.addAll(ClaimSettings.getRestrictedContainersString());
+        		return completions;
+        	}
+        	if (args.length == 2 && args[0].equalsIgnoreCase("remove-blocked-entity")) {
+        		completions.addAll(ClaimSettings.getRestrictedEntitiesString());
         		return completions;
         	}
         	if (args.length == 2 && args[0].equalsIgnoreCase("remove-blocked-item")) {
@@ -636,7 +649,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 				}
                 return true;
         	}
-        	if(args[0].equalsIgnoreCase("add-blocked-container")) {
+        	if(args[0].equalsIgnoreCase("add-blocked-interact-block")) {
         		String material = args[1].toUpperCase();
         		Material mat = Material.getMaterial(material);
         		if(mat == null) {
@@ -645,19 +658,44 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         		}
                 File configFile = new File(plugin.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                List<String> containers = config.getStringList("blocked-containers");
+                List<String> containers = config.getStringList("blocked-interact-blocks");
                 if(containers.contains(material.toUpperCase())) {
                 	sender.sendMessage(ClaimLanguage.getMessage("material-already-in-list"));
                 	return true;
                 }
                 containers.add(material.toUpperCase());
-                config.set("blocked-containers", containers);
+                config.set("blocked-interact-blocks", containers);
                 ClaimSettings.setRestrictedContainers(containers);
                 try {
                 	config.save(configFile);
-                	sender.sendMessage(ClaimLanguage.getMessage("setting-list-changed-via-command").replaceAll("%setting%", "Blocked containers").replaceAll("%material%", material.toUpperCase()));
+                	sender.sendMessage(ClaimLanguage.getMessage("setting-list-changed-via-command").replaceAll("%setting%", "Blocked interact blocks").replaceAll("%material%", material.toUpperCase()));
 				} catch (IOException e) {
 					e.printStackTrace();
+				}
+                return true;
+        	}
+        	if(args[0].equalsIgnoreCase("add-blocked-entity")) {
+        		String material = args[1].toUpperCase();
+        		EntityType e = EntityType.fromName(material);
+        		if(e == null) {
+        			sender.sendMessage(ClaimLanguage.getMessage("entity-incorrect"));
+        			return true;
+        		}
+                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                List<String> containers = config.getStringList("blocked-entities");
+                if(containers.contains(material.toUpperCase())) {
+                	sender.sendMessage(ClaimLanguage.getMessage("entity-already-in-list"));
+                	return true;
+                }
+                containers.add(material.toUpperCase());
+                config.set("blocked-entities", containers);
+                ClaimSettings.setRestrictedEntityType(containers);
+                try {
+                	config.save(configFile);
+                	sender.sendMessage(ClaimLanguage.getMessage("setting-list-changed-via-command-entity").replaceAll("%setting%", "Blocked entities").replaceAll("%entity%", material.toUpperCase()));
+				} catch (IOException ee) {
+					ee.printStackTrace();
 				}
                 return true;
         	}
@@ -711,7 +749,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 				}
                 return true;
         	}
-        	if(args[0].equalsIgnoreCase("remove-blocked-container")) {
+        	if(args[0].equalsIgnoreCase("remove-blocked-interact-block")) {
         		String material = args[1].toUpperCase();
         		Material mat = Material.getMaterial(material);
         		if(mat == null) {
@@ -720,19 +758,44 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         		}
                 File configFile = new File(plugin.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                List<String> containers = config.getStringList("blocked-containers");
+                List<String> containers = config.getStringList("blocked-interact-blocks");
                 if(!containers.contains(material.toUpperCase())) {
                 	sender.sendMessage(ClaimLanguage.getMessage("material-not-in-list"));
                 	return true;
                 }
                 containers.remove(material.toUpperCase());
-                config.set("blocked-containers", containers);
-                ClaimSettings.setRestrictedItems(containers);
+                config.set("blocked-interact-blocks", containers);
+                ClaimSettings.setRestrictedContainers(containers);
                 try {
                 	config.save(configFile);
-                	sender.sendMessage(ClaimLanguage.getMessage("setting-list-changeda-via-command").replaceAll("%setting%", "Blocked containers").replaceAll("%material%", material.toUpperCase()));
+                	sender.sendMessage(ClaimLanguage.getMessage("setting-list-changeda-via-command").replaceAll("%setting%", "Blocked interact blocks").replaceAll("%material%", material.toUpperCase()));
 				} catch (IOException e) {
 					e.printStackTrace();
+				}
+                return true;
+        	}
+        	if(args[0].equalsIgnoreCase("remove-blocked-entity")) {
+        		String material = args[1].toUpperCase();
+        		EntityType e = EntityType.fromName(material);
+        		if(e == null) {
+        			sender.sendMessage(ClaimLanguage.getMessage("entity-incorrect"));
+        			return true;
+        		}
+                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                List<String> containers = config.getStringList("blocked-entities");
+                if(!containers.contains(material.toUpperCase())) {
+                	sender.sendMessage(ClaimLanguage.getMessage("entity-not-in-list"));
+                	return true;
+                }
+                containers.remove(material.toUpperCase());
+                config.set("blocked-entities", containers);
+                ClaimSettings.setRestrictedEntityType(containers);
+                try {
+                	config.save(configFile);
+                	sender.sendMessage(ClaimLanguage.getMessage("setting-list-changeda-via-command-entity").replaceAll("%setting%", "Blocked entities").replaceAll("%entity%", material.toUpperCase()));
+				} catch (IOException ee) {
+					ee.printStackTrace();
 				}
                 return true;
         	}

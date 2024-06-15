@@ -12,10 +12,14 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.Waterlogged;
+import org.bukkit.block.data.type.Bed;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.GlowItemFrame;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -26,6 +30,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockDispenseEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockFromToEvent;
 import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
@@ -40,14 +45,19 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
+import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.hanging.HangingBreakEvent.RemoveCause;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
+import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.vehicle.VehicleDamageEvent;
+import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -1407,28 +1417,18 @@ public class ClaimEvents implements Listener {
     }
 	
     // Explosions setting
-	@EventHandler
+    @EventHandler
     public void onEntityExplode(EntityExplodeEvent event) {
         Iterator<Block> blockIterator = event.blockList().iterator();
         while (blockIterator.hasNext()) {
             Block block = blockIterator.next();
-            if (ClaimMain.checkIfClaimExists(block.getLocation().getChunk()) && !ClaimMain.canPermCheck(block.getLocation().getChunk(), "Explosions")) {
+            if (ClaimMain.checkIfClaimExists(block.getLocation().getChunk()) &&
+                !ClaimMain.canPermCheck(block.getLocation().getChunk(), "Explosions")) {
                 blockIterator.remove();
             }
         }
     }
-	
-	// Explosions setting
-    @EventHandler
-    public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-        if (event.getEntityType() == EntityType.WITHER || event.getEntityType() == EntityType.WITHER_SKULL) {
-            Block block = event.getBlock();
-            if (ClaimMain.checkIfClaimExists(block.getLocation().getChunk()) && !ClaimMain.canPermCheck(block.getLocation().getChunk(), "Explosions")) {
-            	event.setCancelled(true);
-            }
-        }
-    }
-
+    
     // Explosions setting
     @EventHandler
     public void onProjectileHit(ProjectileHitEvent event) {
@@ -1444,6 +1444,30 @@ public class ClaimEvents implements Listener {
         		if(ClaimMain.checkIfClaimExists(chunk) && !ClaimMain.canPermCheck(chunk, "Explosions")) {
         			event.setCancelled(true);
         		}
+            }
+        }
+    }
+    
+    // Explosions setting
+    @EventHandler
+    public void onBlockExplode(BlockExplodeEvent event) {
+        Iterator<Block> blockIterator = event.blockList().iterator();
+        while (blockIterator.hasNext()) {
+            Block block = blockIterator.next();
+            if (ClaimMain.checkIfClaimExists(block.getLocation().getChunk()) &&
+                !ClaimMain.canPermCheck(block.getLocation().getChunk(), "Explosions")) {
+                blockIterator.remove();
+            }
+        }
+    }
+	
+	// Explosions setting
+    @EventHandler
+    public void onEntityChangeBlock(EntityChangeBlockEvent event) {
+        if (event.getEntityType() == EntityType.WITHER || event.getEntityType() == EntityType.WITHER_SKULL) {
+            Block block = event.getBlock();
+            if (ClaimMain.checkIfClaimExists(block.getLocation().getChunk()) && !ClaimMain.canPermCheck(block.getLocation().getChunk(), "Explosions")) {
+            	event.setCancelled(true);
             }
         }
     }
@@ -1464,13 +1488,55 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
+	// Destroy setting (vehicles)
+	@EventHandler
+	public void onVehicleDamage(VehicleDamageEvent event){
+		Entity damager = event.getAttacker();
+		Chunk chunk = event.getVehicle().getLocation().getChunk();
+		if(!ClaimMain.checkIfClaimExists(chunk)) return;
+		if(damager instanceof Player) {
+			Player player = (Player) damager;
+			if(player.hasPermission("scs.bypass")) return;
+			if(ClaimMain.checkMembre(chunk, player)) return;
+			if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
+				event.setCancelled(true);
+				ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+				return;
+			}
+		}
+		if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
+			event.setCancelled(true);
+			return;
+		}
+	}
+	
 	// Build setting
 	@EventHandler
 	public void onPlayerPlace(BlockPlaceEvent event){
 		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
 		if(player.hasPermission("scs.bypass")) return;
-		Chunk chunk = event.getBlock().getLocation().getChunk();
+		Block block = event.getBlock();
+		Chunk chunk = block.getLocation().getChunk();
+		
+		if(block.getType().toString().contains("BED")) {
+	        Bed bed = (Bed) block.getBlockData();
+	        BlockFace facing = bed.getFacing();
+	        Block adjacentBlock = block.getRelative(facing);
+	        Chunk adjacentChunk = adjacentBlock.getChunk();
+	
+	        if (!chunk.equals(adjacentChunk)) {
+	            if (ClaimMain.checkIfClaimExists(adjacentChunk) &&
+	                !ClaimMain.getOwnerInClaim(chunk).equals(ClaimMain.getOwnerInClaim(adjacentChunk))) {
+	                if (!ClaimMain.canPermCheck(adjacentChunk, "Build")) {
+	                    event.setCancelled(true);
+	                    ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("build"));
+	                    return;
+	                }
+	            }
+	        }
+		}
+		
 		if(ClaimMain.checkIfClaimExists(chunk)) {
 			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Build")) {
 				event.setCancelled(true);
@@ -1496,6 +1562,63 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
+	// Destroy painting by physics (boat or something else)
+	@EventHandler
+	public void onHangingBreak(HangingBreakEvent event) {
+		Chunk chunk = event.getEntity().getChunk();
+		if(ClaimMain.checkIfClaimExists(chunk)) {
+			if(event.getCause() == RemoveCause.PHYSICS && !ClaimMain.canPermCheck(chunk, "Destroy")) {
+				event.setCancelled(true);
+			}
+		}
+	}
+	
+	// Destroy setting
+	@EventHandler
+    public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
+		if(event.isCancelled()) return;
+        if (event.getEntity().getType() == EntityType.PAINTING) {
+        	Chunk chunk = event.getEntity().getLocation().getChunk();
+            if (event.getRemover() instanceof Player) {
+                if(ClaimMain.checkIfClaimExists(chunk)) {
+                	Player player = (Player) event.getRemover();
+                	if(player.hasPermission("scs.bypass")) return;
+                	if(ClaimMain.checkMembre(chunk, player)) return;
+                	if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
+                		event.setCancelled(true);
+                		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+                		return;
+                	}
+                }
+                return;
+            }
+           	if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
+        		event.setCancelled(true);
+        		return;
+        	}
+        }
+        if (event.getEntity().getType() == EntityType.ITEM_FRAME || event.getEntity().getType() == EntityType.GLOW_ITEM_FRAME) {
+        	Chunk chunk = event.getEntity().getLocation().getChunk();
+            if (event.getRemover() instanceof Player) {
+                if(ClaimMain.checkIfClaimExists(chunk)) {
+                	Player player = (Player) event.getRemover();
+                	if(player.hasPermission("scs.bypass")) return;
+                	if(ClaimMain.checkMembre(chunk, player)) return;
+                	if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
+                		event.setCancelled(true);
+                		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+                		return;
+                	}
+                }
+                return;
+            }
+           	if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
+        		event.setCancelled(true);
+        		return;
+        	}
+        }
+    }
+	
 	// Build setting
 	@EventHandler
     public void onBucketUse(PlayerBucketEmptyEvent event) {
@@ -1507,6 +1630,22 @@ public class ClaimEvents implements Listener {
 			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Build")) {
 				event.setCancelled(true);
 				ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("build"));
+				return;
+			}
+		}
+    }
+	
+	// Destroy setting (fill bucket)
+	@EventHandler
+    public void onBucketUse(PlayerBucketFillEvent event) {
+		if(event.isCancelled()) return;
+		Player player = event.getPlayer();
+		if(player.hasPermission("scs.bypass")) return;
+		Chunk chunk = event.getBlock().getLocation().getChunk();
+		if(ClaimMain.checkIfClaimExists(chunk)) {
+			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Destroy")) {
+				event.setCancelled(true);
+				ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
 				return;
 			}
 		}
@@ -1528,7 +1667,7 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
-	// Buttons, trapdoors, doors, fencegates, levers, repeaters/comparators, bells, containers, tripwires, items and pressure plates settings
+	// Buttons, trapdoors, doors, fencegates, levers, repeaters/comparators, bells, tripwires, items and pressure plates settings
 	@EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
 		Player player = event.getPlayer();
@@ -1583,11 +1722,11 @@ public class ClaimEvents implements Listener {
 	            	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("bells"));
 	                return;
 	            }
-	            if(!ClaimMain.canPermCheck(chunk, "Containers")) {
+	            if(!ClaimMain.canPermCheck(chunk, "InteractBlocks")) {
 	            	Material item = block.getType();
 	            	if(ClaimSettings.isRestrictedContainer(item)) {
                         event.setCancelled(true);
-                        ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("containers"));
+                        ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("interactblocks"));
                         return;
 	            	}
 	            }
@@ -1625,83 +1764,66 @@ public class ClaimEvents implements Listener {
 		}
     }
 	
-	// Armorstands setting
+	// Entities setting
 	@EventHandler
     public void onPlayerInteractEntity(PlayerInteractAtEntityEvent event) {
-        if (event.getRightClicked() instanceof ArmorStand) {
-            Chunk chunk = event.getRightClicked().getLocation().getChunk();
-            if(ClaimMain.checkIfClaimExists(chunk)) {
-            	Player player = event.getPlayer();
-            	if(player.hasPermission("scs.bypass")) return;
-            	if(ClaimMain.checkMembre(chunk, player)) return;
-            	if(!ClaimMain.canPermCheck(chunk, "Armorstands")) {
-            		event.setCancelled(true);
-            		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("armorstands"));
-            	}
+        Chunk chunk = event.getRightClicked().getLocation().getChunk();
+        if(ClaimMain.checkIfClaimExists(chunk)) {
+        	Player player = event.getPlayer();
+        	if(player.hasPermission("scs.bypass")) return;
+        	if(ClaimMain.checkMembre(chunk, player)) return;
+        	Entity entity = event.getRightClicked();
+        	
+        	EntityType e = event.getRightClicked().getType();
+        	if(!ClaimSettings.isRestrictedEntityType(e)) return;
+        	if(!ClaimMain.canPermCheck(chunk, "Entities")) {
+        		event.setCancelled(true);
+        		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("entities"));
+        		return;
+        	}
+        	
+            ItemStack itemInHand = player.getInventory().getItem(event.getHand());
+            if (itemInHand != null) {
+            	if(!ClaimSettings.isRestrictedItem(itemInHand.getType())) return;
+                if (!ClaimMain.canPermCheck(entity.getLocation().getChunk(), "Items")) {
+                    event.setCancelled(true);
+                    ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("items"));
+                    return;
+                }
             }
-            return;
         }
+        return;
     }
 	
-	// Itemframes setting
+	// Entities setting
 	@EventHandler
     public void onPlayerInteractEntity2(PlayerInteractEntityEvent event) {
-        if (event.getRightClicked().getType() == EntityType.ITEM_FRAME || event.getRightClicked().getType() == EntityType.GLOW_ITEM_FRAME) {
-            Chunk chunk = event.getRightClicked().getLocation().getChunk();
-            if(ClaimMain.checkIfClaimExists(chunk)) {
-            	Player player = event.getPlayer();
-            	if(player.hasPermission("scs.bypass")) return;
-            	if(ClaimMain.checkMembre(chunk, player)) return;
-            	if(!ClaimMain.canPermCheck(chunk, "Itemframes")) {
-            		event.setCancelled(true);
-            		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("itemframes"));
-            	}
-            }
-            return;
-        }
-    }
-	
-	// Destroy and paintings settings
-	@EventHandler
-    public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
-        if (event.getEntity().getType() == EntityType.PAINTING) {
-            if (event.getRemover() instanceof Player) {
-                Chunk chunk = event.getEntity().getLocation().getChunk();
-                if(ClaimMain.checkIfClaimExists(chunk)) {
-                	Player player = (Player) event.getRemover();
-                	if(player.hasPermission("scs.bypass")) return;
-                	if(ClaimMain.checkMembre(chunk, player)) return;
-                	if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
-                		event.setCancelled(true);
-                		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
-                		return;
-                	}
-                	if(!ClaimMain.canPermCheck(chunk, "Paintings")) {
-                		event.setCancelled(true);
-                		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("paintings"));
-                	}
+        Chunk chunk = event.getRightClicked().getLocation().getChunk();
+        if(ClaimMain.checkIfClaimExists(chunk)) {
+        	Player player = event.getPlayer();
+        	if(player.hasPermission("scs.bypass")) return;
+        	if(ClaimMain.checkMembre(chunk, player)) return;
+        	Entity entity = event.getRightClicked();
+        	
+        	EntityType e = event.getRightClicked().getType();
+        	if(!ClaimSettings.isRestrictedEntityType(e)) return;
+        	if(!ClaimMain.canPermCheck(chunk, "Entities")) {
+        		event.setCancelled(true);
+        		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("entities"));
+        		return;
+        	}
+        	
+            ItemStack itemInHand = player.getInventory().getItem(event.getHand());
+            if (itemInHand != null) {
+            	if(!ClaimSettings.isRestrictedItem(itemInHand.getType())) return;
+                if (!ClaimMain.canPermCheck(entity.getLocation().getChunk(), "Items")) {
+                    event.setCancelled(true);
+                    ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("items"));
+                    return;
                 }
             }
         }
-        if (event.getEntity().getType() == EntityType.ITEM_FRAME || event.getEntity().getType() == EntityType.GLOW_ITEM_FRAME) {
-            if (event.getRemover() instanceof Player) {
-                Chunk chunk = event.getEntity().getLocation().getChunk();
-                if(ClaimMain.checkIfClaimExists(chunk)) {
-                	Player player = (Player) event.getRemover();
-                	if(player.hasPermission("scs.bypass")) return;
-                	if(ClaimMain.checkMembre(chunk, player)) return;
-                	if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
-                		event.setCancelled(true);
-                		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
-                		return;
-                	}
-                	if(!ClaimMain.canPermCheck(chunk, "Itemframes")) {
-                		event.setCancelled(true);
-                		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("itemframes"));
-                	}
-                }
-            }
-        }
+        return;
     }
 	
 	// Liquids setting
@@ -1713,8 +1835,29 @@ public class ClaimEvents implements Listener {
     	if(block.getLocation().getChunk().equals(chunk)) return;
     	if(ClaimMain.checkIfClaimExists(chunk)) {
     		if(ClaimMain.getOwnerInClaim(chunk).equals(ClaimMain.getOwnerInClaim(block.getLocation().getChunk()))) return;
-            if (block.isLiquid() && toBlock.isEmpty() && !ClaimMain.canPermCheck(chunk, "Liquids")) {
-                event.setCancelled(true);
+    		if(ClaimMain.canPermCheck(chunk, "Liquids")) return;
+            if (block.isLiquid()) {
+                if (toBlock.getBlockData() instanceof Waterlogged) {
+                    Waterlogged waterlogged = (Waterlogged) toBlock.getBlockData();
+                    if (waterlogged.isWaterlogged()) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+                if (toBlock.isEmpty() || toBlock.isPassable()) {
+                    event.setCancelled(true);
+                }
+            } else {
+                if (block.getBlockData() instanceof Waterlogged) {
+                    Waterlogged waterlogged = (Waterlogged) block.getBlockData();
+                    if (waterlogged.isWaterlogged()) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+                if (toBlock.isEmpty() || toBlock.isPassable()) {
+                    event.setCancelled(true);
+                }
             }
     	}
     }
@@ -1798,8 +1941,10 @@ public class ClaimEvents implements Listener {
         Chunk chunk = event.getBlock().getLocation().getChunk();
         if(!ClaimMain.checkIfClaimExists(chunk)) return;
         Player player = event.getPlayer();
-    	if(player.hasPermission("scs.bypass")) return;
-    	if(ClaimMain.checkMembre(chunk, player)) return;
+        if(player != null) {
+        	if(player.hasPermission("scs.bypass")) return;
+        	if(ClaimMain.checkMembre(chunk, player)) return;
+        }
         if(ClaimMain.canPermCheck(chunk, "Firespread")) return;
         event.setCancelled(true);
     }
@@ -1813,6 +1958,31 @@ public class ClaimEvents implements Listener {
         event.setCancelled(true);
     }
     
+    // Armorstands/Paintings/Itemframes
+    @EventHandler
+    public void onEntityDamageByEntity2(EntityDamageByEntityEvent event) {
+    	Entity entity = event.getEntity();
+    	if(entity instanceof ArmorStand || entity instanceof ItemFrame || entity instanceof GlowItemFrame) {
+            Entity damager = event.getDamager();
+            Chunk chunk = entity.getLocation().getChunk();
+            if (!ClaimMain.checkIfClaimExists(chunk)) return;
+            if (damager instanceof Player) {
+            	Player player = (Player) damager;
+            	if(player.hasPermission("scs.bypass")) return;
+            	if(ClaimMain.checkMembre(chunk, player)) return;
+                if (!ClaimMain.canPermCheck(chunk, "Destroy")) {
+                	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+                    event.setCancelled(true);
+                }
+            	return;
+            }
+            
+            if (!ClaimMain.canPermCheck(chunk, "Destroy")) {
+            	event.setCancelled(true);
+            }
+        }
+    }
+    
     // Damages setting
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
@@ -1821,7 +1991,7 @@ public class ClaimEvents implements Listener {
 
         if(!ClaimMain.checkIfClaimExists(chunk)) return;
 
-        if (!(entity instanceof Player)) {
+        if (!(entity instanceof Player) && !(entity instanceof Monster) && !(entity instanceof ArmorStand) && !(entity instanceof ItemFrame) ) {
             Entity damager = event.getDamager();
 
             if (damager instanceof Player) {
@@ -1832,6 +2002,47 @@ public class ClaimEvents implements Listener {
                 if (shooter instanceof Player) {
                     processDamageByPlayer((Player) shooter, chunk, event);
                 }
+            }
+        }
+    }
+    
+    // Vehicle enter (interact entities)
+    @EventHandler
+    public void onVehicleEnter(VehicleEnterEvent event) {
+        Entity entity = event.getEntered();
+        if (entity instanceof Player) {
+            Player player = (Player) entity;
+            Entity vehicle = event.getVehicle();
+            EntityType vehicleType = vehicle.getType();
+            if(!ClaimSettings.isRestrictedEntityType(vehicleType)) return;
+        	Chunk chunk = vehicle.getLocation().getChunk();
+            if (ClaimMain.checkIfClaimExists(chunk) &&
+                !ClaimMain.canPermCheck(chunk, "Entities")) {
+            	if(player.hasPermission("scs.bypass")) return;
+            	if(ClaimMain.checkMembre(chunk, player)) return;
+                event.setCancelled(true);
+                ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("entities"));
+            }
+        }
+    }
+    
+    // Destroy setting (trampling)
+    @EventHandler
+    public void onBlockChange(EntityChangeBlockEvent event) {
+        Entity entity = event.getEntity();
+        Block block = event.getBlock();
+
+        if (entity.getType() == EntityType.PLAYER && block.getType() == Material.FARMLAND) {
+            Player player = (Player) entity;
+            Chunk chunk = block.getLocation().getChunk();
+            if (ClaimMain.checkIfClaimExists(chunk)) {
+            	if(player.hasPermission("scs.bypass")) return;
+            	if(ClaimMain.checkMembre(chunk, player)) return;
+                if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
+                	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+                    event.setCancelled(true);
+                }
+
             }
         }
     }

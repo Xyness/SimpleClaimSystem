@@ -15,6 +15,13 @@ database-settings:
   username: root
   password: pass
   
+# Autopurge claims
+# auto-purge-checking is in minutes (every x minutes the plugin will purge the claims)
+# auto-purge-time-without-login accepts this format : 5s, 5m, 5h, 5d, 5w (5 is for example)
+auto-purge: true
+auto-purge-checking: 60
+auto-purge-time-without-login: 14d
+  
 # Dynmap support
 dynmap-claim-border-color: FF0000
 dynmap-claim-fill-color: 00FF00
@@ -126,7 +133,7 @@ status-settings:
   Destroy: true
   Buttons: true
   Items: true
-  Containers: true
+  InteractBlocks: true
   Levers: true
   Plates: true
   Doors: true
@@ -135,7 +142,7 @@ status-settings:
   Tripwires: true
   RepeatersComparators: true
   Bells: true
-  Armorstands: true
+  Entities: true
   Explosions: true
   Liquids: true
   Redstone: true
@@ -143,8 +150,6 @@ status-settings:
   Firespread: true
   Teleportations: true
   Damages: true
-  Paintings: true
-  Itemframes: true
   Visitors: true
   Pvp: true
   Monsters: true
@@ -155,7 +160,7 @@ default-values-settings:
   Destroy: false
   Buttons: true
   Items: true
-  Containers: false
+  InteractBlocks: false
   Levers: true
   Plates: true
   Doors: true
@@ -164,7 +169,7 @@ default-values-settings:
   Tripwires: true
   RepeatersComparators: true
   Bells: true
-  Armorstands: false
+  Entities: false
   Explosions: false
   Liquids: false
   Redstone: false
@@ -172,15 +177,13 @@ default-values-settings:
   Firespread: false
   Teleportations: false
   Damages: false
-  Paintings: false
-  Itemframes: false
   Visitors: false
   Pvp: true
   Monsters: true
 
-# List of blocked containers for the settings "Open containers"
+# List of blocked containers for the settings "Interact with blocks"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
-blocked-containers:
+blocked-interact-blocks:
 - FURNACE
 - BLAST_FURNACE
 - ANVIL
@@ -200,18 +203,11 @@ blocked-containers:
 - CHEST
 - ENDER_CHEST
 - TRAPPED_CHEST
-- CHEST_MINECART
-- OAK_CHEST_BOAT
-- SPRUCE_CHEST_BOAT
-- BIRCH_CHEST_BOAT
-- JUNGLE_CHEST_BOAT
-- ACACIA_CHEST_BOAT
-- CHERRY_CHEST_BOAT
-- DARK_OAK_CHEST_BOAT
-- MANGROVE_CHEST_BOAT
-- BAMBOO_CHEST_RAFT
-- FURNACE_MINECART
-- HOPPER_MINECART
+- DRAGON_EGG
+- RESPAWN_ANCHOR
+- CAULDRON
+- LAVA_CAULDRON
+- WATER_CAULDRON
 
 # List of blocked items for the settings "Use items"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
@@ -226,23 +222,20 @@ blocked-items:
 - WATER_BUCKET
 - LAVA_BUCKET
 - CHORUS_FRUIT
-- OAK_BOAT
-- OAK_CHEST_BOAT
-- SPRUCE_BOAT
-- SPRUCE_CHEST_BOAT
-- BIRCH_BOAT
-- BIRCH_CHEST_BOAT
-- JUNGLE_BOAT
-- JUNGLE_CHEST_BOAT
-- ACACIA_BOAT
-- ACACIA_CHEST_BOAT
-- CHERRY_BOAT
-- CHERRY_CHEST_BOAT
-- DARK_OAK_BOAT
-- DARK_OAK_CHEST_BOAT
-- MANGROVE_BOAT
-- MANGROVE_CHEST_BOAT
 - FIREWORK_ROCKET
 - FIREWORK_STAR
 - ENDER_EYE
 - FISHING_ROD
+- LEAD
+
+# List of blocked entity type for the settings "Entities"
+# https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/entity/EntityType.html
+blocked-entities:
+- VILLAGER
+- SHEEP
+- ITEM_FRAME
+- GLOW_ITEM_FRAME
+- ARMOR_STAND
+- PAINTING
+- BOAT
+- MINECART

@@ -29,16 +29,25 @@ public class ClaimGuis {
     private static Map<String,Map<Integer,String>> guis_custom_item_actions = new HashMap<>();
     private static Map<String,Map<String,String>> guis_settings = new HashMap<>();
     private static Map<Integer,String> guis_items_perms_clicked_slots = new HashMap<>();
-    private static Set<String> settings_name = Set.of("Build", "Destroy", "Buttons", "Items", "Containers", "Levers", "Plates", "Doors", "Trapdoors",
-    		"Fencegates","Tripwires","RepeatersComparators","Bells","Armorstands","Explosions","Liquids","Redstone","Frostwalker","Firespread",
-    		"Teleportations","Damages","Paintings","Itemframes","Visitors","Pvp","Monsters");
+    private static Set<String> settings_name = Set.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", "Trapdoors",
+    		"Fencegates","Tripwires","RepeatersComparators","Bells","Entities","Explosions","Liquids","Redstone","Frostwalker","Firespread",
+    		"Teleportations","Damages","Visitors","Pvp","Monsters");
     
     
     // *****************
 	// *  GUI Methods  *
  	// *****************
      
-     
+    
+    // Clear all
+    public static void clearAll() {
+    	guis_item_settings.clear();
+    	guis_custom_item_settings.clear();
+    	guis_custom_item_actions.clear();
+    	guis_settings.clear();
+    	guis_items_perms_clicked_slots.clear();
+    }
+    
      // Customs items
      
      // Get custom items set

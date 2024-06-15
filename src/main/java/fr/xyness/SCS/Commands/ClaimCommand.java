@@ -215,13 +215,14 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
             			player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
             			return true;
             		}
-            		OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
-            		if(!target.hasPlayedBefore()) {
-            			player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-            			return true;
+            		Player target = Bukkit.getPlayer(args[2]);
+            		String targetName = "";
+            		if(target == null) {
+            			targetName = args[2];
+            		} else {
+            			targetName = target.getName();
             		}
-            		String targetName = target.getName();
-            		if(targetName.equals(player.getName())) {
+            		if(targetName.equals(playerName)) {
             			player.sendMessage(ClaimLanguage.getMessage("cant-ban-yourself"));
             			return true;
             		}
@@ -238,13 +239,14 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
         			return true;
         		}
-        		OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
-        		if(!target.hasPlayedBefore() && !target.isOnline()) {
-        			player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-        			return true;
+        		Player target = Bukkit.getPlayer(args[2]);
+        		String targetName = "";
+        		if(target == null) {
+        			targetName = args[2];
+        		} else {
+        			targetName = target.getName();
         		}
-        		String targetName = target.getName();
-        		if(targetName.equals(player.getName())) {
+        		if(targetName.equals(playerName)) {
         			player.sendMessage(ClaimLanguage.getMessage("cant-ban-yourself"));
         			return true;
         		}
@@ -266,12 +268,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
             			player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
             			return true;
             		}
-            		OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
-            		if(!target.hasPlayedBefore() && !target.isOnline()) {
-            			player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-            			return true;
-            		}
-            		String targetName = target.getName();
+            		String targetName = args[2];
 	        		if(ClaimMain.removeAllClaimBan(player, targetName)) {
 	        			String message = ClaimLanguage.getMessage("remove-ban-all-success").replaceAll("%player%", targetName);
 	        			player.sendMessage(message);
@@ -285,17 +282,12 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
         			return true;
         		}
-        		OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
-        		if(!target.hasPlayedBefore()) {
-        			player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-        			return true;
-        		}
-        		String targetName = target.getName();
-        		if(!ClaimMain.getClaimBans(chunk).contains(targetName)) {
-        			String message = ClaimLanguage.getMessage("not-banned").replaceAll("%player%", targetName);
+        		if(!ClaimMain.checkBan(chunk, args[2])) {
+        			String message = ClaimLanguage.getMessage("not-banned").replaceAll("%player%", args[2]);
         			player.sendMessage(message);
         			return true;
         		}
+        		String targetName = ClaimMain.getRealNameFromClaimBans(chunk, args[2]);
         		if(ClaimMain.removeClaimBan(player, chunk, targetName)) {
         			String message = ClaimLanguage.getMessage("remove-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
         			player.sendMessage(message);
@@ -321,11 +313,11 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
                 			return true;
                 		}
         			}
-            		OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
-            		if(!target.hasPlayedBefore()) {
-            			player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-            			return true;
-            		}
+        			Player target = Bukkit.getPlayer(args[2]);
+        			if(target == null) {
+        				player.sendMessage(ClaimLanguage.getMessage("player-not-online").replaceAll("%player%", args[2]));
+        				return true;
+        			}
             		String targetName = target.getName();
             		if(targetName.equals(player.getName())) {
             			player.sendMessage(ClaimLanguage.getMessage("cant-add-yourself"));
@@ -348,11 +340,11 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			player.sendMessage(ClaimLanguage.getMessage("cant-add-member-anymore"));
         			return true;
         		}
-        		OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
-        		if(!target.hasPlayedBefore() && !target.isOnline()) {
-        			player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-        			return true;
-        		}
+    			Player target = Bukkit.getPlayer(args[2]);
+    			if(target == null) {
+    				player.sendMessage(ClaimLanguage.getMessage("player-not-online").replaceAll("%player%", args[2]));
+    				return true;
+    			}
         		String targetName = target.getName();
         		if(targetName.equals(player.getName())) {
         			player.sendMessage(ClaimLanguage.getMessage("cant-add-yourself"));
@@ -376,16 +368,11 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
             			player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
             			return true;
             		}
-        			if(args[2].equals(player.getName())) {
+        			if(args[2].equals(playerName)) {
             			player.sendMessage(ClaimLanguage.getMessage("cant-remove-owner"));
             			return true;
         			}
-            		OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
-            		if(!target.hasPlayedBefore() && !target.isOnline()) {
-            			player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-            			return true;
-            		}
-            		String targetName = target.getName();
+            		String targetName = args[2];
 	        		if(ClaimMain.removeAllClaimMembers(player, targetName)) {
 	        			String message = ClaimLanguage.getMessage("remove-member-success").replaceAll("%player%", targetName);
 	        			player.sendMessage(message);
@@ -399,23 +386,19 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
         			return true;
         		}
-        		OfflinePlayer target = Bukkit.getOfflinePlayer(args[2]);
-        		if(!target.hasPlayedBefore()) {
-        			player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-        			return true;
-        		}
-        		String targetName = target.getName();
-    			if(targetName.equals(player.getName())) {
+        		String targetName = args[2];
+    			if(targetName.equals(playerName)) {
         			player.sendMessage(ClaimLanguage.getMessage("cant-remove-owner"));
         			return true;
     			}
-        		if(!ClaimMain.getClaimMembers(chunk).contains(targetName)) {
+        		if(!ClaimMain.checkMembre(chunk, targetName)) {
         			String message = ClaimLanguage.getMessage("not-member").replaceAll("%player%", targetName);
         			player.sendMessage(message);
         			return true;
         		}
-        		if(ClaimMain.removeClaimMembers(player, chunk, targetName)) {
-        			String message = ClaimLanguage.getMessage("remove-member-success").replaceAll("%player%", targetName);
+        		String realName = ClaimMain.getRealNameFromClaimMembers(chunk, targetName);
+        		if(ClaimMain.removeClaimMembers(player, chunk, realName)) {
+        			String message = ClaimLanguage.getMessage("remove-member-success").replaceAll("%player%", realName);
         			player.sendMessage(message);
         			return true;
         		}

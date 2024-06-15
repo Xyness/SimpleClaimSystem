@@ -41,6 +41,7 @@ import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Listeners.*;
+import fr.xyness.SCS.Others.ClaimPurge;
 import fr.xyness.SCS.Support.*;
 
 public class SimpleClaimSystem extends JavaPlugin {
@@ -56,7 +57,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	static CPlayerMain playerMain;
 	static ClaimDynmap claimDynmap;
 	static ClaimBluemap claimBluemap;
-	static String Version = "1.9#6";
+	static String Version = "1.9.0.1";
 	public static HikariDataSource dataSource;
 	private static boolean isFolia = false;
 	private static boolean isUpdateAvailable;
@@ -144,6 +145,8 @@ public class SimpleClaimSystem extends JavaPlugin {
         // Unregister of all
         HandlerList.unregisterAll(plugin);
         ClaimMain.clearAll();
+        ClaimGuis.clearAll();
+        ClaimSettings.clearAll();
         
         // Checking for update
         isUpdateAvailable = checkForUpdates();
@@ -277,7 +280,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         String lang = plugin.getConfig().getString("lang");
         File custom = new File(plugin.getDataFolder()+File.separator+"langs", lang);
         if (!custom.exists()) {
-        	Bukkit.getServer().getConsoleSender().sendMessage("§c✗ File '"+lang+"' not found, using en_US.yml");
+        	Bukkit.getServer().getConsoleSender().sendMessage("§cFile '"+lang+"' not found, using en_US.yml");
         	lang = "en_US.yml";
         } else {
         	updateLangFileWithMissingKeys(plugin,lang);
@@ -352,12 +355,12 @@ public class SimpleClaimSystem extends JavaPlugin {
                             stmt.executeUpdate(sql);
                         }
                 } catch (SQLException e) {
-            		Bukkit.getServer().getConsoleSender().sendMessage("§c✗ Error creating tables, using local db.");
+            		Bukkit.getServer().getConsoleSender().sendMessage("§cError creating tables, using local db.");
             		e.printStackTrace();
             		configC = "false";
     			}
         	} catch (SQLException e) {
-        		Bukkit.getServer().getConsoleSender().sendMessage("§c✗ Error connecting to database, check the connection informations, using local db.");
+        		Bukkit.getServer().getConsoleSender().sendMessage("§cError connecting to database, check the connection informations, using local db.");
         		configC = "false";
 			}
         }
@@ -393,15 +396,39 @@ public class SimpleClaimSystem extends JavaPlugin {
                             "Bans VARCHAR(1020) DEFAULT '')";
                     stmt.executeUpdate(sql);
         		} catch (SQLException e) {
-            		Bukkit.getServer().getConsoleSender().sendMessage("§c✗ Error creating tables, disabling plugin.");
+            		Bukkit.getServer().getConsoleSender().sendMessage("§cError creating tables, disabling plugin.");
             		configC = "false";
     			}
         	} catch (SQLException e) {
-        		Bukkit.getServer().getConsoleSender().sendMessage("§c✗ Error creating tables, disabling plugin.");
+        		Bukkit.getServer().getConsoleSender().sendMessage("§cError creating tables, disabling plugin.");
         		return false;
     		}
         }
         ClaimSettings.addSetting("database", configC);
+        
+        // Auto-purge settings
+        configC = plugin.getConfig().getString("auto-purge");
+        ClaimSettings.addSetting("auto-purge", configC);
+        if(configC.equals("true")) {
+            configC = plugin.getConfig().getString("auto-purge-checking");
+            ClaimSettings.addSetting("auto-purge-checking", configC);
+    		try {
+    			int minutes = Integer.parseInt(configC);
+    			if(minutes < 1) {
+    				Bukkit.getServer().getConsoleSender().sendMessage("§cauto-purge-checking must be a correct number (integer and > 0). Using default value.");
+    				minutes = 60;
+    			}
+                configC = plugin.getConfig().getString("auto-purge-time-without-login");
+                ClaimSettings.addSetting("auto-purge-time-without-login", configC);
+                new ClaimPurge(plugin, minutes, configC);
+    		} catch(NumberFormatException e){
+    			Bukkit.getServer().getConsoleSender().sendMessage("§cauto-purge-checking must be a correct number (integer and > 0). Using default value.");
+    			int minutes = 60;
+                configC = plugin.getConfig().getString("auto-purge-time-without-login");
+                ClaimSettings.addSetting("auto-purge-time-without-login", configC);
+                new ClaimPurge(plugin, minutes, configC);
+    		}
+        }
         
         // Add Dynmap settings
         configC = plugin.getConfig().getString("dynmap-claim-border-color");
@@ -473,7 +500,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             String barColor = plugin.getConfig().getString("bossbar-settings.color").toUpperCase();
             BarColor color = BarColor.valueOf(barColor);
             if(color == null) {
-            	Bukkit.getServer().getConsoleSender().sendMessage("§c✗ Invalid bossbar color, using default color §eYELLOW");
+            	Bukkit.getServer().getConsoleSender().sendMessage("§cInvalid bossbar color, using default color §eYELLOW");
             	barColor = "YELLOW";
             }
             ClaimSettings.addSetting("bossbar-color", barColor);
@@ -544,8 +571,12 @@ public class SimpleClaimSystem extends JavaPlugin {
         ClaimSettings.setRestrictedItems(mat);
         
         // Add of blocked containers
-        mat = plugin.getConfig().getStringList("blocked-containers");
+        mat = plugin.getConfig().getStringList("blocked-interact-blocks");
         ClaimSettings.setRestrictedContainers(mat);
+        
+        // Add of blocked entities
+        mat = plugin.getConfig().getStringList("blocked-entities");
+        ClaimSettings.setRestrictedEntityType(mat);
         
         // Protection listener register
         plugin.getServer().getPluginManager().registerEvents(new ClaimEvents(), plugin);
@@ -575,7 +606,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     	// Checking default language file for some adds
         File custom = new File(plugin.getDataFolder()+File.separator+"langs", lang);
         if (!custom.exists()) {
-        	sender.sendMessage("§c✗ File '"+lang+"' not found, using en_US.yml");
+        	sender.sendMessage("§cFile '"+lang+"' not found, using en_US.yml");
         	lang = "en_US.yml";
         } else {
         	updateLangFileWithMissingKeys(plugin,lang);
