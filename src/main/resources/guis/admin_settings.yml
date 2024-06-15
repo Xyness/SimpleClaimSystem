@@ -73,7 +73,7 @@ items:
     material: GLOWSTONE_DUST
     custom_model_data: false
     custom_model_data_value: 0
-  Containers:
+  InteractBlocks:
     slot: 5
     material: CHEST
     custom_model_data: false
@@ -118,7 +118,7 @@ items:
     material: BELL
     custom_model_data: false
     custom_model_data_value: 0
-  Armorstands:
+  Entities:
     slot: 16
     material: ARMOR_STAND
     custom_model_data: false
@@ -158,28 +158,18 @@ items:
     material: APPLE
     custom_model_data: false
     custom_model_data_value: 0
-  Paintings:
-    slot: 29
-    material: PAINTING
-    custom_model_data: false
-    custom_model_data_value: 0
-  Itemframes:
-    slot: 30
-    material: ITEM_FRAME
-    custom_model_data: false
-    custom_model_data_value: 0
   Monsters:
-    slot: 31
+    slot: 30
     material: STRING
     custom_model_data: false
     custom_model_data_value: 0
   Visitors:
-    slot: 32
+    slot: 31
     material: PLAYER_HEAD
     custom_model_data: false
     custom_model_data_value: 0
   Pvp:
-    slot: 33
+    slot: 32
     material: IRON_SWORD
     custom_model_data: false
     custom_model_data_value: 0

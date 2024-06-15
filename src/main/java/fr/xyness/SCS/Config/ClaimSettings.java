@@ -8,7 +8,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 
 public class ClaimSettings {
 	
@@ -20,7 +22,8 @@ public class ClaimSettings {
 	
 	// Settings of config.yml
     private static List<Material> restrictedItems = new ArrayList<>();
-    private static List<Material> restrictedContainers = new ArrayList<>();
+    private static List<Material> restrictedInteractBlocks = new ArrayList<>();
+    private static List<EntityType> restrictedEntityType = new ArrayList<>();
     private static LinkedHashMap<String,Boolean> defaultValues = new LinkedHashMap<>();
     private static String defaultValuesCode;
     private static Map<String,Boolean> enabledSettings = new HashMap<>();
@@ -34,7 +37,20 @@ public class ClaimSettings {
  	// *  SETTINGS Methods  *
  	// **********************
      
-     
+    
+    // ClearAll
+    public static void clearAll() {
+    	restrictedItems.clear();
+    	restrictedInteractBlocks.clear();
+    	restrictedEntityType.clear();
+    	defaultValues.clear();
+    	enabledSettings.clear();
+    	settings.clear();
+    	groups.clear();
+    	groupsSettings.clear();
+    	disabledWorlds.clear();
+    }
+    
     // Get the default values code
     public static String getDefaultValuesCode() {
     	return defaultValuesCode;
@@ -47,7 +63,12 @@ public class ClaimSettings {
     
 	// Check if the material is a restricted container
 	public static boolean isRestrictedContainer(Material item) {
-		return restrictedContainers.contains(item);
+		return restrictedInteractBlocks.contains(item);
+	}
+	
+	// Check if the material is a restricted entity type
+	public static boolean isRestrictedEntityType(EntityType e) {
+		return restrictedEntityType.contains(e);
 	}
      
 	// Check if the material is a restricted item
@@ -63,16 +84,25 @@ public class ClaimSettings {
 	// Get the restricted containers set
 	public static Set<String> getRestrictedContainersString(){
 		Set<String> containers = new HashSet<>();
-		for(Material mat : restrictedContainers) {
+		for(Material mat : restrictedInteractBlocks) {
 			containers.add(mat.toString());
 		}
 		return containers;
+	}
+	
+	// Get the restricted entities set
+	public static Set<String> getRestrictedEntitiesString(){
+		Set<String> entities = new HashSet<>();
+		for(EntityType e : restrictedEntityType) {
+			entities.add(e.toString());
+		}
+		return entities;
 	}
      
 	// Get the restricted items set
 	public static Set<String> getRestrictedItemsString(){
 		Set<String> items = new HashSet<>();
-		for(Material mat : restrictedContainers) {
+		for(Material mat : restrictedItems) {
 			items.add(mat.toString());
 		}
 		return items;
@@ -149,7 +179,12 @@ public class ClaimSettings {
      
 	// Get the restricted containers material list
 	public static List<Material> getRestrictedContainers(){
-		return restrictedContainers;
+		return restrictedInteractBlocks;
+	}
+	
+	// Get the restricted entity type list
+	public static List<EntityType> getRestrictedEntityType(){
+		return restrictedEntityType;
 	}
      
 	// Set the default values
@@ -181,7 +216,20 @@ public class ClaimSettings {
 		for(String s : mat) {
 			Material matt = Material.matchMaterial(s);
 			if(matt != null) {
-     			restrictedContainers.add(matt);
+     			restrictedInteractBlocks.add(matt);
+     			i++;
+     		}
+     	}
+		return i;
+	}
+	
+	// Set the restricted entity type
+	public static int setRestrictedEntityType(List<String> mat) {
+		int i = 0;
+		for(String s : mat) {
+			EntityType matt = EntityType.fromName(s);
+			if(matt != null) {
+     			restrictedEntityType.add(matt);
      			i++;
      		}
      	}
