@@ -13,7 +13,7 @@ https://xyness.gitbook.io/simpleclaimsystem
 ## Compatibility
 |                      Software                       |    Version    |
 |:---------------------------------------------------:|:-------------:|
-|    [PaperMC](https://papermc.io/downloads/paper)    |     1.19+     |
-|           [Purpur](https://purpurmc.org)            |     1.19+     |
-|     [Folia](https://papermc.io/software/folia)      |     1.19+     |
-|         [Spigot](https://www.spigotmc.org)          |     1.19+     |
+|    [PaperMC](https://papermc.io/downloads/paper)    |     1.18+     |
+|           [Purpur](https://purpurmc.org)            |     1.18+     |
+|     [Folia](https://papermc.io/software/folia)      |     1.18+     |
+|         [Spigot](https://www.spigotmc.org)          |     1.18+     |
