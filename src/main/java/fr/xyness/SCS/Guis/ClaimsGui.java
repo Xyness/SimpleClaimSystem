@@ -24,7 +24,6 @@ import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
-import fr.xyness.SCS.Others.CacheGui;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 public class ClaimsGui implements InventoryHolder {
@@ -176,8 +175,9 @@ public class ClaimsGui implements InventoryHolder {
                     ClaimGuis.getItemCustomModelData("claims", "claim-item"));
         }
         if (ClaimGuis.getItemMaterialMD("claims", "claim-item").contains("PLAYER_HEAD")) {
-            ItemStack item = CacheGui.getPlayerHead(owner);
+            ItemStack item = new ItemStack(Material.PLAYER_HEAD);
             SkullMeta meta = (SkullMeta) item.getItemMeta();
+            meta.setOwningPlayer(Bukkit.getOfflinePlayer(owner));
             meta.setDisplayName(ClaimLanguage.getMessageWP("owner-claim-title", owner).replaceAll("%owner%", owner));
             meta.setLore(lore);
             item.setItemMeta(meta);
@@ -251,8 +251,8 @@ public class ClaimsGui implements InventoryHolder {
     private ItemStack createItem(Material material, String name, List<String> lore) {
     	ItemStack item = null;
     	if(material == null) {
-        	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cError material loading, check list.yml");
-        	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cUsing STONE instead");
+        	ClaimMain.getPlugin().getLogger().info("Error material loading, check list.yml");
+        	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
         	item = new ItemStack(Material.STONE,1);
     	} else {
     		item = new ItemStack(material, 1);
@@ -272,8 +272,8 @@ public class ClaimsGui implements InventoryHolder {
         CustomStack customStack = CustomStack.getInstance(name_custom_item);
         ItemStack item = null;
         if(customStack == null) {
-        	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cError custom item loading : "+name_custom_item);
-        	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cUsing STONE instead");
+        	ClaimMain.getPlugin().getLogger().info("Error custom item loading : "+name_custom_item);
+        	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
         	item = new ItemStack(Material.STONE,1);
         } else {
         	item = customStack.getItemStack();
@@ -295,8 +295,8 @@ public class ClaimsGui implements InventoryHolder {
     	if(ClaimGuis.getItemCheckCustomModelData("claims", "back-page-list")) {
     		CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims", "back-page-list"));
             if(customStack == null) {
-            	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cError custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "back-page-list"));
-            	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cUsing STONE instead");
+            	ClaimMain.getPlugin().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "back-page-list"));
+            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
             	item = new ItemStack(Material.STONE,1);
             } else {
             	item = customStack.getItemStack();
@@ -304,8 +304,8 @@ public class ClaimsGui implements InventoryHolder {
     	} else {
     		Material material = ClaimGuis.getItemMaterial("claims", "back-page-list");
     		if(material == null) {
-            	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cError material loading, check claims.yml");
-            	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cUsing STONE instead");
+            	ClaimMain.getPlugin().getLogger().info("Error material loading, check claims.yml");
+            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
     			material = Material.STONE;
     		}
     		item = new ItemStack(material, 1);
@@ -328,8 +328,8 @@ public class ClaimsGui implements InventoryHolder {
     	if(ClaimGuis.getItemCheckCustomModelData("claims", "filter")) {
     		CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims", "filter"));
             if(customStack == null) {
-            	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cError custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "filter"));
-            	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cUsing STONE instead");
+            	ClaimMain.getPlugin().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "filter"));
+            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
             	item = new ItemStack(Material.STONE,1);
             } else {
             	item = customStack.getItemStack();
@@ -337,8 +337,8 @@ public class ClaimsGui implements InventoryHolder {
     	} else {
     		Material material = ClaimGuis.getItemMaterial("claims", "filter");
     		if(material == null) {
-            	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cError material loading, check claims.yml");
-            	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cUsing STONE instead");
+            	ClaimMain.getPlugin().getLogger().info("Error material loading, check claims.yml");
+            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
     			material = Material.STONE;
     		}
     		item = new ItemStack(material, 1);
@@ -383,8 +383,8 @@ public class ClaimsGui implements InventoryHolder {
     	if(ClaimGuis.getItemCheckCustomModelData("claims", "next-page-list")) {
     		CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims", "next-page-list"));
             if(customStack == null) {
-            	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cError custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "next-page-list"));
-            	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cUsing STONE instead");
+            	ClaimMain.getPlugin().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "next-page-list"));
+            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
             	item = new ItemStack(Material.STONE,1);
             } else {
             	item = customStack.getItemStack();
@@ -392,8 +392,8 @@ public class ClaimsGui implements InventoryHolder {
     	} else {
     		Material material = ClaimGuis.getItemMaterial("claims", "next-page-list");
     		if(material == null) {
-            	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cError material loading, check claims.yml");
-            	Bukkit.getServer().getConsoleSender().sendMessage("§4[SimpleClaimSystem] §cUsing STONE instead");
+            	ClaimMain.getPlugin().getLogger().info("Error material loading, check claims.yml");
+            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
     			material = Material.STONE;
     		}
     		item = new ItemStack(material, 1);

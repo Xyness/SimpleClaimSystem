@@ -38,7 +38,6 @@ import com.zaxxer.hikari.HikariDataSource;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Listeners.ClaimEventsEnterLeave;
-import fr.xyness.SCS.Others.CacheGui;
 import fr.xyness.SCS.Support.ClaimBluemap;
 import fr.xyness.SCS.Support.ClaimDynmap;
 import fr.xyness.SCS.Support.ClaimVault;
@@ -60,7 +59,7 @@ public class ClaimMain {
 	private static Map<String,Map<Chunk,String>> claimsId = new HashMap<>();
     
     private final static Map<Player, Location> playerLocations = new HashMap<>();
-    private static Set<String> commandArgs = Set.of("add","autoclaim","automap","list","map","members","remove","see","setdesc","setname","setspawn","settings","tp","chat","ban");
+    private static Set<String> commandArgs = Set.of("add","autoclaim","automap","list","map","members","remove","see","setdesc","setname","setspawn","settings","tp","chat","ban","unban","bans","owner");
     
     
 	// ******************
@@ -168,6 +167,14 @@ public class ClaimMain {
     // Get all chunks of the server (claimed chunks)
     public static Set<Chunk> getAllClaimsChunk(){
     	return listClaims.keySet();
+    }
+    
+    // Get all the members reunited
+    public static Set<String> getAllMembersOfAllPlayerClaim(String owner) {
+        return listClaims.values().stream()
+                .filter(claim -> claim.getOwner().equals(owner))
+                .flatMap(claim -> claim.getMembers().stream())
+                .collect(Collectors.toSet());
     }
     
     // Get all chunks of the server (claimed chunks) where owner is online
@@ -470,8 +477,8 @@ public class ClaimMain {
                 preparedStatement.addBatch();
 	        }
 	        preparedStatement.executeBatch();
-    		Bukkit.getServer().getConsoleSender().sendMessage("§a✓ "+String.valueOf(i)+" claims transfered");
-    		Bukkit.getServer().getConsoleSender().sendMessage("§6Safe reloading..");
+    		plugin.getLogger().info(""+String.valueOf(i)+" claims transfered");
+    		plugin.getLogger().info("Safe reloading..");
     		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "aclaim reload");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -488,7 +495,7 @@ public class ClaimMain {
         if (playerDataFolder.exists()) {
             File[] files = playerDataFolder.listFiles();
             if (files == null) {
-                Bukkit.getServer().getConsoleSender().sendMessage("§a✓ 0 claims converted");
+                plugin.getLogger().info("0 claims converted");
                 return;
             }
 
@@ -577,12 +584,12 @@ public class ClaimMain {
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
-                Bukkit.getServer().getConsoleSender().sendMessage("§a✓ " + i + " claims converted");
+                plugin.getLogger().info(i + " claims converted");
                 // Delete the claims folder after conversion
                 if (deleteFolder(playerDataFolder)) {
-                    Bukkit.getServer().getConsoleSender().sendMessage("§aOld claims folder deleted successfully.");
+                    plugin.getLogger().info("Old claims folder deleted successfully.");
                 } else {
-                    Bukkit.getServer().getConsoleSender().sendMessage("§cFailed to delete old claims folder.");
+                    plugin.getLogger().info("Failed to delete old claims folder.");
                 }
             } catch (SQLException e1) {
 				e1.printStackTrace();
@@ -707,7 +714,6 @@ public class ClaimMain {
 		            	String permissions = resultSet.getString("Permissions");
 		            	String id = resultSet.getString("id");
 		            	String owner = resultSet.getString("name");
-		            	if(!owner.equals("admin")) CacheGui.addPlayerHead(owner);
 		            	String name = resultSet.getString("claim_name");
 		            	String description = resultSet.getString("claim_description");
 		            	int X = resultSet.getInt("X");
@@ -795,7 +801,7 @@ public class ClaimMain {
 		} catch (SQLException e) {
 		    e.printStackTrace();
 		}
-		Bukkit.getServer().getConsoleSender().sendMessage("§a✓ "+String.valueOf(i)+"/"+String.valueOf(max_i)+" claims loaded");
+		plugin.getLogger().info(String.valueOf(i)+"/"+String.valueOf(max_i)+" claims loaded");
 		return;
     }
     
@@ -3525,15 +3531,15 @@ public class ClaimMain {
 	    	if(checkIfClaimExists(chunk)) {
 	    		String playerName = player.getName();
 	    		if(getOwnerInClaim(chunk).equals(playerName)){
-	    			dustOptions = new Particle.DustOptions(Color.GREEN, 1);
+	    			dustOptions = new Particle.DustOptions(Color.fromRGB(0, 255, 0), 2f);
 	    		} else {
-	    			dustOptions = new Particle.DustOptions(Color.RED, 1);
+	    			dustOptions = new Particle.DustOptions(Color.fromRGB(255, 0, 0), 2f);
 	    		}
 	    	} else {
-	    		dustOptions = new Particle.DustOptions(Color.WHITE, 1);
+	    		dustOptions = new Particle.DustOptions(Color.fromRGB(255, 255, 255), 2f);
 	    	}
     	} else {
-    		dustOptions = new Particle.DustOptions(Color.GREEN, 1);
+    		dustOptions = new Particle.DustOptions(Color.fromRGB(0, 255, 0), 2f);
     	}
     	if(SimpleClaimSystem.isFolia()) {
     	    final int[] counter = {0};
@@ -3594,6 +3600,7 @@ public class ClaimMain {
     
     // Method to display chunk when radius claiming
     public static void displayChunkBorderWithRadius(Player player, Chunk centralChunk, int radius) {
+    	Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(0, 255, 0), 2f);
     	if(SimpleClaimSystem.isFolia()) {
     	    final int[] counter = {0};
     	    Bukkit.getAsyncScheduler().runAtFixedRate(plugin, task -> {
@@ -3609,12 +3616,12 @@ public class ClaimMain {
                 int yEnd = world.getMaxHeight() - 1;
                 for (int y = yStart; y <= yEnd; y++) {
                     for (int x = xStart; x < xEnd; x++) {
-                        world.spawnParticle(Particle.END_ROD, new Location(world, x, y, zStart), 1, 0, 0, 0, 0);
-                        world.spawnParticle(Particle.END_ROD, new Location(world, x, y, zEnd), 1, 0, 0, 0, 0);
+                        world.spawnParticle(Particle.REDSTONE, new Location(world, x, y, zStart), 1, 0, 0, 0, 0, dustOptions);
+                        world.spawnParticle(Particle.REDSTONE, new Location(world, x, y, zEnd), 1, 0, 0, 0, 0, dustOptions);
                     }
                     for (int z = zStart; z < zEnd; z++) {
-                        world.spawnParticle(Particle.END_ROD, new Location(world, xStart, y, z), 1, 0, 0, 0, 0);
-                        world.spawnParticle(Particle.END_ROD, new Location(world, xEnd, y, z), 1, 0, 0, 0, 0);
+                        world.spawnParticle(Particle.REDSTONE, new Location(world, xStart, y, z), 1, 0, 0, 0, 0, dustOptions);
+                        world.spawnParticle(Particle.REDSTONE, new Location(world, xEnd, y, z), 1, 0, 0, 0, 0, dustOptions);
                     }
                 }
                 counter[0]++;
@@ -3637,12 +3644,12 @@ public class ClaimMain {
                 int yEnd = world.getMaxHeight() - 1;
                 for (int y = yStart; y <= yEnd; y++) {
                     for (int x = xStart; x < xEnd; x++) {
-                        world.spawnParticle(Particle.END_ROD, new Location(world, x, y, zStart), 1, 0, 0, 0, 0);
-                        world.spawnParticle(Particle.END_ROD, new Location(world, x, y, zEnd), 1, 0, 0, 0, 0);
+                        world.spawnParticle(Particle.REDSTONE, new Location(world, x, y, zStart), 1, 0, 0, 0, 0, dustOptions);
+                        world.spawnParticle(Particle.REDSTONE, new Location(world, x, y, zEnd), 1, 0, 0, 0, 0, dustOptions);
                     }
                     for (int z = zStart; z < zEnd; z++) {
-                        world.spawnParticle(Particle.END_ROD, new Location(world, xStart, y, z), 1, 0, 0, 0, 0);
-                        world.spawnParticle(Particle.END_ROD, new Location(world, xEnd, y, z), 1, 0, 0, 0, 0);
+                        world.spawnParticle(Particle.REDSTONE, new Location(world, xStart, y, z), 1, 0, 0, 0, 0, dustOptions);
+                        world.spawnParticle(Particle.REDSTONE, new Location(world, xEnd, y, z), 1, 0, 0, 0, 0, dustOptions);
                     }
                 }
 
