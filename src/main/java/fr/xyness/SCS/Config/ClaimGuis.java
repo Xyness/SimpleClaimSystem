@@ -13,6 +13,8 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class ClaimGuis {
@@ -361,5 +363,115 @@ public class ClaimGuis {
              }
          }
          return true;
+     }
+     
+     // Method to execute custom actions
+     public static void executeAction(Player player, String gui, int clickedSlot, ClickType click) {
+    	 
+    	 String action = ClaimGuis.getCustomItemAction(gui, clickedSlot);
+         if(action == null || action.isEmpty() || action.equalsIgnoreCase("none")) return;
+         String[] parts = action.split(":");
+         
+         if(parts[0].equalsIgnoreCase("left") && click == ClickType.LEFT) {
+         	if(parts.length<2) return;
+	            if(parts[1].equalsIgnoreCase("close_inventory")) {
+	            	player.closeInventory();
+	            	return;
+	            }
+	            if(parts[1].equalsIgnoreCase("cmd")) {
+	            	if(parts.length<3) return;
+	            	if(parts[2].equalsIgnoreCase("console")) {
+	            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
+	            		return;
+	            	}
+	            	if(parts[2].equalsIgnoreCase("player")) {
+	            		Bukkit.dispatchCommand(player, parts[3]);
+	            		return;
+	            	}
+	            	return;
+	            }
+	            if(parts[1].equalsIgnoreCase("msg")) {
+	            	if(parts.length<3) return;
+	            	player.sendMessage(parts[2]);
+	            	return;
+	            }
+         	return;
+         }
+         if(parts[0].equalsIgnoreCase("right") && click == ClickType.RIGHT) {
+         	if(parts.length<2) return;
+	            if(parts[1].equalsIgnoreCase("close_inventory")) {
+	            	player.closeInventory();
+	            	return;
+	            }
+	            if(parts[1].equalsIgnoreCase("cmd")) {
+	            	if(parts.length<3) return;
+	            	if(parts[2].equalsIgnoreCase("console")) {
+	            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
+	            		return;
+	            	}
+	            	if(parts[2].equalsIgnoreCase("player")) {
+	            		Bukkit.dispatchCommand(player, parts[3]);
+	            		return;
+	            	}
+	            	return;
+	            }
+	            if(parts[1].equalsIgnoreCase("msg")) {
+	            	if(parts.length<3) return;
+	            	player.sendMessage(parts[2]);
+	            	return;
+	            }
+         	return;
+         }
+         if(parts[0].equalsIgnoreCase("shift_left") && click == ClickType.SHIFT_LEFT) {
+         	if(parts.length<2) return;
+	            if(parts[1].equalsIgnoreCase("close_inventory")) {
+	            	player.closeInventory();
+	            	return;
+	            }
+	            if(parts[1].equalsIgnoreCase("cmd")) {
+	            	if(parts.length<3) return;
+	            	if(parts[2].equalsIgnoreCase("console")) {
+	            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
+	            		return;
+	            	}
+	            	if(parts[2].equalsIgnoreCase("player")) {
+	            		Bukkit.dispatchCommand(player, parts[3]);
+	            		return;
+	            	}
+	            	return;
+	            }
+	            if(parts[1].equalsIgnoreCase("msg")) {
+	            	if(parts.length<3) return;
+	            	player.sendMessage(parts[2]);
+	            	return;
+	            }
+         	return;
+         }
+         if(parts[0].equalsIgnoreCase("shift_right") && click == ClickType.SHIFT_RIGHT) {
+         	if(parts.length<2) return;
+	            if(parts[1].equalsIgnoreCase("close_inventory")) {
+	            	player.closeInventory();
+	            	return;
+	            }
+	            if(parts[1].equalsIgnoreCase("cmd")) {
+	            	if(parts.length<3) return;
+	            	if(parts[2].equalsIgnoreCase("console")) {
+	            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
+	            		return;
+	            	}
+	            	if(parts[2].equalsIgnoreCase("player")) {
+	            		Bukkit.dispatchCommand(player, parts[3]);
+	            		return;
+	            	}
+	            	return;
+	            }
+	            if(parts[1].equalsIgnoreCase("msg")) {
+	            	if(parts.length<3) return;
+	            	player.sendMessage(parts[2]);
+	            	return;
+	            }
+         	return;
+         }
+         return;
      }
 }

@@ -86,22 +86,7 @@ public class ClaimEventsEnterLeave implements Listener {
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
 		if(bossBars.containsKey(player)) bossBars.remove(player);
-		ClaimGui.removeChunk(player);
-		ClaimListGui.removeClaimsChunk(player);
-		ClaimListGui.removeClaimsLoc(player);
-		ClaimListGui.removeLastChunk(player);
-		ClaimMembersGui.removeChunk(player);
-		ClaimMembersGui.removeClaimMember(player);
-		ClaimsOwnerGui.removeClaimsChunk(player);
-		ClaimsOwnerGui.removeClaimsLoc(player);
-		ClaimsOwnerGui.removeOwner(player);
-		ClaimsOwnerGui.removePlayerFilter(player);
-		ClaimsGui.removeOwner(player);
-		ClaimsGui.removePlayerFilter(player);
-		AdminClaimGui.removeChunk(player);
-		AdminClaimListGui.removeClaimsChunk(player);
-		AdminClaimListGui.removeClaimsLoc(player);
-		AdminClaimListGui.removeLastChunk(player);
+		CPlayerMain.unloadPlayer(player);
 	}
 	
 	// Update his bossbar and send enabled messages on teleport
@@ -129,13 +114,27 @@ public class ClaimEventsEnterLeave implements Listener {
     	String ownerTO = ClaimMain.getOwnerInClaim(to);
     	String ownerFROM = ClaimMain.getOwnerInClaim(from);
     	CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
-    	if(cPlayer.getClaimAutomap()) ClaimMain.getMap(player,to);
     	if(ClaimSettings.getBooleanSetting("bossbar")) bossbarMessages(player,to,ownerTO);
+    	String world = player.getWorld().getName();
 		if(!ownerTO.equals(ownerFROM)) {
 	    	if(ClaimSettings.getBooleanSetting("enter-leave-messages")) enterleaveMessages(player,to,from,ownerTO,ownerFROM);
-	    	if(cPlayer.getClaimAutoclaim()) ClaimMain.createClaim(player, to);
+	    	if(cPlayer.getClaimAutoclaim()) {
+	            if(ClaimSettings.isWorldDisabled(world)) {
+	            	player.sendMessage(ClaimLanguage.getMessage("autoclaim-world-disabled").replaceAll("%world%", world));
+	            	cPlayer.setClaimAutoclaim(false);
+	            } else {
+	            	ClaimMain.createClaim(player, to);	
+	            }
+	    	}
 		}
-    	
+		if(cPlayer.getClaimAutomap()) {
+            if(ClaimSettings.isWorldDisabled(world)) {
+            	player.sendMessage(ClaimLanguage.getMessage("automap-world-disabled").replaceAll("%world%", world));
+            	cPlayer.setClaimAutomap(false);
+            } else {
+            	ClaimMain.getMap(player,to);	
+            }
+		}
 	}
 	
 	// Update his bossbar and send enabled messages on respawn
@@ -146,8 +145,23 @@ public class ClaimEventsEnterLeave implements Listener {
     	String ownerTO = ClaimMain.getOwnerInClaim(to);
     	if(ClaimSettings.getBooleanSetting("bossbar")) bossbarMessages(player,to,ownerTO);
     	CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
-    	if(cPlayer.getClaimAutoclaim()) ClaimMain.createClaim(player, to);
-    	if(cPlayer.getClaimAutomap()) ClaimMain.getMap(player,to);
+    	String world = player.getWorld().getName();
+    	if(cPlayer.getClaimAutoclaim()) {
+            if(ClaimSettings.isWorldDisabled(world)) {
+            	player.sendMessage(ClaimLanguage.getMessage("autoclaim-world-disabled").replaceAll("%world%", world));
+            	cPlayer.setClaimAutoclaim(false);
+            } else {
+            	ClaimMain.createClaim(player, to);	
+            }
+    	}
+		if(cPlayer.getClaimAutomap()) {
+            if(ClaimSettings.isWorldDisabled(world)) {
+            	player.sendMessage(ClaimLanguage.getMessage("automap-world-disabled").replaceAll("%world%", world));
+            	cPlayer.setClaimAutomap(false);
+            } else {
+            	ClaimMain.getMap(player,to);	
+            }
+		}
 	}
 	
 	// Update his bossbar and send enabled messages on changing chunk
@@ -166,8 +180,23 @@ public class ClaimEventsEnterLeave implements Listener {
         		return;
         	}
         	if(ClaimSettings.getBooleanSetting("bossbar")) bossbarMessages(player,to,ownerTO);
-        	if(cPlayer.getClaimAutoclaim()) ClaimMain.createClaim(player, to);
-        	if(cPlayer.getClaimAutomap()) ClaimMain.getMap(player,to);
+        	String world = player.getWorld().getName();
+        	if(cPlayer.getClaimAutoclaim()) {
+                if(ClaimSettings.isWorldDisabled(world)) {
+                	player.sendMessage(ClaimLanguage.getMessage("autoclaim-world-disabled").replaceAll("%world%", world));
+                	cPlayer.setClaimAutoclaim(false);
+                } else {
+                	ClaimMain.createClaim(player, to);	
+                }
+        	}
+    		if(cPlayer.getClaimAutomap()) {
+                if(ClaimSettings.isWorldDisabled(world)) {
+                	player.sendMessage(ClaimLanguage.getMessage("automap-world-disabled").replaceAll("%world%", world));
+                	cPlayer.setClaimAutomap(false);
+                } else {
+                	ClaimMain.getMap(player,to);	
+                }
+    		}
         	if(ownerTO.equals(ownerFROM)) return;
         	if(ClaimSettings.getBooleanSetting("enter-leave-messages")) enterleaveMessages(player,to,from,ownerTO,ownerFROM);
         	if(ClaimSettings.getBooleanSetting("enter-leave-chat-messages")) enterleaveChatMessages(player,to,from,ownerTO,ownerFROM);

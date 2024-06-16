@@ -40,6 +40,7 @@ public class ClaimListGui implements InventoryHolder {
     private static Map<Player,Map<Integer,Location>> claimsLoc = new HashMap<>();
     private static Map<Player,Map<Integer,Chunk>> claimsChunk = new HashMap<>();
     private static Map<Player,Chunk> lastChunkSetting = new HashMap<>();
+    private static final Map<Player, String> playerFilter = new HashMap<>();
     
     
 	// ******************
@@ -48,13 +49,13 @@ public class ClaimListGui implements InventoryHolder {
     
     
     // Main constructor
-    public ClaimListGui(Player player, int page) {
+    public ClaimListGui(Player player, int page, String filter) {
     	String title = ClaimGuis.getGuiTitle("list").replaceAll("%page%", String.valueOf(page));
     	if(ClaimSettings.getBooleanSetting("placeholderapi")) {
     		title = PlaceholderAPI.setPlaceholders(player, title);
     	}
         inv = Bukkit.createInventory(this, ClaimGuis.getGuiRows("list")*9, title);
-        initializeItems(player,page);
+        initializeItems(player,page,filter);
     }
     
     
@@ -78,6 +79,16 @@ public class ClaimListGui implements InventoryHolder {
     	if(lastChunkSetting.containsKey(player)) {
     		lastChunkSetting.remove(player);
     	}
+    }
+    
+    // Method to get the filter of a player
+    public static String getPlayerFilter(Player player) {
+    	return playerFilter.get(player);
+    }
+    
+    // Method to remove the filter of a player
+    public static void removePlayerFilter(Player player) {
+    	playerFilter.remove(player);
     }
     
     // Method to get the claim location (by slot) for a player
@@ -105,12 +116,13 @@ public class ClaimListGui implements InventoryHolder {
     }
 
     // Method to initialize items for the gui
-    public void initializeItems(Player player, int page) {
+    public void initializeItems(Player player, int page, String filter) {
 
 		int min_member_slot = ClaimGuis.getGuiMinSlot("list");
     	int max_member_slot = ClaimGuis.getGuiMaxSlot("list");
     	int items_count = max_member_slot - min_member_slot + 1;
     	String playerName = player.getName();
+    	playerFilter.put(player, filter);
     	
         if(page > 1) {
         	inv.setItem(ClaimGuis.getItemSlot("list", "back-page-list"), backPage(page-1));
@@ -118,7 +130,14 @@ public class ClaimListGui implements InventoryHolder {
         	inv.setItem(ClaimGuis.getItemSlot("list", "back-page-list"), backPage2(lastChunkSetting.get(player)));
         }
         
-        Set<Chunk> claims = ClaimMain.getChunksFromOwner(player.getName());
+        inv.setItem(ClaimGuis.getItemSlot("list", "filter"), createFilterItem(filter));
+        
+        Set<Chunk> claims;
+        if(filter.equals("owner")) {
+        	claims = new HashSet<>(ClaimMain.getChunksFromOwner(playerName));
+        } else {
+        	claims = new HashSet<>(ClaimMain.getChunksWhereMemberNotOwner(playerName));
+        }
         List<String> lore = new ArrayList<>(getLore(ClaimLanguage.getMessageWP("access-claim-lore",playerName)));
         Map<Integer,Location> claims_loc = new HashMap<>();
         Map<Integer,Chunk> claims_chunk = new HashMap<>();
@@ -151,19 +170,23 @@ public class ClaimListGui implements InventoryHolder {
             		used_lore.add(s);
             	}
             }
-            if(ClaimSettings.getBooleanSetting("economy")) {
-	            if(ClaimMain.claimIsInSale(c)) {
-	            	String[] m = ClaimLanguage.getMessageWP("my-claims-buyable-price",playerName).replaceAll("%price%", String.valueOf(ClaimMain.getClaimPrice(c))).split("\n");
-	            	for(String part : m) {
-	            		used_lore.add(part);
-	            	}
-	            	used_lore.addAll(getLore(ClaimLanguage.getMessage("access-claim-clickable")));
-	            	used_lore.add(ClaimLanguage.getMessage("my-claims-clickable-cancel-sale"));
+            if(filter.equals("owner")) {
+	            if(ClaimSettings.getBooleanSetting("economy")) {
+		            if(ClaimMain.claimIsInSale(c)) {
+		            	String[] m = ClaimLanguage.getMessageWP("my-claims-buyable-price",playerName).replaceAll("%price%", String.valueOf(ClaimMain.getClaimPrice(c))).split("\n");
+		            	for(String part : m) {
+		            		used_lore.add(part);
+		            	}
+		            	used_lore.addAll(getLore(ClaimLanguage.getMessage("access-claim-clickable")));
+		            	used_lore.add(ClaimLanguage.getMessage("my-claims-clickable-cancel-sale"));
+		            } else {
+		            	used_lore.addAll(getLore(ClaimLanguage.getMessage("access-claim-clickable")));
+		            }
 	            } else {
 	            	used_lore.addAll(getLore(ClaimLanguage.getMessage("access-claim-clickable")));
 	            }
             } else {
-            	used_lore.addAll(getLore(ClaimLanguage.getMessage("access-claim-clickable")));
+            	used_lore.addAll(getLore(ClaimLanguage.getMessage("access-claim-clickable-not-owner")));
             }
             
         	final int i_final = i;
@@ -401,6 +424,34 @@ public class ClaimListGui implements InventoryHolder {
             item.setItemMeta(meta);
         }
 
+        return item;
+    }
+    
+    // Method to create the filter item
+    private ItemStack createFilterItem(String filter) {
+        ItemStack item;
+        if (ClaimGuis.getItemCheckCustomModelData("list", "filter")) {
+            CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("list", "filter"));
+            item = customStack != null ? customStack.getItemStack() : new ItemStack(Material.STONE, 1);
+        } else {
+            Material material = ClaimGuis.getItemMaterial("list", "filter");
+            item = new ItemStack(material != null ? material : Material.STONE, 1);
+        }
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            String loreFilter = ClaimLanguage.getMessage("filter-list-lore");
+            if (filter.equals("not_owner")) {
+                loreFilter = loreFilter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+                    .replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_active_filter"));
+            } else {
+                loreFilter = loreFilter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_active_filter"))
+                    .replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_inactive_filter"));
+            }
+            meta.setDisplayName(ClaimLanguage.getMessage("filter-title"));
+            meta.setLore(getLore(loreFilter));
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            item.setItemMeta(meta);
+        }
         return item;
     }
     

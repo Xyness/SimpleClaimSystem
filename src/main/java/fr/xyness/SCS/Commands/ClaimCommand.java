@@ -21,6 +21,7 @@ import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
+import fr.xyness.SCS.Guis.ClaimBansGui;
 import fr.xyness.SCS.Guis.ClaimGui;
 import fr.xyness.SCS.Guis.ClaimListGui;
 import fr.xyness.SCS.Guis.ClaimMembersGui;
@@ -58,6 +59,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
 	            if(player.hasPermission("scs.command.claim.tp")) completions.add("tp");
 	            if(player.hasPermission("scs.command.claim.ban")) completions.add("ban");
 	            if(player.hasPermission("scs.command.claim.unban")) completions.add("unban");
+	            if(player.hasPermission("scs.command.claim.bans")) completions.add("bans");
 	            return completions;
 	        }
 	        if (args.length == 2 && args[0].equalsIgnoreCase("see") && player.hasPermission("scs.command.claim.see.others")) {
@@ -108,6 +110,14 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
+	        if (args.length == 2 && args[0].equalsIgnoreCase("bans") && player.hasPermission("scs.command.claim.bans")) {
+	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
+	        	return completions;
+	        }
+	        if (args.length == 2 && args[0].equalsIgnoreCase("owner") && player.hasPermission("scs.command.claim.owner")) {
+	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
+	        	return completions;
+	        }
 	        if (args.length == 3 && args[0].equalsIgnoreCase("remove") && player.hasPermission("scs.command.claim.remove")) {
 	        	Chunk chunk = ClaimMain.getChunkByClaimName(player.getName(), args[1]);
 	        	completions.addAll(ClaimMain.getClaimMembers(chunk));
@@ -127,6 +137,13 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
 	        	return completions;
 	        }
 	        if (args.length == 3 && args[0].equalsIgnoreCase("ban") && player.hasPermission("scs.command.claim.ban")) {
+	        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
+	        		completions.add(p.getName());
+	        	}
+	        	completions.remove(player.getName());
+	        	return completions;
+	        }
+	        if (args.length == 3 && args[0].equalsIgnoreCase("owner") && player.hasPermission("scs.command.claim.owner")) {
 	        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
 	        		completions.add(p.getName());
 	        	}
@@ -215,13 +232,18 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
             			player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
             			return true;
             		}
-            		Player target = Bukkit.getPlayer(args[2]);
-            		String targetName = "";
-            		if(target == null) {
-            			targetName = args[2];
-            		} else {
-            			targetName = target.getName();
-            		}
+        			Player target = Bukkit.getPlayer(args[2]);
+        			String targetName = "";
+        			if(target == null) {
+        				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+        				if(otarget == null) {
+        					player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
+            				return true;
+        				}
+        				targetName = otarget.getName();
+        			} else {
+        				targetName = target.getName();
+        			}
             		if(targetName.equals(playerName)) {
             			player.sendMessage(ClaimLanguage.getMessage("cant-ban-yourself"));
             			return true;
@@ -239,18 +261,23 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
         			return true;
         		}
-        		Player target = Bukkit.getPlayer(args[2]);
-        		String targetName = "";
-        		if(target == null) {
-        			targetName = args[2];
-        		} else {
-        			targetName = target.getName();
-        		}
+    			Player target = Bukkit.getPlayer(args[2]);
+    			String targetName = "";
+    			if(target == null) {
+    				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+    				if(otarget == null) {
+    					player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
+        				return true;
+    				}
+    				targetName = otarget.getName();
+    			} else {
+    				targetName = target.getName();
+    			}
         		if(targetName.equals(playerName)) {
         			player.sendMessage(ClaimLanguage.getMessage("cant-ban-yourself"));
         			return true;
         		}
-        		if(ClaimMain.addClaimMembers(player, chunk, targetName)) {
+        		if(ClaimMain.addClaimBan(player, chunk, targetName)) {
         			String message = ClaimLanguage.getMessage("add-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
         			player.sendMessage(message);
         			return true;
@@ -268,7 +295,17 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
             			player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
             			return true;
             		}
-            		String targetName = args[2];
+        			Player target = Bukkit.getPlayer(args[2]);
+        			String targetName = "";
+        			if(target == null) {
+        				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+        				if(otarget == null) {
+        					targetName = args[2];
+        				}
+        				targetName = otarget.getName();
+        			} else {
+        				targetName = target.getName();
+        			}
 	        		if(ClaimMain.removeAllClaimBan(player, targetName)) {
 	        			String message = ClaimLanguage.getMessage("remove-ban-all-success").replaceAll("%player%", targetName);
 	        			player.sendMessage(message);
@@ -314,12 +351,18 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
                 		}
         			}
         			Player target = Bukkit.getPlayer(args[2]);
+        			String targetName = "";
         			if(target == null) {
-        				player.sendMessage(ClaimLanguage.getMessage("player-not-online").replaceAll("%player%", args[2]));
-        				return true;
+        				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+        				if(otarget == null) {
+        					player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
+            				return true;
+        				}
+        				targetName = otarget.getName();
+        			} else {
+        				targetName = target.getName();
         			}
-            		String targetName = target.getName();
-            		if(targetName.equals(player.getName())) {
+            		if(targetName.equals(playerName)) {
             			player.sendMessage(ClaimLanguage.getMessage("cant-add-yourself"));
             			return true;
             		}
@@ -341,12 +384,18 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			return true;
         		}
     			Player target = Bukkit.getPlayer(args[2]);
+    			String targetName = "";
     			if(target == null) {
-    				player.sendMessage(ClaimLanguage.getMessage("player-not-online").replaceAll("%player%", args[2]));
-    				return true;
+    				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+    				if(otarget == null) {
+    					player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
+        				return true;
+    				}
+    				targetName = otarget.getName();
+    			} else {
+    				targetName = target.getName();
     			}
-        		String targetName = target.getName();
-        		if(targetName.equals(player.getName())) {
+        		if(targetName.equals(playerName)) {
         			player.sendMessage(ClaimLanguage.getMessage("cant-add-yourself"));
         			return true;
         		}
@@ -405,6 +454,64 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		player.sendMessage(ClaimLanguage.getMessage("error"));
         		return true;
         	}
+        	if(args[0].equalsIgnoreCase("owner")) {
+            	if (!player.hasPermission("scs.command.claim.owner")) {
+                	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                	return false;
+            	}
+        		if(args[1].equalsIgnoreCase("*")) {
+            		if(cPlayer.getClaimsCount() == 0) {
+            			player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
+            			return true;
+            		}
+        			Player target = Bukkit.getPlayer(args[2]);
+        			String targetName = "";
+        			if(target == null) {
+        				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+        				if(otarget == null) {
+        					player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
+            				return true;
+        				}
+        				targetName = otarget.getName();
+        			} else {
+        				targetName = target.getName();
+        			}
+            		if(targetName.equals(playerName)) {
+            			player.sendMessage(ClaimLanguage.getMessage("cant-transfer-ownership-yourself"));
+            			return true;
+            		}
+        			Set<Chunk> chunks = ClaimMain.getChunksFromOwner(playerName);
+        			for(Chunk c : chunks) {
+                		ClaimMain.setOwner(player, targetName, c, false);
+        			}
+	        		player.sendMessage(ClaimLanguage.getMessage("setowner-all-success").replaceAll("%owner%", targetName));
+	        		return true;
+        		}
+        		Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+        		if(chunk == null) {
+        			player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
+        			return true;
+        		}
+    			Player target = Bukkit.getPlayer(args[2]);
+    			String targetName = "";
+    			if(target == null) {
+    				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+    				if(otarget == null) {
+    					player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
+        				return true;
+    				}
+    				targetName = otarget.getName();
+    			} else {
+    				targetName = target.getName();
+    			}
+        		if(targetName.equals(playerName)) {
+        			player.sendMessage(ClaimLanguage.getMessage("cant-transfer-ownership-yourself"));
+        			return true;
+        		}
+        		ClaimMain.setOwner(player, targetName, chunk, false);
+        		player.sendMessage(ClaimLanguage.getMessage("setowner-claim-success").replaceAll("%owner%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk)));
+        		return true;
+        	}
         }
         
         if (args.length == 2) {
@@ -413,13 +520,18 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         			return true;
         		}
+            	String world = player.getWorld().getName();
+                if(ClaimSettings.isWorldDisabled(world)) {
+                	player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world));
+                	return true;
+                }
         		if(ClaimMain.getPlayerClaimsCount(args[1]) == 0) {
         			player.sendMessage(ClaimLanguage.getMessage("target-does-not-have-claim").replaceAll("%name%", args[1]));
         			return true;
         		}
         		Set<Chunk> chunks = ClaimMain.getChunksFromOwner(args[1]);
         		for(Chunk c : chunks) {
-        			ClaimMain.displayChunk(player,c);
+        			ClaimMain.displayChunk(player,c,false);
         		}
         		return true;
         	}
@@ -449,6 +561,21 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		}
         		cPlayer.setGuiPage(1);
         		ClaimMembersGui menu = new ClaimMembersGui(player,chunk,1);
+        		menu.openInventory(player);
+        		return true;
+        	}
+        	if(args[0].equalsIgnoreCase("bans")) {
+            	if (!player.hasPermission("scs.command.claim.bans")) {
+                	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                	return false;
+            	}
+        		Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+        		if(chunk == null) {
+        			player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
+        			return true;
+        		}
+        		cPlayer.setGuiPage(1);
+        		ClaimBansGui menu = new ClaimBansGui(player,chunk,1);
         		menu.openInventory(player);
         		return true;
         	}
@@ -487,6 +614,11 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         			return true;
         		}
+            	String world = player.getWorld().getName();
+                if(ClaimSettings.isWorldDisabled(world)) {
+                	player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world));
+                	return true;
+                }
         		if(cPlayer.getClaimAutomap()) {
         			cPlayer.setClaimAutomap(false);
         			player.sendMessage(ClaimLanguage.getMessage("automap-off"));
@@ -501,6 +633,11 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         			return true;
         		}
+            	String world = player.getWorld().getName();
+                if(ClaimSettings.isWorldDisabled(world)) {
+                	player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world));
+                	return true;
+                }
         		ClaimMain.getMap(player,player.getLocation().getChunk());
         		return true;
         	}
@@ -509,6 +646,11 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         			return true;
         		}
+            	String world = player.getWorld().getName();
+                if(ClaimSettings.isWorldDisabled(world)) {
+                	player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world));
+                	return true;
+                }
         		if(cPlayer.getClaimAutoclaim()) {
         			cPlayer.setClaimAutoclaim(false);
         			player.sendMessage(ClaimLanguage.getMessage("autoclaim-off"));
@@ -529,7 +671,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			player.sendMessage(ClaimLanguage.getMessage("free-territory"));
         			return true;
         		}
-        		if(!owner.equals(player.getName())) {
+        		if(!owner.equals(playerName)) {
         			player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
         			return true;
         		}
@@ -549,7 +691,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			player.sendMessage(ClaimLanguage.getMessage("free-territory"));
         			return true;
         		}
-        		if(!owner.equals(player.getName())) {
+        		if(!owner.equals(playerName)) {
         			player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
         			return true;
         		}
@@ -568,12 +710,32 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			player.sendMessage(ClaimLanguage.getMessage("free-territory"));
         			return true;
         		}
-        		if(!owner.equals(player.getName())) {
+        		if(!owner.equals(playerName)) {
         			player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
         			return true;
         		}
         		cPlayer.setGuiPage(1);
                 ClaimMembersGui menu = new ClaimMembersGui(player,chunk,1);
+                menu.openInventory(player);
+                return true;
+        	}
+        	if(args[0].equalsIgnoreCase("bans")) {
+            	if (!player.hasPermission("scs.command.claim.bans")) {
+                	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                	return false;
+            	}
+        		Chunk chunk = player.getLocation().getChunk();
+        		String owner = ClaimMain.getOwnerInClaim(chunk);
+        		if(!ClaimMain.checkIfClaimExists(chunk)) {
+        			player.sendMessage(ClaimLanguage.getMessage("free-territory"));
+        			return true;
+        		}
+        		if(!owner.equals(playerName)) {
+        			player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
+        			return true;
+        		}
+        		cPlayer.setGuiPage(1);
+                ClaimBansGui menu = new ClaimBansGui(player,chunk,1);
                 menu.openInventory(player);
                 return true;
         	}
@@ -584,7 +746,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
             	}
             	cPlayer.setGuiPage(1);
         		ClaimListGui.removeLastChunk(player);
-                ClaimListGui menu = new ClaimListGui(player,1);
+                ClaimListGui menu = new ClaimListGui(player,1,"owner");
                 menu.openInventory(player);
         		return true;
         	}
@@ -593,7 +755,12 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         			return true;
         		}
-        		ClaimMain.displayChunk(player,player.getLocation().getChunk());
+            	String world = player.getWorld().getName();
+                if(ClaimSettings.isWorldDisabled(world)) {
+                	player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world));
+                	return true;
+                }
+        		ClaimMain.displayChunk(player,player.getLocation().getChunk(),false);
         		return true;
         	}
         	if (!player.hasPermission("scs.claim.radius")) {
@@ -649,8 +816,9 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         	return false;
     	}
         
-        if(ClaimSettings.isWorldDisabled(player.getWorld().getName())) {
-        	player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName()));
+    	String world = player.getWorld().getName();
+        if(ClaimSettings.isWorldDisabled(world)) {
+        	player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world));
         	return true;
         }
         
@@ -669,7 +837,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
                 return true;
             }
             isOnCreate.add(player);
-            ClaimMain.displayChunk(player,player.getChunk());
+            ClaimMain.displayChunk(player,player.getChunk(),false);
             String AnswerA = ClaimLanguage.getMessage("claim-confirmation-button");
             TextComponent AnswerA_C = new TextComponent(AnswerA);
             AnswerA_C.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ClaimLanguage.getMessage("claim-confirmation-button")).create()));

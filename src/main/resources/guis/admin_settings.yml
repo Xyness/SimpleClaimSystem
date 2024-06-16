@@ -26,28 +26,33 @@ items:
   # /!\ DON'T CHANGE NAME OF ITEMS (like "my-claims")
 
   # Bottom items
-  admin-claims:
-    slot: 47
-    material: OAK_SIGN
-    custom_model_data: false
-    custom_model_data_value: 0
   define-loc:
-    slot: 48
+    slot: 45
     material: ENDER_PEARL
     custom_model_data: false
     custom_model_data_value: 0
-  manage-members:
-    slot: 49
-    material: PAPER
-    custom_model_data: false
-    custom_model_data_value: 0
   define-name:
-    slot: 50
+    slot: 46
     material: WRITABLE_BOOK
     custom_model_data: false
     custom_model_data_value: 0
+  manage-members:
+    slot: 47
+    material: PAPER
+    custom_model_data: false
+    custom_model_data_value: 0
+  manage-bans:
+    slot: 48
+    material: BARRIER
+    custom_model_data: false
+    custom_model_data_value: 0
+  admin-claims:
+    slot: 52
+    material: OAK_SIGN
+    custom_model_data: false
+    custom_model_data_value: 0
   apply-all-admin-claims:
-    slot: 51
+    slot: 53
     material: GREEN_CONCRETE_POWDER
     custom_model_data: false
     custom_model_data_value: 0

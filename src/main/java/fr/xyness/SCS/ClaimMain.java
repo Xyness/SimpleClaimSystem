@@ -20,6 +20,7 @@ import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
@@ -230,6 +231,14 @@ public class ClaimMain {
                 .map(Map.Entry::getKey)
                 .findFirst()
                 .orElse(null);
+    }
+    
+    // Get the claims chunk where the player is not owner but member
+    public static Set<Chunk> getChunksWhereMemberNotOwner(String playerName){
+    	return listClaims.entrySet().stream()
+    			.filter(entry -> !entry.getValue().getOwner().equals(playerName) && entry.getValue().getMembers().contains(playerName))
+    			.map(entry -> entry.getValue().getChunk())
+    			.collect(Collectors.toSet());
     }
     
     // Get the claims name from owner
@@ -832,7 +841,7 @@ public class ClaimMain {
 	    	}
     	}
     	
-    	displayChunk(player,chunk);
+    	displayChunk(player,chunk,true);
     	cPlayer.setClaimsCount(cPlayer.getClaimsCount()+1);
     	int nb = cPlayer.getMaxClaims()-cPlayer.getClaimsCount();
 		player.sendMessage(ClaimLanguage.getMessage("create-claim-success").replaceAll("%remaining-claims%", String.valueOf(nb)));
@@ -938,7 +947,7 @@ public class ClaimMain {
     		return;
     	}
     	
-    	displayChunk(player,chunk);
+    	displayChunk(player,chunk,true);
 		player.sendMessage(ClaimLanguage.getMessage("create-protected-area-success"));
 		
     	String uuid = "aucun";
@@ -1558,6 +1567,8 @@ public class ClaimMain {
     	Claim claim = listClaims.get(chunk);
     	claim.removeMember(name);
     	String membersString = String.join(";", claim.getMembers());
+    	Player target = Bukkit.getPlayer(name);
+    	if(target != null) target.sendMessage(ClaimLanguage.getMessage("remove-claim-player").replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", player.getName()));
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -1956,6 +1967,8 @@ public class ClaimMain {
     	Claim claim = listClaims.get(chunk);
     	claim.addMember(name);
     	String membersString = String.join(";", claim.getMembers());
+    	Player target = Bukkit.getPlayer(name);
+    	if(target != null) target.sendMessage(ClaimLanguage.getMessage("add-claim-player").replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", player.getName()));
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -2002,6 +2015,8 @@ public class ClaimMain {
     	Claim claim = listClaims.get(chunk);
     	claim.addMember(name);
     	String membersString = String.join(";", claim.getMembers());
+    	Player target = Bukkit.getPlayer(name);
+    	if(target != null) target.sendMessage(ClaimLanguage.getMessage("add-claim-protected-area-player").replaceAll("%claim-name%", claim.getName()));
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -2047,6 +2062,8 @@ public class ClaimMain {
     	listClaims.values().stream()
         	.filter(claim -> "admin".equals(claim.getOwner()))
         	.forEach(claim -> claim.addMember(name));
+    	Player target = Bukkit.getPlayer(name);
+    	if(target != null) target.sendMessage(ClaimLanguage.getMessage("add-all-claim-protected-area-player"));
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -2326,6 +2343,8 @@ public class ClaimMain {
     	listClaims.values().stream()
     		.filter(claim -> playerName.equals(claim.getOwner()))
     		.forEach(claim -> claim.addMember(name));
+    	Player target = Bukkit.getPlayer(name);
+    	if(target != null) target.sendMessage(ClaimLanguage.getMessage("add-all-claim-player").replaceAll("%owner%", playerName));
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -2381,6 +2400,8 @@ public class ClaimMain {
     	listClaims.values().stream()
     		.filter(claim -> "admin".equals(claim.getOwner()))
     		.forEach(claim -> claim.removeMember(name));
+    	Player target = Bukkit.getPlayer(name);
+    	if(target != null) target.sendMessage(ClaimLanguage.getMessage("remove-all-claim-protected-area-player"));
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -2435,6 +2456,8 @@ public class ClaimMain {
     	listClaims.values().stream()
 			.filter(claim -> playerName.equals(claim.getOwner()))
 			.forEach(claim -> claim.removeMember(name));
+    	Player target = Bukkit.getPlayer(name);
+    	if(target != null) target.sendMessage(ClaimLanguage.getMessage("remove-all-claim-player").replaceAll("%owner%", playerName));
     	if(SimpleClaimSystem.isFolia()) {
     		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -2886,7 +2909,7 @@ public class ClaimMain {
     	List<Integer> ids = new ArrayList<>();
     	int i = 0;
     	CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
-    	cPlayer.setClaimsCount(0);
+    	if(cPlayer != null) cPlayer.setClaimsCount(0);
     	for(Chunk chunk : chunks) {
     		if(!listClaims.containsKey(chunk)) continue;
     		if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
@@ -3353,7 +3376,7 @@ public class ClaimMain {
     }
     
     // Method to change the owner of a claim
-    public static void setOwner(Player sender, String playerName, Chunk chunk) {
+    public static void setOwner(Player sender, String playerName, Chunk chunk, boolean msg) {
     	if(!listClaims.containsKey(chunk)) return;
     	Claim claim = listClaims.get(chunk);
     	if(SimpleClaimSystem.isFolia()) {
@@ -3401,9 +3424,11 @@ public class ClaimMain {
     					ClaimEventsEnterLeave.bossbarMessages(p, chunk, playerName);;
     				}
     	        });
-    	        sender.getScheduler().run(plugin, stask -> {
-    	        	sender.sendMessage(ClaimLanguage.getMessage("setowner-success").replaceAll("%owner%", playerName));
-    	        }, null);
+    	        if(msg) {
+        	        sender.getScheduler().run(plugin, stask -> {
+        	        	sender.sendMessage(ClaimLanguage.getMessage("setowner-success").replaceAll("%owner%", playerName));
+        	        }, null);
+    	        }
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET id = ?, uuid = ?, name = ?, Members = ?, claim_name = ?, isSale = false, SalePrice = 0  WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -3468,7 +3493,7 @@ public class ClaimMain {
     					Player p = (Player) e;
     					ClaimEventsEnterLeave.bossbarMessages(p, chunk, playerName);;
     				}
-    	        	sender.sendMessage(ClaimLanguage.getMessage("setowner-success").replaceAll("%owner%", playerName));
+    				if(msg) sender.sendMessage(ClaimLanguage.getMessage("setowner-success").replaceAll("%owner%", playerName));
     	        });
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET id = ?, uuid = ?, name = ?, Members = ?, claim_name = ?, isSale = false, SalePrice = 0  WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
@@ -3494,7 +3519,22 @@ public class ClaimMain {
     }
     
     // Method to display chunk when claiming
-    public static void displayChunk(Player player, Chunk chunk) {
+    public static void displayChunk(Player player, Chunk chunk, boolean claim) {
+    	Particle.DustOptions dustOptions;
+    	if(!claim) {
+	    	if(checkIfClaimExists(chunk)) {
+	    		String playerName = player.getName();
+	    		if(getOwnerInClaim(chunk).equals(playerName)){
+	    			dustOptions = new Particle.DustOptions(Color.GREEN, 1);
+	    		} else {
+	    			dustOptions = new Particle.DustOptions(Color.RED, 1);
+	    		}
+	    	} else {
+	    		dustOptions = new Particle.DustOptions(Color.WHITE, 1);
+	    	}
+    	} else {
+    		dustOptions = new Particle.DustOptions(Color.GREEN, 1);
+    	}
     	if(SimpleClaimSystem.isFolia()) {
     	    final int[] counter = {0};
     	    Bukkit.getAsyncScheduler().runAtFixedRate(plugin, task -> {
@@ -3511,12 +3551,12 @@ public class ClaimMain {
 
     	        for (int y = yStart; y <= yEnd; y++) {
     	            for (int x = xStart; x <= xEnd; x++) {
-    	                world.spawnParticle(Particle.END_ROD, new Location(world, x, y, zStart), 1, 0, 0, 0, 0);
-    	                world.spawnParticle(Particle.END_ROD, new Location(world, x, y, zEnd + 1), 1, 0, 0, 0, 0);
+    	                world.spawnParticle(Particle.REDSTONE, new Location(world, x, y, zStart), 1, 0, 0, 0, 0, dustOptions);
+    	                world.spawnParticle(Particle.REDSTONE, new Location(world, x, y, zEnd + 1), 1, 0, 0, 0, 0, dustOptions);
     	            }
     	            for (int z = zStart; z <= zEnd; z++) {
-    	                world.spawnParticle(Particle.END_ROD, new Location(world, xStart, y, z), 1, 0, 0, 0, 0);
-    	                world.spawnParticle(Particle.END_ROD, new Location(world, xEnd + 1, y, z), 1, 0, 0, 0, 0);
+    	                world.spawnParticle(Particle.REDSTONE, new Location(world, xStart, y, z), 1, 0, 0, 0, 0, dustOptions);
+    	                world.spawnParticle(Particle.REDSTONE, new Location(world, xEnd + 1, y, z), 1, 0, 0, 0, 0, dustOptions);
     	            }
     	        }
     	        counter[0]++;
@@ -3539,12 +3579,12 @@ public class ClaimMain {
                 int yEnd = world.getMaxHeight() - 1;
                 for (int y = yStart; y <= yEnd; y++) {
                     for (int x = xStart; x <= xEnd; x++) {
-                        world.spawnParticle(Particle.END_ROD, new Location(world, x, y, zStart), 1, 0, 0, 0, 0);
-                        world.spawnParticle(Particle.END_ROD, new Location(world, x, y, zEnd + 1), 1, 0, 0, 0, 0);
-                    }
-                    for (int z = zStart; z <= zEnd; z++) {
-                        world.spawnParticle(Particle.END_ROD, new Location(world, xStart, y, z), 1, 0, 0, 0, 0);
-                        world.spawnParticle(Particle.END_ROD, new Location(world, xEnd + 1, y, z), 1, 0, 0, 0, 0);
+    	                world.spawnParticle(Particle.REDSTONE, new Location(world, x, y, zStart), 1, 0, 0, 0, 0, dustOptions);
+    	                world.spawnParticle(Particle.REDSTONE, new Location(world, x, y, zEnd + 1), 1, 0, 0, 0, 0, dustOptions);
+    	            }
+    	            for (int z = zStart; z <= zEnd; z++) {
+    	                world.spawnParticle(Particle.REDSTONE, new Location(world, xStart, y, z), 1, 0, 0, 0, 0, dustOptions);
+    	                world.spawnParticle(Particle.REDSTONE, new Location(world, xEnd + 1, y, z), 1, 0, 0, 0, 0, dustOptions);
                     }
                 }
                 counter++;
