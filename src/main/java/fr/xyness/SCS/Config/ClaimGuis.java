@@ -327,7 +327,7 @@ public class ClaimGuis {
              }
          }
          
-         if(model_data && !check_itemsadder) Bukkit.getServer().getConsoleSender().sendMessage("§a→ §cCustom model data will be replaced by STONE");
+         if(model_data && !check_itemsadder) plugin.getLogger().info("Custom model data will be replaced by STONE");
      	return true;
      }
      

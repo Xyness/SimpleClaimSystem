@@ -9,7 +9,6 @@ import org.bukkit.inventory.meta.SkullMeta;
 import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.*;
 import fr.xyness.SCS.Config.*;
-import fr.xyness.SCS.Others.CacheGui;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 public class ClaimsOwnerGui implements InventoryHolder {
@@ -215,8 +214,9 @@ public class ClaimsOwnerGui implements InventoryHolder {
             return createItemWMD(displayName, lore, ClaimGuis.getItemMaterialMD("claims_owner", "claim-item"), ClaimGuis.getItemCustomModelData("claims_owner", "claim-item"));
         }
         if (ClaimGuis.getItemMaterialMD("claims_owner", "claim-item").contains("PLAYER_HEAD")) {
-            ItemStack item = CacheGui.getPlayerHead(ClaimMain.getOwnerInClaim(chunk));
+            ItemStack item = new ItemStack(Material.PLAYER_HEAD);
             SkullMeta meta = (SkullMeta) item.getItemMeta();
+            meta.setOwningPlayer(Bukkit.getOfflinePlayer(ClaimMain.getOwnerInClaim(chunk)));
             meta.setDisplayName(displayName);
             meta.setLore(lore);
             item.setItemMeta(meta);

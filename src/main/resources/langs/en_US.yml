@@ -14,11 +14,11 @@ reload-complete: "§a✓ Reload completed"
 free-territory: "§cThis territory does not belong to anyone."
 territory-not-yours: "§cThis territory does not belong to you."
 already-member: "§c%player% already has access to your territory."
-add-member-success: "§e%player%§f added successfully."
+add-member-success: "§e%player%§f added successfully to §e%claim-name%§f."
 error: "§cAn error has occurred, please contact an administrator."
 not-member: "§c%player% does not have access to your territory."
 cant-remove-owner: "§cYou cannot remove the owner of this territory (you)."
-remove-member-success: "§e%player%§f successfully removed."
+remove-member-success: "§e%player%§f successfully removed from §e%claim-name%§f."
 create-error-protected-area: "§cYou are in a protected area of the server."
 create-already-yours: "§cYou are already in your property."
 create-already-claim: "§cYou are in the property of %player%."
@@ -221,6 +221,7 @@ all-claim-is-buyable: "§7▸ §fShift-left-click to buy" # Visible only if in s
 
 access-claim-title: "§e%name% §b(%coords%)"
 access-claim-lore: "§7%description%\n \n§7Members:\n%members%\n \n"
+access-claim-not-owner-lore: "§7Owner: §4%owner%\n§7%description%\n \n§7Members:\n%members%\n \n"
 access-claim-clickable: "§7▸ §fLeft-click to teleport\n§7▸ §fShift-left-click to remove\n§7▸ §fRight-click to open settings"
 access-claim-clickable-not-owner: "§7▸ §fLeft-click to teleport"
 teleportation-success: "§fYou have been teleported to the claim's spawn."
@@ -429,10 +430,10 @@ help-command:
     §bSyntax : §f/claim setname <old-claim-name> <new-claim-name>
     §bDescription : §fChange the name of the given claim
   claim-add: |
-    §bSyntax : §f/claim add <*/player> <claim-name>
+    §bSyntax : §f/claim add [<*/claim-name>] <player>
     §bDescription : §fAdd a player to a claim/all your claims
   claim-remove: |
-    §bSyntax : §f/claim remove <*/player> <claim-name>
+    §bSyntax : §f/claim remove [<*/claim-name>] <player>
     §bDescription : §fRemove a player from a claim/all your claims
   claim-setdesc: |
     §bSyntax : §f/claim setdesc <claim-name> <description>
@@ -440,6 +441,18 @@ help-command:
   claim-chat: |
     §bSyntax : §f/claim chat <claim-name>
     §bDescription : §fChange your chat mode
+  claim-ban: |
+    §bSyntax : §f/claim ban [<*/claim-name>] <player>
+    §bDescription : §fBan a player from your claim
+  claim-unban: |
+    §bSyntax : §f/claim unban [<*/claim-name>] <player>
+    §bDescription : §fUnban a player from your claim
+  claim-bans: |
+    §bSyntax : §f/claim bans [<claim-name>]
+    §bDescription : §fOpen the bans gui of a claim
+  claim-owner: |
+    §bSyntax : §f/claim owner [<*/claim-name>] <player>
+    §bDescription : §fTransfer ownership of claim(s) to a player
   unclaim-unclaim: |
     %help-separator%
     §bSyntax : §f/unclaim [<radius/claim-name/*>]

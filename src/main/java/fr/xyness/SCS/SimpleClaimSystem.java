@@ -57,7 +57,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	static CPlayerMain playerMain;
 	static ClaimDynmap claimDynmap;
 	static ClaimBluemap claimBluemap;
-	static String Version = "1.9.0.1b2";
+	static String Version = "1.9.0.1b4";
 	public static HikariDataSource dataSource;
 	private static boolean isFolia = false;
 	private static boolean isUpdateAvailable;
@@ -77,17 +77,17 @@ public class SimpleClaimSystem extends JavaPlugin {
     // Enable plugin
 	@Override
     public void onEnable() {
-		Bukkit.getServer().getConsoleSender().sendMessage("§b============================================================");
+		getLogger().info("============================================================");
         if(loadConfig(this,false)) {
-        	Bukkit.getServer().getConsoleSender().sendMessage(" ");
-        	Bukkit.getServer().getConsoleSender().sendMessage("§aSimpleClaimSystem is enabled !");
-        	Bukkit.getServer().getConsoleSender().sendMessage("§aDiscord for support : §f§nhttps://discord.gg/xyness");
-        	Bukkit.getServer().getConsoleSender().sendMessage("§aDocumentation : §f§nhttps://xyness.gitbook.io/simpleclaimsystem");
-        	Bukkit.getServer().getConsoleSender().sendMessage("§aDevelopped by Xyness");
+        	getLogger().info(" ");
+        	getLogger().info("SimpleClaimSystem is enabled !");
+        	getLogger().info("Discord for support : https://discord.gg/xyness");
+        	getLogger().info("Documentation : https://xyness.gitbook.io/simpleclaimsystem");
+        	getLogger().info("Developped by Xyness");
         } else {
         	Bukkit.getServer().getPluginManager().disablePlugin(this);
         }
-        Bukkit.getServer().getConsoleSender().sendMessage("§b============================================================");
+        getLogger().info("============================================================");
     }
     
 	// Disable plugin
@@ -96,12 +96,12 @@ public class SimpleClaimSystem extends JavaPlugin {
         if (dataSource != null) {
             dataSource.close();
         }
-        Bukkit.getServer().getConsoleSender().sendMessage("§4============================================================");
-        Bukkit.getServer().getConsoleSender().sendMessage("§cSimpleClaimSystem is disabled !");
-    	Bukkit.getServer().getConsoleSender().sendMessage("§cDiscord for support : §f§nhttps://discord.gg/xyness");
-    	Bukkit.getServer().getConsoleSender().sendMessage("§cDocumentation : §f§nhttps://xyness.gitbook.io/simpleclaimsystem");
-    	Bukkit.getServer().getConsoleSender().sendMessage("§cDevelopped by Xyness");
-        Bukkit.getServer().getConsoleSender().sendMessage("§4============================================================");
+        getLogger().info("============================================================");
+        getLogger().info("SimpleClaimSystem is disabled !");
+    	getLogger().info("Discord for support : https://discord.gg/xyness");
+    	getLogger().info("Documentation : https://xyness.gitbook.io/simpleclaimsystem");
+    	getLogger().info("Developped by Xyness");
+        getLogger().info("============================================================");
     }
 	
 	// Loading plugin (only for WorldGuard support)
@@ -136,7 +136,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	
     // Function to load/reload config
     public static boolean loadConfig(JavaPlugin plugin, boolean reload) {
-    	if(reload) Bukkit.getServer().getConsoleSender().sendMessage("§b============================================================");
+    	if(reload) plugin.getLogger().info("============================================================");
     	plugin.saveDefaultConfig();
     	plugin.reloadConfig();
         updateConfigWithDefaults(plugin);
@@ -149,7 +149,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         ClaimSettings.clearAll();
         
         // Checking for update
-        isUpdateAvailable = checkForUpdates();
+        isUpdateAvailable = checkForUpdates(plugin);
         
         // Register bStats
         ClaimbStats.enableMetrics(plugin);
@@ -285,7 +285,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         String lang = plugin.getConfig().getString("lang");
         File custom = new File(plugin.getDataFolder()+File.separator+"langs", lang);
         if (!custom.exists()) {
-        	Bukkit.getServer().getConsoleSender().sendMessage("§cFile '"+lang+"' not found, using en_US.yml");
+        	plugin.getLogger().info("File '"+lang+"' not found, using en_US.yml");
         	lang = "en_US.yml";
         } else {
         	updateLangFileWithMissingKeys(plugin,lang);
@@ -327,7 +327,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             configH.setMaxLifetime(600000);
             dataSource = new HikariDataSource(configH);
         	try (Connection connection = dataSource.getConnection()) {
-        		Bukkit.getServer().getConsoleSender().sendMessage("§a✓ Database connection successful");
+        		plugin.getLogger().info("✓ Database connection successful");
                 try (Statement stmt = connection.createStatement()) {
                     String sql = "CREATE TABLE IF NOT EXISTS scs_claims " +
                             "(id_pk INT AUTO_INCREMENT PRIMARY KEY, " +
@@ -360,12 +360,12 @@ public class SimpleClaimSystem extends JavaPlugin {
                             stmt.executeUpdate(sql);
                         }
                 } catch (SQLException e) {
-            		Bukkit.getServer().getConsoleSender().sendMessage("§cError creating tables, using local db.");
+                	plugin.getLogger().info("Error creating tables, using local db.");
             		e.printStackTrace();
             		configC = "false";
     			}
         	} catch (SQLException e) {
-        		Bukkit.getServer().getConsoleSender().sendMessage("§cError connecting to database, check the connection informations, using local db.");
+        		plugin.getLogger().info("Error connecting to database, check the connection informations, using local db.");
         		configC = "false";
 			}
         }
@@ -401,11 +401,11 @@ public class SimpleClaimSystem extends JavaPlugin {
                             "Bans VARCHAR(1020) DEFAULT '')";
                     stmt.executeUpdate(sql);
         		} catch (SQLException e) {
-            		Bukkit.getServer().getConsoleSender().sendMessage("§cError creating tables, disabling plugin.");
-            		configC = "false";
+        			plugin.getLogger().info("Error creating tables, disabling plugin.");
+        			return false;
     			}
         	} catch (SQLException e) {
-        		Bukkit.getServer().getConsoleSender().sendMessage("§cError creating tables, disabling plugin.");
+        		plugin.getLogger().info("Error creating tables, disabling plugin.");
         		return false;
     		}
         }
@@ -420,14 +420,14 @@ public class SimpleClaimSystem extends JavaPlugin {
     		try {
     			int minutes = Integer.parseInt(configC);
     			if(minutes < 1) {
-    				Bukkit.getServer().getConsoleSender().sendMessage("§cauto-purge-checking must be a correct number (integer and > 0). Using default value.");
+    				plugin.getLogger().info("'auto-purge-checking' must be a correct number (integer and > 0). Using default value.");
     				minutes = 60;
     			}
                 configC = plugin.getConfig().getString("auto-purge-time-without-login");
                 ClaimSettings.addSetting("auto-purge-time-without-login", configC);
                 new ClaimPurge(plugin, minutes, configC);
     		} catch(NumberFormatException e){
-    			Bukkit.getServer().getConsoleSender().sendMessage("§cauto-purge-checking must be a correct number (integer and > 0). Using default value.");
+    			plugin.getLogger().info("'auto-purge-checking' must be a correct number (integer and > 0). Using default value.");
     			int minutes = 60;
                 configC = plugin.getConfig().getString("auto-purge-time-without-login");
                 ClaimSettings.addSetting("auto-purge-time-without-login", configC);
@@ -505,7 +505,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             String barColor = plugin.getConfig().getString("bossbar-settings.color").toUpperCase();
             BarColor color = BarColor.valueOf(barColor);
             if(color == null) {
-            	Bukkit.getServer().getConsoleSender().sendMessage("§cInvalid bossbar color, using default color §eYELLOW");
+            	plugin.getLogger().info("Invalid bossbar color, using default color YELLOW");
             	barColor = "YELLOW";
             }
             ClaimSettings.addSetting("bossbar-color", barColor);
@@ -600,18 +600,18 @@ public class SimpleClaimSystem extends JavaPlugin {
 		// Player system register
 		playerMain = new CPlayerMain(plugin);
 		
-		if(reload) Bukkit.getServer().getConsoleSender().sendMessage("§b============================================================");
+		if(reload) plugin.getLogger().info("============================================================");
         return true;
     }
     
     // Method to reload language file
     public static void reloadLang(JavaPlugin plugin, CommandSender sender, String lang) {
-    	sender.sendMessage("§a→ §fLoading language file §6[...]");
+    	sender.sendMessage("Loading language file [...]");
     	
     	// Checking default language file for some adds
         File custom = new File(plugin.getDataFolder()+File.separator+"langs", lang);
         if (!custom.exists()) {
-        	sender.sendMessage("§cFile '"+lang+"' not found, using en_US.yml");
+        	sender.sendMessage("File '"+lang+"' not found, using en_US.yml");
         	lang = "en_US.yml";
         } else {
         	updateLangFileWithMissingKeys(plugin,lang);
@@ -631,7 +631,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         plugin.getConfig().set("lang", lang);
         plugin.saveConfig();
         
-        sender.sendMessage("§a✓ '"+lang+"' language file loaded");
+        sender.sendMessage("'"+lang+"' language file loaded");
     }
     
     // Method to update language file
@@ -687,7 +687,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     }
     
     // Method to check if an update is available
-    public static boolean checkForUpdates() {
+    public static boolean checkForUpdates(JavaPlugin plugin) {
         try {
             URL url = new URL("https://api.spigotmc.org/legacy/update.php?resource=115568");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -696,11 +696,11 @@ public class SimpleClaimSystem extends JavaPlugin {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                 String response = reader.readLine();
                 if (!Version.equalsIgnoreCase(response)) {
-                	Bukkit.getServer().getConsoleSender().sendMessage("§a→ §dA new update is available : §b"+response);
+                	plugin.getLogger().info("A new update is available : "+response);
                 	updateMessage = "§b[SimpleClaimSystem] §dA new update is available : §b"+response;
                 	return true;
                 } else {
-                	Bukkit.getServer().getConsoleSender().sendMessage("§a✓ You are using the latest version : §b"+response);
+                	plugin.getLogger().info("You are using the latest version : "+response);
                 	return false;
                 }
             }
