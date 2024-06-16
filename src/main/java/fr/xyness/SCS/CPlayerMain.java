@@ -10,6 +10,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import fr.xyness.SCS.Config.ClaimSettings;
+import fr.xyness.SCS.Guis.AdminClaimGui;
+import fr.xyness.SCS.Guis.AdminClaimListGui;
+import fr.xyness.SCS.Guis.ClaimBansGui;
+import fr.xyness.SCS.Guis.ClaimGui;
+import fr.xyness.SCS.Guis.ClaimListGui;
+import fr.xyness.SCS.Guis.ClaimMembersGui;
+import fr.xyness.SCS.Guis.ClaimsGui;
+import fr.xyness.SCS.Guis.ClaimsOwnerGui;
 
 public class CPlayerMain {
 	
@@ -37,6 +45,53 @@ public class CPlayerMain {
 	// *  Others Methods  *
 	// ********************
     
+    
+    // Unload player
+    public static void unloadPlayer(Player player) {
+    	if(SimpleClaimSystem.isFolia()) {
+    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    			ClaimGui.removeChunk(player);
+    			ClaimListGui.removeClaimsChunk(player);
+    			ClaimListGui.removeClaimsLoc(player);
+    			ClaimListGui.removeLastChunk(player);
+    			ClaimMembersGui.removeChunk(player);
+    			ClaimMembersGui.removeClaimMember(player);
+    			ClaimsOwnerGui.removeClaimsChunk(player);
+    			ClaimsOwnerGui.removeClaimsLoc(player);
+    			ClaimsOwnerGui.removeOwner(player);
+    			ClaimsOwnerGui.removePlayerFilter(player);
+    			ClaimsGui.removeOwner(player);
+    			ClaimsGui.removePlayerFilter(player);
+    			AdminClaimGui.removeChunk(player);
+    			AdminClaimListGui.removeClaimsChunk(player);
+    			AdminClaimListGui.removeClaimsLoc(player);
+    			AdminClaimListGui.removeLastChunk(player);
+    			ClaimBansGui.removeChunk(player);
+    			ClaimBansGui.removeClaimBan(player);
+    		});
+    	} else {
+    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    			ClaimGui.removeChunk(player);
+    			ClaimListGui.removeClaimsChunk(player);
+    			ClaimListGui.removeClaimsLoc(player);
+    			ClaimListGui.removeLastChunk(player);
+    			ClaimMembersGui.removeChunk(player);
+    			ClaimMembersGui.removeClaimMember(player);
+    			ClaimsOwnerGui.removeClaimsChunk(player);
+    			ClaimsOwnerGui.removeClaimsLoc(player);
+    			ClaimsOwnerGui.removeOwner(player);
+    			ClaimsOwnerGui.removePlayerFilter(player);
+    			ClaimsGui.removeOwner(player);
+    			ClaimsGui.removePlayerFilter(player);
+    			AdminClaimGui.removeChunk(player);
+    			AdminClaimListGui.removeClaimsChunk(player);
+    			AdminClaimListGui.removeClaimsLoc(player);
+    			AdminClaimListGui.removeLastChunk(player);
+    			ClaimBansGui.removeChunk(player);
+    			ClaimBansGui.removeClaimBan(player);
+    		});
+    	}
+    }
     
     // Get the CPlayer by his name
     public static CPlayer getCPlayer(String playerName) {

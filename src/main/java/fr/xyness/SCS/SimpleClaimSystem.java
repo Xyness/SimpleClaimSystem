@@ -57,7 +57,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	static CPlayerMain playerMain;
 	static ClaimDynmap claimDynmap;
 	static ClaimBluemap claimBluemap;
-	static String Version = "1.9.0.1";
+	static String Version = "1.9.0.1b2";
 	public static HikariDataSource dataSource;
 	private static boolean isFolia = false;
 	private static boolean isUpdateAvailable;
@@ -258,6 +258,11 @@ public class SimpleClaimSystem extends JavaPlugin {
         if (!check_gui.exists()) {
         	check_gui.getParentFile().mkdirs();
         	plugin.saveResource("guis/claims_owner.yml", false);
+        }
+        check_gui = new File(plugin.getDataFolder()+File.separator+"guis", "bans.yml");
+        if (!check_gui.exists()) {
+        	check_gui.getParentFile().mkdirs();
+        	plugin.saveResource("guis/bans.yml", false);
         }
         ClaimGuis.loadGuiSettings(plugin,check_itemsadder);
 

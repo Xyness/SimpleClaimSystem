@@ -89,8 +89,33 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         		completions.add("set-claims-visitors-off-visible");
         		completions.add("set-claim-cost");
         		completions.add("set-claim-cost-multiplier");
+        		completions.add("ban");
+        		completions.add("unban");
         		return completions;
         	}
+	        if (args.length == 2 && args[0].equalsIgnoreCase("ban")) {
+	        	completions.add("*");
+	        	completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+	        	return completions;
+	        }
+	        if (args.length == 2 && args[0].equalsIgnoreCase("unban")) {
+	        	completions.add("*");
+	        	completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+	        	return completions;
+	        }
+	        if (args.length == 3 && args[0].equalsIgnoreCase("unban")) {
+	        	Chunk chunk = ClaimMain.getChunkByClaimName("admin", args[1]);
+	        	completions.addAll(ClaimMain.getClaimBans(chunk));
+	        	return completions;
+	        }
+	        if (args.length == 3 && args[0].equalsIgnoreCase("ban")) {
+	        	Player player = (Player) sender;
+	        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
+	        		completions.add(p.getName());
+	        	}
+	        	completions.remove(player.getName());
+	        	return completions;
+	        }
 	        if (args.length == 2 && args[0].equalsIgnoreCase("ptp")) {
 	        	completions.addAll(new HashSet<>(ClaimMain.getClaimsOwners()));
 	        	return completions;
@@ -833,7 +858,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
             	}
 	        	if(args[0].equalsIgnoreCase("setowner")) {
 	        		Chunk chunk = player.getLocation().getChunk();
-	        		ClaimMain.setOwner(player, args[1], chunk);
+	        		ClaimMain.setOwner(player, args[1], chunk, true);
 	        		return true;
 	        	}
         	}
@@ -842,6 +867,118 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         if(args.length == 3) {
         	if(sender instanceof Player) {
         		Player player = (Player) sender;
+        		String playerName = player.getName();
+            	if(args[0].equalsIgnoreCase("ban")) {
+                	if (!player.hasPermission("scs.command.claim.ban")) {
+                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                    	return false;
+                	}
+            		if(args[1].equalsIgnoreCase("*")) {
+                		if(ClaimMain.getPlayerClaimsCount("admin") == 0) {
+                			player.sendMessage(ClaimLanguage.getMessage("no-admin-claim"));
+                			return true;
+                		}
+            			Player target = Bukkit.getPlayer(args[2]);
+            			String targetName = "";
+            			if(target == null) {
+            				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+            				if(otarget == null) {
+            					player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
+                				return true;
+            				}
+            				targetName = otarget.getName();
+            			} else {
+            				targetName = target.getName();
+            			}
+                		if(targetName.equals(playerName)) {
+                			player.sendMessage(ClaimLanguage.getMessage("cant-ban-yourself"));
+                			return true;
+                		}
+    	        		if(ClaimMain.addAllAdminClaimBan(targetName)) {
+    	        			String message = ClaimLanguage.getMessage("add-ban-all-success").replaceAll("%player%", targetName);
+    	        			player.sendMessage(message);
+    	        			return true;
+    	        		}
+    	        		player.sendMessage(ClaimLanguage.getMessage("error"));
+    	        		return true;
+            		}
+            		Chunk chunk = ClaimMain.getChunkByClaimName("admin", args[1]);
+            		if(chunk == null) {
+            			player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
+            			return true;
+            		}
+        			Player target = Bukkit.getPlayer(args[2]);
+        			String targetName = "";
+        			if(target == null) {
+        				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+        				if(otarget == null) {
+        					player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
+            				return true;
+        				}
+        				targetName = otarget.getName();
+        			} else {
+        				targetName = target.getName();
+        			}
+            		if(targetName.equals(playerName)) {
+            			player.sendMessage(ClaimLanguage.getMessage("cant-ban-yourself"));
+            			return true;
+            		}
+            		if(ClaimMain.addAdminClaimBan(chunk, targetName)) {
+            			String message = ClaimLanguage.getMessage("add-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
+            			player.sendMessage(message);
+            			return true;
+            		}
+            		player.sendMessage(ClaimLanguage.getMessage("error"));
+            		return true;
+            	}
+            	if(args[0].equalsIgnoreCase("unban")) {
+                	if (!player.hasPermission("scs.command.claim.unban")) {
+                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                    	return false;
+                	}
+            		if(args[1].equalsIgnoreCase("*")) {
+                		if(ClaimMain.getPlayerClaimsCount("admin") == 0) {
+                			player.sendMessage(ClaimLanguage.getMessage("no-admin-claim"));
+                			return true;
+                		}
+            			Player target = Bukkit.getPlayer(args[2]);
+            			String targetName = "";
+            			if(target == null) {
+            				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+            				if(otarget == null) {
+            					targetName = args[2];
+            				}
+            				targetName = otarget.getName();
+            			} else {
+            				targetName = target.getName();
+            			}
+    	        		if(ClaimMain.removeAllAdminClaimBan(targetName)) {
+    	        			String message = ClaimLanguage.getMessage("remove-ban-all-success").replaceAll("%player%", targetName);
+    	        			player.sendMessage(message);
+    	        			return true;
+    	        		}
+    	        		player.sendMessage(ClaimLanguage.getMessage("error"));
+    	        		return true;
+            		}
+            		Chunk chunk = ClaimMain.getChunkByClaimName("admin", args[1]);
+            		if(chunk == null) {
+            			player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
+            			return true;
+            		}
+            		if(!ClaimMain.checkBan(chunk, args[2])) {
+            			String message = ClaimLanguage.getMessage("not-banned").replaceAll("%player%", args[2]);
+            			player.sendMessage(message);
+            			return true;
+            		}
+            		String targetName = ClaimMain.getRealNameFromClaimBans(chunk, args[2]);
+            		if(ClaimMain.removeAdminClaimBan(chunk, targetName)) {
+            			String message = ClaimLanguage.getMessage("remove-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
+            			player.sendMessage(message);
+            			return true;
+            		}
+            		player.sendMessage(ClaimLanguage.getMessage("error"));
+            		return true;
+            	}
         		if(args[0].equalsIgnoreCase("ptp")) {
         			if(!ClaimMain.getClaimsOwners().contains(args[1])) {
         				player.sendMessage(ClaimLanguage.getMessage("player-does-not-have-claim"));

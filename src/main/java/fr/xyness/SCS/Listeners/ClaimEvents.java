@@ -144,6 +144,17 @@ public class ClaimEvents implements Listener {
                     return;
                 }
                 
+                if(clickedSlot == ClaimGuis.getItemSlot("settings", "manage-bans")) {
+                	if (!player.hasPermission("scs.command.claim.bans")) {
+                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                    	return;
+                	}
+                	cPlayer.setGuiPage(1);
+                    ClaimBansGui menu = new ClaimBansGui(player,chunk,1);
+                    menu.openInventory(player);
+                    return;
+                }
+                
                 if(clickedSlot == ClaimGuis.getItemSlot("settings", "define-name")) {
                 	if (!player.hasPermission("scs.command.claim.setname")) {
                     	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
@@ -161,7 +172,7 @@ public class ClaimEvents implements Listener {
                 	}
                 	cPlayer.setGuiPage(1);
                 	ClaimListGui.setLastChunk(player, chunk);
-                    ClaimListGui menu = new ClaimListGui(player,1);
+                    ClaimListGui menu = new ClaimListGui(player,1,"owner");
                     menu.openInventory(player);
                 	return;
                 }
@@ -211,110 +222,7 @@ public class ClaimEvents implements Listener {
                     }
                 }
                 
-	            String action = ClaimGuis.getCustomItemAction("claims", clickedSlot);
-	            if(action == null || action.isEmpty() || action.equalsIgnoreCase("none")) return;
-	            String[] parts = action.split(":");
-	            
-	            if(parts[0].equalsIgnoreCase("left") && event.getClick() == ClickType.LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("right") && event.getClick() == ClickType.RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("shift_left") && event.getClick() == ClickType.SHIFT_LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("shift_right") && event.getClick() == ClickType.SHIFT_RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
+	            ClaimGuis.executeAction(player, "settings", clickedSlot, event.getClick());
                 return;
         	}
         	
@@ -341,6 +249,13 @@ public class ClaimEvents implements Listener {
                 if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "manage-members")) {
                 	cPlayer.setGuiPage(1);
                     ClaimMembersGui menu = new ClaimMembersGui(player,chunk,1);
+                    menu.openInventory(player);
+                    return;
+                }
+                
+                if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "manage-bans")) {
+                	cPlayer.setGuiPage(1);
+                    ClaimBansGui menu = new ClaimBansGui(player,chunk,1);
                     menu.openInventory(player);
                     return;
                 }
@@ -404,110 +319,7 @@ public class ClaimEvents implements Listener {
                     }
                 }
                 
-	            String action = ClaimGuis.getCustomItemAction("claims", clickedSlot);
-	            if(action == null || action.isEmpty() || action.equalsIgnoreCase("none")) return;
-	            String[] parts = action.split(":");
-	            
-	            if(parts[0].equalsIgnoreCase("left") && event.getClick() == ClickType.LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("right") && event.getClick() == ClickType.RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("shift_left") && event.getClick() == ClickType.SHIFT_LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("shift_right") && event.getClick() == ClickType.SHIFT_RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
+	            ClaimGuis.executeAction(player, "admin_settings", clickedSlot, event.getClick());
                 return;
         	}
         	
@@ -570,110 +382,70 @@ public class ClaimEvents implements Listener {
                     return;
                 }
                 
-	            String action = ClaimGuis.getCustomItemAction("claims", clickedSlot);
-	            if(action == null || action.isEmpty() || action.equalsIgnoreCase("none")) return;
-	            String[] parts = action.split(":");
+	            ClaimGuis.executeAction(player, "members", clickedSlot, event.getClick());
+                return;
+        	}
+        	
+        	if (holder instanceof ClaimBansGui) {
+        		event.setCancelled(true);
+                ItemStack clickedItem = event.getCurrentItem();
+                if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
+                int clickedSlot = event.getSlot();
+                
+                Chunk chunk = ClaimBansGui.getChunk(player);
+                
+	            if (clickedSlot == ClaimGuis.getItemSlot("bans", "back-page-list")) {
+                	int page = cPlayer.getGuiPage();
+                	if(ClaimGuis.getItemSlot("bans", "back-page-list") == ClaimGuis.getItemSlot("bans", "back-page-settings") && page == 1) {
+    	            	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
+    		                AdminClaimGui menu = new AdminClaimGui(player,chunk);
+    		                menu.openInventory(player);
+    		                return;
+    	            	}
+	                    ClaimGui menu = new ClaimGui(player,chunk);
+	                    menu.openInventory(player);
+	                    return;
+                	}
+                	cPlayer.setGuiPage(page-1);
+                    ClaimBansGui menu = new ClaimBansGui(player,chunk,page-1);
+                    menu.openInventory(player);
+	                return;
+	            }
 	            
-	            if(parts[0].equalsIgnoreCase("left") && event.getClick() == ClickType.LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
+	            if (clickedSlot == ClaimGuis.getItemSlot("bans", "back-page-settings")) {
+	            	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
+		                AdminClaimGui menu = new AdminClaimGui(player,chunk);
+		                menu.openInventory(player);
+		                return;
+	            	}
+	                ClaimGui menu = new ClaimGui(player,chunk);
+	                menu.openInventory(player);
+	                return;
 	            }
-	            if(parts[0].equalsIgnoreCase("right") && event.getClick() == ClickType.RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
+                
+	            if (clickedSlot == ClaimGuis.getItemSlot("bans", "next-page-list")) {
+                	int page = cPlayer.getGuiPage()+1;
+                	cPlayer.setGuiPage(page);
+                    ClaimBansGui menu = new ClaimBansGui(player,chunk,page);
+                    menu.openInventory(player);
+	                return;
 	            }
-	            if(parts[0].equalsIgnoreCase("shift_left") && event.getClick() == ClickType.SHIFT_LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("shift_right") && event.getClick() == ClickType.SHIFT_RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
+                
+                if(clickedSlot >= ClaimGuis.getGuiMinSlot("bans") && clickedSlot <= ClaimGuis.getGuiMaxSlot("bans")) {
+                	String owner = ClaimBansGui.getClaimBan(player, clickedSlot);
+                	if(owner.equals(player.getName())) return;
+                	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
+                		ClaimMain.removeAdminClaimBan(chunk, owner);
+                	} else {
+                		ClaimMain.removeClaimBan(player, chunk, owner);
+                	}
+                    int page = cPlayer.getGuiPage();
+                	ClaimBansGui menu = new ClaimBansGui(player,chunk,page);
+                	menu.openInventory(player);
+                    return;
+                }
+                
+	            ClaimGuis.executeAction(player, "bans", clickedSlot, event.getClick());
                 return;
         	}
         	
@@ -695,7 +467,20 @@ public class ClaimEvents implements Listener {
 	            		return;
 	            	}
 	            	cPlayer.setGuiPage(page);
-                    ClaimListGui menu = new ClaimListGui(player,page);
+                    ClaimListGui menu = new ClaimListGui(player,page,ClaimListGui.getPlayerFilter(player));
+                    menu.openInventory(player);
+	                return;
+	            }
+	            
+	            if (clickedSlot == ClaimGuis.getItemSlot("list", "filter")) {
+	            	cPlayer.setGuiPage(1);
+                	String filter = ClaimListGui.getPlayerFilter(player);
+                	if(filter.equals("owner")) {
+                		filter = "not_owner";
+                	} else {
+                		filter = "owner";
+                	}
+                    ClaimListGui menu = new ClaimListGui(player,1,filter);
                     menu.openInventory(player);
 	                return;
 	            }
@@ -703,7 +488,7 @@ public class ClaimEvents implements Listener {
 	            if (clickedSlot == ClaimGuis.getItemSlot("list", "next-page-list")) {
 	            	int page = cPlayer.getGuiPage()+1;
 	            	cPlayer.setGuiPage(page);
-                    ClaimListGui menu = new ClaimListGui(player,page);
+                    ClaimListGui menu = new ClaimListGui(player,page,ClaimListGui.getPlayerFilter(player));
                     menu.openInventory(player);
 	                return;
 	            }
@@ -718,6 +503,7 @@ public class ClaimEvents implements Listener {
 		            	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
 		            	return;
 		            }
+		            if(ClaimListGui.getPlayerFilter(player).equals("not_owner")) return;
 		            if(event.getClick() == ClickType.RIGHT) {
 	                    ClaimGui menu = new ClaimGui(player,ClaimListGui.getClaimChunk(player, clickedSlot));
 	                    menu.openInventory(player);
@@ -733,7 +519,7 @@ public class ClaimEvents implements Listener {
 			    			}
 			    			player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
 			            	int page = cPlayer.getGuiPage();
-		                    ClaimListGui menu = new ClaimListGui(player,page);
+		                    ClaimListGui menu = new ClaimListGui(player,page,ClaimListGui.getPlayerFilter(player));
 		                    menu.openInventory(player);
 			        	}
 			        	return;
@@ -745,7 +531,7 @@ public class ClaimEvents implements Listener {
 	                			if(ClaimMain.delChunkSale(player, chunk)) {
 	                				player.sendMessage(ClaimLanguage.getMessage("claim-in-sale-cancel").replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk)));
 	    			            	int page = cPlayer.getGuiPage();
-	    		                    ClaimListGui menu = new ClaimListGui(player,page);
+	    		                    ClaimListGui menu = new ClaimListGui(player,page,ClaimListGui.getPlayerFilter(player));
 	    		                    menu.openInventory(player);
 	                				return;
 	                			}
@@ -760,110 +546,7 @@ public class ClaimEvents implements Listener {
 		            }
 	            }
 	            
-	            String action = ClaimGuis.getCustomItemAction("claims", clickedSlot);
-	            if(action == null || action.isEmpty() || action.equalsIgnoreCase("none")) return;
-	            String[] parts = action.split(":");
-	            
-	            if(parts[0].equalsIgnoreCase("left") && event.getClick() == ClickType.LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("right") && event.getClick() == ClickType.RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("shift_left") && event.getClick() == ClickType.SHIFT_LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("shift_right") && event.getClick() == ClickType.SHIFT_RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
+	            ClaimGuis.executeAction(player, "list", clickedSlot, event.getClick());
                 return;
         	}
         	
@@ -926,110 +609,7 @@ public class ClaimEvents implements Listener {
 		            }
 	            }
 	            
-	            String action = ClaimGuis.getCustomItemAction("claims", clickedSlot);
-	            if(action == null || action.isEmpty() || action.equalsIgnoreCase("none")) return;
-	            String[] parts = action.split(":");
-	            
-	            if(parts[0].equalsIgnoreCase("left") && event.getClick() == ClickType.LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("right") && event.getClick() == ClickType.RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("shift_left") && event.getClick() == ClickType.SHIFT_LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("shift_right") && event.getClick() == ClickType.SHIFT_RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
+	            ClaimGuis.executeAction(player, "admin_list", clickedSlot, event.getClick());
                 return;
         	}
         	
@@ -1085,111 +665,8 @@ public class ClaimEvents implements Listener {
 	            	return;
 	            }
 	            
-	            String action = ClaimGuis.getCustomItemAction("claims", clickedSlot);
-	            if(action == null || action.isEmpty() || action.equalsIgnoreCase("none")) return;
-	            String[] parts = action.split(":");
-	            
-	            if(parts[0].equalsIgnoreCase("left") && event.getClick() == ClickType.LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("right") && event.getClick() == ClickType.RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("shift_left") && event.getClick() == ClickType.SHIFT_LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("shift_right") && event.getClick() == ClickType.SHIFT_RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-                return;
+	            ClaimGuis.executeAction(player, "claims", clickedSlot, event.getClick());
+	            return;
         	}
         	
         	if (holder instanceof ClaimsOwnerGui) {
@@ -1265,113 +742,9 @@ public class ClaimEvents implements Listener {
 	            	}
 	            }
 	            
-	            String action = ClaimGuis.getCustomItemAction("claims_owner", clickedSlot);
-	            if(action == null || action.isEmpty() || action.equalsIgnoreCase("none")) return;
-	            String[] parts = action.split(":");
-	            
-	            if(parts[0].equalsIgnoreCase("left") && event.getClick() == ClickType.LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("right") && event.getClick() == ClickType.RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("shift_left") && event.getClick() == ClickType.SHIFT_LEFT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-	            if(parts[0].equalsIgnoreCase("shift_right") && event.getClick() == ClickType.SHIFT_RIGHT) {
-	            	if(parts.length<2) return;
-		            if(parts[1].equalsIgnoreCase("close_inventory")) {
-		            	player.closeInventory();
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("cmd")) {
-		            	if(parts.length<3) return;
-		            	if(parts[2].equalsIgnoreCase("console")) {
-		            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parts[3]);
-		            		return;
-		            	}
-		            	if(parts[2].equalsIgnoreCase("player")) {
-		            		Bukkit.dispatchCommand(player, parts[3]);
-		            		return;
-		            	}
-		            	return;
-		            }
-		            if(parts[1].equalsIgnoreCase("msg")) {
-		            	if(parts.length<3) return;
-		            	player.sendMessage(parts[2]);
-		            	return;
-		            }
-	            	return;
-	            }
-                return;
+	            ClaimGuis.executeAction(player, "claims_owner", clickedSlot, event.getClick());
+	            return;
         	}
-
         }
 	}
 	
