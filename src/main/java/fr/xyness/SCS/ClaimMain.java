@@ -29,7 +29,6 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import com.zaxxer.hikari.HikariConfig;
@@ -50,9 +49,7 @@ public class ClaimMain {
 	// ***************
 	// *  Variables  *
 	// ***************
-	
-	
-	private static JavaPlugin plugin;
+
 	
 	// Claims
 	private static Map<Chunk, Claim> listClaims = new HashMap<>();
@@ -60,17 +57,6 @@ public class ClaimMain {
     
     private final static Map<Player, Location> playerLocations = new HashMap<>();
     private static Set<String> commandArgs = Set.of("add","autoclaim","automap","list","map","members","remove","see","setdesc","setname","setspawn","settings","tp","chat","ban","unban","bans","owner");
-    
-    
-	// ******************
-	// *  Constructors  *
-	// ******************
-    
-	
-    public ClaimMain(JavaPlugin plugin) {
-        this.plugin = plugin;
-        loadClaims();
-    }
     
     
 	// ********************
@@ -88,11 +74,6 @@ public class ClaimMain {
     // Method to send action bar message to a player
     public static void sendActionBar(Player player, String message) {
     	player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));
-    }
-    
-    // Method to get plugin instance (for guis)
-    public static JavaPlugin getPlugin() {
-    	return plugin;
     }
     
     
@@ -152,6 +133,18 @@ public class ClaimMain {
                 .filter(entry -> entry.getValue().getOwner().equals(owner))
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toSet());
+    }
+    
+    public static Map<String, Integer> getPlayerlistClaimsCount(Set<String> players) {
+        Map<String, Integer> playerClaimsCount = players.stream()
+                .collect(Collectors.toMap(player -> player, player -> 0));
+        for (Map.Entry<Chunk, Claim> entry : listClaims.entrySet()) {
+            String owner = entry.getValue().getOwner();
+            if (playerClaimsCount.containsKey(owner)) {
+                playerClaimsCount.put(owner, playerClaimsCount.get(owner) + 1);
+            }
+        }
+        return playerClaimsCount;
     }
     
     // Get chunks in sale from owner
@@ -303,8 +296,8 @@ public class ClaimMain {
         playerLocations.put(player, originalLocation);
         
         if(SimpleClaimSystem.isFolia()) {
-    	    final int[] counter = {0};
-    	    Bukkit.getAsyncScheduler().runAtFixedRate(plugin, task -> {
+    	    final int[] counter = {delay*2};
+    	    Bukkit.getAsyncScheduler().runAtFixedRate(SimpleClaimSystem.getInstance(), task -> {
     	    	if (!player.isOnline() || !playerLocations.containsKey(player)) {
                     task.cancel();
                     return;
@@ -331,7 +324,7 @@ public class ClaimMain {
                 } else {
                     counter[0]--;
                 }
-    	    }, 0, delay, TimeUnit.SECONDS);
+    	    }, 0, 500, TimeUnit.MILLISECONDS);
     	    return;
         } else {
         	new BukkitRunnable() {
@@ -365,7 +358,7 @@ public class ClaimMain {
                         countdown--;
                     }
                 }
-            }.runTaskTimer(plugin, 0L, 10L);
+            }.runTaskTimer(SimpleClaimSystem.getInstance(), 0L, 10L);
         }
     }
     
@@ -448,7 +441,7 @@ public class ClaimMain {
     // Method to transfer local db to distant db
     public static void transferClaims() {
         HikariConfig localConfig = new HikariConfig();
-        localConfig.setJdbcUrl("jdbc:sqlite:plugins/SimpleClaimSystem/claims.db");
+        localConfig.setJdbcUrl("jdbc:sqlite:SimpleClaimSystem.getInstance()s/SimpleClaimSystem/claims.db");
         localConfig.setDriverClassName("org.sqlite.JDBC");
         HikariDataSource localDataSource = new HikariDataSource(localConfig);
         
@@ -477,8 +470,8 @@ public class ClaimMain {
                 preparedStatement.addBatch();
 	        }
 	        preparedStatement.executeBatch();
-    		plugin.getLogger().info(""+String.valueOf(i)+" claims transfered");
-    		plugin.getLogger().info("Safe reloading..");
+    		SimpleClaimSystem.getInstance().getLogger().info(""+String.valueOf(i)+" claims transfered");
+    		SimpleClaimSystem.getInstance().getLogger().info("Safe reloading..");
     		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "aclaim reload");
         } catch (SQLException e) {
             e.printStackTrace();
@@ -491,11 +484,11 @@ public class ClaimMain {
     
     // Method to convert claims (from flat files to database)
     public static void convertClaims() {
-        File playerDataFolder = new File(plugin.getDataFolder(), "claims");
+        File playerDataFolder = new File(SimpleClaimSystem.getInstance().getDataFolder(), "claims");
         if (playerDataFolder.exists()) {
             File[] files = playerDataFolder.listFiles();
             if (files == null) {
-                plugin.getLogger().info("0 claims converted");
+                SimpleClaimSystem.getInstance().getLogger().info("0 claims converted");
                 return;
             }
 
@@ -584,12 +577,12 @@ public class ClaimMain {
                 } catch (SQLException e) {
                     e.printStackTrace();
                 }
-                plugin.getLogger().info(i + " claims converted");
+                SimpleClaimSystem.getInstance().getLogger().info(i + " claims converted");
                 // Delete the claims folder after conversion
                 if (deleteFolder(playerDataFolder)) {
-                    plugin.getLogger().info("Old claims folder deleted successfully.");
+                    SimpleClaimSystem.getInstance().getLogger().info("Old claims folder deleted successfully.");
                 } else {
-                    plugin.getLogger().info("Failed to delete old claims folder.");
+                    SimpleClaimSystem.getInstance().getLogger().info("Failed to delete old claims folder.");
                 }
             } catch (SQLException e1) {
 				e1.printStackTrace();
@@ -613,10 +606,10 @@ public class ClaimMain {
     }
     
     // Method to load claims
-    private static void loadClaims() {
+    public static void loadClaims() {
     	
     	if(!ClaimSettings.getBooleanSetting("database")) {
-        	File playerDataFolder = new File(plugin.getDataFolder(), "claims");
+        	File playerDataFolder = new File(SimpleClaimSystem.getInstance().getDataFolder(), "claims");
         	if(playerDataFolder.exists()) {
         		convertClaims();
         	}
@@ -746,7 +739,7 @@ public class ClaimMain {
 		            	boolean sale = resultSet.getBoolean("isSale");
 		            	Double price = resultSet.getDouble("SalePrice");
 	                    if(SimpleClaimSystem.isFolia()) {
-	                    	Bukkit.getRegionScheduler().run(plugin, world, X, Z, task -> {
+	                    	Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), world, X, Z, task -> {
 	                    		Chunk chunk = world.getChunkAt(X,Z);
 	                    		if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.createChunkZone(chunk, name, owner);
 	    		            	if(claimsId.containsKey(owner)) {
@@ -801,7 +794,7 @@ public class ClaimMain {
 		} catch (SQLException e) {
 		    e.printStackTrace();
 		}
-		plugin.getLogger().info(String.valueOf(i)+"/"+String.valueOf(max_i)+" claims loaded");
+		SimpleClaimSystem.getInstance().getLogger().info(String.valueOf(i)+"/"+String.valueOf(max_i)+" claims loaded");
 		return;
     }
     
@@ -875,14 +868,14 @@ public class ClaimMain {
         if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.createChunkZone(chunk, claim_name, playerName);
     	
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+    		Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
     			for(Entity e : chunk.getEntities()) {
     				if(!(e instanceof Player)) continue;
     				Player p = (Player) e;
     				ClaimEventsEnterLeave.activeBossBar(p,chunk);
     			}
     		});
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
         		try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String insertQuery = "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
@@ -910,7 +903,7 @@ public class ClaimMain {
     			Player p = (Player) e;
     			ClaimEventsEnterLeave.activeBossBar(p,chunk);
     		}
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
         		try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String insertQuery = "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
@@ -978,14 +971,14 @@ public class ClaimMain {
         if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.createChunkZone(chunk, claim_name, "admin");
         
     	if(SimpleClaimSystem.isFolia()) {
-      		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+      		Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
     			for(Entity e : chunk.getEntities()) {
     				if(!(e instanceof Player)) continue;
     				Player p = (Player) e;
     				ClaimEventsEnterLeave.activeBossBar(p,chunk);
     			}
     		});
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
         		try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String insertQuery = "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
@@ -1012,7 +1005,7 @@ public class ClaimMain {
 				Player p = (Player) e;
 				ClaimEventsEnterLeave.activeBossBar(p,chunk);
 			}
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
         		try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String insertQuery = "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
@@ -1135,7 +1128,7 @@ public class ClaimMain {
             if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.createChunkZone(chunk, claim_name, playerName);
 
             if(SimpleClaimSystem.isFolia()) {
-	    		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+	    		Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
 	    			for(Entity e : chunk.getEntities()) {
 	    				if(!(e instanceof Player)) continue;
 	    				Player p = (Player) e;
@@ -1155,7 +1148,7 @@ public class ClaimMain {
 		cPlayer.setClaimsCount(cPlayer.getClaimsCount()+i);
 		
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
         		try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String insertQuery = "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
@@ -1181,7 +1174,7 @@ public class ClaimMain {
     	        }
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
         		try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String insertQuery = "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
@@ -1277,7 +1270,7 @@ public class ClaimMain {
             if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.createChunkZone(chunk, claim_name, "admin");
             
             if(SimpleClaimSystem.isFolia()) {
-	    		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+	    		Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
 	    			for(Entity e : chunk.getEntities()) {
 	    				if(!(e instanceof Player)) continue;
 	    				Player p = (Player) e;
@@ -1296,7 +1289,7 @@ public class ClaimMain {
 		displayChunkBorderWithRadius(player,player.getLocation().getChunk(),radius);
 		
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
         		try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String insertQuery = "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
@@ -1322,7 +1315,7 @@ public class ClaimMain {
     	        }
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
         		try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String insertQuery = "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
@@ -1451,7 +1444,7 @@ public class ClaimMain {
         LinkedHashMap<String,Boolean> perms = listClaims.get(chunk).getPermissions();
         perms.put(perm, result);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
 	    		StringBuilder sb = new StringBuilder();
 	            for(String key : perms.keySet()) {
 	            	if(perms.get(key)){
@@ -1477,7 +1470,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
 	    		StringBuilder sb = new StringBuilder();
 	            for(String key : perms.keySet()) {
 	            	if(perms.get(key)){
@@ -1512,7 +1505,7 @@ public class ClaimMain {
         LinkedHashMap<String,Boolean> perms = listClaims.get(chunk).getPermissions();
         perms.put(perm, result);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
 	    		StringBuilder sb = new StringBuilder();
 	            for(String key : perms.keySet()) {
 	            	if(perms.get(key)){
@@ -1538,7 +1531,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
 	    		StringBuilder sb = new StringBuilder();
 	            for(String key : perms.keySet()) {
 	            	if(perms.get(key)){
@@ -1576,7 +1569,7 @@ public class ClaimMain {
     	Player target = Bukkit.getPlayer(name);
     	if(target != null) target.sendMessage(ClaimLanguage.getMessage("remove-claim-player").replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", player.getName()));
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -1594,7 +1587,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -1622,7 +1615,7 @@ public class ClaimMain {
     	claim.removeMember(name);
     	String membersString = String.join(";", claim.getMembers());
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -1640,7 +1633,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -1670,7 +1663,7 @@ public class ClaimMain {
         	.filter(claim -> "admin".equals(claim.getOwner()))
         	.forEach(claim -> claim.setPermissions(perms));
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
 	    		StringBuilder sb = new StringBuilder();
 	            for(String key : perms.keySet()) {
 	            	if(perms.get(key)){
@@ -1694,7 +1687,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
 	    		StringBuilder sb = new StringBuilder();
 	            for(String key : perms.keySet()) {
 	            	if(perms.get(key)){
@@ -1730,7 +1723,7 @@ public class ClaimMain {
         	.filter(claim -> player.getName().equals(claim.getOwner()))
         	.forEach(claim -> claim.setPermissions(perms));
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
 	    		StringBuilder sb = new StringBuilder();
 	            for(String key : perms.keySet()) {
 	            	if(perms.get(key)){
@@ -1754,7 +1747,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
 	    		StringBuilder sb = new StringBuilder();
 	            for(String key : perms.keySet()) {
 	            	if(perms.get(key)){
@@ -1789,7 +1782,7 @@ public class ClaimMain {
     	String banString = String.join(";", claim.getBans());
     	if(claim.getMembers().contains(name)) removeClaimMembers(player,chunk,name);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -1807,7 +1800,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -1836,7 +1829,7 @@ public class ClaimMain {
     	String banString = String.join(";", claim.getBans());
     	if(claim.getMembers().contains(name)) removeAdminClaimMembers(chunk,name);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -1854,7 +1847,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -1882,7 +1875,7 @@ public class ClaimMain {
     	claim.removeBan(name);
     	String banString = String.join(";", claim.getBans());
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -1900,7 +1893,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -1928,7 +1921,7 @@ public class ClaimMain {
     	claim.removeBan(name);
     	String banString = String.join(";", claim.getBans());
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -1946,7 +1939,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -1976,7 +1969,7 @@ public class ClaimMain {
     	Player target = Bukkit.getPlayer(name);
     	if(target != null) target.sendMessage(ClaimLanguage.getMessage("add-claim-player").replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", player.getName()));
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -1994,7 +1987,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2024,7 +2017,7 @@ public class ClaimMain {
     	Player target = Bukkit.getPlayer(name);
     	if(target != null) target.sendMessage(ClaimLanguage.getMessage("add-claim-protected-area-player").replaceAll("%claim-name%", claim.getName()));
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2042,7 +2035,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2071,7 +2064,7 @@ public class ClaimMain {
     	Player target = Bukkit.getPlayer(name);
     	if(target != null) target.sendMessage(ClaimLanguage.getMessage("add-all-claim-protected-area-player"));
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2093,7 +2086,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2127,7 +2120,7 @@ public class ClaimMain {
     	removeAllClaimMembers(player,name);
 
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2150,7 +2143,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2183,7 +2176,7 @@ public class ClaimMain {
 			.filter(claim -> playerName.equals(claim.getOwner()))
 			.forEach(claim -> claim.removeBan(name));
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2206,7 +2199,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2239,7 +2232,7 @@ public class ClaimMain {
         	.forEach(claim -> claim.addBan(name));
     	removeAllAdminClaimMembers(name);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2262,7 +2255,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2294,7 +2287,7 @@ public class ClaimMain {
     		.filter(claim -> "admin".equals(claim.getOwner()))
     		.forEach(claim -> claim.removeBan(name));
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2317,7 +2310,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2352,7 +2345,7 @@ public class ClaimMain {
     	Player target = Bukkit.getPlayer(name);
     	if(target != null) target.sendMessage(ClaimLanguage.getMessage("add-all-claim-player").replaceAll("%owner%", playerName));
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2375,7 +2368,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2409,7 +2402,7 @@ public class ClaimMain {
     	Player target = Bukkit.getPlayer(name);
     	if(target != null) target.sendMessage(ClaimLanguage.getMessage("remove-all-claim-protected-area-player"));
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2431,7 +2424,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2465,7 +2458,7 @@ public class ClaimMain {
     	Player target = Bukkit.getPlayer(name);
     	if(target != null) target.sendMessage(ClaimLanguage.getMessage("remove-all-claim-player").replaceAll("%owner%", playerName));
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2488,7 +2481,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     	            String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2520,14 +2513,14 @@ public class ClaimMain {
     	Claim claim = listClaims.get(chunk);
     	claim.setName(name);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+    		Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
     			for(Entity e : chunk.getEntities()) {
     				if(!(e instanceof Player)) continue;
     				Player p = (Player) e;
     				ClaimEventsEnterLeave.bossbarMessages(p, chunk, p.getName());
     			}
     		});
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
     			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -2552,7 +2545,7 @@ public class ClaimMain {
     			Player p = (Player) e;
     			ClaimEventsEnterLeave.bossbarMessages(p, chunk, p.getName());
     		}
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
     			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -2581,14 +2574,14 @@ public class ClaimMain {
     	Claim claim = listClaims.get(chunk);
     	claim.setName(name);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+    		Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
     			for(Entity e : chunk.getEntities()) {
     				if(!(e instanceof Player)) continue;
     				Player p = (Player) e;
     				ClaimEventsEnterLeave.bossbarMessages(p, chunk, p.getName());
     			}
     		});
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
     			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -2613,7 +2606,7 @@ public class ClaimMain {
     			Player p = (Player) e;
     			ClaimEventsEnterLeave.bossbarMessages(p, chunk, p.getName());
     		}
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
     			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -2642,7 +2635,7 @@ public class ClaimMain {
     	Claim claim = listClaims.get(chunk);
     	claim.setLocation(loc);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			String loc_string = String.valueOf(loc.getX())+";"+String.valueOf(loc.getY())+";"+String.valueOf(loc.getZ())+";"+String.valueOf(loc.getYaw())+";"+String.valueOf(loc.getPitch());
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET Location = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
@@ -2661,7 +2654,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			String loc_string = String.valueOf(loc.getX())+";"+String.valueOf(loc.getY())+";"+String.valueOf(loc.getZ())+";"+String.valueOf(loc.getYaw())+";"+String.valueOf(loc.getPitch());
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET Location = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
@@ -2710,7 +2703,7 @@ public class ClaimMain {
         	if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
         	if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
         	if(SimpleClaimSystem.isFolia()) {
-        		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+        		Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
         			for(Entity e : chunk.getEntities()) {
         				if(!(e instanceof Player)) continue;
         				Player p = (Player) e;
@@ -2729,7 +2722,7 @@ public class ClaimMain {
 		String idsString = String.join(",", ids.stream().map(String::valueOf).toArray(String[]::new));
         
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String deleteQuery = "DELETE FROM scs_claims WHERE id IN (" + idsString + ") AND uuid = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
@@ -2742,7 +2735,7 @@ public class ClaimMain {
 	    		return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String deleteQuery = "DELETE FROM scs_claims WHERE id IN (" + idsString + ") AND uuid = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
@@ -2771,14 +2764,14 @@ public class ClaimMain {
     	}
     	
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+    		Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
     			for(Entity e : chunk.getEntities()) {
     				if(!(e instanceof Player)) continue;
     				Player p = (Player) e;
     				ClaimEventsEnterLeave.disableBossBar(p);
     			}
     		});
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
     			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
     	    	String id = claimsId.get(owner).get(chunk);
@@ -2808,7 +2801,7 @@ public class ClaimMain {
 				Player p = (Player) e;
 				ClaimEventsEnterLeave.disableBossBar(p);
 			}
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
     			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
     	    	String id = claimsId.get(owner).get(chunk);
@@ -2854,7 +2847,7 @@ public class ClaimMain {
         	if(claimsId.get(playerName).isEmpty()) claimsId.remove(playerName);
         	listClaims.remove(chunk);
         	if(SimpleClaimSystem.isFolia()) {
-        		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+        		Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
         			for(Entity e : chunk.getEntities()) {
         				if(!(e instanceof Player)) continue;
         				Player p = (Player) e;
@@ -2873,7 +2866,7 @@ public class ClaimMain {
 		String idsString = String.join(",", ids.stream().map(String::valueOf).toArray(String[]::new));
         player.sendMessage(ClaimLanguage.getMessage("territory-delete-radius-success").replaceAll("%number%", String.valueOf(i)));
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String deleteQuery = "DELETE FROM scs_claims WHERE id IN (" + idsString + ") AND uuid = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
@@ -2886,7 +2879,7 @@ public class ClaimMain {
 	    		return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String deleteQuery = "DELETE FROM scs_claims WHERE id IN (" + idsString + ") AND uuid = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
@@ -2925,7 +2918,7 @@ public class ClaimMain {
         	if(claimsId.get(playerName).isEmpty()) claimsId.remove(playerName);
         	listClaims.remove(chunk);
         	if(SimpleClaimSystem.isFolia()) {
-        		Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+        		Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
         			for(Entity e : chunk.getEntities()) {
         				if(!(e instanceof Player)) continue;
         				Player p = (Player) e;
@@ -2944,7 +2937,7 @@ public class ClaimMain {
 		String idsString = String.join(",", ids.stream().map(String::valueOf).toArray(String[]::new));
 		final String uuid_final = uuid;
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String deleteQuery = "DELETE FROM scs_claims WHERE id IN (" + idsString + ") AND uuid = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
@@ -2957,7 +2950,7 @@ public class ClaimMain {
 	    		return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
 	                String deleteQuery = "DELETE FROM scs_claims WHERE id IN (" + idsString + ") AND uuid = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
@@ -2993,7 +2986,7 @@ public class ClaimMain {
     	listClaims.remove(chunk);
     	
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
     			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -3012,7 +3005,7 @@ public class ClaimMain {
 	    		return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
     			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
@@ -3040,7 +3033,7 @@ public class ClaimMain {
     	Claim claim = listClaims.get(chunk);
     	claim.setDescription(description);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET claim_description = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -3058,7 +3051,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET claim_description = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -3085,7 +3078,7 @@ public class ClaimMain {
     	Claim claim = listClaims.get(chunk);
     	claim.setDescription(description);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET claim_description = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -3103,7 +3096,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET claim_description = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -3131,7 +3124,7 @@ public class ClaimMain {
     	claim.setSale(true);
     	claim.setPrice(price);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET isSale = true, SalePrice = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -3149,7 +3142,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET isSale = true, SalePrice = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -3177,7 +3170,7 @@ public class ClaimMain {
     	claim.setSale(false);
     	claim.setPrice(0.0);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET isSale = false, SalePrice = 0  WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -3194,7 +3187,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
     				String updateQuery = "UPDATE scs_claims SET isSale = false, SalePrice = 0  WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
     	            try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -3219,14 +3212,14 @@ public class ClaimMain {
     	if(!listClaims.containsKey(chunk)) return;
     	Claim claim = listClaims.get(chunk);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
 		    	String playerName = player.getName();
 		    	String owner = claim.getOwner();
 		    	String claimName = claim.getName();
 		    	double price = claim.getPrice();
 		    	double balance = ClaimVault.getPlayerBalance(playerName);
 		    	if(balance < price) {
-		    		player.getScheduler().run(plugin, stask -> { player.sendMessage(ClaimLanguage.getMessage("buy-but-not-enough-money")); }, null);
+		    		player.getScheduler().run(SimpleClaimSystem.getInstance(), stask -> { player.sendMessage(ClaimLanguage.getMessage("buy-but-not-enough-money")); }, null);
 		    		return;
 		    	}
 		    	ClaimVault.addPlayerBalance(owner, price);
@@ -3264,19 +3257,19 @@ public class ClaimMain {
     	        String members_string = String.join(";", members);
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
     			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
-    	        Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+    	        Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
     				for(Entity e : chunk.getEntities()) {
     					if(!(e instanceof Player)) continue;
     					Player p = (Player) e;
     					ClaimEventsEnterLeave.bossbarMessages(p, chunk, playerName);;
     				}
     	        });
-    	        player.getScheduler().run(plugin, stask -> {
+    	        player.getScheduler().run(SimpleClaimSystem.getInstance(), stask -> {
 		            player.sendMessage(ClaimLanguage.getMessage("buy-claim-success").replaceAll("%name%", claimName).replaceAll("%price%", String.valueOf(price)).replaceAll("%owner%", owner));
 		            player.closeInventory();
     	        }, null);
 	            if(ownerP != null) {
-	            	ownerP.getScheduler().run(plugin, stask -> {
+	            	ownerP.getScheduler().run(SimpleClaimSystem.getInstance(), stask -> {
 	            		ownerP.sendMessage(ClaimLanguage.getMessage("claim-was-sold").replaceAll("%name%", claimName).replaceAll("%buyer%",playerName).replaceAll("%price%", String.valueOf(price)));
 	            	}, null);
 	            }
@@ -3301,7 +3294,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
 		    	String playerName = player.getName();
 		    	String owner = claim.getOwner();
 		    	String claimName = claim.getName();
@@ -3346,7 +3339,7 @@ public class ClaimMain {
     	        String members_string = String.join(";", members);
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
     			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
-    	        Bukkit.getScheduler().runTask(plugin, stask -> {
+    	        Bukkit.getScheduler().runTask(SimpleClaimSystem.getInstance(), stask -> {
     				for(Entity e : chunk.getEntities()) {
     					if(!(e instanceof Player)) continue;
     					Player p = (Player) e;
@@ -3386,7 +3379,7 @@ public class ClaimMain {
     	if(!listClaims.containsKey(chunk)) return;
     	Claim claim = listClaims.get(chunk);
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     			String owner = claim.getOwner();
     	    	String uuid = "";
     	    	Player ownerP = Bukkit.getPlayer(owner);
@@ -3423,7 +3416,7 @@ public class ClaimMain {
     	        members.remove(owner);
     	        claim.setMembers(members);
     	        String members_string = String.join(";", members);
-    	        Bukkit.getRegionScheduler().run(plugin, chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
+    	        Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
     				for(Entity e : chunk.getEntities()) {
     					if(!(e instanceof Player)) continue;
     					Player p = (Player) e;
@@ -3431,7 +3424,7 @@ public class ClaimMain {
     				}
     	        });
     	        if(msg) {
-        	        sender.getScheduler().run(plugin, stask -> {
+        	        sender.getScheduler().run(SimpleClaimSystem.getInstance(), stask -> {
         	        	sender.sendMessage(ClaimLanguage.getMessage("setowner-success").replaceAll("%owner%", playerName));
         	        }, null);
     	        }
@@ -3456,7 +3449,7 @@ public class ClaimMain {
     			return;
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     			String owner = claim.getOwner();
     	    	String uuid = "";
     	    	Player ownerP = Bukkit.getPlayer(owner);
@@ -3493,7 +3486,7 @@ public class ClaimMain {
     	        members.remove(owner);
     	        claim.setMembers(members);
     	        String members_string = String.join(";", members);
-    	        Bukkit.getScheduler().runTask(plugin, stask -> {
+    	        Bukkit.getScheduler().runTask(SimpleClaimSystem.getInstance(), stask -> {
     				for(Entity e : chunk.getEntities()) {
     					if(!(e instanceof Player)) continue;
     					Player p = (Player) e;
@@ -3543,7 +3536,7 @@ public class ClaimMain {
     	}
     	if(SimpleClaimSystem.isFolia()) {
     	    final int[] counter = {0};
-    	    Bukkit.getAsyncScheduler().runAtFixedRate(plugin, task -> {
+    	    Bukkit.getAsyncScheduler().runAtFixedRate(SimpleClaimSystem.getInstance(), task -> {
     	        if (counter[0] >= 10) {
     	            task.cancel();
     	        }
@@ -3595,7 +3588,7 @@ public class ClaimMain {
                 }
                 counter++;
             }
-        }.runTaskTimer(plugin, 0L, 10L);
+        }.runTaskTimer(SimpleClaimSystem.getInstance(), 0L, 10L);
     }
     
     // Method to display chunk when radius claiming
@@ -3603,7 +3596,7 @@ public class ClaimMain {
     	Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(0, 255, 0), 2f);
     	if(SimpleClaimSystem.isFolia()) {
     	    final int[] counter = {0};
-    	    Bukkit.getAsyncScheduler().runAtFixedRate(plugin, task -> {
+    	    Bukkit.getAsyncScheduler().runAtFixedRate(SimpleClaimSystem.getInstance(), task -> {
     	    	if (counter[0] >= 10) {
                     task.cancel();
                 }
@@ -3655,7 +3648,7 @@ public class ClaimMain {
 
                 counter++;
             }
-        }.runTaskTimer(plugin, 0L, 10L);
+        }.runTaskTimer(SimpleClaimSystem.getInstance(), 0L, 10L);
     }
     
     // Method to send help for commands

@@ -20,10 +20,6 @@ public class ClaimsOwnerGui implements InventoryHolder {
 	
 	
 	private Inventory inv;
-    private static final Map<Player, Map<Integer, Location>> claimsLoc = new HashMap<>();
-    private static final Map<Player, Map<Integer, Chunk>> claimsChunk = new HashMap<>();
-    private static final Map<Player, String> playerFilter = new HashMap<>();
-    private static final Map<Player, String> owner = new HashMap<>();
     
     
 	// ******************
@@ -48,55 +44,15 @@ public class ClaimsOwnerGui implements InventoryHolder {
 	// *  Others Methods  *
 	// ********************
     
-    
-    // Method to get the targeted owner for a player
-    public static String getOwner(Player player) {
-    	return owner.get(player);
-    }
-    
-    // Method to remove the targeted owner for a player
-    public static void removeOwner(Player player) {
-    	owner.remove(player);
-    }
-    
-    // Method to get the filter of a player
-    public static String getPlayerFilter(Player player) {
-    	return playerFilter.get(player);
-    }
-    
-    // Method to remove the filter of a player
-    public static void removePlayerFilter(Player player) {
-    	playerFilter.remove(player);
-    }
-    
-    // Method to get the claim's location (by slot) for a player
-    public static Location getClaimLoc(Player player, int slot) {
-    	return claimsLoc.get(player).get(slot);
-    }
-    
-    // Method to remove the claim's location for a player
-    public static void removeClaimsLoc(Player player) {
-    	claimsLoc.remove(player);
-    }
-    
-    // Method to get the claim chunk (by slot) for a player
-    public static Chunk getClaimChunk(Player player, int slot) {
-    	return claimsChunk.get(player).get(slot);
-    }
-    
-    // Method to remove the claim chunk for a player
-    public static void removeClaimsChunk(Player player) {
-    	claimsChunk.remove(player);
-    }
 
     // Method to initialize the items in the gui
     private void initializeItems(Player player, int page, String filter, String owner) {
         if (SimpleClaimSystem.isFolia()) {
-            Bukkit.getAsyncScheduler().runNow(ClaimMain.getPlugin(), task -> {
+            Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
             	loadItems(player,page,filter,owner);
             });
         } else {
-            Bukkit.getScheduler().runTaskAsynchronously(ClaimMain.getPlugin(), task -> {
+            Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
             	loadItems(player,page,filter,owner);
             });
         }
@@ -104,8 +60,11 @@ public class ClaimsOwnerGui implements InventoryHolder {
     
     // Method to load items
     private void loadItems(Player player, int page, String filter, String owner) {
-    	this.owner.put(player, owner);
-        playerFilter.put(player, filter);
+    	CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
+    	cPlayer.setOwner(owner);
+    	cPlayer.setFilter(filter);
+    	cPlayer.clearMapChunk();
+    	cPlayer.clearMapLoc();
 
         int minSlot = ClaimGuis.getGuiMinSlot("claims_owner");
         int maxSlot = ClaimGuis.getGuiMaxSlot("claims_owner");
@@ -119,8 +78,6 @@ public class ClaimsOwnerGui implements InventoryHolder {
         inv.setItem(ClaimGuis.getItemSlot("claims_owner", "filter"), createFilterItem(filter));
         
         List<String> loreTemplate = getLore(ClaimLanguage.getMessage("access-all-claim-lore"));
-        Map<Integer, Location> claimLocations = new HashMap<>();
-        Map<Integer, Chunk> claimChunks = new HashMap<>();
 
         int startIndex = (page - 1) * itemsPerPage;
         int slotIndex = minSlot;
@@ -137,13 +94,10 @@ public class ClaimsOwnerGui implements InventoryHolder {
             List<String> lore = prepareLore(loreTemplate, chunk, player);
             ItemStack item = createClaimItem(chunk, player, lore);
 
-            claimChunks.put(slotIndex, chunk);
-            claimLocations.put(slotIndex, ClaimMain.getClaimLocationByChunk(chunk));
+            cPlayer.addMapChunk(slotIndex, chunk);
+            cPlayer.addMapLoc(slotIndex, ClaimMain.getClaimLocationByChunk(chunk));
             inv.setItem(slotIndex++, item);
         }
-
-        claimsChunk.put(player, claimChunks);
-        claimsLoc.put(player, claimLocations);
 
         setCustomItems(player);
     }

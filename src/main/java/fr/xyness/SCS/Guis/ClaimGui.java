@@ -18,6 +18,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import dev.lone.itemsadder.api.CustomStack;
+import fr.xyness.SCS.CPlayer;
+import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
@@ -34,7 +36,6 @@ public class ClaimGui implements InventoryHolder {
 	
 
     private Inventory inv;
-    private static Map<Player,Chunk> chunks = new HashMap<>();
     
     
 	// ******************
@@ -57,21 +58,6 @@ public class ClaimGui implements InventoryHolder {
 	// *  Others Methods  *
 	// ********************
     
-    
-    // Method to get chunk for a player
-    public static Chunk getChunk(Player player) {
-    	if(chunks.containsKey(player)) {
-    		return chunks.get(player);
-    	}
-    	return null;
-    }
-    
-    // Method to remove chunk for a player
-    public static void removeChunk(Player player) {
-    	if(chunks.containsKey(player)) {
-    		chunks.remove(player);
-    	}
-    }
 
     // Method to initialize items for the gui
     public void initializeItems(Player player, Chunk chunk) {
@@ -86,8 +72,8 @@ public class ClaimGui implements InventoryHolder {
     	List<String> lore;
     	String lower_name;
     	String playerName = player.getName();
-    	
-    	chunks.put(player, chunk);
+    	CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
+    	cPlayer.setChunk(chunk);
     	Set<String> items = new HashSet<>(ClaimGuis.getItems("settings"));
     	for(String key : items) {
     		lower_name = key.toLowerCase();
@@ -176,8 +162,8 @@ public class ClaimGui implements InventoryHolder {
     private ItemStack createItem(Material material, String name, List<String> lore) {
     	ItemStack item = null;
     	if(material == null) {
-        	ClaimMain.getPlugin().getLogger().info("Error material loading, check settings.yml");
-        	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+        	SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check settings.yml");
+        	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
         	item = new ItemStack(Material.STONE,1);
     	} else {
     		item = new ItemStack(material, 1);
@@ -197,8 +183,8 @@ public class ClaimGui implements InventoryHolder {
         CustomStack customStack = CustomStack.getInstance(name_custom_item);
         ItemStack item = null;
         if(customStack == null) {
-        	ClaimMain.getPlugin().getLogger().info("Error custom item loading : "+name_custom_item);
-        	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+        	SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : "+name_custom_item);
+        	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
         	item = new ItemStack(Material.STONE,1);
         } else {
         	item = customStack.getItemStack();
