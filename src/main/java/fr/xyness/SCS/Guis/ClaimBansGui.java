@@ -20,6 +20,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import dev.lone.itemsadder.api.CustomStack;
+import fr.xyness.SCS.CPlayer;
+import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
@@ -36,8 +38,6 @@ public class ClaimBansGui implements InventoryHolder {
 
 	
     private Inventory inv;
-    private static Map<Player,Map<Integer,String>> claimsBans = new HashMap<>();
-    private static Map<Player,Chunk> chunks = new HashMap<>();
     
     
 	// ******************
@@ -60,45 +60,14 @@ public class ClaimBansGui implements InventoryHolder {
 	// *  Others Methods  *
 	// ********************
     
-    
-    // Method to set the chunk for a player
-    public static void setChunk(Player player, Chunk chunk) {
-    	chunks.put(player, chunk);
-    }
-    
-    // Method to get the chunk for a player
-    public static Chunk getChunk(Player player) {
-    	if(chunks.containsKey(player)) {
-    		return chunks.get(player);
-    	}
-    	return null;
-    }
-    
-    // Method to remove the chunk for a player
-    public static void removeChunk(Player player) {
-    	if(chunks.containsKey(player)) {
-    		chunks.remove(player);
-    	}
-    }
-    
-    // Method to get member (by slot) for a player
-    public static String getClaimBan(Player player, int slot) {
-    	return claimsBans.get(player).get(slot);
-    }
-    
-    // Method to remove member for a player
-    public static void removeClaimBan(Player player) {
-    	if(claimsBans.containsKey(player)) {
-    		claimsBans.remove(player);
-    	}
-    }
 
     // Method to initialize items for the gui
     public void initializeItems(Player player, Chunk chunk, int page) {
-    	
+    	CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
+    	cPlayer.setChunk(chunk);
+    	cPlayer.clearMapString();
     	if(SimpleClaimSystem.isFolia()) {
-    		Bukkit.getAsyncScheduler().runNow(ClaimMain.getPlugin(), task -> {
-    			chunks.put(player, chunk);
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
     	    	int min_member_slot = ClaimGuis.getGuiMinSlot("bans");
     	    	int max_member_slot = ClaimGuis.getGuiMaxSlot("bans");
     	    	int items_count = max_member_slot - min_member_slot + 1;
@@ -116,7 +85,6 @@ public class ClaimBansGui implements InventoryHolder {
     	        } else {
     	        	lore = new ArrayList<>(getLore(ClaimLanguage.getMessage("player-banned-lore")));
     	        }
-    	        Map<Integer,String> claims_bans = new HashMap<>();
     	        int startItem = (page - 1) * items_count;
     	    	int i = min_member_slot;
     	    	int count = 0;
@@ -127,7 +95,7 @@ public class ClaimBansGui implements InventoryHolder {
     	            	break;
     	            }
     	            List<String> lore2 = new ArrayList<>(getLoreWP(lore,p));
-    	            claims_bans.put(i, p);
+    	            cPlayer.addMapString(i, p);
     	            if(ClaimGuis.getItemCheckCustomModelData("bans", "player-item")) {
     	            	inv.setItem(i, createItemWMD(ClaimLanguage.getMessageWP("player-ban-title",p).replace("%player%", p),
     							lore2,
@@ -155,7 +123,6 @@ public class ClaimBansGui implements InventoryHolder {
     	            inv.setItem(i, item);
     	            i++;
     	        }
-    	        claimsBans.put(player, claims_bans);
     	        
     	    	Set<String> custom_items = new HashSet<>(ClaimGuis.getCustomItems("bans"));
     	    	for(String key : custom_items) {
@@ -177,8 +144,7 @@ public class ClaimBansGui implements InventoryHolder {
     	    	}
     		});
     	} else {
-    		Bukkit.getScheduler().runTaskAsynchronously(ClaimMain.getPlugin(), task -> {
-    			chunks.put(player, chunk);
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
     	    	int min_member_slot = ClaimGuis.getGuiMinSlot("bans");
     	    	int max_member_slot = ClaimGuis.getGuiMaxSlot("bans");
     	    	int items_count = max_member_slot - min_member_slot + 1;
@@ -196,7 +162,6 @@ public class ClaimBansGui implements InventoryHolder {
     	        } else {
     	        	lore = new ArrayList<>(getLore(ClaimLanguage.getMessage("player-banned-lore")));
     	        }
-    	        Map<Integer,String> claims_bans = new HashMap<>();
     	        int startItem = (page - 1) * items_count;
     	    	int i = min_member_slot;
     	    	int count = 0;
@@ -207,7 +172,7 @@ public class ClaimBansGui implements InventoryHolder {
     	            	break;
     	            }
     	            List<String> lore2 = new ArrayList<>(getLoreWP(lore,p));
-    	            claims_bans.put(i, p);
+    	            cPlayer.addMapString(i, p);
     	            if(ClaimGuis.getItemCheckCustomModelData("bans", "player-item")) {
     	            	inv.setItem(i, createItemWMD(ClaimLanguage.getMessageWP("player-ban-title",p).replace("%player%", p),
     							lore2,
@@ -235,7 +200,6 @@ public class ClaimBansGui implements InventoryHolder {
     	            inv.setItem(i, item);
     	            i++;
     	        }
-    	        claimsBans.put(player, claims_bans);
     	        
     	    	Set<String> custom_items = new HashSet<>(ClaimGuis.getCustomItems("bans"));
     	    	for(String key : custom_items) {
@@ -306,8 +270,8 @@ public class ClaimBansGui implements InventoryHolder {
     private ItemStack createItem(Material material, String name, List<String> lore) {
     	ItemStack item = null;
     	if(material == null) {
-        	ClaimMain.getPlugin().getLogger().info("Error material loading, check members.yml");
-        	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+        	SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check members.yml");
+        	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
         	item = new ItemStack(Material.STONE,1);
     	} else {
     		item = new ItemStack(material, 1);
@@ -327,8 +291,8 @@ public class ClaimBansGui implements InventoryHolder {
         CustomStack customStack = CustomStack.getInstance(name_custom_item);
         ItemStack item = null;
         if(customStack == null) {
-        	ClaimMain.getPlugin().getLogger().info("Error custom item loading : "+name_custom_item);
-        	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+        	SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : "+name_custom_item);
+        	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
         	item = new ItemStack(Material.STONE,1);
         } else {
         	item = customStack.getItemStack();
@@ -350,8 +314,8 @@ public class ClaimBansGui implements InventoryHolder {
     	if(ClaimGuis.getItemCheckCustomModelData("bans", "back-page-list")) {
     		CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("bans", "back-page-list"));
             if(customStack == null) {
-            	ClaimMain.getPlugin().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("bans", "back-page-list"));
-            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+            	SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("bans", "back-page-list"));
+            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
             	item = new ItemStack(Material.STONE,1);
             } else {
             	item = customStack.getItemStack();
@@ -359,8 +323,8 @@ public class ClaimBansGui implements InventoryHolder {
     	} else {
     		Material material = ClaimGuis.getItemMaterial("bans", "back-page-list");
     		if(material == null) {
-            	ClaimMain.getPlugin().getLogger().info("Error material loading, check members.yml");
-            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+            	SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check members.yml");
+            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
     			material = Material.STONE;
     		}
     		item = new ItemStack(material, 1);
@@ -383,8 +347,8 @@ public class ClaimBansGui implements InventoryHolder {
     	if(ClaimGuis.getItemCheckCustomModelData("bans", "back-page-settings")) {
     		CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("bans", "back-page-settings"));
             if(customStack == null) {
-            	ClaimMain.getPlugin().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("bans", "back-page-settings"));
-            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+            	SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("bans", "back-page-settings"));
+            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
             	item = new ItemStack(Material.STONE,1);
             } else {
             	item = customStack.getItemStack();
@@ -392,8 +356,8 @@ public class ClaimBansGui implements InventoryHolder {
     	} else {
     		Material material = ClaimGuis.getItemMaterial("bans", "back-page-settings");
     		if(material == null) {
-            	ClaimMain.getPlugin().getLogger().info("Error material loading, check members.yml");
-            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+            	SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check members.yml");
+            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
     			material = Material.STONE;
     		}
     		item = new ItemStack(material, 1);
@@ -416,8 +380,8 @@ public class ClaimBansGui implements InventoryHolder {
     	if(ClaimGuis.getItemCheckCustomModelData("bans", "next-page-list")) {
     		CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("bans", "next-page-list"));
             if(customStack == null) {
-            	ClaimMain.getPlugin().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("bans", "next-page-list"));
-            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+            	SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("bans", "next-page-list"));
+            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
             	item = new ItemStack(Material.STONE,1);
             } else {
             	item = customStack.getItemStack();
@@ -425,8 +389,8 @@ public class ClaimBansGui implements InventoryHolder {
     	} else {
     		Material material = ClaimGuis.getItemMaterial("bans", "next-page-list");
     		if(material == null) {
-            	ClaimMain.getPlugin().getLogger().info("Error material loading, check members.yml");
-            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+            	SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check members.yml");
+            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
     			material = Material.STONE;
     		}
     		item = new ItemStack(material, 1);

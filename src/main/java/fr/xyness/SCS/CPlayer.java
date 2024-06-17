@@ -1,10 +1,14 @@
 package fr.xyness.SCS;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
+import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class CPlayer {
@@ -24,11 +28,20 @@ public class CPlayer {
 	private Integer max_members;
 	private Double claim_cost;
 	private Double claim_cost_multiplier;
-	private Integer gui_page;
 	private Boolean claim_chat;
 	private Boolean claim_automap;
 	private Boolean claim_autoclaim;
 	
+	// Gui variable
+	private Integer gui_page;
+	private Chunk chunk;
+	private Map<Integer,Chunk> mapChunk = new HashMap<>();
+	private Map<Integer,Location> mapLoc = new HashMap<>();
+	private Map<Integer,String> mapString = new HashMap<>();
+	private String filter;
+	private String owner;
+	
+	// Pattern placeholders
 	private static final Pattern CLAIM_PATTERN = Pattern.compile("scs\\.claim\\.(\\d+)");
 	private static final Pattern RADIUS_PATTERN = Pattern.compile("scs\\.radius\\.(\\d+)");
 	private static final Pattern DELAY_PATTERN = Pattern.compile("scs\\.delay\\.(\\d+)");
@@ -78,6 +91,12 @@ public class CPlayer {
 	public void setClaimChat(Boolean setting) { this.claim_chat = setting; } // Set the player's chat mode
 	public void setClaimAutomap(Boolean setting) { this.claim_automap = setting; } // Set the player's automap mode
 	public void setClaimAutoclaim(Boolean setting) { this.claim_autoclaim = setting; } // Set the player's autoclaim mode
+	public void setChunk(Chunk chunk) { this.chunk = chunk; } // Set the chunk for gui
+	public void addMapChunk(Integer slot, Chunk chunk) { this.mapChunk.put(slot, chunk); } // Set the chunks by slot for gui
+	public void addMapLoc(Integer slot, Location loc) { this.mapLoc.put(slot, loc); } // Set the locs by slot for gui
+	public void addMapString(Integer slot, String s) { this.mapString.put(slot, s); } // Set the string by slot for gui
+	public void setFilter(String filter) { this.filter = filter; } // Set the filter for gui
+	public void setOwner(String owner) { this.owner = owner; } // Set the owner for gui
 	
 	// Getters
 	public Player getPlayer() { return this.player; } // Return the player
@@ -87,6 +106,12 @@ public class CPlayer {
 	public Boolean getClaimChat() { return this.claim_chat; } // Return the player's chat mode (true = claim chat mode, false = public chat mode)
 	public Boolean getClaimAutomap() { return this.claim_automap; } // Return the player's automap status
 	public Boolean getClaimAutoclaim() { return this.claim_autoclaim; } // Return the player's autoclaim status
+	public Chunk getChunk() { return this.chunk; } // Return the current chunk of gui
+	public Chunk getMapChunk(Integer slot) { return this.mapChunk.get(slot); } // Return a chunk by its slot
+	public Location getMapLoc(Integer slot) { return this.mapLoc.get(slot); } // Return a loc by its slot
+	public String getMapString(Integer slot) { return this.mapString.get(slot); } // Return a string by its slot
+	public String getFilter() { return this.filter; } // Return the gui filter
+	public String getOwner() { return this.owner; } // Return the owner
 	
 	// Get the player's max claims
 	public Integer getMaxClaims() {
@@ -277,5 +302,9 @@ public class CPlayer {
     	}
     	return price;
     }
+    
+	public void clearMapChunk() { mapChunk.clear(); } // Clear chunk map
+	public void clearMapLoc() { mapLoc.clear(); } // Clear loc map
+	public void clearMapString() { mapString.clear(); } // Clear string map
 	
 }

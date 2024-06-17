@@ -86,7 +86,6 @@ public class ClaimEventsEnterLeave implements Listener {
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
 		if(bossBars.containsKey(player)) bossBars.remove(player);
-		CPlayerMain.unloadPlayer(player);
 	}
 	
 	// Update his bossbar and send enabled messages on teleport

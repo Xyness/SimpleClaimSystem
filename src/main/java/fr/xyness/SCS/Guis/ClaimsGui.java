@@ -19,6 +19,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import dev.lone.itemsadder.api.CustomStack;
+import fr.xyness.SCS.CPlayer;
+import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
@@ -35,8 +37,6 @@ public class ClaimsGui implements InventoryHolder {
 	
 	
 	private Inventory inv;
-    private static Map<Player,Map<Integer,String>> players = new HashMap<>();
-    private static Map<Player,String> playerFilter = new HashMap<>();
     
     
 	// ******************
@@ -58,40 +58,16 @@ public class ClaimsGui implements InventoryHolder {
 	// ********************
 	// *  Others Methods  *
 	// ********************
-    
-    
-    // Get the player's filter
-    public static String getPlayerFilter(Player player) {
-    	return playerFilter.get(player);
-    }
-    
-    // Remove the player's filter
-    public static void removePlayerFilter(Player player) {
-    	if(playerFilter.containsKey(player)) {
-    		playerFilter.remove(player);
-    	}
-    }
-    
-    // Get the owner (by slot) for a player
-    public static String getOwner(Player player, int slot) {
-    	return players.get(player).get(slot);
-    }
-    
-    // Remove the owner for a player
-    public static void removeOwner(Player player) {
-    	if(players.containsKey(player)) {
-    		players.remove(player);
-    	}
-    }
+
 
     // Method to initialize items for the GUI
     public void initializeItems(Player player, int page, String filter) {
         if (SimpleClaimSystem.isFolia()) {
-            Bukkit.getAsyncScheduler().runNow(ClaimMain.getPlugin(), task -> {
+            Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
                 loadItems(player, page, filter);
             });
         } else {
-            Bukkit.getScheduler().runTaskAsynchronously(ClaimMain.getPlugin(), task -> {
+            Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
                 loadItems(player, page, filter);
             });
         }
@@ -102,16 +78,17 @@ public class ClaimsGui implements InventoryHolder {
         int min_member_slot = ClaimGuis.getGuiMinSlot("claims");
         int max_member_slot = ClaimGuis.getGuiMaxSlot("claims");
         int items_count = max_member_slot - min_member_slot + 1;
-        playerFilter.put(player, filter);
+        CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
+        cPlayer.setFilter(filter);
+        cPlayer.clearMapString();
 
         if (page > 1) {
             inv.setItem(ClaimGuis.getItemSlot("claims", "back-page-list"), backPage(page - 1));
         }
 
         List<String> loreTemplate = new ArrayList<>(getLore(ClaimLanguage.getMessage("owner-claim-lore")));
-        Map<Integer, String> owners = new HashMap<>();
-
         Set<String> powners = getPownersByFilter(filter);
+        Map<String,Integer> owner_claimcount = new HashMap<>(ClaimMain.getPlayerlistClaimsCount(powners));
 
         inv.setItem(ClaimGuis.getItemSlot("claims", "filter"), filter(filter));
 
@@ -128,18 +105,15 @@ public class ClaimsGui implements InventoryHolder {
 
             List<String> lore = new ArrayList<>();
             for (String s : loreTemplate) {
-                lore.add(s.replaceAll("%claim-amount%", String.valueOf(ClaimMain.getPlayerClaimsCount(owner))));
+                lore.add(s.replaceAll("%claim-amount%", String.valueOf(owner_claimcount.get(owner))));
             }
             lore.add(ClaimLanguage.getMessage("owner-claim-access"));
             lore = getLoreWP(lore, owner);
-            owners.put(i, owner);
-
+            cPlayer.addMapString(i, owner);
             ItemStack item = createOwnerClaimItem(owner, lore);
             inv.setItem(i, item);
             i++;
         }
-
-        players.put(player, owners);
 
         Set<String> custom_items = new HashSet<>(ClaimGuis.getCustomItems("claims"));
         for (String key : custom_items) {
@@ -251,8 +225,8 @@ public class ClaimsGui implements InventoryHolder {
     private ItemStack createItem(Material material, String name, List<String> lore) {
     	ItemStack item = null;
     	if(material == null) {
-        	ClaimMain.getPlugin().getLogger().info("Error material loading, check list.yml");
-        	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+        	SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check list.yml");
+        	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
         	item = new ItemStack(Material.STONE,1);
     	} else {
     		item = new ItemStack(material, 1);
@@ -272,8 +246,8 @@ public class ClaimsGui implements InventoryHolder {
         CustomStack customStack = CustomStack.getInstance(name_custom_item);
         ItemStack item = null;
         if(customStack == null) {
-        	ClaimMain.getPlugin().getLogger().info("Error custom item loading : "+name_custom_item);
-        	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+        	SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : "+name_custom_item);
+        	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
         	item = new ItemStack(Material.STONE,1);
         } else {
         	item = customStack.getItemStack();
@@ -295,8 +269,8 @@ public class ClaimsGui implements InventoryHolder {
     	if(ClaimGuis.getItemCheckCustomModelData("claims", "back-page-list")) {
     		CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims", "back-page-list"));
             if(customStack == null) {
-            	ClaimMain.getPlugin().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "back-page-list"));
-            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+            	SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "back-page-list"));
+            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
             	item = new ItemStack(Material.STONE,1);
             } else {
             	item = customStack.getItemStack();
@@ -304,8 +278,8 @@ public class ClaimsGui implements InventoryHolder {
     	} else {
     		Material material = ClaimGuis.getItemMaterial("claims", "back-page-list");
     		if(material == null) {
-            	ClaimMain.getPlugin().getLogger().info("Error material loading, check claims.yml");
-            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+            	SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check claims.yml");
+            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
     			material = Material.STONE;
     		}
     		item = new ItemStack(material, 1);
@@ -328,8 +302,8 @@ public class ClaimsGui implements InventoryHolder {
     	if(ClaimGuis.getItemCheckCustomModelData("claims", "filter")) {
     		CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims", "filter"));
             if(customStack == null) {
-            	ClaimMain.getPlugin().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "filter"));
-            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+            	SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "filter"));
+            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
             	item = new ItemStack(Material.STONE,1);
             } else {
             	item = customStack.getItemStack();
@@ -337,8 +311,8 @@ public class ClaimsGui implements InventoryHolder {
     	} else {
     		Material material = ClaimGuis.getItemMaterial("claims", "filter");
     		if(material == null) {
-            	ClaimMain.getPlugin().getLogger().info("Error material loading, check claims.yml");
-            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+            	SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check claims.yml");
+            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
     			material = Material.STONE;
     		}
     		item = new ItemStack(material, 1);
@@ -383,8 +357,8 @@ public class ClaimsGui implements InventoryHolder {
     	if(ClaimGuis.getItemCheckCustomModelData("claims", "next-page-list")) {
     		CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims", "next-page-list"));
             if(customStack == null) {
-            	ClaimMain.getPlugin().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "next-page-list"));
-            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+            	SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "next-page-list"));
+            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
             	item = new ItemStack(Material.STONE,1);
             } else {
             	item = customStack.getItemStack();
@@ -392,8 +366,8 @@ public class ClaimsGui implements InventoryHolder {
     	} else {
     		Material material = ClaimGuis.getItemMaterial("claims", "next-page-list");
     		if(material == null) {
-            	ClaimMain.getPlugin().getLogger().info("Error material loading, check claims.yml");
-            	ClaimMain.getPlugin().getLogger().info("Using STONE instead");
+            	SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check claims.yml");
+            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
     			material = Material.STONE;
     		}
     		item = new ItemStack(material, 1);

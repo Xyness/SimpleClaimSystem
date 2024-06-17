@@ -24,6 +24,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -52,12 +53,8 @@ public class SimpleClaimSystem extends JavaPlugin {
 	// ***************
 	
 	
-	static ClaimMain claimSystem;
-	static ClaimEventsEnterLeave claimEventsEL;
-	static CPlayerMain playerMain;
-	static ClaimDynmap claimDynmap;
-	static ClaimBluemap claimBluemap;
-	static String Version = "1.9.0.1b4";
+	public static JavaPlugin plugin;
+	public static String Version = "1.9.0.1b5";
 	public static HikariDataSource dataSource;
 	private static boolean isFolia = false;
 	private static boolean isUpdateAvailable;
@@ -78,6 +75,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	@Override
     public void onEnable() {
 		getLogger().info("============================================================");
+		plugin = this;
         if(loadConfig(this,false)) {
         	getLogger().info(" ");
         	getLogger().info("SimpleClaimSystem is enabled !");
@@ -204,7 +202,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             	MarkerAPI markerAPI = dynmapAPI.getMarkerAPI();
                 if (markerAPI != null) {
                 	MarkerSet markerSet = markerAPI.createMarkerSet("SimpleClaimSystem", "Claims", null, false);
-                	claimDynmap = new ClaimDynmap(dynmapAPI,markerAPI,markerSet);
+                	new ClaimDynmap(dynmapAPI,markerAPI,markerSet);
                 }
         	}
         } else {
@@ -217,7 +215,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         	ClaimSettings.addSetting("bluemap", "true");
 	        BlueMapAPI.onEnable(api -> {
 	            // Register marker set
-	        	claimBluemap = new ClaimBluemap(api,plugin);
+	        	new ClaimBluemap(api,plugin);
 	        });
         } else {
         	ClaimSettings.addSetting("dynmap", "false");
@@ -425,13 +423,13 @@ public class SimpleClaimSystem extends JavaPlugin {
     			}
                 configC = plugin.getConfig().getString("auto-purge-time-without-login");
                 ClaimSettings.addSetting("auto-purge-time-without-login", configC);
-                new ClaimPurge(plugin, minutes, configC);
+                ClaimPurge.startPurge(minutes, configC);
     		} catch(NumberFormatException e){
     			plugin.getLogger().info("'auto-purge-checking' must be a correct number (integer and > 0). Using default value.");
     			int minutes = 60;
                 configC = plugin.getConfig().getString("auto-purge-time-without-login");
                 ClaimSettings.addSetting("auto-purge-time-without-login", configC);
-                new ClaimPurge(plugin, minutes, configC);
+                ClaimPurge.startPurge(minutes, configC);
     		}
         }
         
@@ -552,8 +550,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         CPlayerMain.setPlayersConfigSettings(playersSettings);
         
         // Register listener of enter/leave claim
-        claimEventsEL = new ClaimEventsEnterLeave();
-        plugin.getServer().getPluginManager().registerEvents(claimEventsEL, plugin);
+        plugin.getServer().getPluginManager().registerEvents(new ClaimEventsEnterLeave(), plugin);
         
         // Add of enabled/disabled settings
         LinkedHashMap<String,Boolean> v = new LinkedHashMap<>();
@@ -589,18 +586,19 @@ public class SimpleClaimSystem extends JavaPlugin {
         // Commands register
         plugin.getCommand("claim").setExecutor(new ClaimCommand());
 		plugin.getCommand("unclaim").setExecutor(new UnclaimCommand());
-		plugin.getCommand("aclaim").setExecutor(new AClaimCommand(plugin));
+		plugin.getCommand("aclaim").setExecutor(new AClaimCommand());
 		plugin.getCommand("claims").setExecutor(new ClaimsCommand());
 		plugin.getCommand("sclaim").setExecutor(new SClaimCommand());
         
         plugin.saveConfig();
 		
 		// Claim system register
-		claimSystem = new ClaimMain(plugin);
-		// Player system register
-		playerMain = new CPlayerMain(plugin);
-		
-		if(reload) plugin.getLogger().info("============================================================");
+		ClaimMain.loadClaims();
+
+		if(reload) {
+			Bukkit.getOnlinePlayers().forEach(p -> CPlayerMain.updatePlayerPermSetting(p));
+			plugin.getLogger().info("============================================================");
+		}
         return true;
     }
     
@@ -707,6 +705,11 @@ public class SimpleClaimSystem extends JavaPlugin {
         } catch (Exception e) {
             return false;
         }
+    }
+    
+    // Method to get instance
+    public static JavaPlugin getInstance() {
+    	return plugin;
     }
 
 }

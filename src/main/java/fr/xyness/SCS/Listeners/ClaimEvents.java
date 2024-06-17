@@ -115,7 +115,7 @@ public class ClaimEvents implements Listener {
                 if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
                 int clickedSlot = event.getSlot();
                 
-                Chunk chunk = ClaimGui.getChunk(player);
+                Chunk chunk = cPlayer.getChunk();
                 
                 if(clickedSlot == ClaimGuis.getItemSlot("settings", "define-loc")) {
                 	if (!player.hasPermission("scs.command.claim.setspawn")) {
@@ -171,7 +171,7 @@ public class ClaimEvents implements Listener {
                     	return;
                 	}
                 	cPlayer.setGuiPage(1);
-                	ClaimListGui.setLastChunk(player, chunk);
+                	cPlayer.setChunk(chunk);
                     ClaimListGui menu = new ClaimListGui(player,1,"owner");
                     menu.openInventory(player);
                 	return;
@@ -232,7 +232,7 @@ public class ClaimEvents implements Listener {
                 if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
                 int clickedSlot = event.getSlot();
                 
-                Chunk chunk = AdminClaimGui.getChunk(player);
+                Chunk chunk = cPlayer.getChunk();
                 
                 if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "define-loc")) {
                 	if(chunk.equals(player.getLocation().getChunk())) {
@@ -268,7 +268,7 @@ public class ClaimEvents implements Listener {
                 
                 if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "admin-claims")) {
                 	cPlayer.setGuiPage(1);
-                	AdminClaimListGui.setLastChunk(player, chunk);
+                	cPlayer.setChunk(chunk);
                 	AdminClaimListGui menu = new AdminClaimListGui(player,1);
                     menu.openInventory(player);
                 	return;
@@ -329,7 +329,7 @@ public class ClaimEvents implements Listener {
                 if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
                 int clickedSlot = event.getSlot();
                 
-                Chunk chunk = ClaimMembersGui.getChunk(player);
+                Chunk chunk = cPlayer.getChunk();
                 
 	            if (clickedSlot == ClaimGuis.getItemSlot("members", "back-page-list")) {
                 	int page = cPlayer.getGuiPage();
@@ -369,7 +369,7 @@ public class ClaimEvents implements Listener {
 	            }
                 
                 if(clickedSlot >= ClaimGuis.getGuiMinSlot("members") && clickedSlot <= ClaimGuis.getGuiMaxSlot("members")) {
-                	String owner = ClaimMembersGui.getClaimMember(player, clickedSlot);
+                	String owner = cPlayer.getMapString(clickedSlot);
                 	if(owner.equals(player.getName())) return;
                 	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
                 		ClaimMain.removeAdminClaimMembers(chunk, owner);
@@ -392,7 +392,7 @@ public class ClaimEvents implements Listener {
                 if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
                 int clickedSlot = event.getSlot();
                 
-                Chunk chunk = ClaimBansGui.getChunk(player);
+                Chunk chunk = cPlayer.getChunk();
                 
 	            if (clickedSlot == ClaimGuis.getItemSlot("bans", "back-page-list")) {
                 	int page = cPlayer.getGuiPage();
@@ -432,7 +432,7 @@ public class ClaimEvents implements Listener {
 	            }
                 
                 if(clickedSlot >= ClaimGuis.getGuiMinSlot("bans") && clickedSlot <= ClaimGuis.getGuiMaxSlot("bans")) {
-                	String owner = ClaimBansGui.getClaimBan(player, clickedSlot);
+                	String owner = cPlayer.getMapString(clickedSlot);
                 	if(owner.equals(player.getName())) return;
                 	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
                 		ClaimMain.removeAdminClaimBan(chunk, owner);
@@ -458,23 +458,23 @@ public class ClaimEvents implements Listener {
 	            if (clickedSlot == ClaimGuis.getItemSlot("list", "back-page-list")) {
 	            	int page = cPlayer.getGuiPage()-1;
 	            	if(ClaimGuis.getItemSlot("list", "back-page-list") == ClaimGuis.getItemSlot("list", "back-page-settings") && page == 0) {
-	            		if(!ClaimMain.checkIfClaimExists(ClaimListGui.getLastChunk(player))) {
+	            		if(!ClaimMain.checkIfClaimExists(cPlayer.getChunk())) {
 	            			player.sendMessage(ClaimLanguage.getMessage("the-claim-does-not-exists-anymore"));
 	            			return;
 	            		}
-	            		ClaimGui menu = new ClaimGui(player,ClaimListGui.getLastChunk(player));
+	            		ClaimGui menu = new ClaimGui(player,cPlayer.getChunk());
 	            		menu.openInventory(player);
 	            		return;
 	            	}
 	            	cPlayer.setGuiPage(page);
-                    ClaimListGui menu = new ClaimListGui(player,page,ClaimListGui.getPlayerFilter(player));
+                    ClaimListGui menu = new ClaimListGui(player,page,cPlayer.getFilter());
                     menu.openInventory(player);
 	                return;
 	            }
 	            
 	            if (clickedSlot == ClaimGuis.getItemSlot("list", "filter")) {
 	            	cPlayer.setGuiPage(1);
-                	String filter = ClaimListGui.getPlayerFilter(player);
+                	String filter = cPlayer.getFilter();
                 	if(filter.equals("owner")) {
                 		filter = "not_owner";
                 	} else {
@@ -488,7 +488,7 @@ public class ClaimEvents implements Listener {
 	            if (clickedSlot == ClaimGuis.getItemSlot("list", "next-page-list")) {
 	            	int page = cPlayer.getGuiPage()+1;
 	            	cPlayer.setGuiPage(page);
-                    ClaimListGui menu = new ClaimListGui(player,page,ClaimListGui.getPlayerFilter(player));
+                    ClaimListGui menu = new ClaimListGui(player,page,cPlayer.getFilter());
                     menu.openInventory(player);
 	                return;
 	            }
@@ -497,20 +497,20 @@ public class ClaimEvents implements Listener {
 		            if(event.getClick() == ClickType.LEFT) {
 		            	if(player.hasPermission("scs.command.claim.tp")) {
 			            	player.closeInventory();
-				        	ClaimMain.goClaim(player, ClaimListGui.getClaimLoc(player, clickedSlot));
+				        	ClaimMain.goClaim(player, cPlayer.getMapLoc(clickedSlot));
 				        	return;
 		            	}
 		            	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
 		            	return;
 		            }
-		            if(ClaimListGui.getPlayerFilter(player).equals("not_owner")) return;
+		            if(cPlayer.getFilter().equals("not_owner")) return;
 		            if(event.getClick() == ClickType.RIGHT) {
-	                    ClaimGui menu = new ClaimGui(player,ClaimListGui.getClaimChunk(player, clickedSlot));
+	                    ClaimGui menu = new ClaimGui(player,cPlayer.getMapChunk(clickedSlot));
 	                    menu.openInventory(player);
 			        	return;
 		            }
 		            if(event.getClick() == ClickType.SHIFT_LEFT) {
-		            	Chunk chunk = ClaimListGui.getClaimChunk(player, clickedSlot);
+		            	Chunk chunk = cPlayer.getMapChunk(clickedSlot);
 			        	if(ClaimMain.deleteClaim(player, chunk)) {
 			        		for(Entity e : chunk.getEntities()) {
 			    				if(!(e instanceof Player)) continue;
@@ -519,19 +519,19 @@ public class ClaimEvents implements Listener {
 			    			}
 			    			player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
 			            	int page = cPlayer.getGuiPage();
-		                    ClaimListGui menu = new ClaimListGui(player,page,ClaimListGui.getPlayerFilter(player));
+		                    ClaimListGui menu = new ClaimListGui(player,page,cPlayer.getFilter());
 		                    menu.openInventory(player);
 			        	}
 			        	return;
 		            }
 		            if(event.getClick() == ClickType.SHIFT_RIGHT) {
 	            		if(ClaimSettings.getBooleanSetting("economy")) {
-	            			Chunk chunk = ClaimListGui.getClaimChunk(player, clickedSlot);
+	            			Chunk chunk = cPlayer.getMapChunk(clickedSlot);
 	            			if(ClaimMain.claimIsInSale(chunk)) {
 	                			if(ClaimMain.delChunkSale(player, chunk)) {
 	                				player.sendMessage(ClaimLanguage.getMessage("claim-in-sale-cancel").replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk)));
 	    			            	int page = cPlayer.getGuiPage();
-	    		                    ClaimListGui menu = new ClaimListGui(player,page,ClaimListGui.getPlayerFilter(player));
+	    		                    ClaimListGui menu = new ClaimListGui(player,page,cPlayer.getFilter());
 	    		                    menu.openInventory(player);
 	                				return;
 	                			}
@@ -559,11 +559,11 @@ public class ClaimEvents implements Listener {
 	            if (clickedSlot == ClaimGuis.getItemSlot("admin_list", "back-page-list")) {
 	            	int page = cPlayer.getGuiPage()-1;
 	            	if(ClaimGuis.getItemSlot("admin_list", "back-page-list") == ClaimGuis.getItemSlot("admin_list", "back-page-settings") && page == 0) {
-	            		if(!ClaimMain.checkIfClaimExists(AdminClaimListGui.getLastChunk(player))) {
+	            		if(!ClaimMain.checkIfClaimExists(cPlayer.getChunk())) {
 	            			player.sendMessage(ClaimLanguage.getMessage("the-claim-does-not-exists-anymore"));
 	            			return;
 	            		}
-	            		AdminClaimGui menu = new AdminClaimGui(player,AdminClaimListGui.getLastChunk(player));
+	            		AdminClaimGui menu = new AdminClaimGui(player,cPlayer.getChunk());
 	            		menu.openInventory(player);
 	            		return;
 	            	}
@@ -584,16 +584,16 @@ public class ClaimEvents implements Listener {
 	            if(clickedSlot >= ClaimGuis.getGuiMinSlot("admin_list") && clickedSlot <= ClaimGuis.getGuiMaxSlot("admin_list")) {
 		            if(event.getClick() == ClickType.LEFT) {
 		            	player.closeInventory();
-			        	ClaimMain.goClaim(player, AdminClaimListGui.getClaimLoc(player, clickedSlot));
+			        	ClaimMain.goClaim(player, cPlayer.getMapLoc(clickedSlot));
 			        	return;
 		            }
 		            if(event.getClick() == ClickType.RIGHT) {
-	                    AdminClaimGui menu = new AdminClaimGui(player,AdminClaimListGui.getClaimChunk(player, clickedSlot));
+	                    AdminClaimGui menu = new AdminClaimGui(player,cPlayer.getMapChunk(clickedSlot));
 	                    menu.openInventory(player);
 			        	return;
 		            }
 		            if(event.getClick() == ClickType.SHIFT_LEFT) {
-		            	Chunk chunk = AdminClaimListGui.getClaimChunk(player, clickedSlot);
+		            	Chunk chunk = cPlayer.getMapChunk(clickedSlot);
 			        	if(ClaimMain.deleteClaim(player, chunk)) {
 			        		for(Entity e : chunk.getEntities()) {
 			    				if(!(e instanceof Player)) continue;
@@ -622,7 +622,7 @@ public class ClaimEvents implements Listener {
                 if (clickedSlot == ClaimGuis.getItemSlot("claims", "back-page-list")) {
 	            	int page = cPlayer.getGuiPage()-1;
 	            	cPlayer.setGuiPage(page);
-                    ClaimsGui menu = new ClaimsGui(player,page,ClaimsGui.getPlayerFilter(player));
+                    ClaimsGui menu = new ClaimsGui(player,page,cPlayer.getFilter());
                     menu.openInventory(player);
 	                return;
 	            }
@@ -630,14 +630,14 @@ public class ClaimEvents implements Listener {
 	            if (clickedSlot == ClaimGuis.getItemSlot("claims", "next-page-list")) {
 	            	int page = cPlayer.getGuiPage()+1;
 	            	cPlayer.setGuiPage(page);
-                    ClaimsGui menu = new ClaimsGui(player,page,ClaimsGui.getPlayerFilter(player));
+                    ClaimsGui menu = new ClaimsGui(player,page,cPlayer.getFilter());
                     menu.openInventory(player);
 	                return;
 	            }
 	            
 	            if (clickedSlot == ClaimGuis.getItemSlot("claims", "filter")) {
 	            	cPlayer.setGuiPage(1);
-                	String filter = ClaimsGui.getPlayerFilter(player);
+                	String filter = cPlayer.getFilter();
                 	if(filter.equals("all")) {
                 		filter = "sales";
                 	} else if (filter.equals("sales")) {
@@ -653,14 +653,14 @@ public class ClaimEvents implements Listener {
 	            }
                 
 	            if(clickedSlot >= ClaimGuis.getGuiMinSlot("claims") && clickedSlot <= ClaimGuis.getGuiMaxSlot("claims")) {
-	            	String filter = ClaimsGui.getPlayerFilter(player);
+	            	String filter = cPlayer.getFilter();
 	            	cPlayer.setGuiPage(1);
 	            	if(filter.equals("sales")) {
-	            		ClaimsOwnerGui menu = new ClaimsOwnerGui(player,1,filter,ClaimsGui.getOwner(player, clickedSlot));
+	            		ClaimsOwnerGui menu = new ClaimsOwnerGui(player,1,filter,cPlayer.getMapString(clickedSlot));
 	            		menu.openInventory(player);
 	            		return;
 	            	}
-	            	ClaimsOwnerGui menu = new ClaimsOwnerGui(player,1,"all",ClaimsGui.getOwner(player, clickedSlot));
+	            	ClaimsOwnerGui menu = new ClaimsOwnerGui(player,1,"all",cPlayer.getMapString(clickedSlot));
 	            	menu.openInventory(player);
 	            	return;
 	            }
@@ -683,7 +683,7 @@ public class ClaimEvents implements Listener {
                 	}
 	            	int page = cPlayer.getGuiPage()-1;
 	            	cPlayer.setGuiPage(page);
-                    ClaimsOwnerGui menu = new ClaimsOwnerGui(player,page,ClaimsOwnerGui.getPlayerFilter(player),ClaimsOwnerGui.getOwner(player));
+                    ClaimsOwnerGui menu = new ClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner());
                     menu.openInventory(player);
 	                return;
 	            }
@@ -691,26 +691,26 @@ public class ClaimEvents implements Listener {
 	            if (clickedSlot == ClaimGuis.getItemSlot("claims_owner", "next-page-list")) {
 	            	int page = cPlayer.getGuiPage()+1;
 	            	cPlayer.setGuiPage(page);
-	            	ClaimsOwnerGui menu = new ClaimsOwnerGui(player,page,ClaimsOwnerGui.getPlayerFilter(player),ClaimsOwnerGui.getOwner(player));
+	            	ClaimsOwnerGui menu = new ClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner());
                     menu.openInventory(player);
 	                return;
 	            }
 	            
 	            if (clickedSlot == ClaimGuis.getItemSlot("claims_owner", "filter")) {
 	            	cPlayer.setGuiPage(1);
-                	String filter = ClaimsOwnerGui.getPlayerFilter(player);
+                	String filter = cPlayer.getFilter();
                 	if(filter.equals("all")) {
                 		filter = "sales";
                 	} else {
                 		filter = "all";
                 	}
-                    ClaimsOwnerGui menu = new ClaimsOwnerGui(player,1,filter,ClaimsOwnerGui.getOwner(player));
+                    ClaimsOwnerGui menu = new ClaimsOwnerGui(player,1,filter,cPlayer.getOwner());
                     menu.openInventory(player);
 	                return;
 	            }
                 
 	            if(clickedSlot >= ClaimGuis.getGuiMinSlot("claims_owner") && clickedSlot <= ClaimGuis.getGuiMaxSlot("claims_owner")) {
-	            	Chunk chunk = ClaimsOwnerGui.getClaimChunk(player, clickedSlot);
+	            	Chunk chunk = cPlayer.getMapChunk(clickedSlot);
 	            	if(event.getClick() == ClickType.LEFT) {
 	            		if(player.hasPermission("scs.command.claim.tp")) {
 				            if(!ClaimMain.canPermCheck(chunk, "Visitors") && !ClaimMain.getOwnerInClaim(chunk).equals(player.getName())) {
@@ -718,7 +718,7 @@ public class ClaimEvents implements Listener {
 				            	return;
 				            }
 			            	player.closeInventory();
-				        	ClaimMain.goClaim(player, ClaimsOwnerGui.getClaimLoc(player, clickedSlot));
+				        	ClaimMain.goClaim(player, cPlayer.getMapLoc(clickedSlot));
 				        	return;
 	            		}
 	            		player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
@@ -757,17 +757,19 @@ public class ClaimEvents implements Listener {
         Player player = (Player) event.getEntity();
         Chunk chunk = player.getLocation().getChunk();
         if(ClaimMain.checkIfClaimExists(chunk)) {
-        	if(ClaimMain.canPermCheck(chunk, "Pvp")) {
-        		return;
-        	}
+        	if(ClaimMain.canPermCheck(chunk, "Pvp")) return;
             if (event.getDamager() instanceof Player) {
+            	Player damager = (Player) event.getDamager();
+            	if(damager.hasPermission("scs.bypass")) return;
             	ClaimMain.sendActionBar((Player) event.getDamager(),ClaimLanguage.getMessage("pvp"));
             	event.setCancelled(true);
             } else if (event.getDamager() instanceof Projectile) {
                 Projectile projectile = (Projectile) event.getDamager();
                 ProjectileSource shooter = projectile.getShooter();
                 if (shooter instanceof Player) {
-                	ClaimMain.sendActionBar((Player) shooter,ClaimLanguage.getMessage("pvp"));
+                	Player damager = (Player) shooter;
+                	if(damager.hasPermission("scs.bypass")) return;
+                	ClaimMain.sendActionBar(damager,ClaimLanguage.getMessage("pvp"));
                     event.setCancelled(true);
                 }
             }
@@ -846,9 +848,8 @@ public class ClaimEvents implements Listener {
     }
 	
     // Destroy setting
-	@EventHandler
+    @EventHandler(priority = EventPriority.LOW)
 	public void onPlayerBreak(BlockBreakEvent event){
-		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
 		if(player.hasPermission("scs.bypass")) return;
 		Chunk chunk = event.getBlock().getLocation().getChunk();
@@ -884,9 +885,8 @@ public class ClaimEvents implements Listener {
 	}
 	
 	// Build setting
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerPlace(BlockPlaceEvent event){
-		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
 		if(player.hasPermission("scs.bypass")) return;
 		Block block = event.getBlock();

@@ -23,7 +23,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.ClaimMain;
@@ -38,12 +37,6 @@ import fr.xyness.SCS.Guis.ClaimMembersGui;
 import fr.xyness.SCS.Listeners.ClaimEventsEnterLeave;
 
 public class AClaimCommand implements CommandExecutor, TabCompleter {
-	
-	private JavaPlugin plugin;
-	
-	public AClaimCommand(JavaPlugin plugin) {
-		this.plugin = plugin;
-	}
 	
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
@@ -264,7 +257,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         
         if(args.length == 1) {
         	if(args[0].equalsIgnoreCase("reload")) {
-        		if(SimpleClaimSystem.loadConfig(plugin,true)) {
+        		if(SimpleClaimSystem.loadConfig(SimpleClaimSystem.getInstance(),true)) {
         			sender.sendMessage(ClaimLanguage.getMessage("reload-complete"));
         		}
         		return true;
@@ -362,7 +355,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 
-                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("max-length-claim-name", amount);
                 ClaimSettings.addSetting("max-length-claim-name", args[1]);
@@ -388,7 +381,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
                 
-                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("max-length-claim-description", amount);
                 ClaimSettings.addSetting("max-length-claim-description", args[1]);
@@ -402,12 +395,12 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
                 return true;
         	}
         	if(args[0].equalsIgnoreCase("set-lang")) {
-        		SimpleClaimSystem.reloadLang(plugin, sender, args[1]);
+        		SimpleClaimSystem.reloadLang(SimpleClaimSystem.getInstance(), sender, args[1]);
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("set-claims-visitors-off-visible")) {
         		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("claims-visitors-off-visible", Boolean.parseBoolean(args[1]));
 	                ClaimSettings.addSetting("claims-visitors-off-visible", args[1]);
@@ -424,7 +417,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	}
         	if(args[0].equalsIgnoreCase("set-claim-cost")) {
         		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("claim-cost", Boolean.parseBoolean(args[1]));
 	                ClaimSettings.addSetting("claim-cost", args[1]);
@@ -441,7 +434,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	}
         	if(args[0].equalsIgnoreCase("set-claim-cost-multiplier")) {
         		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("claim-cost-multiplier", Boolean.parseBoolean(args[1]));
 	                ClaimSettings.addSetting("claim-cost-multiplier", args[1]);
@@ -458,7 +451,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	}
         	if(args[0].equalsIgnoreCase("set-actionbar")) {
         		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("enter-leave-messages", Boolean.parseBoolean(args[1]));
 	                ClaimSettings.addSetting("enter-leave-messages", args[1]);
@@ -475,7 +468,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	}
         	if(args[0].equalsIgnoreCase("set-auto-claim")) {
         		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("auto-claim", Boolean.parseBoolean(args[1]));
 	                ClaimSettings.addSetting("auto-claim", args[1]);
@@ -492,7 +485,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	}
         	if(args[0].equalsIgnoreCase("set-title-subtitle")) {
         		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("enter-leave-title-messages", Boolean.parseBoolean(args[1]));
 	                ClaimSettings.addSetting("enter-leave-title-messages", args[1]);
@@ -509,7 +502,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	}
         	if(args[0].equalsIgnoreCase("set-economy")) {
         		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("economy", Boolean.parseBoolean(args[1]));
 	                ClaimSettings.addSetting("economy", args[1]);
@@ -526,7 +519,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	}
         	if(args[0].equalsIgnoreCase("set-claim-confirmation")) {
         		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("claim-confirmation", Boolean.parseBoolean(args[1]));
 	                ClaimSettings.addSetting("claim-confirmation", args[1]);
@@ -553,7 +546,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
                     sender.sendMessage(ClaimLanguage.getMessage("max-sell-price-must-be-number"));
                     return true;
                 }
-                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("max-sell-price", args[1]);
                 ClaimSettings.addSetting("max-sell-price", args[1]);
@@ -567,7 +560,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	}
         	if(args[0].equalsIgnoreCase("set-bossbar")) {
         		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("bossbar", Boolean.parseBoolean(args[1]));
 	                ClaimSettings.addSetting("bossbar", args[1]);
@@ -589,7 +582,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         			sender.sendMessage(ClaimLanguage.getMessage("bossbar-color-incorrect"));
         			return true;
         		}
-                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("bossbar-settings.color", bcolor);
                 ClaimSettings.addSetting("bossbar-color", bcolor);
@@ -604,7 +597,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	}
         	if(args[0].equalsIgnoreCase("set-teleportation")) {
         		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("teleportation", Boolean.parseBoolean(args[1]));
 	                ClaimSettings.addSetting("teleportation", args[1]);
@@ -621,7 +614,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	}
         	if(args[0].equalsIgnoreCase("set-teleportation-moving")) {
         		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("teleportation-delay-moving", Boolean.parseBoolean(args[1]));
 	                ClaimSettings.addSetting("teleportation-delay-moving", args[1]);
@@ -637,7 +630,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("add-disabled-world")) {
-                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 List<String> worlds = config.getStringList("worlds-disabled");
                 if(worlds.contains(args[1])) {
@@ -656,7 +649,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
                 return true;
         	}
         	if(args[0].equalsIgnoreCase("remove-disabled-world")) {
-                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 List<String> worlds = config.getStringList("worlds-disabled");
                 if(!worlds.contains(args[1])) {
@@ -681,7 +674,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         			sender.sendMessage(ClaimLanguage.getMessage("mat-incorrect"));
         			return true;
         		}
-                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 List<String> containers = config.getStringList("blocked-interact-blocks");
                 if(containers.contains(material.toUpperCase())) {
@@ -706,7 +699,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         			sender.sendMessage(ClaimLanguage.getMessage("entity-incorrect"));
         			return true;
         		}
-                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 List<String> containers = config.getStringList("blocked-entities");
                 if(containers.contains(material.toUpperCase())) {
@@ -731,7 +724,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         			sender.sendMessage(ClaimLanguage.getMessage("mat-incorrect"));
         			return true;
         		}
-                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 List<String> items = config.getStringList("blocked-items");
                 if(items.contains(material.toUpperCase())) {
@@ -756,7 +749,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         			sender.sendMessage(ClaimLanguage.getMessage("mat-incorrect"));
         			return true;
         		}
-                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 List<String> items = config.getStringList("blocked-items");
                 if(!items.contains(material.toUpperCase())) {
@@ -781,7 +774,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         			sender.sendMessage(ClaimLanguage.getMessage("mat-incorrect"));
         			return true;
         		}
-                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 List<String> containers = config.getStringList("blocked-interact-blocks");
                 if(!containers.contains(material.toUpperCase())) {
@@ -806,7 +799,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         			sender.sendMessage(ClaimLanguage.getMessage("entity-incorrect"));
         			return true;
         		}
-                File configFile = new File(plugin.getDataFolder(), "config.yml");
+                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 List<String> containers = config.getStringList("blocked-entities");
                 if(!containers.contains(material.toUpperCase())) {
@@ -1104,7 +1097,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         		String perm = args[1].substring(0, 1).toUpperCase() + args[1].substring(1).toLowerCase();
         		if(ClaimGuis.isAPerm(perm)) {
             		if(args[2].equalsIgnoreCase("true") || args[2].equalsIgnoreCase("false")) {
-    	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+    	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
     	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
     	                config.set("status-settings."+perm, Boolean.parseBoolean(args[2]));
     	                ClaimSettings.getStatusSettings().put(perm, Boolean.parseBoolean(args[2]));
@@ -1126,7 +1119,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         		String perm = args[1].substring(0, 1).toUpperCase() + args[1].substring(1).toLowerCase();
         		if(ClaimGuis.isAPerm(perm)) {
             		if(args[2].equalsIgnoreCase("true") || args[2].equalsIgnoreCase("false")) {
-    	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+    	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
     	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
     	                config.set("default-values-settings."+perm, Boolean.parseBoolean(args[2]));
     	                ClaimSettings.getDefaultValues().put(perm, Boolean.parseBoolean(args[2]));
@@ -1168,7 +1161,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("players."+args[2]+".claim-cost", amount);
 	                cTarget.setClaimCost(amount);
@@ -1201,7 +1194,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("players."+args[2]+".claim-cost-multiplier", amount);
 	                cTarget.setClaimCostMultiplier(amount);
@@ -1234,7 +1227,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("players."+args[2]+".max-members", amount);
 	                cTarget.setMaxMembers(amount);
@@ -1267,7 +1260,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("players."+args[2]+".max-claims", amount);
 	                cTarget.setMaxClaims(amount);
@@ -1300,7 +1293,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                int new_amount = cTarget.getMaxClaims()+amount;
 	                config.set("players."+name+".max-claims", new_amount);
@@ -1334,7 +1327,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("players."+args[2]+".max-radius-claims", amount);
 	                cTarget.setMaxRadiusClaims(amount);
@@ -1367,7 +1360,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                int new_amount = cTarget.getMaxRadiusClaims()+amount;
 	                config.set("players."+name+".max-radius-claims", new_amount);
@@ -1401,7 +1394,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                int new_amount = cTarget.getMaxRadiusClaims()+amount;
 	                config.set("players."+name+".max-members", new_amount);
@@ -1435,7 +1428,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("players."+args[2]+".teleportation-delay", amount);
 	                cTarget.setTeleportationDelay(amount);
@@ -1471,7 +1464,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("groups."+args[2]+".claim-cost", amount);
 	                ClaimSettings.getGroupsSettings().get(args[2]).put("claim-cost", amount);
@@ -1497,7 +1490,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("groups."+args[2]+".claim-cost-multiplier", amount);
 	                ClaimSettings.getGroupsSettings().get(args[2]).put("claim-cost-multiplier", amount);
@@ -1523,7 +1516,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("groups."+args[2]+".max-members", amount);
 	                ClaimSettings.getGroupsSettings().get(args[2]).put("max-members", amount);
@@ -1549,7 +1542,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("groups."+args[2]+".max-claims", amount);
 	                ClaimSettings.getGroupsSettings().get(args[2]).put("max-claims", amount);
@@ -1575,7 +1568,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("groups."+args[2]+".max-radius-claims", amount);
 	                ClaimSettings.getGroupsSettings().get(args[2]).put("max-radius-claims", amount);
@@ -1601,7 +1594,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                    return true;
 	                }
 	                
-	                File configFile = new File(plugin.getDataFolder(), "config.yml");
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("groups."+args[2]+".teleportation-delay", amount);
 	                ClaimSettings.getGroupsSettings().get(args[2]).put("teleportation-delay", amount);

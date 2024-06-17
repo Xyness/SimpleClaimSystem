@@ -975,7 +975,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
                 	return false;
             	}
             	cPlayer.setGuiPage(1);
-        		ClaimListGui.removeLastChunk(player);
+        		cPlayer.setChunk(null);
                 ClaimListGui menu = new ClaimListGui(player,1,"owner");
                 menu.openInventory(player);
         		return true;
