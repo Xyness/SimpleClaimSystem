@@ -85,6 +85,7 @@ public class ClaimEventsEnterLeave implements Listener {
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
+		CPlayerMain.removeCPlayer(player.getName());
 		if(bossBars.containsKey(player)) bossBars.remove(player);
 	}
 	
