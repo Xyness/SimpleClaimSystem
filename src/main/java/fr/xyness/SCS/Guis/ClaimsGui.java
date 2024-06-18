@@ -30,103 +30,109 @@ import me.clip.placeholderapi.PlaceholderAPI;
 
 public class ClaimsGui implements InventoryHolder {
 
-	
-	// ***************
-	// *  Variables  *
-	// ***************
-	
-	
-	private Inventory inv;
-    
-    
-	// ******************
-	// *  Constructors  *
-	// ******************
-    
-    
-    // Main constructor
+    private Inventory inv;
+    private Player player;
+    private int page;
+    private String filter;
+    private int itemsPerPage;
+    private int minMemberSlot;
+    private int maxMemberSlot;
+
     public ClaimsGui(Player player, int page, String filter) {
-    	String title = ClaimGuis.getGuiTitle("claims").replaceAll("%page%", String.valueOf(page));
-    	if(ClaimSettings.getBooleanSetting("placeholderapi")) {
-    		title = PlaceholderAPI.setPlaceholders(player, title);
-    	}
-        inv = Bukkit.createInventory(this, ClaimGuis.getGuiRows("claims")*9, title);
-        initializeItems(player,page,filter);
-    }
-    
-    
-	// ********************
-	// *  Others Methods  *
-	// ********************
-
-
-    // Method to initialize items for the GUI
-    public void initializeItems(Player player, int page, String filter) {
-        if (SimpleClaimSystem.isFolia()) {
-            Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> {
-                loadItems(player, page, filter);
-            });
-        } else {
-            Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), task -> {
-                loadItems(player, page, filter);
-            });
+        this.player = player;
+        this.page = page;
+        this.filter = filter;
+        this.minMemberSlot = ClaimGuis.getGuiMinSlot("claims");
+        this.maxMemberSlot = ClaimGuis.getGuiMaxSlot("claims");
+        this.itemsPerPage = maxMemberSlot - minMemberSlot + 1;
+        String title = ClaimGuis.getGuiTitle("claims").replaceAll("%page%", String.valueOf(page));
+        if (ClaimSettings.getBooleanSetting("placeholderapi")) {
+            title = PlaceholderAPI.setPlaceholders(player, title);
         }
+        inv = Bukkit.createInventory(this, ClaimGuis.getGuiRows("claims") * 9, title);
+        initializeItems();
     }
 
-    // Method to load items
-    private void loadItems(Player player, int page, String filter) {
-        int min_member_slot = ClaimGuis.getGuiMinSlot("claims");
-        int max_member_slot = ClaimGuis.getGuiMaxSlot("claims");
-        int items_count = max_member_slot - min_member_slot + 1;
+    private void initializeItems() {
+    	if(SimpleClaimSystem.isFolia()) {
+    		Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> loadItems());
+    	} else {
+    		Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), this::loadItems);
+    	}
+    }
+
+    private void loadItems() {
         CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
         cPlayer.setFilter(filter);
         cPlayer.clearMapString();
 
         if (page > 1) {
-            inv.setItem(ClaimGuis.getItemSlot("claims", "back-page-list"), backPage(page - 1));
+            if (SimpleClaimSystem.isFolia()) {
+                Bukkit.getGlobalRegionScheduler().execute(SimpleClaimSystem.getInstance(), () -> inv.setItem(ClaimGuis.getItemSlot("claims", "back-page-list"), backPage(page - 1)));
+            } else {
+                Bukkit.getScheduler().runTask(SimpleClaimSystem.getInstance(), () -> inv.setItem(ClaimGuis.getItemSlot("claims", "back-page-list"), backPage(page - 1)));
+            }
         }
 
         List<String> loreTemplate = new ArrayList<>(getLore(ClaimLanguage.getMessage("owner-claim-lore")));
         Set<String> powners = getPownersByFilter(filter);
-        Map<String,Integer> owner_claimcount = new HashMap<>(ClaimMain.getPlayerlistClaimsCount(powners));
+        Map<String, Integer> ownerClaimCount = ClaimMain.getPlayerlistClaimsCount(powners);
 
-        inv.setItem(ClaimGuis.getItemSlot("claims", "filter"), filter(filter));
+        if (SimpleClaimSystem.isFolia()) {
+            Bukkit.getGlobalRegionScheduler().execute(SimpleClaimSystem.getInstance(), () -> inv.setItem(ClaimGuis.getItemSlot("claims", "filter"), filter(filter)));
+        } else {
+            Bukkit.getScheduler().runTask(SimpleClaimSystem.getInstance(), () -> inv.setItem(ClaimGuis.getItemSlot("claims", "filter"), filter(filter)));
+        }
 
-        int startItem = (page - 1) * items_count;
-        int i = min_member_slot;
+        int startItem = (page - 1) * itemsPerPage;
+        int i = minMemberSlot;
         int count = 0;
 
         for (String owner : powners) {
             if (count++ < startItem) continue;
-            if (i == max_member_slot + 1) {
-                inv.setItem(ClaimGuis.getItemSlot("claims", "next-page-list"), nextPage(page + 1));
+            if (i == maxMemberSlot + 1) {
+                if (SimpleClaimSystem.isFolia()) {
+                    Bukkit.getGlobalRegionScheduler().execute(SimpleClaimSystem.getInstance(), () -> inv.setItem(ClaimGuis.getItemSlot("claims", "next-page-list"), nextPage(page + 1)));
+                } else {
+                    Bukkit.getScheduler().runTask(SimpleClaimSystem.getInstance(), () -> inv.setItem(ClaimGuis.getItemSlot("claims", "next-page-list"), nextPage(page + 1)));
+                }
                 break;
             }
 
             List<String> lore = new ArrayList<>();
             for (String s : loreTemplate) {
-                lore.add(s.replaceAll("%claim-amount%", String.valueOf(owner_claimcount.get(owner))));
+                lore.add(s.replaceAll("%claim-amount%", String.valueOf(ownerClaimCount.get(owner))));
             }
             lore.add(ClaimLanguage.getMessage("owner-claim-access"));
             lore = getLoreWP(lore, owner);
             cPlayer.addMapString(i, owner);
             ItemStack item = createOwnerClaimItem(owner, lore);
-            inv.setItem(i, item);
+            int finalI = i;
+
+            if (SimpleClaimSystem.isFolia()) {
+                Bukkit.getGlobalRegionScheduler().execute(SimpleClaimSystem.getInstance(), () -> inv.setItem(finalI, item));
+            } else {
+                Bukkit.getScheduler().runTask(SimpleClaimSystem.getInstance(), () -> inv.setItem(finalI, item));
+            }
             i++;
         }
 
-        Set<String> custom_items = new HashSet<>(ClaimGuis.getCustomItems("claims"));
-        for (String key : custom_items) {
+        Set<String> customItems = new HashSet<>(ClaimGuis.getCustomItems("claims"));
+        for (String key : customItems) {
             List<String> lore = new ArrayList<>(getLoreP(ClaimGuis.getCustomItemLore("claims", key), player));
             String title = ClaimGuis.getCustomItemTitle("claims", key);
             if (ClaimSettings.getBooleanSetting("placeholderapi")) {
                 title = PlaceholderAPI.setPlaceholders(player, title);
             }
-            inv.setItem(ClaimGuis.getCustomItemSlot("claims", key), createCustomItem(key, title, lore));
+            final String title_f = title;
+            if (SimpleClaimSystem.isFolia()) {
+                Bukkit.getGlobalRegionScheduler().execute(SimpleClaimSystem.getInstance(), () -> inv.setItem(ClaimGuis.getCustomItemSlot("claims", key), createCustomItem(key, title_f, lore)));
+            } else {
+                Bukkit.getScheduler().runTask(SimpleClaimSystem.getInstance(), () -> inv.setItem(ClaimGuis.getCustomItemSlot("claims", key), createCustomItem(key, title_f, lore)));
+            }
         }
     }
 
-    // Method to get the owners by filter
     private Set<String> getPownersByFilter(String filter) {
         switch (filter) {
             case "sales":
@@ -140,7 +146,6 @@ public class ClaimsGui implements InventoryHolder {
         }
     }
 
-    // Method to create the item
     private ItemStack createOwnerClaimItem(String owner, List<String> lore) {
         if (ClaimGuis.getItemCheckCustomModelData("claims", "claim-item")) {
             return createItemWMD(ClaimLanguage.getMessageWP("owner-claim-title", owner).replaceAll("%owner%", owner),
@@ -165,7 +170,6 @@ public class ClaimsGui implements InventoryHolder {
         return item;
     }
 
-    // Method to create custom item
     private ItemStack createCustomItem(String key, String title, List<String> lore) {
         if (ClaimGuis.getCustomItemCheckCustomModelData("claims", key)) {
             return createItemWMD(title,
@@ -178,59 +182,54 @@ public class ClaimsGui implements InventoryHolder {
                     lore);
         }
     }
-    
-    // Method to split the lore for lines
-    public static List<String> getLore(String lore){
-    	List<String> lores = new ArrayList<>();
-    	String[] parts = lore.split("\n");
-    	for(String s : parts) {
-    		lores.add(s);
-    	}
-    	return lores;
-    }
-    
-    // Method to split the lore for lines with placeholders from PAPI
-    public static List<String> getLoreP(String lore, Player player){
-    	if(!ClaimSettings.getBooleanSetting("placeholderapi")) {
-    		return getLore(lore);
-    	}
-    	List<String> lores = new ArrayList<>();
-    	String[] parts = lore.split("\n");
-    	for(String s : parts) {
-    		lores.add(PlaceholderAPI.setPlaceholders(player, s));
-    	}
-    	return lores;
-    }
-    
-    // Method to get the lore with placeholders from PAPI
-    public static List<String> getLoreWP(List<String> lore, String player){
-    	if(!ClaimSettings.getBooleanSetting("placeholderapi")) return lore;
-    	List<String> lores = new ArrayList<>();
-    	Player p = Bukkit.getPlayer(player);
-    	if(p == null) {
-    		OfflinePlayer o_offline = Bukkit.getOfflinePlayer(player);
-        	for(String s : lore) {
-        		lores.add(PlaceholderAPI.setPlaceholders(o_offline, s));
-        	}
-        	return lores;
-    	}
-    	for(String s : lore) {
-    		lores.add(PlaceholderAPI.setPlaceholders(p, s));
-    	}
 
-    	return lores;
+    public static List<String> getLore(String lore) {
+        List<String> lores = new ArrayList<>();
+        String[] parts = lore.split("\n");
+        for (String s : parts) {
+            lores.add(s);
+        }
+        return lores;
     }
 
-    // Method to create item in the gui
+    public static List<String> getLoreP(String lore, Player player) {
+        if (!ClaimSettings.getBooleanSetting("placeholderapi")) {
+            return getLore(lore);
+        }
+        List<String> lores = new ArrayList<>();
+        String[] parts = lore.split("\n");
+        for (String s : parts) {
+            lores.add(PlaceholderAPI.setPlaceholders(player, s));
+        }
+        return lores;
+    }
+
+    public static List<String> getLoreWP(List<String> lore, String player) {
+        if (!ClaimSettings.getBooleanSetting("placeholderapi")) return lore;
+        List<String> lores = new ArrayList<>();
+        Player p = Bukkit.getPlayer(player);
+        if (p == null) {
+            OfflinePlayer o_offline = Bukkit.getOfflinePlayer(player);
+            for (String s : lore) {
+                lores.add(PlaceholderAPI.setPlaceholders(o_offline, s));
+            }
+            return lores;
+        }
+        for (String s : lore) {
+            lores.add(PlaceholderAPI.setPlaceholders(p, s));
+        }
+        return lores;
+    }
+
     private ItemStack createItem(Material material, String name, List<String> lore) {
-    	ItemStack item = null;
-    	if(material == null) {
-        	SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check list.yml");
-        	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
-        	item = new ItemStack(Material.STONE,1);
-    	} else {
-    		item = new ItemStack(material, 1);
-    	}
+        ItemStack item = null;
+        if (material == null) {
+            SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check list.yml");
+            SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
+            item = new ItemStack(Material.STONE, 1);
+        } else {
+            item = new ItemStack(material, 1);
+        }
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(name);
@@ -240,17 +239,16 @@ public class ClaimsGui implements InventoryHolder {
         }
         return item;
     }
-    
-    // Method to create custom item in the gui
+
     private ItemStack createItemWMD(String name, List<String> lore, String name_custom_item, int model_data) {
         CustomStack customStack = CustomStack.getInstance(name_custom_item);
         ItemStack item = null;
-        if(customStack == null) {
-        	SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : "+name_custom_item);
-        	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
-        	item = new ItemStack(Material.STONE,1);
+        if (customStack == null) {
+            SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : " + name_custom_item);
+            SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
+            item = new ItemStack(Material.STONE, 1);
         } else {
-        	item = customStack.getItemStack();
+            item = customStack.getItemStack();
         }
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
@@ -262,28 +260,27 @@ public class ClaimsGui implements InventoryHolder {
         }
         return item;
     }
-    
-    // Back page slot
+
     private ItemStack backPage(int page) {
-    	ItemStack item = null;
-    	if(ClaimGuis.getItemCheckCustomModelData("claims", "back-page-list")) {
-    		CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims", "back-page-list"));
-            if(customStack == null) {
-            	SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "back-page-list"));
-            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
-            	item = new ItemStack(Material.STONE,1);
+        ItemStack item = null;
+        if (ClaimGuis.getItemCheckCustomModelData("claims", "back-page-list")) {
+            CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims", "back-page-list"));
+            if (customStack == null) {
+                SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : " + ClaimGuis.getItemMaterialMD("claims", "back-page-list"));
+                SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
+                item = new ItemStack(Material.STONE, 1);
             } else {
-            	item = customStack.getItemStack();
+                item = customStack.getItemStack();
             }
-    	} else {
-    		Material material = ClaimGuis.getItemMaterial("claims", "back-page-list");
-    		if(material == null) {
-            	SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check claims.yml");
-            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
-    			material = Material.STONE;
-    		}
-    		item = new ItemStack(material, 1);
-    	}
+        } else {
+            Material material = ClaimGuis.getItemMaterial("claims", "back-page-list");
+            if (material == null) {
+                SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check claims.yml");
+                SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
+                material = Material.STONE;
+            }
+            item = new ItemStack(material, 1);
+        }
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
@@ -295,83 +292,81 @@ public class ClaimsGui implements InventoryHolder {
 
         return item;
     }
-    
-    // Filter slot
+
     private ItemStack filter(String filter) {
-    	ItemStack item = null;
-    	if(ClaimGuis.getItemCheckCustomModelData("claims", "filter")) {
-    		CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims", "filter"));
-            if(customStack == null) {
-            	SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "filter"));
-            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
-            	item = new ItemStack(Material.STONE,1);
+        ItemStack item = null;
+        if (ClaimGuis.getItemCheckCustomModelData("claims", "filter")) {
+            CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims", "filter"));
+            if (customStack == null) {
+                SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : " + ClaimGuis.getItemMaterialMD("claims", "filter"));
+                SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
+                item = new ItemStack(Material.STONE, 1);
             } else {
-            	item = customStack.getItemStack();
+                item = customStack.getItemStack();
             }
-    	} else {
-    		Material material = ClaimGuis.getItemMaterial("claims", "filter");
-    		if(material == null) {
-            	SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check claims.yml");
-            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
-    			material = Material.STONE;
-    		}
-    		item = new ItemStack(material, 1);
-    	}
+        } else {
+            Material material = ClaimGuis.getItemMaterial("claims", "filter");
+            if (material == null) {
+                SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check claims.yml");
+                SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
+                material = Material.STONE;
+            }
+            item = new ItemStack(material, 1);
+        }
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            String lore_filter = ClaimLanguage.getMessage("filter-new-lore");
-            if(filter.equals("sales")) {
-            	lore_filter = lore_filter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_inactive_filter"))
-            			.replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_active_filter"))
-            			.replaceAll("%status_color_3%", ClaimLanguage.getMessage("status_color_inactive_filter"))
-            			.replaceAll("%status_color_4%", ClaimLanguage.getMessage("status_color_inactive_filter"));
+            String loreFilter = ClaimLanguage.getMessage("filter-new-lore");
+            if (filter.equals("sales")) {
+                loreFilter = loreFilter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+                        .replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_active_filter"))
+                        .replaceAll("%status_color_3%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+                        .replaceAll("%status_color_4%", ClaimLanguage.getMessage("status_color_inactive_filter"));
             } else if (filter.equals("online")) {
-            	lore_filter = lore_filter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_inactive_filter"))
-            			.replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_inactive_filter"))
-            			.replaceAll("%status_color_3%", ClaimLanguage.getMessage("status_color_active_filter"))
-            			.replaceAll("%status_color_4%", ClaimLanguage.getMessage("status_color_inactive_filter"));
+                loreFilter = loreFilter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+                        .replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+                        .replaceAll("%status_color_3%", ClaimLanguage.getMessage("status_color_active_filter"))
+                        .replaceAll("%status_color_4%", ClaimLanguage.getMessage("status_color_inactive_filter"));
             } else if (filter.equals("offline")) {
-            	lore_filter = lore_filter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_inactive_filter"))
-            			.replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_inactive_filter"))
-            			.replaceAll("%status_color_3%", ClaimLanguage.getMessage("status_color_inactive_filter"))
-            			.replaceAll("%status_color_4%", ClaimLanguage.getMessage("status_color_active_filter"));
+                loreFilter = loreFilter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+                        .replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+                        .replaceAll("%status_color_3%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+                        .replaceAll("%status_color_4%", ClaimLanguage.getMessage("status_color_active_filter"));
             } else {
-            	lore_filter = lore_filter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_active_filter"))
-            			.replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_inactive_filter"))
-            			.replaceAll("%status_color_3%", ClaimLanguage.getMessage("status_color_inactive_filter"))
-            			.replaceAll("%status_color_4%", ClaimLanguage.getMessage("status_color_inactive_filter"));
+                loreFilter = loreFilter.replaceAll("%status_color_1%", ClaimLanguage.getMessage("status_color_active_filter"))
+                        .replaceAll("%status_color_2%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+                        .replaceAll("%status_color_3%", ClaimLanguage.getMessage("status_color_inactive_filter"))
+                        .replaceAll("%status_color_4%", ClaimLanguage.getMessage("status_color_inactive_filter"));
             }
             meta.setDisplayName(ClaimLanguage.getMessage("filter-title"));
-            meta.setLore(getLore(lore_filter));
+            meta.setLore(getLore(loreFilter));
             meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
             item.setItemMeta(meta);
         }
 
         return item;
     }
-    
-    // Next page slot
+
     private ItemStack nextPage(int page) {
-    	ItemStack item = null;
-    	if(ClaimGuis.getItemCheckCustomModelData("claims", "next-page-list")) {
-    		CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims", "next-page-list"));
-            if(customStack == null) {
-            	SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : "+ClaimGuis.getItemMaterialMD("claims", "next-page-list"));
-            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
-            	item = new ItemStack(Material.STONE,1);
+        ItemStack item = null;
+        if (ClaimGuis.getItemCheckCustomModelData("claims", "next-page-list")) {
+            CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims", "next-page-list"));
+            if (customStack == null) {
+                SimpleClaimSystem.getInstance().getLogger().info("Error custom item loading : " + ClaimGuis.getItemMaterialMD("claims", "next-page-list"));
+                SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
+                item = new ItemStack(Material.STONE, 1);
             } else {
-            	item = customStack.getItemStack();
+                item = customStack.getItemStack();
             }
-    	} else {
-    		Material material = ClaimGuis.getItemMaterial("claims", "next-page-list");
-    		if(material == null) {
-            	SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check claims.yml");
-            	SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
-    			material = Material.STONE;
-    		}
-    		item = new ItemStack(material, 1);
-    	}
+        } else {
+            Material material = ClaimGuis.getItemMaterial("claims", "next-page-list");
+            if (material == null) {
+                SimpleClaimSystem.getInstance().getLogger().info("Error material loading, check claims.yml");
+                SimpleClaimSystem.getInstance().getLogger().info("Using STONE instead");
+                material = Material.STONE;
+            }
+            item = new ItemStack(material, 1);
+        }
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
@@ -383,12 +378,12 @@ public class ClaimsGui implements InventoryHolder {
 
         return item;
     }
-    
+
     @Override
     public Inventory getInventory() {
         return inv;
     }
-    
+
     public void openInventory(Player player) {
         player.openInventory(inv);
     }

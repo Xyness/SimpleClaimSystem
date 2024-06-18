@@ -370,37 +370,32 @@ public class ClaimMain {
     
     // Check if a claim is in sale
     public static boolean claimIsInSale(Chunk chunk) {
-    	if(!listClaims.containsKey(chunk)) return false;
-    	Claim claim = listClaims.get(chunk);
-    	return claim.getSale();
+    	Claim claim = listClaims.getOrDefault(chunk,null);
+    	return claim == null ? false : claim.getSale();
     }
     
     // Get the claim description by the chunk
     public static String getClaimDescription(Chunk chunk) {
-    	if(!listClaims.containsKey(chunk)) return "";
-    	Claim claim = listClaims.get(chunk);
-    	return claim.getDescription();
+    	Claim claim = listClaims.getOrDefault(chunk,null);
+    	return claim == null ? "" : claim.getDescription();
     }
     
     // Get the claim price by the chunk
     public static Double getClaimPrice(Chunk chunk) {
-    	if(!listClaims.containsKey(chunk)) return 0.0;
-    	Claim claim = listClaims.get(chunk);
-    	return claim.getPrice();
+    	Claim claim = listClaims.getOrDefault(chunk,null);
+    	return claim == null ? 0.0 : claim.getPrice();
     }
     
     // Get the claim name by the chunk
     public static String getClaimNameByChunk(Chunk chunk) {
-    	if(!listClaims.containsKey(chunk)) return "";
-    	Claim claim = listClaims.get(chunk);
-    	return claim.getName();
+    	Claim claim = listClaims.getOrDefault(chunk,null);
+    	return claim == null ? "" : claim.getName();
     }
     
     // Get the claim location by the chunk
     public static Location getClaimLocationByChunk(Chunk chunk) {
-    	if(!listClaims.containsKey(chunk)) return null;
-    	Claim claim = listClaims.get(chunk);
-    	return claim.getLocation();
+    	Claim claim = listClaims.getOrDefault(chunk,null);
+    	return claim == null ? null : claim.getLocation();
     }
     
     // Get the claim string coords by the chunk
@@ -3254,6 +3249,8 @@ public class ClaimMain {
     	        }
     	        members.remove(owner);
     	        claim.setMembers(members);
+    	        claim.setSale(false);
+    	        claim.setPrice(0.0);
     	        String members_string = String.join(";", members);
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
     			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
@@ -3336,6 +3333,8 @@ public class ClaimMain {
     	        }
     	        members.remove(owner);
     	        claim.setMembers(members);
+    	        claim.setSale(false);
+    	        claim.setPrice(0.0);
     	        String members_string = String.join(";", members);
     			if(ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
     			if(ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
@@ -3524,15 +3523,15 @@ public class ClaimMain {
 	    	if(checkIfClaimExists(chunk)) {
 	    		String playerName = player.getName();
 	    		if(getOwnerInClaim(chunk).equals(playerName)){
-	    			dustOptions = new Particle.DustOptions(Color.fromRGB(0, 255, 0), 2f);
+	    			dustOptions = new Particle.DustOptions(Color.fromRGB(0, 255, 0), 1.5f);
 	    		} else {
-	    			dustOptions = new Particle.DustOptions(Color.fromRGB(255, 0, 0), 2f);
+	    			dustOptions = new Particle.DustOptions(Color.fromRGB(255, 0, 0), 1.5f);
 	    		}
 	    	} else {
-	    		dustOptions = new Particle.DustOptions(Color.fromRGB(255, 255, 255), 2f);
+	    		dustOptions = new Particle.DustOptions(Color.fromRGB(255, 255, 255), 1.5f);
 	    	}
     	} else {
-    		dustOptions = new Particle.DustOptions(Color.fromRGB(0, 255, 0), 2f);
+    		dustOptions = new Particle.DustOptions(Color.fromRGB(0, 255, 0), 1.5f);
     	}
     	if(SimpleClaimSystem.isFolia()) {
     	    final int[] counter = {0};
@@ -3593,7 +3592,7 @@ public class ClaimMain {
     
     // Method to display chunk when radius claiming
     public static void displayChunkBorderWithRadius(Player player, Chunk centralChunk, int radius) {
-    	Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(0, 255, 0), 2f);
+    	Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(0, 255, 0), 1.5f);
     	if(SimpleClaimSystem.isFolia()) {
     	    final int[] counter = {0};
     	    Bukkit.getAsyncScheduler().runAtFixedRate(SimpleClaimSystem.getInstance(), task -> {
