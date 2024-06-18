@@ -749,33 +749,37 @@ public class ClaimEvents implements Listener {
 	}
 	
 	// PvP setting
-    @EventHandler
-    public void onPlayerHit(EntityDamageByEntityEvent event) {
-    	if(event.isCancelled()) return;
-        if (!(event.getEntity() instanceof Player)) return;
+	@EventHandler
+	public void onPlayerHit(EntityDamageByEntityEvent event) {
+	    if(event.isCancelled()) return;
+	    if (!(event.getEntity() instanceof Player)) return;
 
-        Player player = (Player) event.getEntity();
-        Chunk chunk = player.getLocation().getChunk();
-        if(ClaimMain.checkIfClaimExists(chunk)) {
-        	if(ClaimMain.canPermCheck(chunk, "Pvp")) return;
-            if (event.getDamager() instanceof Player) {
-            	Player damager = (Player) event.getDamager();
-            	if(damager.hasPermission("scs.bypass")) return;
-            	ClaimMain.sendActionBar((Player) event.getDamager(),ClaimLanguage.getMessage("pvp"));
-            	event.setCancelled(true);
-            } else if (event.getDamager() instanceof Projectile) {
-                Projectile projectile = (Projectile) event.getDamager();
-                ProjectileSource shooter = projectile.getShooter();
-                if (shooter instanceof Player) {
-                	Player damager = (Player) shooter;
-                	if(damager.hasPermission("scs.bypass")) return;
-                	ClaimMain.sendActionBar(damager,ClaimLanguage.getMessage("pvp"));
-                    event.setCancelled(true);
-                }
-            }
-        }
-        return;
-    }
+	    Player player = (Player) event.getEntity();
+	    Chunk chunk = player.getLocation().getChunk();
+	    
+	    if(ClaimMain.checkIfClaimExists(chunk)) {
+	        if (event.getDamager() instanceof Player) {
+	            Player damager = (Player) event.getDamager();
+	            if(damager.hasPermission("scs.bypass")) return;
+	            if(!ClaimMain.canPermCheck(chunk, "Pvp")) {
+	                ClaimMain.sendActionBar(damager, ClaimLanguage.getMessage("pvp"));
+	                event.setCancelled(true);
+	            }
+	        } else if (event.getDamager() instanceof Projectile) {
+	            Projectile projectile = (Projectile) event.getDamager();
+	            ProjectileSource shooter = projectile.getShooter();
+	            if (shooter instanceof Player) {
+	                Player damager = (Player) shooter;
+	                if(damager.hasPermission("scs.bypass")) return;
+	                if(!ClaimMain.canPermCheck(chunk, "Pvp")) {
+	                    ClaimMain.sendActionBar(damager, ClaimLanguage.getMessage("pvp"));
+	                    event.setCancelled(true);
+	                }
+	            }
+	        }
+	    }
+	}
+
     
     // Monsters setting
     @EventHandler
