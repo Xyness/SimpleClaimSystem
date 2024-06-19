@@ -1,7 +1,6 @@
 package fr.xyness.SCS.Guis;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.List;
@@ -9,7 +8,6 @@ import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -22,6 +20,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.CPlayerMain;
+import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
@@ -78,25 +77,26 @@ public class AdminClaimListGui implements InventoryHolder {
         	inv.setItem(ClaimGuis.getItemSlot("admin_list", "back-page-list"), backPage2(cPlayer.getChunk()));
         }
         
-        Set<Chunk> claims = ClaimMain.getChunksFromOwner("admin");
+        Map<Chunk,Claim> claims = ClaimMain.getChunksFromOwnerGui("admin");
         List<String> lore = new ArrayList<>(getLore(ClaimLanguage.getMessageWP("access-claim-lore",playerName)));
         int startItem = (page - 1) * items_count;
     	int i = min_member_slot;
     	int count = 0;
-        for(Chunk c : claims) {
+        for(Chunk c : claims.keySet()) {
         	if (count++ < startItem) continue;
             if(i == max_member_slot+1) { 
             	inv.setItem(ClaimGuis.getItemSlot("admin_list", "next-page-list"), nextPage(page+1));
             	break;
             }
+            Claim claim = claims.get(c);
             cPlayer.addMapChunk(i, c);
-            cPlayer.addMapLoc(i, ClaimMain.getClaimLocationByChunk(c));
+            cPlayer.addMapLoc(i, claim.getLocation());
             List<String> used_lore = new ArrayList<>();
             for(String s : lore) {
-            	s = s.replaceAll("%description%", ClaimMain.getClaimDescription(c));
-            	s = s.replaceAll("%name%", ClaimMain.getClaimNameByChunk(c)).replaceAll("%coords%", String.valueOf(ClaimMain.getClaimCoords(c)));
+            	s = s.replaceAll("%description%", claim.getDescription());
+            	s = s.replaceAll("%name%", claim.getName()).replaceAll("%coords%", ClaimMain.getClaimCoords(claim));
             	if(s.contains("%members%")) {
-            		String members = getMembers(c);
+            		String members = getMembers(claim);
             		if(members.contains("\n")) {
                     	String[] parts = members.split("\n");
                     	for(String ss : parts) {
@@ -112,7 +112,7 @@ public class AdminClaimListGui implements InventoryHolder {
             used_lore.addAll(getLore(ClaimLanguage.getMessage("access-claim-clickable")));
             
             if(ClaimGuis.getItemCheckCustomModelData("admin_list", "claim-item")) {
-            	inv.setItem(i, createItemWMD(ClaimLanguage.getMessageWP("access-claim-title",playerName).replaceAll("%name%", ClaimMain.getClaimNameByChunk(c)).replaceAll("%coords%", String.valueOf(ClaimMain.getClaimCoords(c))),
+            	inv.setItem(i, createItemWMD(ClaimLanguage.getMessageWP("access-claim-title",playerName).replaceAll("%name%", claim.getName()).replaceAll("%coords%", ClaimMain.getClaimCoords(claim)),
             			used_lore,
             			ClaimGuis.getItemMaterialMD("admin_list", "claim-item"),
             			ClaimGuis.getItemCustomModelData("admin_list", "claim-item")));
@@ -122,15 +122,15 @@ public class AdminClaimListGui implements InventoryHolder {
             if(ClaimGuis.getItemMaterialMD("admin_list", "claim-item").contains("PLAYER_HEAD")) {
             	ItemStack item = new ItemStack(Material.PLAYER_HEAD, 1);
     	        SkullMeta meta = (SkullMeta) item.getItemMeta();
-                meta.setOwner(player.getName());
-                meta.setDisplayName(ClaimLanguage.getMessageWP("access-claim-title",playerName).replaceAll("%name%", ClaimMain.getClaimNameByChunk(c)).replaceAll("%coords%", String.valueOf(ClaimMain.getClaimCoords(c))));
+                meta.setOwningPlayer(player);
+                meta.setDisplayName(ClaimLanguage.getMessageWP("access-claim-title",playerName).replaceAll("%name%", claim.getName()).replaceAll("%coords%", ClaimMain.getClaimCoords(claim)));
                 meta.setLore(used_lore);
                 item.setItemMeta(meta);
                 inv.setItem(i, item);
                 i++;
                 continue;
             }
-            inv.setItem(i, createItem(ClaimGuis.getItemMaterial("admin_list", "claim-item"), ClaimLanguage.getMessageWP("access-claim-title",playerName).replaceAll("%name%", ClaimMain.getClaimNameByChunk(c)).replaceAll("%coords%", String.valueOf(ClaimMain.getClaimCoords(c))),used_lore));
+            inv.setItem(i, createItem(ClaimGuis.getItemMaterial("admin_list", "claim-item"), ClaimLanguage.getMessageWP("access-claim-title",playerName).replaceAll("%name%", claim.getName()).replaceAll("%coords%", ClaimMain.getClaimCoords(claim)),used_lore));
             i++;
         }
         
@@ -155,14 +155,14 @@ public class AdminClaimListGui implements InventoryHolder {
     }
     
     // Method to get members from a claim chunk 
-    public static String getMembers(Chunk chunk) {
-    	Set<String> members = ClaimMain.getClaimMembers(chunk);
+    public static String getMembers(Claim claim) {
+    	Set<String> members = claim.getMembers();
         if(members.isEmpty()) {
         	return ClaimLanguage.getMessage("claim-list-no-member");
         }
         StringBuilder factionsList = new StringBuilder();
         int i = 0;
-    	for(String membre : ClaimMain.getClaimMembers(chunk)) {
+    	for(String membre : members) {
     		Player p = Bukkit.getPlayer(membre);
     		String fac = "§a"+membre;
     		if(p == null) {

@@ -33,7 +33,19 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 public class ClaimCommand implements CommandExecutor,TabCompleter {
 	
+	
+	// ***************
+	// *  Variables  *
+	// ***************
+	
+	
 	private static Set<Player> isOnCreate = new HashSet<>();
+	
+	
+	// ******************
+	// *  Tab Complete  *
+	// ******************
+	
 	
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
@@ -194,6 +206,12 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
 
         return completions;
     }
+    
+    
+	// ******************
+	// *  Main command  *
+	// ******************
+    
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -1084,6 +1102,13 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         return true;
     }
     
+    
+	// ********************
+	// *  Others methods  *
+	// ********************
+    
+    
+    // Method to get chunks in radius
     public static List<Chunk> getChunksInRadius(Location center, int radius) {
         List<Chunk> chunks = new ArrayList<>();
         Chunk centerChunk = center.getChunk();

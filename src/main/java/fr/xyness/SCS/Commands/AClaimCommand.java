@@ -38,10 +38,15 @@ import fr.xyness.SCS.Listeners.ClaimEventsEnterLeave;
 
 public class AClaimCommand implements CommandExecutor, TabCompleter {
 	
+	
+	// ******************
+	// *  Tab Complete  *
+	// ******************
+	
+	
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
-
         if(sender instanceof Player) {
         	if (args.length == 1) {
         		completions.add("convert");
@@ -84,6 +89,15 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         		completions.add("set-claim-cost-multiplier");
         		completions.add("ban");
         		completions.add("unban");
+        		completions.add("set-chat");
+        		completions.add("set-protection-message");
+        		return completions;
+        	}
+        	if (args.length == 2 && args[0].equalsIgnoreCase("set-protection-message")) {
+        		completions.add("ACTION_BAR");
+        		completions.add("TITLE");
+        		completions.add("SUBTITLE");
+        		completions.add("CHAT");
         		return completions;
         	}
 	        if (args.length == 2 && args[0].equalsIgnoreCase("ban")) {
@@ -148,7 +162,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         			|| args[0].equalsIgnoreCase("set-bossbar") || args[0].equalsIgnoreCase("set-teleportation")
         			|| args[0].equalsIgnoreCase("set-teleportation-moving") || args[0].equalsIgnoreCase("autoclaim")
         			|| args[0].equalsIgnoreCase("set-claims-visitors-off-visible") || args[0].equalsIgnoreCase("set-claim-cost")
-        			|| args[0].equalsIgnoreCase("set-claim-cost-multiplier"))) {
+        			|| args[0].equalsIgnoreCase("set-claim-cost-multiplier") || args[0].equalsIgnoreCase("set-chat"))) {
         		completions.add("true");
         		completions.add("false");
         		return completions;
@@ -225,6 +239,12 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 
         return completions;
     }
+    
+    
+	// ******************
+	// *  Main command  *
+	// ******************
+    
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -458,6 +478,40 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                try {
 	                	config.save(configFile);
 	                	sender.sendMessage(ClaimLanguage.getMessage("setting-changed-via-command").replaceAll("%setting%", "ActionBar").replaceAll("%value%", args[1]));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+	                return true;
+        		}
+        		sender.sendMessage(ClaimLanguage.getMessage("setting-must-be-boolean"));
+        		return true;
+        	}
+        	if(args[0].equalsIgnoreCase("set-protection-message")) {
+        		if(args[1].equalsIgnoreCase("action_bar") || args[1].equalsIgnoreCase("title") || args[1].equalsIgnoreCase("subtitle") || args[1].equalsIgnoreCase("chat")) {
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
+	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+	                config.set("protection-message", Boolean.parseBoolean(args[1]));
+	                ClaimSettings.addSetting("protection-message", args[1]);
+	                try {
+	                	config.save(configFile);
+	                	sender.sendMessage(ClaimLanguage.getMessage("setting-changed-via-command").replaceAll("%setting%", "Protection message").replaceAll("%value%", args[1]));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+	                return true;
+        		}
+        		sender.sendMessage(ClaimLanguage.getMessage("setting-must-be-protection-message"));
+        		return true;
+        	}
+        	if(args[0].equalsIgnoreCase("set-chat")) {
+        		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
+	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+	                config.set("enter-leave-chat-messages", Boolean.parseBoolean(args[1]));
+	                ClaimSettings.addSetting("enter-leave-chat-messages", args[1]);
+	                try {
+	                	config.save(configFile);
+	                	sender.sendMessage(ClaimLanguage.getMessage("setting-changed-via-command").replaceAll("%setting%", "Chat").replaceAll("%value%", args[1]));
 					} catch (IOException e) {
 						e.printStackTrace();
 					}

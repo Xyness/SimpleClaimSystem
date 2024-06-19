@@ -762,7 +762,7 @@ public class ClaimEvents implements Listener {
 	            Player damager = (Player) event.getDamager();
 	            if(damager.hasPermission("scs.bypass")) return;
 	            if(!ClaimMain.canPermCheck(chunk, "Pvp")) {
-	                ClaimMain.sendActionBar(damager, ClaimLanguage.getMessage("pvp"));
+	                ClaimMain.sendMessage(damager, ClaimLanguage.getMessage("pvp"), ClaimSettings.getSetting("protection-message"));
 	                event.setCancelled(true);
 	            }
 	        } else if (event.getDamager() instanceof Projectile) {
@@ -772,7 +772,7 @@ public class ClaimEvents implements Listener {
 	                Player damager = (Player) shooter;
 	                if(damager.hasPermission("scs.bypass")) return;
 	                if(!ClaimMain.canPermCheck(chunk, "Pvp")) {
-	                    ClaimMain.sendActionBar(damager, ClaimLanguage.getMessage("pvp"));
+	                    ClaimMain.sendMessage(damager, ClaimLanguage.getMessage("pvp"), ClaimSettings.getSetting("protection-message"));
 	                    event.setCancelled(true);
 	                }
 	            }
@@ -860,7 +860,7 @@ public class ClaimEvents implements Listener {
 		if(ClaimMain.checkIfClaimExists(chunk)) {
 			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Destroy")) {
 				event.setCancelled(true);
-				ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+				ClaimMain.sendMessage(player,ClaimLanguage.getMessage("destroy"), ClaimSettings.getSetting("protection-message"));
 				return;
 			}
 		}
@@ -878,7 +878,7 @@ public class ClaimEvents implements Listener {
 			if(ClaimMain.checkMembre(chunk, player)) return;
 			if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
 				event.setCancelled(true);
-				ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+				ClaimMain.sendMessage(player,ClaimLanguage.getMessage("destroy"), ClaimSettings.getSetting("protection-message"));
 				return;
 			}
 		}
@@ -907,7 +907,7 @@ public class ClaimEvents implements Listener {
 	                !ClaimMain.getOwnerInClaim(chunk).equals(ClaimMain.getOwnerInClaim(adjacentChunk))) {
 	                if (!ClaimMain.canPermCheck(adjacentChunk, "Build")) {
 	                    event.setCancelled(true);
-	                    ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("build"));
+	                    ClaimMain.sendMessage(player,ClaimLanguage.getMessage("build"), ClaimSettings.getSetting("protection-message"));
 	                    return;
 	                }
 	            }
@@ -917,7 +917,7 @@ public class ClaimEvents implements Listener {
 		if(ClaimMain.checkIfClaimExists(chunk)) {
 			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Build")) {
 				event.setCancelled(true);
-				ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("build"));
+				ClaimMain.sendMessage(player,ClaimLanguage.getMessage("build"), ClaimSettings.getSetting("protection-message"));
 				return;
 			}
 		}
@@ -933,7 +933,7 @@ public class ClaimEvents implements Listener {
 		if(ClaimMain.checkIfClaimExists(chunk)) {
 			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Build")) {
 				event.setCancelled(true);
-				ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("build"));
+				ClaimMain.sendMessage(player,ClaimLanguage.getMessage("build"), ClaimSettings.getSetting("protection-message"));
 				return;
 			}
 		}
@@ -963,7 +963,7 @@ public class ClaimEvents implements Listener {
                 	if(ClaimMain.checkMembre(chunk, player)) return;
                 	if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
                 		event.setCancelled(true);
-                		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+                		ClaimMain.sendMessage(player,ClaimLanguage.getMessage("destroy"), ClaimSettings.getSetting("protection-message"));
                 		return;
                 	}
                 }
@@ -983,7 +983,7 @@ public class ClaimEvents implements Listener {
                 	if(ClaimMain.checkMembre(chunk, player)) return;
                 	if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
                 		event.setCancelled(true);
-                		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+                		ClaimMain.sendMessage(player,ClaimLanguage.getMessage("destroy"), ClaimSettings.getSetting("protection-message"));
                 		return;
                 	}
                 }
@@ -1006,7 +1006,7 @@ public class ClaimEvents implements Listener {
 		if(ClaimMain.checkIfClaimExists(chunk)) {
 			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Build")) {
 				event.setCancelled(true);
-				ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("build"));
+				ClaimMain.sendMessage(player,ClaimLanguage.getMessage("build"), ClaimSettings.getSetting("protection-message"));
 				return;
 			}
 		}
@@ -1022,7 +1022,7 @@ public class ClaimEvents implements Listener {
 		if(ClaimMain.checkIfClaimExists(chunk)) {
 			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Destroy")) {
 				event.setCancelled(true);
-				ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+				ClaimMain.sendMessage(player,ClaimLanguage.getMessage("destroy"), ClaimSettings.getSetting("protection-message"));
 				return;
 			}
 		}
@@ -1038,7 +1038,7 @@ public class ClaimEvents implements Listener {
 		if(ClaimMain.checkIfClaimExists(chunk)) {
 			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Build")) {
 				event.setCancelled(true);
-				ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("build"));
+				ClaimMain.sendMessage(player,ClaimLanguage.getMessage("build"), ClaimSettings.getSetting("protection-message"));
 				return;
 			}
 		}
@@ -1061,49 +1061,49 @@ public class ClaimEvents implements Listener {
 	            Material mat = event.getClickedBlock().getType();
 	            if (mat.name().contains("BUTTON") && !ClaimMain.canPermCheck(chunk, "Buttons")) {
 	            	event.setCancelled(true);
-	            	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("buttons"));
+	            	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("buttons"), ClaimSettings.getSetting("protection-message"));
 	                return;
 	            }
 	            if (mat.name().contains("TRAPDOOR") && !ClaimMain.canPermCheck(chunk, "Trapdoors")) {
 	            	event.setCancelled(true);
-	            	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("trapdoors"));
+	            	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("trapdoors"), ClaimSettings.getSetting("protection-message"));
 	                return;
 	            }
 	            if (mat.name().contains("DOOR") && !ClaimMain.canPermCheck(chunk, "Doors")) {
 	            	event.setCancelled(true);
-	            	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("doors"));
+	            	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("doors"), ClaimSettings.getSetting("protection-message"));
 	                return;
 	            }
 	            if (mat.name().contains("FENCE_GATE") && !ClaimMain.canPermCheck(chunk, "Fencegates")) {
 	            	event.setCancelled(true);
-	            	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("fencegates"));
+	            	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("fencegates"), ClaimSettings.getSetting("protection-message"));
 	                return;
 	            }
 	            if (mat.equals(Material.LEVER) && !ClaimMain.canPermCheck(chunk, "Levers")) {
 	            	event.setCancelled(true);
-	            	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("levers"));
+	            	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("levers"), ClaimSettings.getSetting("protection-message"));
 	                return;
 	            }
 	            if (mat.equals(Material.REPEATER) && !ClaimMain.canPermCheck(chunk, "RepeatersComparators")) {
 	            	event.setCancelled(true);
-	            	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("repeaters"));
+	            	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("repeaters"), ClaimSettings.getSetting("protection-message"));
 	                return;
 	            }
 	            if (mat.equals(Material.COMPARATOR) && !ClaimMain.canPermCheck(chunk, "RepeatersComparators")) {
 	            	event.setCancelled(true);
-	            	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("comparators"));
+	            	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("comparators"), ClaimSettings.getSetting("protection-message"));
 	                return;
 	            }
 	            if (mat.equals(Material.BELL) && !ClaimMain.canPermCheck(chunk, "Bells")) {
 	            	event.setCancelled(true);
-	            	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("bells"));
+	            	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("bells"), ClaimSettings.getSetting("protection-message"));
 	                return;
 	            }
 	            if(!ClaimMain.canPermCheck(chunk, "InteractBlocks")) {
 	            	Material item = block.getType();
 	            	if(ClaimSettings.isRestrictedContainer(item)) {
                         event.setCancelled(true);
-                        ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("interactblocks"));
+                        ClaimMain.sendMessage(player,ClaimLanguage.getMessage("interactblocks"), ClaimSettings.getSetting("protection-message"));
                         return;
 	            	}
 	            }
@@ -1111,7 +1111,7 @@ public class ClaimEvents implements Listener {
 	                Material item = event.getMaterial();
 	                if(ClaimSettings.isRestrictedItem(item)) {
                         event.setCancelled(true);
-                        ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("items"));
+                        ClaimMain.sendMessage(player,ClaimLanguage.getMessage("items"), ClaimSettings.getSetting("protection-message"));
                         return;
 	                }
 	            }
@@ -1120,12 +1120,12 @@ public class ClaimEvents implements Listener {
 	        if (event.getAction() == Action.PHYSICAL && !ClaimMain.checkMembre(chunk, player)) {
 	        	if(block != null && block.getType().name().contains("PRESSURE_PLATE") && !ClaimMain.canPermCheck(chunk, "Plates")) {
 	            	event.setCancelled(true);
-	            	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("plates"));
+	            	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("plates"), ClaimSettings.getSetting("protection-message"));
 	                return;
 	        	}
 	        	if (block.getType() == Material.TRIPWIRE && !ClaimMain.canPermCheck(chunk, "Tripwires")) {
 	            	event.setCancelled(true);
-	            	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("tripwires"));
+	            	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("tripwires"), ClaimSettings.getSetting("protection-message"));
 	                return;
 	            }
 	        }
@@ -1133,7 +1133,7 @@ public class ClaimEvents implements Listener {
                 Material item = event.getMaterial();
                 if(ClaimSettings.isRestrictedItem(item)) {
                     event.setCancelled(true);
-                    ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("items"));
+                    ClaimMain.sendMessage(player,ClaimLanguage.getMessage("items"), ClaimSettings.getSetting("protection-message"));
                     return;
                 }
 	        }
@@ -1155,7 +1155,7 @@ public class ClaimEvents implements Listener {
         	if(!ClaimSettings.isRestrictedEntityType(e)) return;
         	if(!ClaimMain.canPermCheck(chunk, "Entities")) {
         		event.setCancelled(true);
-        		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("entities"));
+        		ClaimMain.sendMessage(player,ClaimLanguage.getMessage("entities"), ClaimSettings.getSetting("protection-message"));
         		return;
         	}
         	
@@ -1164,7 +1164,7 @@ public class ClaimEvents implements Listener {
             	if(!ClaimSettings.isRestrictedItem(itemInHand.getType())) return;
                 if (!ClaimMain.canPermCheck(entity.getLocation().getChunk(), "Items")) {
                     event.setCancelled(true);
-                    ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("items"));
+                    ClaimMain.sendMessage(player,ClaimLanguage.getMessage("items"), ClaimSettings.getSetting("protection-message"));
                     return;
                 }
             }
@@ -1186,7 +1186,7 @@ public class ClaimEvents implements Listener {
         	if(!ClaimSettings.isRestrictedEntityType(e)) return;
         	if(!ClaimMain.canPermCheck(chunk, "Entities")) {
         		event.setCancelled(true);
-        		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("entities"));
+        		ClaimMain.sendMessage(player,ClaimLanguage.getMessage("entities"), ClaimSettings.getSetting("protection-message"));
         		return;
         	}
         	
@@ -1195,7 +1195,7 @@ public class ClaimEvents implements Listener {
             	if(!ClaimSettings.isRestrictedItem(itemInHand.getType())) return;
                 if (!ClaimMain.canPermCheck(entity.getLocation().getChunk(), "Items")) {
                     event.setCancelled(true);
-                    ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("items"));
+                    ClaimMain.sendMessage(player,ClaimLanguage.getMessage("items"), ClaimSettings.getSetting("protection-message"));
                     return;
                 }
             }
@@ -1348,7 +1348,7 @@ public class ClaimEvents implements Listener {
             	if(player.hasPermission("scs.bypass")) return;
             	if(ClaimMain.checkMembre(chunk, player)) return;
                 if (!ClaimMain.canPermCheck(chunk, "Destroy")) {
-                	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+                	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("destroy"), ClaimSettings.getSetting("protection-message"));
                     event.setCancelled(true);
                 }
             	return;
@@ -1398,7 +1398,7 @@ public class ClaimEvents implements Listener {
             	if(player.hasPermission("scs.bypass")) return;
             	if(ClaimMain.checkMembre(chunk, player)) return;
                 event.setCancelled(true);
-                ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("entities"));
+                ClaimMain.sendMessage(player,ClaimLanguage.getMessage("entities"), ClaimSettings.getSetting("protection-message"));
             }
         }
     }
@@ -1416,7 +1416,7 @@ public class ClaimEvents implements Listener {
             	if(player.hasPermission("scs.bypass")) return;
             	if(ClaimMain.checkMembre(chunk, player)) return;
                 if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
-                	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("destroy"));
+                	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("destroy"), ClaimSettings.getSetting("protection-message"));
                     event.setCancelled(true);
                 }
 
@@ -1466,7 +1466,7 @@ public class ClaimEvents implements Listener {
         if(ClaimMain.checkMembre(chunk, player)) return;
         if(!ClaimMain.canPermCheck(chunk, "Damages")) {
             event.setCancelled(true);
-            ClaimMain.sendActionBar(player, ClaimLanguage.getMessage("damages"));
+            ClaimMain.sendMessage(player, ClaimLanguage.getMessage("damages"), ClaimSettings.getSetting("protection-message"));
         }
     }
 }
