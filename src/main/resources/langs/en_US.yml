@@ -82,6 +82,7 @@ setowner-all-success: "§e%owner%§f is now the new owner of §eall your claims�
 setowner-claim-success: "§e%owner%§f is now the new owner of your claim §e%claim-name%§f."
 setting-changed-via-command: "§fSetting §e%setting%§f set to §e%value%§f."
 setting-must-be-boolean: "§cThe value of this setting must be true or false."
+setting-must-be-protection-message: "§cThe value of this setting must be : ACTION_BAR, TITLE, SUBTITLE or CHAT."
 max-sell-price-must-be-positive: "§cThe max sell price must be > 0."
 max-sell-price-must-be-number: "§cThe max sell price must be a number."
 bossbar-color-incorrect: "§cThis bar color does not exists."

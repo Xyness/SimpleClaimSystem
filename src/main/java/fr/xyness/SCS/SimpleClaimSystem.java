@@ -54,7 +54,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	
 	
 	public static JavaPlugin plugin;
-	public static String Version = "1.9.0.1b7";
+	public static String Version = "1.9.0.1b9";
 	public static HikariDataSource dataSource;
 	private static boolean isFolia = false;
 	private static boolean isUpdateAvailable;
@@ -115,6 +115,24 @@ public class SimpleClaimSystem extends JavaPlugin {
 	// *  Others Methods  *
 	// ********************
 	
+	
+	// Execute task in async thread
+	public static void executeAsync(Runnable gTask) {
+		if (SimpleClaimSystem.isFolia()) {
+			Bukkit.getAsyncScheduler().runNow(plugin, task -> gTask.run());
+		} else {
+			Bukkit.getScheduler().runTaskAsynchronously(plugin, gTask);
+		}
+	}
+	
+	// Execute task in sync thread
+	public static void executeSync(Runnable gTask) {
+		if (SimpleClaimSystem.isFolia()) {
+			Bukkit.getGlobalRegionScheduler().execute(plugin, () -> gTask.run());
+		} else {
+			Bukkit.getScheduler().runTask(plugin, gTask);
+		}
+	}
 	
 	// Set the folia check
 	public static void checkFolia() {
@@ -448,6 +466,19 @@ public class SimpleClaimSystem extends JavaPlugin {
         ClaimSettings.addSetting("bluemap-claim-fill-color", configC);
         configC = plugin.getConfig().getString("bluemap-hover-text");
         ClaimSettings.addSetting("bluemap-hover-text", configC);
+        
+        // Add the message type for protection
+        configC = plugin.getConfig().getString("protection-message");
+        if(configC.equalsIgnoreCase("action_bar") || 
+        		configC.equalsIgnoreCase("title") ||
+        		configC.equalsIgnoreCase("subtitle") ||
+        		configC.equalsIgnoreCase("chat")) {
+        	ClaimSettings.addSetting("protection-message", configC);
+        } else {
+        	plugin.getLogger().info("'protection-message' must be 'ACTION_BAR', 'TITLE', 'SUBTITLE' or 'CHAT'. Using default value.");
+        	ClaimSettings.addSetting("protection-message", "ACTION_BAR");
+        }
+        
         
         // Add disabled worlds
         Set<String> worlds = new HashSet<>(plugin.getConfig().getStringList("worlds-disabled"));

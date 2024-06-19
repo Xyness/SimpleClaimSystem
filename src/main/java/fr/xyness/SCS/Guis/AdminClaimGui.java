@@ -1,10 +1,8 @@
 package fr.xyness.SCS.Guis;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
@@ -20,6 +18,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.CPlayerMain;
+import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
@@ -75,21 +74,15 @@ public class AdminClaimGui implements InventoryHolder {
     	CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
     	cPlayer.setChunk(chunk);
     	Set<String> items = new HashSet<>(ClaimGuis.getItems("admin_settings"));
+    	Claim claim = ClaimMain.getClaimFromChunk(chunk);
     	for(String key : items) {
     		lower_name = key.toLowerCase();
     		lore = new ArrayList<>(getLore(ClaimLanguage.getMessageWP(lower_name+"-lore",playerName)));
     		if(ClaimGuis.isAPerm(key)) {
-    	    	statut = default_statut_disabled;
-    			choix = default_choix_disabled;
-    			if(ClaimMain.canPermCheck(chunk, key)) {
-    				statut = default_statut_enabled;
-    				choix = default_choix_enabled;
-    			}
-    			if(ClaimSettings.isEnabled(key)) {
-    				lore.add(choix);
-    			} else {
-    				lore.add(ClaimLanguage.getMessage("choice-setting-disabled"));
-    			}
+    			boolean permission = claim.getPermission(key);
+    			statut = permission ? default_statut_enabled : default_statut_disabled;
+    			choix = permission ? default_choix_enabled : default_choix_disabled;
+    			lore.add(ClaimSettings.isEnabled(key) ? choix : ClaimLanguage.getMessage("choice-setting-disabled"));
     			if(ClaimGuis.getItemCheckCustomModelData("admin_settings", key)) {
     				inv.setItem(ClaimGuis.getItemSlot("admin_settings", key), createItemWMD(ClaimLanguage.getMessageWP(lower_name+"-title",playerName).replaceAll("%status%", statut),
     						lore,
@@ -119,9 +112,7 @@ public class AdminClaimGui implements InventoryHolder {
     	for(String key : custom_items) {
     		lore = new ArrayList<>(getLoreWP(ClaimGuis.getCustomItemLore("admin_settings", key),player));
     		String title = ClaimGuis.getCustomItemTitle("admin_settings", key);
-    		if(ClaimSettings.getBooleanSetting("placeholderapi")) {
-    			title = PlaceholderAPI.setPlaceholders(player, title);
-    		}
+    		if(ClaimSettings.getBooleanSetting("placeholderapi")) title = PlaceholderAPI.setPlaceholders(player, title);
 			if(ClaimGuis.getCustomItemCheckCustomModelData("admin_settings", key)) {
 				inv.setItem(ClaimGuis.getCustomItemSlot("admin_settings", key), createItemWMD(title,
 						lore,

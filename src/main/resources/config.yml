@@ -32,6 +32,10 @@ bluemap-claim-border-color: 80FF0000
 bluemap-claim-fill-color: 8033CC33
 bluemap-hover-text: "%claim-name% - Owner: %owner%"
 
+# Where the protection messages are displayed
+# Allowed type : ACTION_BAR (default), SUBTITLE, TITLE and CHAT
+protection-message: ACTION_BAR
+
 # Worlds where claims are disabled
 worlds-disabled:
 - example_world
@@ -119,7 +123,7 @@ groups:
 # 0 for unlimited members
 # Be careful, if you set the claim radius to 0, there is a risk of lag if players claim with a too large radius
 players: {}
-  # CleMx:
+  # Xyness:
     # max-claims: 0
     # max-radius-claims: 0
     # teleportation-delay: 0

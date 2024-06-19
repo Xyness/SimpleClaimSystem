@@ -18,6 +18,12 @@ import fr.xyness.SCS.Config.ClaimSettings;
 
 public class SClaimCommand implements CommandExecutor,TabCompleter {
 	
+	
+	// ******************
+	// *  Tab Complete  *
+	// ******************
+	
+	
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
@@ -41,6 +47,12 @@ public class SClaimCommand implements CommandExecutor,TabCompleter {
 
         return completions;
     }
+    
+    
+	// ******************
+	// *  Main command  *
+	// ******************
+    
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {

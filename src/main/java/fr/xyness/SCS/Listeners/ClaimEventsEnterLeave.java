@@ -97,7 +97,7 @@ public class ClaimEventsEnterLeave implements Listener {
     	Player player = event.getPlayer();
     	if(ClaimMain.checkBan(to, player.getName())) {
     		event.setCancelled(true);
-    		ClaimMain.sendActionBar(player, ClaimLanguage.getMessage("player-banned"));
+    		ClaimMain.sendMessage(player, ClaimLanguage.getMessage("player-banned"),ClaimSettings.getSetting("protection-message"));
     		return;
     	}
     	if(!player.hasPermission("csc.bypass") && !ClaimMain.checkMembre(to, player) && !ClaimMain.canPermCheck(to, "Teleportations")) {
@@ -105,7 +105,7 @@ public class ClaimEventsEnterLeave implements Listener {
             switch (cause) {
                 case ENDER_PEARL:
                 case CHORUS_FRUIT:
-                	ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("teleportations"));
+                	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("teleportations"),ClaimSettings.getSetting("protection-message"));
                     event.setCancelled(true);
                     return;
             }
@@ -176,7 +176,7 @@ public class ClaimEventsEnterLeave implements Listener {
         	CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
         	if(ClaimMain.checkBan(to, player.getName())) {
         		player.teleport(event.getFrom());
-        		ClaimMain.sendActionBar(player, ClaimLanguage.getMessage("player-banned"));
+        		ClaimMain.sendMessage(player, ClaimLanguage.getMessage("player-banned"),"ACTION_BAR");
         		return;
         	}
         	if(ClaimSettings.getBooleanSetting("bossbar")) bossbarMessages(player,to,ownerTO);
@@ -243,20 +243,20 @@ public class ClaimEventsEnterLeave implements Listener {
     private void enterleaveMessages(Player player, Chunk to, Chunk from, String ownerTO, String ownerFROM) {
     	if(ClaimMain.checkIfClaimExists(to)) {
         	if(ownerTO.equals("admin")) {
-        		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("enter-protected-area").replaceAll("%name%", ClaimMain.getClaimNameByChunk(to)));
+        		ClaimMain.sendMessage(player,ClaimLanguage.getMessage("enter-protected-area").replaceAll("%name%", ClaimMain.getClaimNameByChunk(to)),"ACTION_BAR");
             	return;
         	}
         	String message = ClaimLanguage.getMessage("enter-territory").replaceAll("%owner%", ownerTO).replaceAll("%player%", player.getName()).replaceAll("%name%", ClaimMain.getClaimNameByChunk(to));
-        	ClaimMain.sendActionBar(player,message);
+        	ClaimMain.sendMessage(player,message,"ACTION_BAR");
         	return;
         }
         if(ClaimMain.checkIfClaimExists(from)) {
         	if(ownerFROM.equals("admin")) {
-        		ClaimMain.sendActionBar(player,ClaimLanguage.getMessage("leave-protected-area").replaceAll("%name%", ClaimMain.getClaimNameByChunk(from)));
+        		ClaimMain.sendMessage(player,ClaimLanguage.getMessage("leave-protected-area").replaceAll("%name%", ClaimMain.getClaimNameByChunk(from)),"ACTION_BAR");
             	return;
         	}
         	String message = ClaimLanguage.getMessage("leave-territory").replaceAll("%owner%", ownerFROM).replaceAll("%player%", player.getName()).replaceAll("%name%", ClaimMain.getClaimNameByChunk(from));
-        	ClaimMain.sendActionBar(player,message);
+        	ClaimMain.sendMessage(player,message,"ACTION_BAR");
         	return;
         }
     }

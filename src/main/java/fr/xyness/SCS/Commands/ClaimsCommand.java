@@ -16,7 +16,13 @@ import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Guis.ClaimsGui;
 
 public class ClaimsCommand implements CommandExecutor {
+	
+	
+	// ******************
+	// *  Main command  *
+	// ******************
 
+	
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
     	
@@ -39,6 +45,13 @@ public class ClaimsCommand implements CommandExecutor {
         return true;
     }
     
+    
+	// *******************
+	// *  Others methods *
+	// *******************
+    
+    
+    // Method to get chunks in radius
     public static List<Chunk> getChunksInRadius(Location center, int radius) {
         List<Chunk> chunks = new ArrayList<>();
         Chunk centerChunk = center.getChunk();
