@@ -2284,7 +2284,7 @@ public class ClaimMain {
     // Method to delete all player's claims
     public static boolean deleteAllClaim(Player player) {
     	String playerName = player.getName();
-    	Set<Chunk> chunks = getChunksFromOwner(playerName);
+    	Set<Chunk> chunks = new HashSet<>(getChunksFromOwner(playerName));
     	String uuid = player.getUniqueId().toString();
     	List<Integer> ids = new ArrayList<>();
     	int i = 0;
@@ -2337,7 +2337,7 @@ public class ClaimMain {
     
     // Method to delete all player's claims
     public static boolean deleteAllClaim(String playerName) {
-    	Set<Chunk> chunks = getChunksFromOwner(playerName);
+    	Set<Chunk> chunks = new HashSet<>(getChunksFromOwner(playerName));
     	Player player = Bukkit.getPlayer(playerName);
     	String uuid = "";
     	if(player == null) {
