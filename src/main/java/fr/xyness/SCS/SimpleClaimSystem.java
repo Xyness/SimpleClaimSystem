@@ -54,7 +54,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	
 	
 	public static JavaPlugin plugin;
-	public static String Version = "1.9.0.1b10";
+	public static String Version = "1.9.0.1b11";
 	public static HikariDataSource dataSource;
 	private static boolean isFolia = false;
 	private static boolean isUpdateAvailable;
