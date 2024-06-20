@@ -136,6 +136,21 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         		completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
 	        	return completions;
 	        }
+	        if (args.length == 3 && args[0].equalsIgnoreCase("add")) {
+	        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
+	        		completions.add(p.getName());
+	        	}
+	        	return completions;
+	        }
+	        if (args.length == 3 && args[0].equalsIgnoreCase("remove") && !args[1].equals("*")) {
+	        	Chunk chunk = ClaimMain.getChunkByClaimName("admin", args[1]);
+	        	completions.addAll(ClaimMain.getClaimMembers(chunk));
+	        	return completions;
+	        }
+	        if (args.length == 3 && args[0].equalsIgnoreCase("remove")) {
+	        	completions.addAll(ClaimMain.getAllMembersOfAllPlayerClaim("admin"));
+	        	return completions;
+	        }
 	        if (args.length == 2 && args[0].equalsIgnoreCase("remove")) {
 	        	completions.add("*");
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
@@ -1086,7 +1101,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
             	if(args[0].equalsIgnoreCase("add")) {
             		if(args[1].equalsIgnoreCase("*")) {
     	        		if(ClaimMain.addAllAdminClaimMembers(args[2])) {
-    	        			String message = ClaimLanguage.getMessage("add-member-success").replaceAll("%player%", args[2]);
+    	        			String message = ClaimLanguage.getMessage("add-member-success").replaceAll("%player%", args[2]).replaceAll("%claim-name%", "all protected areas");
     	        			player.sendMessage(message);
     	        			return true;
     	        		}
@@ -1105,7 +1120,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
             			return true;
             		}
             		if(ClaimMain.addAdminClaimMembers(chunk, targetName)) {
-            			String message = ClaimLanguage.getMessage("add-member-success").replaceAll("%player%", targetName);
+            			String message = ClaimLanguage.getMessage("add-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
             			player.sendMessage(message);
             			return true;
             		}
@@ -1115,7 +1130,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
             	if(args[0].equalsIgnoreCase("remove")) {
             		if(args[1].equalsIgnoreCase("*")) {
     	        		if(ClaimMain.removeAllAdminClaimMembers(args[2])) {
-    	        			String message = ClaimLanguage.getMessage("remove-member-success").replaceAll("%player%", args[2]);
+    	        			String message = ClaimLanguage.getMessage("remove-member-success").replaceAll("%player%", args[2]).replaceAll("%claim-name%", "all protected areas");
     	        			player.sendMessage(message);
     	        			return true;
     	        		}
@@ -1139,7 +1154,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
             			return true;
             		}
             		if(ClaimMain.removeAdminClaimMembers(chunk, args[2])) {
-            			String message = ClaimLanguage.getMessage("remove-member-success").replaceAll("%player%", args[2]);
+            			String message = ClaimLanguage.getMessage("remove-member-success").replaceAll("%player%", args[2]).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
             			player.sendMessage(message);
             			return true;
             		}
