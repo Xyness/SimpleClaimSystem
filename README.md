@@ -8,7 +8,7 @@ https://xyness.gitbook.io/simpleclaimsystem
 [Discord](https://discord.gg/xyness)
 
 ## bStats
-[![](https://bstats.org/signatures/bukkit/SimpleCLaimSystem.svg)]([https://bstats.org/plugin/bukkit/Skyllia/20874](https://bstats.org/plugin/bukkit/SimpleClaimSystem/21435))
+[![](https://bstats.org/signatures/bukkit/SimpleCLaimSystem.svg)]([https://bstats.org/plugin/bukkit/SimpleClaimSystem/21435](https://bstats.org/plugin/bukkit/SimpleClaimSystem/21435))
 
 ## Compatibility
 |                      Software                       |    Version    |
