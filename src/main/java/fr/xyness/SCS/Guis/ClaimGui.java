@@ -95,6 +95,10 @@ public class ClaimGui implements InventoryHolder {
     			}
     		} else {
     			String title = ClaimLanguage.getMessageWP(lower_name+"-title",playerName).replaceAll("%coords%", ClaimMain.getClaimCoords(chunk)).replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk));
+    			if(!checkPermButton(player,key)) {
+    				lore.remove(lore.size()-1);
+    				lore.add(ClaimLanguage.getMessage("gui-button-no-permission"));
+    			}
     			if(ClaimGuis.getItemCheckCustomModelData("settings", key)) {
     				inv.setItem(ClaimGuis.getItemSlot("settings", key), createItemWMD(title,
     						lore,
@@ -123,6 +127,26 @@ public class ClaimGui implements InventoryHolder {
 						title,
 						lore));
 			}
+    	}
+    }
+    
+    // Method to check if they have perm with the key
+    public static boolean checkPermButton(Player player, String key) {
+    	switch(key) {
+    	case "define-loc":
+    		return player.hasPermission("scs.command.claim.setspawn");
+    	case "define-name":
+    		return player.hasPermission("scs.command.claim.setname");
+    	case "manage-members":
+    		return player.hasPermission("scs.command.claim.members");
+    	case "manage-bans":
+    		return player.hasPermission("scs.command.claim.bans");
+    	case "my-claims":
+    		return player.hasPermission("scs.command.claim.list");
+    	case "apply-all-claims":
+    		return true;
+    	default:
+    		return false;
     	}
     }
     

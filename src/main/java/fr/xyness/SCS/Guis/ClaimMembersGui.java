@@ -84,6 +84,7 @@ public class ClaimMembersGui implements InventoryHolder {
 	        } else {
 	        	lore = new ArrayList<>(getLore(ClaimLanguage.getMessage("territory-access-lore")));
 	        }
+	        lore.add(player.hasPermission("scs.command.claim.remove") ? ClaimLanguage.getMessage("access-claim-clickable-removemember") : ClaimLanguage.getMessage("gui-button-no-permission") + " to remove this player");
 	        int startItem = (page - 1) * items_count;
 	    	int i = min_member_slot;
 	    	int count = 0;

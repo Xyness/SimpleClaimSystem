@@ -56,7 +56,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	static ClaimBluemap bluemapC;
 	
 	public static JavaPlugin plugin;
-	public static String Version = "1.9.0.1b12";
+	public static String Version = "1.9.0.2";
 	public static HikariDataSource dataSource;
 	private static boolean isFolia = false;
 	private static boolean isUpdateAvailable;

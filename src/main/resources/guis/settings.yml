@@ -164,17 +164,22 @@ items:
     custom_model_data: false
     custom_model_data_value: 0
   Monsters:
-    slot: 30
+    slot: 29
     material: STRING
     custom_model_data: false
     custom_model_data_value: 0
   Visitors:
-    slot: 31
+    slot: 30
     material: PLAYER_HEAD
     custom_model_data: false
     custom_model_data_value: 0
   Pvp:
     slot: 32
     material: IRON_SWORD
+    custom_model_data: false
+    custom_model_data_value: 0
+  Weather:
+    slot: 33
+    material: SNOWBALL
     custom_model_data: false
     custom_model_data_value: 0

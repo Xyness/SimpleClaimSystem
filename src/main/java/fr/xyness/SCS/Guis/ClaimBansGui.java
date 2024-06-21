@@ -84,6 +84,10 @@ public class ClaimBansGui implements InventoryHolder {
 	        } else {
 	        	lore = new ArrayList<>(getLore(ClaimLanguage.getMessage("player-banned-lore")));
 	        }
+			if(!player.hasPermission("scs.command.claim.unban")) {
+				lore.remove(lore.size()-1);
+				lore.add(ClaimLanguage.getMessage("gui-button-no-permission")+" to unban");
+			}
 	        int startItem = (page - 1) * items_count;
 	    	int i = min_member_slot;
 	    	int count = 0;

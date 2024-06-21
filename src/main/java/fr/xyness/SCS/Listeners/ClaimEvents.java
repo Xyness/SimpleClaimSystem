@@ -1,14 +1,19 @@
 package fr.xyness.SCS.Listeners;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.WeatherType;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Directional;
@@ -58,6 +63,8 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
+import org.bukkit.event.weather.LightningStrikeEvent;
+import org.bukkit.event.weather.WeatherChangeEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -67,6 +74,7 @@ import org.bukkit.projectiles.ProjectileSource;
 import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.ClaimMain;
+import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
@@ -371,6 +379,10 @@ public class ClaimEvents implements Listener {
                 if(clickedSlot >= ClaimGuis.getGuiMinSlot("members") && clickedSlot <= ClaimGuis.getGuiMaxSlot("members")) {
                 	String owner = cPlayer.getMapString(clickedSlot);
                 	if(owner.equals(player.getName())) return;
+                	if (!player.hasPermission("scs.command.claim.remove")) {
+                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                    	return;
+                	}
                 	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
                 		ClaimMain.removeAdminClaimMembers(chunk, owner);
                 	} else {
@@ -434,6 +446,10 @@ public class ClaimEvents implements Listener {
                 if(clickedSlot >= ClaimGuis.getGuiMinSlot("bans") && clickedSlot <= ClaimGuis.getGuiMaxSlot("bans")) {
                 	String owner = cPlayer.getMapString(clickedSlot);
                 	if(owner.equals(player.getName())) return;
+                	if (!player.hasPermission("scs.command.claim.unban")) {
+                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                    	return;
+                	}
                 	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
                 		ClaimMain.removeAdminClaimBan(chunk, owner);
                 	} else {
@@ -505,11 +521,19 @@ public class ClaimEvents implements Listener {
 		            }
 		            if(cPlayer.getFilter().equals("not_owner")) return;
 		            if(event.getClick() == ClickType.RIGHT) {
+	                	if (!player.hasPermission("scs.command.claim.settings")) {
+	                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+	                    	return;
+	                	}
 	                    ClaimGui menu = new ClaimGui(player,cPlayer.getMapChunk(clickedSlot));
 	                    menu.openInventory(player);
 			        	return;
 		            }
 		            if(event.getClick() == ClickType.SHIFT_LEFT) {
+	                	if (!player.hasPermission("scs.command.unclaim")) {
+	                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+	                    	return;
+	                	}
 		            	Chunk chunk = cPlayer.getMapChunk(clickedSlot);
 			        	if(ClaimMain.deleteClaim(player, chunk)) {
 			        		for(Entity e : chunk.getEntities()) {
@@ -526,6 +550,10 @@ public class ClaimEvents implements Listener {
 		            }
 		            if(event.getClick() == ClickType.SHIFT_RIGHT) {
 	            		if(ClaimSettings.getBooleanSetting("economy")) {
+	                    	if (!player.hasPermission("scs.command.sclaim")) {
+	                        	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+	                        	return;
+	                    	}
 	            			Chunk chunk = cPlayer.getMapChunk(clickedSlot);
 	            			if(ClaimMain.claimIsInSale(chunk)) {
 	                			if(ClaimMain.delChunkSale(player, chunk)) {
@@ -726,6 +754,10 @@ public class ClaimEvents implements Listener {
 	            	}
 	            	if(event.getClick() == ClickType.SHIFT_LEFT) {
 	            		if(ClaimSettings.getBooleanSetting("economy")) {
+	                    	if (!player.hasPermission("scs.command.claim.sclaim")) {
+	                        	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+	                        	return;
+	                    	}
 	            			if(ClaimMain.getOwnerInClaim(chunk).equals(player.getName())) {
 	            				player.sendMessage(ClaimLanguage.getMessage("cant-buy-your-own-claim"));
 	            				return;
@@ -887,6 +919,16 @@ public class ClaimEvents implements Listener {
 			return;
 		}
 	}
+	
+	// Weather settings
+    @EventHandler
+    public void onLightningStrike(LightningStrikeEvent event) {
+        Location strikeLocation = event.getLightning().getLocation();
+        Chunk chunk = strikeLocation.getChunk();
+        if (ClaimMain.checkIfClaimExists(chunk) && !ClaimMain.canPermCheck(chunk, "Weather")) {
+            event.setCancelled(true);
+        }
+    }
 	
 	// Build setting
 	@EventHandler(priority = EventPriority.LOW)

@@ -33,7 +33,7 @@ public class ClaimGuis {
     private static Map<Integer,String> guis_items_perms_clicked_slots = new HashMap<>();
     private static Set<String> settings_name = Set.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", "Trapdoors",
     		"Fencegates","Tripwires","RepeatersComparators","Bells","Entities","Explosions","Liquids","Redstone","Frostwalker","Firespread",
-    		"Teleportations","Damages","Visitors","Pvp","Monsters");
+    		"Teleportations","Damages","Visitors","Pvp","Monsters","Weather");
     
     
     // *****************

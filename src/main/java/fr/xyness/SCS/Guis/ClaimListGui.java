@@ -1,6 +1,7 @@
 package fr.xyness.SCS.Guis;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -73,6 +74,11 @@ public class ClaimListGui implements InventoryHolder {
     	cPlayer.clearMapChunk();
     	cPlayer.clearMapLoc();
     	
+    	String lore_tp = player.hasPermission("scs.command.claim.tp") ? ClaimLanguage.getMessage("access-claim-clickable-tp") : ClaimLanguage.getMessage("gui-button-no-permission")+" to teleport";
+    	String lore_remove = player.hasPermission("scs.command.claim.remove") ? ClaimLanguage.getMessage("access-claim-clickable-remove") : ClaimLanguage.getMessage("gui-button-no-permission")+" to remove";
+    	String lore_settings = player.hasPermission("scs.command.claim.settings") ? ClaimLanguage.getMessage("access-claim-clickable-settings") : ClaimLanguage.getMessage("gui-button-no-permission")+" to open settings";
+    	String lore_sale = player.hasPermission("scs.command.sclaim") ? ClaimLanguage.getMessage("access-claim-clickable-cancelsale") : ClaimLanguage.getMessage("gui-button-no-permission")+" to cancel sale";
+    	
         if(page > 1) {
         	inv.setItem(ClaimGuis.getItemSlot("list", "back-page-list"), backPage(page-1));
         } else if (cPlayer.getChunk() != null) {
@@ -128,24 +134,21 @@ public class ClaimListGui implements InventoryHolder {
 		            	for(String part : m) {
 		            		used_lore.add(part);
 		            	}
-		            	used_lore.addAll(getLore(ClaimLanguage.getMessage("access-claim-clickable")));
-		            	used_lore.add(ClaimLanguage.getMessage("my-claims-clickable-cancel-sale"));
+		            	used_lore.addAll(Arrays.asList(lore_tp,lore_remove,lore_settings));
+		            	used_lore.add(lore_sale);
 		            } else {
-		            	used_lore.addAll(getLore(ClaimLanguage.getMessage("access-claim-clickable")));
+		            	used_lore.addAll(Arrays.asList(lore_tp,lore_remove,lore_settings));
 		            }
 	            } else {
-	            	used_lore.addAll(getLore(ClaimLanguage.getMessage("access-claim-clickable")));
+	            	used_lore.addAll(Arrays.asList(lore_tp,lore_remove,lore_settings));
 	            }
             } else {
-            	used_lore.addAll(getLore(ClaimLanguage.getMessage("access-claim-clickable-not-owner")));
+            	used_lore.add(lore_tp);
             }
             
-        	final int i_final = i;
-        	final List<String> used_lore_final = used_lore;
-            
             if(ClaimGuis.getItemCheckCustomModelData("list", "claim-item")) {
-            	inv.setItem(i_final, createItemWMD(ClaimLanguage.getMessageWP("access-claim-title",playerName).replaceAll("%name%", claim.getName()).replaceAll("%coords%", ClaimMain.getClaimCoords(claim)),
-            			used_lore_final,
+            	inv.setItem(i, createItemWMD(ClaimLanguage.getMessageWP("access-claim-title",playerName).replaceAll("%name%", claim.getName()).replaceAll("%coords%", ClaimMain.getClaimCoords(claim)),
+            			used_lore,
             			ClaimGuis.getItemMaterialMD("list", "claim-item"),
             			ClaimGuis.getItemCustomModelData("list", "claim-item")));
             	i++;
@@ -156,13 +159,13 @@ public class ClaimListGui implements InventoryHolder {
     	        SkullMeta meta = (SkullMeta) item.getItemMeta();
     	        meta.setOwningPlayer(player);
                 meta.setDisplayName(ClaimLanguage.getMessageWP("access-claim-title",playerName).replaceAll("%name%", claim.getName()).replaceAll("%coords%", ClaimMain.getClaimCoords(claim)));
-                meta.setLore(used_lore_final);
+                meta.setLore(used_lore);
                 item.setItemMeta(meta);
-                inv.setItem(i_final, item);
+                inv.setItem(i, item);
                 i++;
                 continue;
             }
-            inv.setItem(i_final, createItem(ClaimGuis.getItemMaterial("list", "claim-item"), ClaimLanguage.getMessageWP("access-claim-title",playerName).replaceAll("%name%", claim.getName()).replaceAll("%coords%", ClaimMain.getClaimCoords(claim)),used_lore_final));
+            inv.setItem(i, createItem(ClaimGuis.getItemMaterial("list", "claim-item"), ClaimLanguage.getMessageWP("access-claim-title",playerName).replaceAll("%name%", claim.getName()).replaceAll("%coords%", ClaimMain.getClaimCoords(claim)),used_lore));
             i++;
         }
         
