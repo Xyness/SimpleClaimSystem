@@ -157,6 +157,7 @@ status-settings:
   Visitors: true
   Pvp: true
   Monsters: true
+  Weather: true
 
 # List of default values for the settings
 default-values-settings:
@@ -184,6 +185,7 @@ default-values-settings:
   Visitors: false
   Pvp: true
   Monsters: true
+  Weather: true
 
 # List of blocked containers for the settings "Interact with blocks"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html

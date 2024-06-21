@@ -24,6 +24,7 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
+import org.bukkit.WeatherType;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -1301,7 +1302,8 @@ public class ClaimMain {
     
     // Return the boolean of the given perm
     public static boolean canPermCheck(Chunk chunk, String perm) {
-    	return listClaims.get(chunk).getPermissions().get(perm);
+    	Claim claim = listClaims.get(chunk);
+    	return claim == null ? false : claim.getPermission(perm);
     }
     
     // Check if a player is member of a claim
@@ -1387,6 +1389,8 @@ public class ClaimMain {
         LinkedHashMap<String,Boolean> perms = listClaims.get(chunk).getPermissions();
         perms.put(perm, result);
         
+        if(perm.equals("Weather")) updateWeatherChunk(chunk,result);
+        
         Runnable task = () -> {
     		StringBuilder sb = new StringBuilder();
             for(String key : perms.keySet()) {
@@ -1423,6 +1427,8 @@ public class ClaimMain {
     	if(!listClaims.containsKey(chunk)) return false;
         LinkedHashMap<String,Boolean> perms = listClaims.get(chunk).getPermissions();
         perms.put(perm, result);
+        
+        if(perm.equals("Weather")) updateWeatherChunk(chunk,result);
     	
         Runnable task = () -> {
     		StringBuilder sb = new StringBuilder();
@@ -3093,5 +3099,29 @@ public class ClaimMain {
 			return ClaimLanguage.getMessage("map-claim-relation-member");
 		}
 		return ClaimLanguage.getMessage("map-claim-relation-visitor");
+	}
+	
+	// Method to update the weather in the chunk
+	public static void updateWeatherChunk(Chunk chunk, boolean result) {
+		Runnable task = () -> {
+			if(result) {
+				for(Entity e : chunk.getEntities()) {
+					if(!(e instanceof Player)) continue;
+					Player p = (Player) e;
+					p.resetPlayerWeather();
+				}
+			} else {
+				for(Entity e : chunk.getEntities()) {
+					if(!(e instanceof Player)) continue;
+					Player p = (Player) e;
+					p.setPlayerWeather(WeatherType.CLEAR);;
+				}
+			}
+		};
+		if(SimpleClaimSystem.isFolia()) {
+    		Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> task.run());
+		} else {
+			task.run();
+		}
 	}
 }

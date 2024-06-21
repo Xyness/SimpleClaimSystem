@@ -150,18 +150,18 @@ public class ClaimsOwnerGui implements InventoryHolder {
 				lore.add(line);
 			}
 		}
-		addEconomyLore(claim, lore);
+		addEconomyLore(player, claim, lore);
 		addVisitorLore(claim, lore, player);
 		return getLoreWP(lore, claim.getOwner());
 	}
 
 	// Method to add the economy lore (if enabled)
-	private void addEconomyLore(Claim claim, List<String> lore) {
+	private void addEconomyLore(Player player, Claim claim, List<String> lore) {
 		if (ClaimSettings.getBooleanSetting("economy") && claim.getSale()) {
 			Collections.addAll(lore, ClaimLanguage.getMessageWP("all-claim-buyable-price", claim.getOwner())
 				.replace("%price%", String.valueOf(claim.getPrice()))
 				.split("\n"));
-			lore.add(ClaimLanguage.getMessage("all-claim-is-buyable"));
+			lore.add(player.hasPermission("scs.command.sclaim") ? ClaimLanguage.getMessage("all-claim-is-buyable") : ClaimLanguage.getMessage("gui-button-no-permission") + " to buy");
 		}
 	}
 
@@ -170,7 +170,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
 		String visitorMessage = ClaimMain.canPermCheck(claim.getChunk(), "Visitors") || claim.getOwner().equals(player.getName()) ? 
 			ClaimLanguage.getMessage("access-all-claim-lore-allow-visitors") : 
 			ClaimLanguage.getMessage("access-all-claim-lore-deny-visitors");
-		lore.add(visitorMessage);
+		lore.add(player.hasPermission("scs.command.claim.tp") ? visitorMessage : ClaimLanguage.getMessage("gui-button-no-permission") + " to teleport");
 	}
 	
 	// Method to create claim item

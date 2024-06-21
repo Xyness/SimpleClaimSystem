@@ -209,6 +209,8 @@ leave-territory-chat: "§fYou leave the territory of §e%owner%"
 # > Gui messages
 # Use \n for new line only for lores messages
 
+gui-button-no-permission: "§cYou don't have the permission"
+
 owner-claim-title: "§e%owner%"
 owner-claim-lore: "§7Claims: §b%claim-amount%"
 owner-claim-access: "§7▸ §fDisplay his claims"
@@ -223,15 +225,19 @@ all-claim-is-buyable: "§7▸ §fShift-left-click to buy" # Visible only if in s
 access-claim-title: "§e%name% §b(%coords%)"
 access-claim-lore: "§7%description%\n \n§7Members:\n%members%\n \n"
 access-claim-not-owner-lore: "§7Owner: §4%owner%\n§7%description%\n \n§7Members:\n%members%\n \n"
-access-claim-clickable: "§7▸ §fLeft-click to teleport\n§7▸ §fShift-left-click to remove\n§7▸ §fRight-click to open settings"
-access-claim-clickable-not-owner: "§7▸ §fLeft-click to teleport"
+
+access-claim-clickable-tp: "§7▸ §fLeft-click to teleport"
+access-claim-clickable-remove: "§7▸ §fShift-left-click to remove"
+access-claim-clickable-settings: "§7▸ §fRight-click to open settings"
+access-claim-clickable-cancelsale: "§7▸ §fShift-right-click to cancel sale"
+access-claim-clickable-removemember: "§7▸ §fRemove this member"
+
 teleportation-success: "§fYou have been teleported to the claim's spawn."
 claim-list-no-member: "§8no members"
 my-claims-buyable-price: "§7Your claim is for sale!\n§7Price: §6%price%⛃\n \n" # Visible only if in sale
-my-claims-clickable-cancel-sale: "§7▸ §fShift-right-click to cancel sale"
 
-protected-area-access-lore: "§7Has access to this protected area\n§7▸§f Remove this player"
-territory-access-lore: "§7Has access to your territory\n§7▸§f Remove this player"
+protected-area-access-lore-new: "§7Has access to this protected area"
+territory-access-lore-new: "§7Has access to your territory"
 player-banned-lore: "§7Is banned from your territory\n§7▸§f Unban this player"
 player-banned-protected-area-lore: "§7Is banned from this protected area\n§7▸§f Unban this player"
 player-member-title: "§e%player%"
@@ -342,6 +348,9 @@ pvp-lore: "§7Allow players to pvp"
 
 monsters-title: "§eMonsters §7(%status%§7)"
 monsters-lore: "§7Allow spawning monsters"
+
+weather-title: "§eWeather §7(%status%§7)"
+weather-lore: "§7Allow raining/snowing/thundering"
 
 manage-members-title: "§eMembers"
 manage-members-lore: "§7Manage members\n§7▸ §fClick to access"

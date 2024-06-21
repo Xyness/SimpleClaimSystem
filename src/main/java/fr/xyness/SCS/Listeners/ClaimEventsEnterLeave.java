@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.WeatherType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -52,32 +53,38 @@ public class ClaimEventsEnterLeave implements Listener {
 				player.sendMessage(SimpleClaimSystem.getUpdateMessage());
 			}
 		}
-		if(!ClaimSettings.getBooleanSetting("bossbar")) return;
-		BossBar b = Bukkit.getServer().createBossBar("", BarColor.valueOf(ClaimSettings.getSetting("bossbar-color")), BarStyle.SOLID);
-		bossBars.put(player, b);
-		b.setVisible(false);
-		b.addPlayer(player);
-		if(ClaimMain.checkIfClaimExists(player.getLocation().getChunk())){
-			String owner = ClaimMain.getOwnerInClaim(player.getLocation().getChunk());
-        	if(owner.equals("admin")) {
-        		b.setTitle(ClaimSettings.getSetting("bossbar-protected-area-message").replaceAll("%player%", player.getName()).replaceAll("%name%", ClaimMain.getClaimNameByChunk(player.getLocation().getChunk())));
-        		b.setVisible(true);
-            	return;
-        	}
-        	if(owner.equals(player.getName())) {
-        		b.setTitle(ClaimSettings.getSetting("bossbar-owner-message").replaceAll("%owner%", owner).replaceAll("%player%", player.getName()).replaceAll("%name%", ClaimMain.getClaimNameByChunk(player.getLocation().getChunk())));
-        		b.setVisible(true);
-            	return;
-        	}
-        	if(ClaimMain.checkMembre(player.getLocation().getChunk(), player)) {
-        		b.setTitle(ClaimSettings.getSetting("bossbar-member-message").replaceAll("%player%", player.getName()).replaceAll("%owner%", owner).replaceAll("%name%", ClaimMain.getClaimNameByChunk(player.getLocation().getChunk())));
-        		b.setVisible(true);
-            	return;
-        	}
-        	String message = ClaimSettings.getSetting("bossbar-visitor-message").replaceAll("%player%", player.getName()).replaceAll("%owner%", owner).replaceAll("%name%", ClaimMain.getClaimNameByChunk(player.getLocation().getChunk()));
-        	b.setTitle(message);
-        	b.setVisible(true);
-        	return;
+		Chunk chunk = player.getLocation().getChunk();
+		boolean checkClaim = ClaimMain.checkIfClaimExists(chunk);
+		if(checkClaim && !ClaimMain.canPermCheck(chunk, "Weather")) {
+			player.setPlayerWeather(WeatherType.CLEAR);
+		}
+		if(ClaimSettings.getBooleanSetting("bossbar")) {
+			BossBar b = Bukkit.getServer().createBossBar("", BarColor.valueOf(ClaimSettings.getSetting("bossbar-color")), BarStyle.SOLID);
+			bossBars.put(player, b);
+			b.setVisible(false);
+			b.addPlayer(player);
+			if(checkClaim){
+				String owner = ClaimMain.getOwnerInClaim(chunk);
+	        	if(owner.equals("admin")) {
+	        		b.setTitle(ClaimSettings.getSetting("bossbar-protected-area-message").replaceAll("%player%", player.getName()).replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk)));
+	        		b.setVisible(true);
+	            	return;
+	        	}
+	        	if(owner.equals(player.getName())) {
+	        		b.setTitle(ClaimSettings.getSetting("bossbar-owner-message").replaceAll("%owner%", owner).replaceAll("%player%", player.getName()).replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk)));
+	        		b.setVisible(true);
+	            	return;
+	        	}
+	        	if(ClaimMain.checkMembre(chunk, player)) {
+	        		b.setTitle(ClaimSettings.getSetting("bossbar-member-message").replaceAll("%player%", player.getName()).replaceAll("%owner%", owner).replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk)));
+	        		b.setVisible(true);
+	            	return;
+	        	}
+	        	String message = ClaimSettings.getSetting("bossbar-visitor-message").replaceAll("%player%", player.getName()).replaceAll("%owner%", owner).replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk));
+	        	b.setTitle(message);
+	        	b.setVisible(true);
+	        	return;
+			}
 		}
 	}
 	
@@ -85,6 +92,7 @@ public class ClaimEventsEnterLeave implements Listener {
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event) {
 		Player player = event.getPlayer();
+		player.resetPlayerWeather();
 		CPlayerMain.removeCPlayer(player.getName());
 		if(bossBars.containsKey(player)) bossBars.remove(player);
 	}
@@ -111,6 +119,11 @@ public class ClaimEventsEnterLeave implements Listener {
             }
     	}
 		Chunk from = event.getFrom().getChunk();
+		if(!ClaimMain.canPermCheck(to, "Weather")) {
+			player.setPlayerWeather(WeatherType.CLEAR);
+		} else {
+			player.resetPlayerWeather();
+		}
     	String ownerTO = ClaimMain.getOwnerInClaim(to);
     	String ownerFROM = ClaimMain.getOwnerInClaim(from);
     	CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
@@ -142,6 +155,12 @@ public class ClaimEventsEnterLeave implements Listener {
 	public void onPlayerRespawn(PlayerRespawnEvent event) {
 		Player player = event.getPlayer();
 		Chunk to = event.getRespawnLocation().getChunk();
+		if(!ClaimMain.checkIfClaimExists(to)) return;
+		if(!ClaimMain.canPermCheck(to, "Weather")) {
+			player.setPlayerWeather(WeatherType.CLEAR);
+		} else {
+			player.resetPlayerWeather();
+		}
     	String ownerTO = ClaimMain.getOwnerInClaim(to);
     	if(ClaimSettings.getBooleanSetting("bossbar")) bossbarMessages(player,to,ownerTO);
     	CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
@@ -179,6 +198,11 @@ public class ClaimEventsEnterLeave implements Listener {
         		ClaimMain.sendMessage(player, ClaimLanguage.getMessage("player-banned"),"ACTION_BAR");
         		return;
         	}
+    		if(ClaimMain.checkIfClaimExists(to) && !ClaimMain.canPermCheck(to, "Weather")) {
+    			player.setPlayerWeather(WeatherType.CLEAR);
+    		} else if (ClaimMain.checkIfClaimExists(from) && !ClaimMain.canPermCheck(from, "Weather")){
+    			player.resetPlayerWeather();
+    		}
         	if(ClaimSettings.getBooleanSetting("bossbar")) bossbarMessages(player,to,ownerTO);
         	String world = player.getWorld().getName();
         	if(cPlayer.getClaimAutoclaim()) {
