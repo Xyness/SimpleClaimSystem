@@ -52,9 +52,11 @@ public class SimpleClaimSystem extends JavaPlugin {
 	// *  Variables  *
 	// ***************
 	
+	static ClaimDynmap dynmapC;
+	static ClaimBluemap bluemapC;
 	
 	public static JavaPlugin plugin;
-	public static String Version = "1.9.0.1b11";
+	public static String Version = "1.9.0.1b12";
 	public static HikariDataSource dataSource;
 	private static boolean isFolia = false;
 	private static boolean isUpdateAvailable;
@@ -220,7 +222,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             	MarkerAPI markerAPI = dynmapAPI.getMarkerAPI();
                 if (markerAPI != null) {
                 	MarkerSet markerSet = markerAPI.createMarkerSet("SimpleClaimSystem", "Claims", null, false);
-                	new ClaimDynmap(dynmapAPI,markerAPI,markerSet);
+                	dynmapC = new ClaimDynmap(dynmapAPI,markerAPI,markerSet);
                 }
         	}
         } else {
@@ -233,10 +235,10 @@ public class SimpleClaimSystem extends JavaPlugin {
         	ClaimSettings.addSetting("bluemap", "true");
 	        BlueMapAPI.onEnable(api -> {
 	            // Register marker set
-	        	new ClaimBluemap(api,plugin);
+	        	bluemapC = new ClaimBluemap(api,plugin);
 	        });
         } else {
-        	ClaimSettings.addSetting("dynmap", "false");
+        	ClaimSettings.addSetting("bluemap", "false");
         }
         
         // Checking guis files
