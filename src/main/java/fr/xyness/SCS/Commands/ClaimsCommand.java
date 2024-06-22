@@ -34,7 +34,7 @@ public class ClaimsCommand implements CommandExecutor {
         Player player = (Player) sender;
         CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
         
-        if(!player.hasPermission("scs.command.claims")) {
+        if(!CPlayerMain.checkPermPlayer(player, "scs.command.claims")) {
         	sender.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         	return false;
         }

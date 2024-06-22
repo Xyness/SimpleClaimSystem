@@ -56,7 +56,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	static ClaimBluemap bluemapC;
 	
 	public static JavaPlugin plugin;
-	public static String Version = "1.9.0.2";
+	public static String Version = "1.9.0.2b1";
 	public static HikariDataSource dataSource;
 	private static boolean isFolia = false;
 	private static boolean isUpdateAvailable;
@@ -497,6 +497,10 @@ public class SimpleClaimSystem extends JavaPlugin {
         // Add confirmation check setting
         configC = plugin.getConfig().getString("claim-confirmation");
         ClaimSettings.addSetting("claim-confirmation", configC);
+        
+        // Add claim particles setting
+        configC = plugin.getConfig().getString("claim-particles");
+        ClaimSettings.addSetting("claim-particles", configC);
         
         // Checking if enter/leave messages in a claim in the action bar are enabled
         configC = plugin.getConfig().getString("enter-leave-messages");

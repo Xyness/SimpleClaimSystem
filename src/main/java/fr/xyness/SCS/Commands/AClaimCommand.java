@@ -47,209 +47,209 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
         List<String> completions = new ArrayList<>();
-        if(sender instanceof Player) {
-        	if (args.length == 1) {
-        		completions.add("convert");
-        		completions.add("setdesc");
-        		completions.add("settings");
-        		completions.add("setname");
-        		completions.add("members");
-        		completions.add("tp");
-        		completions.add("ptp");
-        		completions.add("list");
-        		completions.add("player");
-        		completions.add("group");
-        		completions.add("forceunclaim");
-        		completions.add("setowner");
-        		completions.add("set-lang");
-        		completions.add("set-actionbar");
-        		completions.add("set-auto-claim");
-        		completions.add("set-title-subtitle");
-        		completions.add("set-economy");
-        		completions.add("set-claim-confirmation");
-        		completions.add("set-max-sell-price");
-        		completions.add("set-bossbar");
-        		completions.add("set-bossbar-color");
-        		completions.add("set-teleportation");
-        		completions.add("set-teleportation-moving");
-        		completions.add("add-blocked-interact-block");
-        		completions.add("add-blocked-entity");
-        		completions.add("add-blocked-item");
-        		completions.add("remove-blocked-interact-block");
-        		completions.add("remove-blocked-item");
-        		completions.add("remove-blocked-entity");
-        		completions.add("add-disabled-world");
-        		completions.add("remove-disabled-world");
-        		completions.add("set-status-setting");
-        		completions.add("set-default-value");
-        		completions.add("set-max-length-claim-description");
-        		completions.add("set-max-length-claim-name");
-        		completions.add("set-claims-visitors-off-visible");
-        		completions.add("set-claim-cost");
-        		completions.add("set-claim-cost-multiplier");
-        		completions.add("ban");
-        		completions.add("unban");
-        		completions.add("set-chat");
-        		completions.add("set-protection-message");
-        		return completions;
+    	if (args.length == 1) {
+    		completions.add("convert");
+    		completions.add("setdesc");
+    		completions.add("settings");
+    		completions.add("setname");
+    		completions.add("members");
+    		completions.add("tp");
+    		completions.add("ptp");
+    		completions.add("list");
+    		completions.add("player");
+    		completions.add("group");
+    		completions.add("forceunclaim");
+    		completions.add("setowner");
+    		completions.add("set-lang");
+    		completions.add("set-actionbar");
+    		completions.add("set-auto-claim");
+    		completions.add("set-title-subtitle");
+    		completions.add("set-economy");
+    		completions.add("set-claim-confirmation");
+    		completions.add("set-claim-particles");
+    		completions.add("set-max-sell-price");
+    		completions.add("set-bossbar");
+    		completions.add("set-bossbar-color");
+    		completions.add("set-teleportation");
+    		completions.add("set-teleportation-moving");
+    		completions.add("add-blocked-interact-block");
+    		completions.add("add-blocked-entity");
+    		completions.add("add-blocked-item");
+    		completions.add("remove-blocked-interact-block");
+    		completions.add("remove-blocked-item");
+    		completions.add("remove-blocked-entity");
+    		completions.add("add-disabled-world");
+    		completions.add("remove-disabled-world");
+    		completions.add("set-status-setting");
+    		completions.add("set-default-value");
+    		completions.add("set-max-length-claim-description");
+    		completions.add("set-max-length-claim-name");
+    		completions.add("set-claims-visitors-off-visible");
+    		completions.add("set-claim-cost");
+    		completions.add("set-claim-cost-multiplier");
+    		completions.add("ban");
+    		completions.add("unban");
+    		completions.add("set-chat");
+    		completions.add("set-protection-message");
+    		return completions;
+    	}
+    	if (args.length == 2 && args[0].equalsIgnoreCase("set-protection-message")) {
+    		completions.add("ACTION_BAR");
+    		completions.add("TITLE");
+    		completions.add("SUBTITLE");
+    		completions.add("CHAT");
+    		return completions;
+    	}
+        if (args.length == 2 && args[0].equalsIgnoreCase("ban")) {
+        	completions.add("*");
+        	completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+        	return completions;
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("unban")) {
+        	completions.add("*");
+        	completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+        	return completions;
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("unban")) {
+        	Chunk chunk = ClaimMain.getChunkByClaimName("admin", args[1]);
+        	completions.addAll(ClaimMain.getClaimBans(chunk));
+        	return completions;
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("ban")) {
+        	Player player = (Player) sender;
+        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
+        		completions.add(p.getName());
         	}
-        	if (args.length == 2 && args[0].equalsIgnoreCase("set-protection-message")) {
-        		completions.add("ACTION_BAR");
-        		completions.add("TITLE");
-        		completions.add("SUBTITLE");
-        		completions.add("CHAT");
-        		return completions;
+        	completions.remove(player.getName());
+        	return completions;
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("ptp")) {
+        	completions.addAll(new HashSet<>(ClaimMain.getClaimsOwners()));
+        	return completions;
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("ptp")) {
+        	completions.addAll(ClaimMain.getClaimsNameFromOwner(args[1]));
+        	return completions;
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("add")) {
+        	completions.add("*");
+    		completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+        	return completions;
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("add")) {
+        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
+        		completions.add(p.getName());
         	}
-	        if (args.length == 2 && args[0].equalsIgnoreCase("ban")) {
-	        	completions.add("*");
-	        	completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
-	        	return completions;
-	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("unban")) {
-	        	completions.add("*");
-	        	completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
-	        	return completions;
-	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("unban")) {
-	        	Chunk chunk = ClaimMain.getChunkByClaimName("admin", args[1]);
-	        	completions.addAll(ClaimMain.getClaimBans(chunk));
-	        	return completions;
-	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("ban")) {
-	        	Player player = (Player) sender;
-	        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
-	        		completions.add(p.getName());
-	        	}
-	        	completions.remove(player.getName());
-	        	return completions;
-	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("ptp")) {
-	        	completions.addAll(new HashSet<>(ClaimMain.getClaimsOwners()));
-	        	return completions;
-	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("ptp")) {
-	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(args[1]));
-	        	return completions;
-	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("add")) {
-	        	completions.add("*");
-        		completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
-	        	return completions;
-	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("add")) {
-	        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
-	        		completions.add(p.getName());
-	        	}
-	        	return completions;
-	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("remove") && !args[1].equals("*")) {
-	        	Chunk chunk = ClaimMain.getChunkByClaimName("admin", args[1]);
-	        	completions.addAll(ClaimMain.getClaimMembers(chunk));
-	        	return completions;
-	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("remove")) {
-	        	completions.addAll(ClaimMain.getAllMembersOfAllPlayerClaim("admin"));
-	        	return completions;
-	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("remove")) {
-	        	completions.add("*");
-	        	completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
-	        	return completions;
-	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("remove")) {
-	        	Chunk chunk = ClaimMain.getAdminChunkByName(args[1]);
-	        	completions.addAll(ClaimMain.getClaimMembers(chunk));
-	        	return completions;
-	        }
-        	if (args.length == 2 && (args[0].equalsIgnoreCase("setdesc") || args[0].equalsIgnoreCase("settings")
-        			|| args[0].equalsIgnoreCase("setname") || args[0].equalsIgnoreCase("tp") || args[0].equalsIgnoreCase("members"))) {
-        		completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
-        		return completions;
-        	}
-        	if (args.length == 2 && args[0].equalsIgnoreCase("setowner")) {
-        		for(Player p : Bukkit.getOnlinePlayers()) {
-        			completions.add(p.getName());
-        		}
-        		return completions;
-        	}
-        	if (args.length == 2 && (args[0].equalsIgnoreCase("set-actionbar") || args[0].equalsIgnoreCase("set-title-subtitle")
-        			|| args[0].equalsIgnoreCase("set-economy") || args[0].equalsIgnoreCase("set-claim-confirmation")
-        			|| args[0].equalsIgnoreCase("set-bossbar") || args[0].equalsIgnoreCase("set-teleportation")
-        			|| args[0].equalsIgnoreCase("set-teleportation-moving") || args[0].equalsIgnoreCase("autoclaim")
-        			|| args[0].equalsIgnoreCase("set-claims-visitors-off-visible") || args[0].equalsIgnoreCase("set-claim-cost")
-        			|| args[0].equalsIgnoreCase("set-claim-cost-multiplier") || args[0].equalsIgnoreCase("set-chat"))) {
+        	return completions;
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("remove") && !args[1].equals("*")) {
+        	Chunk chunk = ClaimMain.getChunkByClaimName("admin", args[1]);
+        	completions.addAll(ClaimMain.getClaimMembers(chunk));
+        	return completions;
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("remove")) {
+        	completions.addAll(ClaimMain.getAllMembersOfAllPlayerClaim("admin"));
+        	return completions;
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("remove")) {
+        	completions.add("*");
+        	completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+        	return completions;
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("remove")) {
+        	Chunk chunk = ClaimMain.getAdminChunkByName(args[1]);
+        	completions.addAll(ClaimMain.getClaimMembers(chunk));
+        	return completions;
+        }
+    	if (args.length == 2 && (args[0].equalsIgnoreCase("setdesc") || args[0].equalsIgnoreCase("settings")
+    			|| args[0].equalsIgnoreCase("setname") || args[0].equalsIgnoreCase("tp") || args[0].equalsIgnoreCase("members"))) {
+    		completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+    		return completions;
+    	}
+    	if (args.length == 2 && args[0].equalsIgnoreCase("setowner")) {
+    		for(Player p : Bukkit.getOnlinePlayers()) {
+    			completions.add(p.getName());
+    		}
+    		return completions;
+    	}
+    	if (args.length == 2 && (args[0].equalsIgnoreCase("set-actionbar") || args[0].equalsIgnoreCase("set-title-subtitle")
+    			|| args[0].equalsIgnoreCase("set-economy") || args[0].equalsIgnoreCase("set-claim-confirmation")
+    			|| args[0].equalsIgnoreCase("set-bossbar") || args[0].equalsIgnoreCase("set-teleportation")
+    			|| args[0].equalsIgnoreCase("set-teleportation-moving") || args[0].equalsIgnoreCase("autoclaim")
+    			|| args[0].equalsIgnoreCase("set-claims-visitors-off-visible") || args[0].equalsIgnoreCase("set-claim-cost")
+    			|| args[0].equalsIgnoreCase("set-claim-cost-multiplier") || args[0].equalsIgnoreCase("set-chat")
+    			|| args[0].equalsIgnoreCase("set-claim-particles"))) {
+    		completions.add("true");
+    		completions.add("false");
+    		return completions;
+    	}
+    	if (args.length == 2 && args[0].equalsIgnoreCase("set-bossbar-color")) {
+    		for(BarColor c : BarColor.values()) {
+    			completions.add(c.toString());
+    		}
+    		return completions;
+    	}
+    	if (args.length == 2 && args[0].equalsIgnoreCase("remove-disabled-world")) {
+    		completions.addAll(ClaimSettings.getDisabledWorlds());
+    		return completions;
+    	}
+    	if (args.length == 2 && (args[0].equalsIgnoreCase("set-status-setting") || args[0].equalsIgnoreCase("set-default-value"))) {
+    		completions.addAll(ClaimGuis.getPerms());
+    		return completions;
+    	}
+    	if (args.length == 2 && (args[0].equalsIgnoreCase("add-blocked-interact-block") || args[0].equalsIgnoreCase("add-blocked-item"))) {
+    		for(Material mat : Material.values()) {
+    			completions.add(mat.toString());
+    		}
+    		return completions;
+    	}
+    	if (args.length == 2 && args[0].equalsIgnoreCase("add-blocked-entity")) {
+    		for(EntityType e : EntityType.values()) {
+    			completions.add(e.toString());
+    		}
+    		return completions;
+    	}
+    	if (args.length == 2 && args[0].equalsIgnoreCase("remove-blocked-interact-block")) {
+    		completions.addAll(ClaimSettings.getRestrictedContainersString());
+    		return completions;
+    	}
+    	if (args.length == 2 && args[0].equalsIgnoreCase("remove-blocked-entity")) {
+    		completions.addAll(ClaimSettings.getRestrictedEntitiesString());
+    		return completions;
+    	}
+    	if (args.length == 2 && args[0].equalsIgnoreCase("remove-blocked-item")) {
+    		completions.addAll(ClaimSettings.getRestrictedItemsString());
+    		return completions;
+    	}
+        if (args.length == 2 && (args[0].equalsIgnoreCase("group") || args[0].equalsIgnoreCase("player"))) {
+        	completions.add("add-limit");
+        	completions.add("add-radius");
+        	completions.add("add-members");
+        	completions.add("set-limit");
+        	completions.add("set-radius");
+        	completions.add("set-delay");
+        	completions.add("set-members");
+        	completions.add("set-claim-cost");
+        	completions.add("set-claim-cost-multiplier");
+        	return completions;
+        }
+        if (args.length == 3 && (args[0].equalsIgnoreCase("set-status-setting") || args[0].equalsIgnoreCase("set-default-value"))) {
+        	String perm = args[1].substring(0, 1).toUpperCase() + args[1].substring(1).toLowerCase();
+        	if(ClaimGuis.isAPerm(perm)) {
         		completions.add("true");
         		completions.add("false");
         		return completions;
         	}
-        	if (args.length == 2 && args[0].equalsIgnoreCase("set-bossbar-color")) {
-        		for(BarColor c : BarColor.values()) {
-        			completions.add(c.toString());
-        		}
-        		return completions;
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("player")) {
+        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
+        		completions.add(p.getName());
         	}
-        	if (args.length == 2 && args[0].equalsIgnoreCase("remove-disabled-world")) {
-        		completions.addAll(ClaimSettings.getDisabledWorlds());
-        		return completions;
-        	}
-        	if (args.length == 2 && (args[0].equalsIgnoreCase("set-status-setting") || args[0].equalsIgnoreCase("set-default-value"))) {
-        		completions.addAll(ClaimGuis.getPerms());
-        		return completions;
-        	}
-        	if (args.length == 2 && (args[0].equalsIgnoreCase("add-blocked-interact-block") || args[0].equalsIgnoreCase("add-blocked-item"))) {
-        		for(Material mat : Material.values()) {
-        			completions.add(mat.toString());
-        		}
-        		return completions;
-        	}
-        	if (args.length == 2 && args[0].equalsIgnoreCase("add-blocked-entity")) {
-        		for(EntityType e : EntityType.values()) {
-        			completions.add(e.toString());
-        		}
-        		return completions;
-        	}
-        	if (args.length == 2 && args[0].equalsIgnoreCase("remove-blocked-interact-block")) {
-        		completions.addAll(ClaimSettings.getRestrictedContainersString());
-        		return completions;
-        	}
-        	if (args.length == 2 && args[0].equalsIgnoreCase("remove-blocked-entity")) {
-        		completions.addAll(ClaimSettings.getRestrictedEntitiesString());
-        		return completions;
-        	}
-        	if (args.length == 2 && args[0].equalsIgnoreCase("remove-blocked-item")) {
-        		completions.addAll(ClaimSettings.getRestrictedItemsString());
-        		return completions;
-        	}
-	        if (args.length == 2 && (args[0].equalsIgnoreCase("group") || args[0].equalsIgnoreCase("player"))) {
-	        	completions.add("add-limit");
-	        	completions.add("add-radius");
-	        	completions.add("add-members");
-	        	completions.add("set-limit");
-	        	completions.add("set-radius");
-	        	completions.add("set-delay");
-	        	completions.add("set-members");
-	        	completions.add("set-claim-cost");
-	        	completions.add("set-claim-cost-multiplier");
-	        	return completions;
-	        }
-	        if (args.length == 3 && (args[0].equalsIgnoreCase("set-status-setting") || args[0].equalsIgnoreCase("set-default-value"))) {
-	        	String perm = args[1].substring(0, 1).toUpperCase() + args[1].substring(1).toLowerCase();
-	        	if(ClaimGuis.isAPerm(perm)) {
-	        		completions.add("true");
-	        		completions.add("false");
-	        		return completions;
-	        	}
-	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("player")) {
-	        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
-	        		completions.add(p.getName());
-	        	}
-	        	return completions;
-	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("group")) {
-	        	completions.addAll(ClaimSettings.getGroups());
-	        	return completions;
-	        }
+        	return completions;
+        }
+        if (args.length == 3 && args[0].equalsIgnoreCase("group")) {
+        	completions.addAll(ClaimSettings.getGroups());
+        	return completions;
         }
 
         return completions;
@@ -595,6 +595,23 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                try {
 	                	config.save(configFile);
 	                	sender.sendMessage(ClaimLanguage.getMessage("setting-changed-via-command").replaceAll("%setting%", "Claim confirmation").replaceAll("%value%", args[1]));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+	                return true;
+        		}
+        		sender.sendMessage(ClaimLanguage.getMessage("setting-must-be-boolean"));
+        		return true;
+        	}
+        	if(args[0].equalsIgnoreCase("set-claim-particles")) {
+        		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
+	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+	                config.set("claim-particles", Boolean.parseBoolean(args[1]));
+	                ClaimSettings.addSetting("claim-particles", args[1]);
+	                try {
+	                	config.save(configFile);
+	                	sender.sendMessage(ClaimLanguage.getMessage("setting-changed-via-command").replaceAll("%setting%", "Claim particles").replaceAll("%value%", args[1]));
 					} catch (IOException e) {
 						e.printStackTrace();
 					}

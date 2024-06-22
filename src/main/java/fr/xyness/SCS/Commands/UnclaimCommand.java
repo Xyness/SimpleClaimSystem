@@ -34,9 +34,9 @@ public class UnclaimCommand implements CommandExecutor,TabCompleter {
 
         if(sender instanceof Player) {
         	Player player = (Player) sender;
-        	if(!player.hasPermission("scs.command.unclaim")) return completions;
+        	if(!player.hasPermission("scs.command.unclaim") && !player.hasPermission("scs.admin")) return completions;
 	        if (args.length == 1) {
-	        	completions.add("*");
+	        	if(player.hasPermission("scs.command.unclaim.all") || player.hasPermission("scs.admin")) completions.add("*");
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
@@ -62,7 +62,7 @@ public class UnclaimCommand implements CommandExecutor,TabCompleter {
         String playerName = player.getName();
         CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
         
-        if(!player.hasPermission("scs.command.unclaim")) {
+        if(!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim")) {
         	sender.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         	return false;
         }
@@ -79,7 +79,7 @@ public class UnclaimCommand implements CommandExecutor,TabCompleter {
         
         if (args.length == 1) {
         	if(args[0].equals("*")) {
-        		if(!player.hasPermission("scs.command.unclaim.*")) {
+        		if(!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim.all")) {
         			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         			return true;
         		}
@@ -92,7 +92,7 @@ public class UnclaimCommand implements CommandExecutor,TabCompleter {
         	}
     		Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[0]);
     		if(chunk == null) {
-    			if(!player.hasPermission("scs.command.claim.radius")) {
+    			if(!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim.radius")) {
         			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         			return true;
         		}
@@ -107,7 +107,7 @@ public class UnclaimCommand implements CommandExecutor,TabCompleter {
         			Set<Chunk> toDeleteAdmin = new HashSet<>();
         			int i = 0;
         			for(Chunk c : chunks) {
-        				if(ClaimMain.getOwnerInClaim(c).equals("admin") && player.hasPermission("csc.admin")) {
+        				if(ClaimMain.getOwnerInClaim(c).equals("admin") && player.hasPermission("scs.admin")) {
         					toDeleteAdmin.add(c);
         					for(Entity e : c.getEntities()) {
         						if(!(e instanceof Player)) continue;
@@ -161,7 +161,7 @@ public class UnclaimCommand implements CommandExecutor,TabCompleter {
 			return true;
 		}
 		
-		if(owner.equals("admin") && player.hasPermission("csc.admin")) {
+		if(owner.equals("admin") && player.hasPermission("scs.admin")) {
 			if(ClaimMain.deleteClaim(player, chunk)) {
 				for(Entity e : chunk.getEntities()) {
 					if(!(e instanceof Player)) continue;

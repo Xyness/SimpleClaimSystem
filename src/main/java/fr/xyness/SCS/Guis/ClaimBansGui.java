@@ -84,7 +84,7 @@ public class ClaimBansGui implements InventoryHolder {
 	        } else {
 	        	lore = new ArrayList<>(getLore(ClaimLanguage.getMessage("player-banned-lore")));
 	        }
-			if(!player.hasPermission("scs.command.claim.unban")) {
+			if(!CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
 				lore.remove(lore.size()-1);
 				lore.add(ClaimLanguage.getMessage("gui-button-no-permission")+" to unban");
 			}
@@ -209,7 +209,7 @@ public class ClaimBansGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(name);
             meta.setLore(lore);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
         return item;
@@ -231,7 +231,7 @@ public class ClaimBansGui implements InventoryHolder {
             meta.setDisplayName(name);
             meta.setLore(lore);
             meta.setCustomModelData(model_data);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
         return item;
@@ -263,7 +263,7 @@ public class ClaimBansGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(ClaimLanguage.getMessage("previous-page-title").replaceAll("%page%", String.valueOf(page)));
             meta.setLore(getLore(ClaimLanguage.getMessage("previous-page-lore").replaceAll("%page%", String.valueOf(page))));
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
 
@@ -296,7 +296,7 @@ public class ClaimBansGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(ClaimLanguage.getMessage("previous-page-settings-title"));
             meta.setLore(getLore(ClaimLanguage.getMessage("previous-page-settings-lore")));
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
 
@@ -329,7 +329,7 @@ public class ClaimBansGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(ClaimLanguage.getMessage("next-page-title").replaceAll("%page%", String.valueOf(page)));
             meta.setLore(getLore(ClaimLanguage.getMessage("next-page-lore").replaceAll("%page%", String.valueOf(page))));
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
 

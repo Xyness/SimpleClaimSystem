@@ -183,10 +183,10 @@ public class CPlayer {
             .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
             .max().orElse(-1);
         
-        if (maxClaims > claims_count+n) return true;
+        if (maxClaims >= claims_count+n) return true;
         if (maxClaims == -1) maxClaims = max_claims;
 
-        return maxClaims > claims_count+n || maxClaims == 0;
+        return maxClaims >= claims_count+n || maxClaims == 0;
     }
 	
 	// Check if the player can use the given radius for radius claim
@@ -206,7 +206,7 @@ public class CPlayer {
         if (radius >= r) return true;
         if (radius == -1) radius = max_radius_claims;
 
-        return radius > r || radius == 0;
+        return radius >= r || radius == 0;
     }
 	
 	// Get the teleportation delay of player

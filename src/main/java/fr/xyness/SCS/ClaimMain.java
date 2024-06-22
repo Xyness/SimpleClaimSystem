@@ -307,7 +307,7 @@ public class ClaimMain {
         CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
         int delay = cPlayer.getDelay();
         
-    	if (player.hasPermission("scs.bypass") || delay == 0) {
+    	if (CPlayerMain.checkPermPlayer(player, "scs.bypass") || delay == 0) {
     		if(SimpleClaimSystem.isFolia()) {
     			player.teleportAsync(loc);
     		} else {
@@ -670,46 +670,29 @@ public class ClaimMain {
                     while (resultSet.next()) {
                         String perms = resultSet.getString("Permissions");
                         int id = resultSet.getInt("id_pk");
-                        if (perms.contains(":") || perms.contains(";")) {
-                            Map<String, Boolean> settings = new HashMap<>();
-                            String[] parts = perms.split(";");
-                            for (String keys : parts) {
-                                String[] values = keys.split(":");
-                                settings.put(values[0], Boolean.parseBoolean(values[1]));
-                            }
-                            sb = new StringBuilder();
-                            for (String perm_key : ClaimSettings.getDefaultValues().keySet()) {
-                                sb.append(settings.getOrDefault(perm_key, false) ? "1" : "0");
-                            }
-                            preparedStatement.setString(1, sb.toString());
-                            preparedStatement.setInt(2, id);
-                            preparedStatement.addBatch();
-                            batchCount++;
-                        } else {
-                            String perm = perms;
-                            if (perm.length() != ClaimSettings.getDefaultValuesCode().length()) {
-                                int diff = ClaimSettings.getDefaultValuesCode().length() - perm.length();
-                                if(diff < 0) {
-                                	StringBuilder permCompleted = new StringBuilder(perm);
-                                	for(int i = 0; i < perm.length()-diff; i++) {
-                                		permCompleted.append(ClaimSettings.getDefaultValuesCode().charAt(perm.length() + i));
-                                	}
-                                    String permFinal = permCompleted.toString();
-                                    preparedStatement.setString(1, permFinal);
-                                    preparedStatement.setInt(2, id);
-                                    preparedStatement.addBatch();
-                                    batchCount++;
-                                } else {
-                                    StringBuilder permCompleted = new StringBuilder(perm);
-                                    for (int i = 0; i < diff; i++) {
-                                        permCompleted.append(ClaimSettings.getDefaultValuesCode().charAt(perm.length() + i));
-                                    }
-                                    String permFinal = permCompleted.toString();
-                                    preparedStatement.setString(1, permFinal);
-                                    preparedStatement.setInt(2, id);
-                                    preparedStatement.addBatch();
-                                    batchCount++;
+                        String perm = perms;
+                        if (perm.length() != ClaimSettings.getDefaultValuesCode().length()) {
+                            int diff = ClaimSettings.getDefaultValuesCode().length() - perm.length();
+                            if(diff < 0) {
+                            	StringBuilder permCompleted = new StringBuilder(perm);
+                            	for(int i = 0; i < perm.length()-diff; i++) {
+                            		permCompleted.append(ClaimSettings.getDefaultValuesCode().charAt(perm.length() + i));
+                            	}
+                                String permFinal = permCompleted.toString();
+                                preparedStatement.setString(1, permFinal);
+                                preparedStatement.setInt(2, id);
+                                preparedStatement.addBatch();
+                                batchCount++;
+                            } else {
+                                StringBuilder permCompleted = new StringBuilder(perm);
+                                for (int i = 0; i < diff; i++) {
+                                    permCompleted.append(ClaimSettings.getDefaultValuesCode().charAt(perm.length() + i));
                                 }
+                                String permFinal = permCompleted.toString();
+                                preparedStatement.setString(1, permFinal);
+                                preparedStatement.setInt(2, id);
+                                preparedStatement.addBatch();
+                                batchCount++;
                             }
                         }
                     }
@@ -871,7 +854,7 @@ public class ClaimMain {
 	    	}
     	}
     	
-    	displayChunk(player,chunk,true);
+    	if(ClaimSettings.getBooleanSetting("claim-particles")) displayChunk(player,chunk,true);
     	cPlayer.setClaimsCount(cPlayer.getClaimsCount()+1);
     	int nb = cPlayer.getMaxClaims()-cPlayer.getClaimsCount();
 		player.sendMessage(ClaimLanguage.getMessage("create-claim-success").replaceAll("%remaining-claims%", String.valueOf(nb)));
@@ -959,7 +942,7 @@ public class ClaimMain {
     		return;
     	}
     	
-    	displayChunk(player,chunk,true);
+    	if(ClaimSettings.getBooleanSetting("claim-particles")) displayChunk(player,chunk,true);
 		player.sendMessage(ClaimLanguage.getMessage("create-protected-area-success"));
 		
     	String uuid = "aucun";
@@ -1030,14 +1013,9 @@ public class ClaimMain {
     	Set<Chunk> chunksToClaim = new HashSet<>();
     	String playerName = player.getName();
     	CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
-    	
-    	int i = 0;
-    	for(Chunk chunk : chunks) {
-        	if(!checkIfClaimExists(chunk)) {
-        		chunksToClaim.add(chunk);
-        		i++;
-        	}
-    	}
+
+    	int i = chunks.size();
+    	chunks.forEach(chunk -> { if(!checkIfClaimExists(chunk)) chunksToClaim.add(chunk); });
     	
     	if(i != chunksToClaim.size()) {
     		player.sendMessage(ClaimLanguage.getMessage("cant-radius-claim-already-claim"));
@@ -1138,7 +1116,7 @@ public class ClaimMain {
             }
 		}
 		
-		displayChunkBorderWithRadius(player,player.getLocation().getChunk(),radius);
+		if(ClaimSettings.getBooleanSetting("claim-particles")) displayChunkBorderWithRadius(player,player.getLocation().getChunk(),radius);
 		cPlayer.setClaimsCount(cPlayer.getClaimsCount()+i);
 		
 		Runnable task = () -> {
@@ -1176,14 +1154,10 @@ public class ClaimMain {
     
     // Methods to create some protected areas (admin claims) with radius
     public static boolean createAdminClaimRadius(Player player, Set<Chunk> chunks, int radius) {
+    	
     	Set<Chunk> chunksToClaim = new HashSet<>();
-    	int i = 0;
-    	for(Chunk chunk : chunks) {
-        	if(!checkIfClaimExists(chunk)) {
-        		chunksToClaim.add(chunk);
-        		i++;
-        	}
-    	}
+    	int i = chunks.size();
+    	chunks.forEach(chunk -> { if(!checkIfClaimExists(chunk)) chunksToClaim.add(chunk); });
     	
     	if(i != chunksToClaim.size()) {
     		player.sendMessage(ClaimLanguage.getMessage("cant-radius-claim-already-claim"));
@@ -1255,7 +1229,7 @@ public class ClaimMain {
             }
 		}
 		
-		displayChunkBorderWithRadius(player,player.getLocation().getChunk(),radius);
+		if(ClaimSettings.getBooleanSetting("claim-particles")) displayChunkBorderWithRadius(player,player.getLocation().getChunk(),radius);
 		
     	Runnable task = () -> {
     		try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {

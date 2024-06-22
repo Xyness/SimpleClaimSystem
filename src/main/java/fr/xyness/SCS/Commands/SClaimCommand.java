@@ -12,6 +12,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
+import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
@@ -30,7 +31,7 @@ public class SClaimCommand implements CommandExecutor,TabCompleter {
 
         if(sender instanceof Player) {
         	Player player = (Player) sender;
-        	if(!player.hasPermission("scs.command.unclaim")) return completions;
+        	if(!CPlayerMain.checkPermPlayer(player, "scs.command.sclaim")) return completions;
 	        if (args.length == 1) {
 	            completions.add("sell");
 	            completions.add("cancel");
@@ -65,7 +66,7 @@ public class SClaimCommand implements CommandExecutor,TabCompleter {
         Player player = (Player) sender;
         String playerName = player.getName();
         
-        if(!player.hasPermission("scs.command.sclaim")) {
+        if(!CPlayerMain.checkPermPlayer(player, "scs.command.sclaim")) {
         	sender.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         	return false;
         }

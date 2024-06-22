@@ -9,6 +9,7 @@ import org.bukkit.WeatherType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -108,7 +109,7 @@ public class ClaimEventsEnterLeave implements Listener {
     		ClaimMain.sendMessage(player, ClaimLanguage.getMessage("player-banned"),ClaimSettings.getSetting("protection-message"));
     		return;
     	}
-    	if(!player.hasPermission("csc.bypass") && !ClaimMain.checkMembre(to, player) && !ClaimMain.canPermCheck(to, "Teleportations")) {
+    	if(!CPlayerMain.checkPermPlayer(player, "scs.bypass") && !ClaimMain.checkMembre(to, player) && !ClaimMain.canPermCheck(to, "Teleportations")) {
     		PlayerTeleportEvent.TeleportCause cause = event.getCause();
             switch (cause) {
                 case ENDER_PEARL:

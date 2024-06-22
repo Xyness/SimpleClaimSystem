@@ -63,6 +63,12 @@ public class CPlayerMain {
     	return nb_members == 0 || nb_members > i;
     }
     
+    // Check SimpleClaimSystem permission
+    public static boolean checkPermPlayer(Player player, String perm) {
+    	if(player.hasPermission("scs.admin")) return true;
+    	return player.hasPermission(perm);
+    }
+    
     // Method to update the perms of a player (when /aclaim reload)
     public static void updatePlayerPermSetting(Player player) {
     	Runnable task = () -> {
@@ -76,7 +82,7 @@ public class CPlayerMain {
 			groupPlayerSettings.put("claim-cost", groupsSettings.get("default").get("claim-cost"));
 			groupPlayerSettings.put("claim-cost-multiplier", groupsSettings.get("default").get("claim-cost-multiplier"));
         	for(String group : groups.keySet()) {
-        		if(player.hasPermission(groups.get(group))) {
+        		if(CPlayerMain.checkPermPlayer(player, groups.get(group))) {
         			groupPlayerSettings.put("max-claims", groupsSettings.get(group).get("max-claims"));
         			groupPlayerSettings.put("max-radius-claims", groupsSettings.get(group).get("max-radius-claims"));
         			groupPlayerSettings.put("teleportation-delay", groupsSettings.get(group).get("teleportation-delay"));
@@ -120,7 +126,7 @@ public class CPlayerMain {
 			groupPlayerSettings.put("claim-cost", groupsSettings.get("default").get("claim-cost"));
 			groupPlayerSettings.put("claim-cost-multiplier", groupsSettings.get("default").get("claim-cost-multiplier"));
         	for(String group : groups.keySet()) {
-        		if(player.hasPermission(groups.get(group))) {
+        		if(CPlayerMain.checkPermPlayer(player, groups.get(group))) {
         			groupPlayerSettings.put("max-claims", groupsSettings.get(group).get("max-claims"));
         			groupPlayerSettings.put("max-radius-claims", groupsSettings.get(group).get("max-radius-claims"));
         			groupPlayerSettings.put("teleportation-delay", groupsSettings.get(group).get("teleportation-delay"));

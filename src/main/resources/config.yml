@@ -49,6 +49,9 @@ max-length-claim-description: 50
 # Confirmation before claiming?
 claim-confirmation: false
 
+# Display particles on the borders when claiming?
+claim-particles: true
+
 # Enable/Disable the enter/leave message in the action bar
 enter-leave-messages: true
 

@@ -134,15 +134,15 @@ public class ClaimGui implements InventoryHolder {
     public static boolean checkPermButton(Player player, String key) {
     	switch(key) {
     	case "define-loc":
-    		return player.hasPermission("scs.command.claim.setspawn");
+    		return CPlayerMain.checkPermPlayer(player, "scs.command.claim.setspawn");
     	case "define-name":
-    		return player.hasPermission("scs.command.claim.setname");
+    		return CPlayerMain.checkPermPlayer(player, "scs.command.claim.setname");
     	case "manage-members":
-    		return player.hasPermission("scs.command.claim.members");
+    		return CPlayerMain.checkPermPlayer(player, "scs.command.claim.members");
     	case "manage-bans":
-    		return player.hasPermission("scs.command.claim.bans");
+    		return CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans");
     	case "my-claims":
-    		return player.hasPermission("scs.command.claim.list");
+    		return CPlayerMain.checkPermPlayer(player, "scs.command.claim.list");
     	case "apply-all-claims":
     		return true;
     	default:
@@ -187,7 +187,7 @@ public class ClaimGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(name);
             meta.setLore(lore);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
         return item;
@@ -209,7 +209,7 @@ public class ClaimGui implements InventoryHolder {
             meta.setDisplayName(name);
             meta.setLore(lore);
             meta.setCustomModelData(model_data);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
         return item;

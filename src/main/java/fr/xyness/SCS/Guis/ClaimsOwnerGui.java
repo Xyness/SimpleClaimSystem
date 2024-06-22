@@ -161,7 +161,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
 			Collections.addAll(lore, ClaimLanguage.getMessageWP("all-claim-buyable-price", claim.getOwner())
 				.replace("%price%", String.valueOf(claim.getPrice()))
 				.split("\n"));
-			lore.add(player.hasPermission("scs.command.sclaim") ? ClaimLanguage.getMessage("all-claim-is-buyable") : ClaimLanguage.getMessage("gui-button-no-permission") + " to buy");
+			lore.add(CPlayerMain.checkPermPlayer(player, "scs.command.sclaim") ? ClaimLanguage.getMessage("all-claim-is-buyable") : ClaimLanguage.getMessage("gui-button-no-permission") + " to buy");
 		}
 	}
 
@@ -170,7 +170,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
 		String visitorMessage = ClaimMain.canPermCheck(claim.getChunk(), "Visitors") || claim.getOwner().equals(player.getName()) ? 
 			ClaimLanguage.getMessage("access-all-claim-lore-allow-visitors") : 
 			ClaimLanguage.getMessage("access-all-claim-lore-deny-visitors");
-		lore.add(player.hasPermission("scs.command.claim.tp") ? visitorMessage : ClaimLanguage.getMessage("gui-button-no-permission") + " to teleport");
+		lore.add(CPlayerMain.checkPermPlayer(player, "scs.command.claim.tp") ? visitorMessage : ClaimLanguage.getMessage("gui-button-no-permission") + " to teleport");
 	}
 	
 	// Method to create claim item
@@ -228,7 +228,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
 				meta.setDisplayName(ClaimLanguage.getMessage(key.equals("next-page-list") ? "next-page-title" : "previous-page-title").replace("%page%", String.valueOf(page)));
 				meta.setLore(getLore(ClaimLanguage.getMessage(key.equals("next-page-list") ? "next-page-lore" : "previous-page-lore").replace("%page%", String.valueOf(page))));
 			}
-			meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+			meta = ClaimGuis.setItemFlag(meta);
 			item.setItemMeta(meta);
 		}
 		return item;
@@ -249,7 +249,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
 			String loreFilter = getFilterLore(filter);
 			meta.setDisplayName(ClaimLanguage.getMessage("filter-title"));
 			meta.setLore(getLore(loreFilter));
-			meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+			meta = ClaimGuis.setItemFlag(meta);
 			item.setItemMeta(meta);
 		}
 		return item;
@@ -275,7 +275,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
 		if (meta != null) {
 			meta.setDisplayName(name);
 			meta.setLore(lore);
-			meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+			meta = ClaimGuis.setItemFlag(meta);
 			item.setItemMeta(meta);
 		}
 		return item;
@@ -290,7 +290,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
 			meta.setDisplayName(name);
 			meta.setLore(lore);
 			meta.setCustomModelData(modelData);
-			meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+			meta = ClaimGuis.setItemFlag(meta);
 			item.setItemMeta(meta);
 		}
 		return item;
