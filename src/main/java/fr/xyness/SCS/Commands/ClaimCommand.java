@@ -18,7 +18,9 @@ import org.bukkit.entity.Player;
 
 import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.CPlayerMain;
+import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.ClaimMain;
+import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Guis.ClaimBansGui;
@@ -72,6 +74,8 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
 	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.ban")) completions.add("ban");
 	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) completions.add("unban");
 	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans")) completions.add("bans");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.fly")) completions.add("fly");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.autofly")) completions.add("autofly");
 	            return completions;
 	        }
 	        if (args.length == 2 && args[0].equalsIgnoreCase("see") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.see.others")) {
@@ -103,9 +107,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		String owner = ClaimMain.getOwnerInClaim(chunk);
         		if(ClaimMain.checkIfClaimExists(chunk)) {
             		if(owner.equals(player.getName())) {
-            			for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
-        	        		completions.add(p.getName());
-        	        	}
+            			Bukkit.getOnlinePlayers().forEach(p -> completions.add(p.getName()));
         	        	completions.remove(player.getName());
             		}
         		}
@@ -118,9 +120,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		String owner = ClaimMain.getOwnerInClaim(chunk);
         		if(ClaimMain.checkIfClaimExists(chunk)) {
             		if(owner.equals(player.getName())) {
-            			for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
-        	        		completions.add(p.getName());
-        	        	}
+            			Bukkit.getOnlinePlayers().forEach(p -> completions.add(p.getName()));
         	        	completions.remove(player.getName());
             		}
         		}
@@ -163,6 +163,8 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
 	        }
 	        if (args.length == 2 && args[0].equalsIgnoreCase("owner") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.owner")) {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
+	        	Bukkit.getOnlinePlayers().forEach(p -> completions.add(p.getName()));
+	        	completions.remove(player.getName());
 	        	return completions;
 	        }
 	        if (args.length == 3 && args[0].equalsIgnoreCase("remove") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove") && !args[1].equals("*")) {
@@ -177,9 +179,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
 	        	return completions;
 	        }
 	        if (args.length == 3 && args[0].equalsIgnoreCase("add") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.add")) {
-	        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
-	        		completions.add(p.getName());
-	        	}
+	        	Bukkit.getOnlinePlayers().forEach(p -> completions.add(p.getName()));
 	        	completions.remove(player.getName());
 	        	return completions;
 	        }
@@ -189,21 +189,16 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
 	        	return completions;
 	        }
 	        if (args.length == 3 && args[0].equalsIgnoreCase("ban") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.ban")) {
-	        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
-	        		completions.add(p.getName());
-	        	}
+	        	Bukkit.getOnlinePlayers().forEach(p -> completions.add(p.getName()));
 	        	completions.remove(player.getName());
 	        	return completions;
 	        }
 	        if (args.length == 3 && args[0].equalsIgnoreCase("owner") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.owner")) {
-	        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
-	        		completions.add(p.getName());
-	        	}
+	        	Bukkit.getOnlinePlayers().forEach(p -> completions.add(p.getName()));
 	        	completions.remove(player.getName());
 	        	return completions;
 	        }
         }
-
         return completions;
     }
     
@@ -843,6 +838,72 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         }
         
         if (args.length == 1) {
+        	if(args[0].equalsIgnoreCase("fly")) {
+        		if(SimpleClaimSystem.isFolia()) {
+        			player.sendMessage(ClaimLanguage.getMessage("fly-disabled-on-this-server"));
+        			return true;
+        		}
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.fly")) {
+                	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                	return false;
+            	}
+        		Chunk chunk = player.getLocation().getChunk();
+        		if(!ClaimMain.checkIfClaimExists(chunk)) {
+        			player.sendMessage(ClaimLanguage.getMessage("free-territory"));
+        			return true;
+        		}
+        		Claim claim = ClaimMain.getClaimFromChunk(chunk);
+        		if(claim.getOwner().equals(playerName)) {
+        			if(cPlayer.getClaimFly()) {
+        				CPlayerMain.removePlayerFly(player);
+        				player.sendMessage(ClaimLanguage.getMessage("fly-disabled"));
+        				return true;
+        			}
+        			CPlayerMain.activePlayerFly(player);
+        			player.sendMessage(ClaimLanguage.getMessage("fly-enabled"));
+        			return true;
+        		}
+        		if(!claim.getPermission("Fly")) {
+        			player.sendMessage(ClaimLanguage.getMessage("cant-fly-in-this-claim"));
+        			return true;
+        		}
+    			if(cPlayer.getClaimFly()) {
+    				CPlayerMain.removePlayerFly(player);
+    				player.sendMessage(ClaimLanguage.getMessage("fly-disabled"));
+    				return true;
+    			}
+    			CPlayerMain.activePlayerFly(player);
+    			player.sendMessage(ClaimLanguage.getMessage("fly-enabled"));
+    			return true;
+        	}
+        	if(args[0].equalsIgnoreCase("autofly")) {
+        		if(SimpleClaimSystem.isFolia()) {
+        			player.sendMessage(ClaimLanguage.getMessage("fly-disabled-on-this-server"));
+        			return true;
+        		}
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.autofly")) {
+                	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                	return false;
+            	}
+    			if(cPlayer.getClaimAutofly()) {
+    				cPlayer.setClaimAutofly(false);
+    				player.sendMessage(ClaimLanguage.getMessage("autofly-disabled"));
+    				return true;
+    			}
+    			cPlayer.setClaimAutofly(true);
+    			player.sendMessage(ClaimLanguage.getMessage("autofly-enabled"));
+        		Chunk chunk = player.getLocation().getChunk();
+        		
+        		if(ClaimMain.checkIfClaimExists(chunk)) {
+        			Claim claim = ClaimMain.getClaimFromChunk(chunk);
+        			if(claim.getOwner().equals(playerName) || claim.getPermission("Fly")) {
+            			CPlayerMain.activePlayerFly(player);
+            			player.sendMessage(ClaimLanguage.getMessage("fly-enabled"));
+            			return true;
+        			}
+        		}
+    			return true;
+        	}
         	if(args[0].equalsIgnoreCase("chat")) {
             	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.chat")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));

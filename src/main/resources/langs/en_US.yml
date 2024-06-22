@@ -158,6 +158,12 @@ remove-claim-protected-area-player: "§fYou have been removed from the protected
 add-all-claim-protected-area-player: "§fYou have been added to §aall protected areas§f."
 add-claim-protected-area-player: "§fYou have been added to the protected area §a%claim-name%§f."
 cant-transfer-ownership-yourself: "§cYou can't transfer ownership to yourself."
+fly-disabled-on-this-server: "§cClaim fly is disabled on this server."
+fly-enabled: "§fFly on."
+fly-disabled: "§fFly off."
+autofly-enabled: "§fAuto-fly on."
+autofly-disabled: "§fAuto-fly off."
+cant-fly-in-this-claim: "§cYou cannot fly in this territory."
 
 
 # > Deny messages
@@ -181,6 +187,7 @@ damages: "§cYou cannot deal damages in this territory"
 teleportations: "§cYou cannot teleport to this territory"
 visitors: "§cYou cannot visit this territory"
 pvp: "§cYou cannot pvp in this territory"
+claim-fly-disabled-on-damage: "§cClaim fly disabled because you received damage"
 
 
 # > Enter/Leave messages
@@ -351,6 +358,9 @@ monsters-lore: "§7Allow spawning monsters"
 
 weather-title: "§eWeather §7(%status%§7)"
 weather-lore: "§7Allow raining/snowing/thundering"
+
+fly-title: "§eFly §7(%status%§7)"
+fly-lore: "§7Allow visitors to fly"
 
 manage-members-title: "§eMembers"
 manage-members-lore: "§7Manage members\n§7▸ §fClick to access"

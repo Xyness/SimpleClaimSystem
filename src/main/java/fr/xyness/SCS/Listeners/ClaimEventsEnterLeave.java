@@ -127,7 +127,15 @@ public class ClaimEventsEnterLeave implements Listener {
 		}
     	String ownerTO = ClaimMain.getOwnerInClaim(to);
     	String ownerFROM = ClaimMain.getOwnerInClaim(from);
-    	CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
+    	String playerName = player.getName();
+    	CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
+    	if(cPlayer.getClaimAutofly() && (ownerTO.equals(playerName) || ClaimMain.canPermCheck(to, "Fly")) && !SimpleClaimSystem.isFolia()) {
+    		CPlayerMain.activePlayerFly(player);
+    		if(ClaimSettings.getBooleanSetting("claim-fly-message-auto-fly")) ClaimMain.sendMessage(player, ClaimLanguage.getMessage("fly-enabled"), "CHAT");
+    	} else if (!ClaimMain.canPermCheck(to, "Fly") && !ownerTO.equals(playerName) && cPlayer.getClaimFly() && !SimpleClaimSystem.isFolia()) {
+    		CPlayerMain.removePlayerFly(player);
+    		if(ClaimSettings.getBooleanSetting("claim-fly-message-auto-fly")) ClaimMain.sendMessage(player, ClaimLanguage.getMessage("fly-disabled"), "CHAT");
+    	}
     	if(ClaimSettings.getBooleanSetting("bossbar")) bossbarMessages(player,to,ownerTO);
     	String world = player.getWorld().getName();
 		if(!ownerTO.equals(ownerFROM)) {
@@ -164,7 +172,15 @@ public class ClaimEventsEnterLeave implements Listener {
 		}
     	String ownerTO = ClaimMain.getOwnerInClaim(to);
     	if(ClaimSettings.getBooleanSetting("bossbar")) bossbarMessages(player,to,ownerTO);
-    	CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
+    	String playerName = player.getName();
+    	CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
+    	if(cPlayer.getClaimAutofly() && (ownerTO.equals(playerName) || ClaimMain.canPermCheck(to, "Fly")) && !SimpleClaimSystem.isFolia()) {
+    		CPlayerMain.activePlayerFly(player);
+    		if(ClaimSettings.getBooleanSetting("claim-fly-message-auto-fly")) ClaimMain.sendMessage(player, ClaimLanguage.getMessage("fly-enabled"), "CHAT");
+    	} else if (!ClaimMain.canPermCheck(to, "Fly") && !ownerTO.equals(playerName) && cPlayer.getClaimFly() && !SimpleClaimSystem.isFolia()) {
+    		CPlayerMain.removePlayerFly(player);
+    		if(ClaimSettings.getBooleanSetting("claim-fly-message-auto-fly")) ClaimMain.sendMessage(player, ClaimLanguage.getMessage("fly-disabled"), "CHAT");
+    	}
     	String world = player.getWorld().getName();
     	if(cPlayer.getClaimAutoclaim()) {
             if(ClaimSettings.isWorldDisabled(world)) {
@@ -193,7 +209,8 @@ public class ClaimEventsEnterLeave implements Listener {
         	String ownerTO = ClaimMain.getOwnerInClaim(to);
         	String ownerFROM = ClaimMain.getOwnerInClaim(from);
         	Player player = event.getPlayer();
-        	CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
+        	String playerName = player.getName();
+        	CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
         	if(ClaimMain.checkBan(to, player.getName())) {
         		player.teleport(event.getFrom());
         		ClaimMain.sendMessage(player, ClaimLanguage.getMessage("player-banned"),"ACTION_BAR");
@@ -204,6 +221,13 @@ public class ClaimEventsEnterLeave implements Listener {
     		} else if (ClaimMain.checkIfClaimExists(from) && !ClaimMain.canPermCheck(from, "Weather")){
     			player.resetPlayerWeather();
     		}
+        	if(cPlayer.getClaimAutofly() && (ownerTO.equals(playerName) || ClaimMain.canPermCheck(to, "Fly")) && !SimpleClaimSystem.isFolia()) {
+        		CPlayerMain.activePlayerFly(player);
+        		if(ClaimSettings.getBooleanSetting("claim-fly-message-auto-fly")) ClaimMain.sendMessage(player, ClaimLanguage.getMessage("fly-enabled"), "CHAT");
+        	} else if (!ClaimMain.canPermCheck(to, "Fly") && !ownerTO.equals(playerName) && cPlayer.getClaimFly() && !SimpleClaimSystem.isFolia()) {
+        		CPlayerMain.removePlayerFly(player);
+        		if(ClaimSettings.getBooleanSetting("claim-fly-message-auto-fly")) ClaimMain.sendMessage(player, ClaimLanguage.getMessage("fly-disabled"), "CHAT");
+        	}
         	if(ClaimSettings.getBooleanSetting("bossbar")) bossbarMessages(player,to,ownerTO);
         	String world = player.getWorld().getName();
         	if(cPlayer.getClaimAutoclaim()) {
@@ -237,9 +261,7 @@ public class ClaimEventsEnterLeave implements Listener {
     
 	// Update the color of all bossbars
 	public static void setBossBarColor(BarColor color){
-		for(BossBar b : bossBars.values()) {
-			b.setColor(color);
-		}
+		bossBars.values().forEach(b -> b.setColor(color));
 	}
 	
 	// Send the claim enter message to the player (chat)
@@ -344,7 +366,7 @@ public class ClaimEventsEnterLeave implements Listener {
         	b.setVisible(true);
         	return;
         }
-    	bossBars.get(player).setVisible(false);;
+    	bossBars.get(player).setVisible(false);
     	return;
     }
 
@@ -359,7 +381,10 @@ public class ClaimEventsEnterLeave implements Listener {
     
     // Method to active the bossbar of a player
     public static void activeBossBar(Player player, Chunk chunk) {
-    	if(!ClaimSettings.getBooleanSetting("bossbar")) return;
+    	if(!ClaimSettings.getBooleanSetting("bossbar")) {
+    		bossBars.get(player).setVisible(false);
+    		return;
+    	}
     	if(player == null) return;
     	if(ClaimMain.checkIfClaimExists(chunk)) {
     		BossBar b = checkBossBar(player);
@@ -383,6 +408,8 @@ public class ClaimEventsEnterLeave implements Listener {
         	b.setTitle(message);
         	b.setVisible(true);
         	return;
+        } else {
+        	bossBars.get(player).setVisible(false);
         }
     }
     

@@ -33,6 +33,7 @@ import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Guis.AdminClaimGui;
 import fr.xyness.SCS.Guis.AdminClaimListGui;
+import fr.xyness.SCS.Guis.ClaimBansGui;
 import fr.xyness.SCS.Guis.ClaimMembersGui;
 import fr.xyness.SCS.Listeners.ClaimEventsEnterLeave;
 
@@ -89,12 +90,16 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
     		completions.add("set-claim-cost-multiplier");
     		completions.add("ban");
     		completions.add("unban");
+    		completions.add("bans");
     		completions.add("set-chat");
     		completions.add("set-protection-message");
+    		completions.add("set-claim-fly-message-auto-fly");
+    		completions.add("set-claim-fly-disabled-on-damage");
     		return completions;
     	}
     	if (args.length == 2 && args[0].equalsIgnoreCase("set-protection-message")) {
     		completions.add("ACTION_BAR");
+    		completions.add("BOSSBAR");
     		completions.add("TITLE");
     		completions.add("SUBTITLE");
     		completions.add("CHAT");
@@ -102,6 +107,10 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
     	}
         if (args.length == 2 && args[0].equalsIgnoreCase("ban")) {
         	completions.add("*");
+        	completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+        	return completions;
+        }
+        if (args.length == 2 && args[0].equalsIgnoreCase("bans")) {
         	completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
         	return completions;
         }
@@ -117,9 +126,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("ban")) {
         	Player player = (Player) sender;
-        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
-        		completions.add(p.getName());
-        	}
+        	Bukkit.getOnlinePlayers().forEach(p -> completions.add(p.getName()));
         	completions.remove(player.getName());
         	return completions;
         }
@@ -137,9 +144,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	return completions;
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("add")) {
-        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
-        		completions.add(p.getName());
-        	}
+        	Bukkit.getOnlinePlayers().forEach(p -> completions.add(p.getName()));
         	return completions;
         }
         if (args.length == 3 && args[0].equalsIgnoreCase("remove") && !args[1].equals("*")) {
@@ -167,9 +172,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
     		return completions;
     	}
     	if (args.length == 2 && args[0].equalsIgnoreCase("setowner")) {
-    		for(Player p : Bukkit.getOnlinePlayers()) {
-    			completions.add(p.getName());
-    		}
+    		Bukkit.getOnlinePlayers().forEach(p -> completions.add(p.getName()));
     		return completions;
     	}
     	if (args.length == 2 && (args[0].equalsIgnoreCase("set-actionbar") || args[0].equalsIgnoreCase("set-title-subtitle")
@@ -178,7 +181,8 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
     			|| args[0].equalsIgnoreCase("set-teleportation-moving") || args[0].equalsIgnoreCase("autoclaim")
     			|| args[0].equalsIgnoreCase("set-claims-visitors-off-visible") || args[0].equalsIgnoreCase("set-claim-cost")
     			|| args[0].equalsIgnoreCase("set-claim-cost-multiplier") || args[0].equalsIgnoreCase("set-chat")
-    			|| args[0].equalsIgnoreCase("set-claim-particles"))) {
+    			|| args[0].equalsIgnoreCase("set-claim-particles") || args[0].equalsIgnoreCase("set-claim-fly-disabled-on-damage")
+    			|| args[0].equalsIgnoreCase("set-claim-fly-message-auto-fly"))) {
     		completions.add("true");
     		completions.add("false");
     		return completions;
@@ -307,6 +311,18 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	}
         	if(sender instanceof Player) {
         		Player player = (Player) sender;
+            	if(args[0].equalsIgnoreCase("bans")) {
+            		Chunk chunk = player.getLocation().getChunk();
+            		String owner = ClaimMain.getOwnerInClaim(chunk);
+            		if(owner.equals("admin")) {
+            			cPlayer.setGuiPage(1);
+            			ClaimBansGui menu = new ClaimBansGui(player, chunk, 1);
+            			menu.openInventory(player);
+            			return true;
+            		}
+            		player.sendMessage(ClaimLanguage.getMessage("claim-not-an-admin-claim"));
+            		return true;
+            	}
             	if(args[0].equalsIgnoreCase("settings")) {
             		Chunk chunk = player.getLocation().getChunk();
             		String owner = ClaimMain.getOwnerInClaim(chunk);
@@ -502,10 +518,10 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("set-protection-message")) {
-        		if(args[1].equalsIgnoreCase("action_bar") || args[1].equalsIgnoreCase("title") || args[1].equalsIgnoreCase("subtitle") || args[1].equalsIgnoreCase("chat")) {
+        		if(args[1].equalsIgnoreCase("action_bar") || args[1].equalsIgnoreCase("title") || args[1].equalsIgnoreCase("subtitle") || args[1].equalsIgnoreCase("chat") || args[1].equalsIgnoreCase("bossbar")) {
 	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-	                config.set("protection-message", Boolean.parseBoolean(args[1]));
+	                config.set("protection-message", args[1].toUpperCase());
 	                ClaimSettings.addSetting("protection-message", args[1]);
 	                try {
 	                	config.save(configFile);
@@ -527,6 +543,40 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                try {
 	                	config.save(configFile);
 	                	sender.sendMessage(ClaimLanguage.getMessage("setting-changed-via-command").replaceAll("%setting%", "Chat").replaceAll("%value%", args[1]));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+	                return true;
+        		}
+        		sender.sendMessage(ClaimLanguage.getMessage("setting-must-be-boolean"));
+        		return true;
+        	}
+        	if(args[0].equalsIgnoreCase("set-claim-fly-disabled-on-damage")) {
+        		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
+	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+	                config.set("claim-fly-disabled-on-damage", Boolean.parseBoolean(args[1]));
+	                ClaimSettings.addSetting("claim-fly-disabled-on-damage", args[1]);
+	                try {
+	                	config.save(configFile);
+	                	sender.sendMessage(ClaimLanguage.getMessage("setting-changed-via-command").replaceAll("%setting%", "Claim fly disabled on damage").replaceAll("%value%", args[1]));
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+	                return true;
+        		}
+        		sender.sendMessage(ClaimLanguage.getMessage("setting-must-be-boolean"));
+        		return true;
+        	}
+        	if(args[0].equalsIgnoreCase("set-claim-fly-message-auto-fly")) {
+        		if(args[1].equalsIgnoreCase("true") || args[1].equalsIgnoreCase("false")) {
+	                File configFile = new File(SimpleClaimSystem.getInstance().getDataFolder(), "config.yml");
+	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+	                config.set("claim-fly-message-auto-fly", Boolean.parseBoolean(args[1]));
+	                ClaimSettings.addSetting("claim-fly-message-auto-fly", args[1]);
+	                try {
+	                	config.save(configFile);
+	                	sender.sendMessage(ClaimLanguage.getMessage("setting-changed-via-command").replaceAll("%setting%", "Claim fly message auto-fly").replaceAll("%value%", args[1]));
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
@@ -650,6 +700,11 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
 	                config.set("bossbar", Boolean.parseBoolean(args[1]));
 	                ClaimSettings.addSetting("bossbar", args[1]);
+	                if(args[1].equalsIgnoreCase("false")) {
+	                	Bukkit.getOnlinePlayers().forEach(p -> ClaimEventsEnterLeave.checkBossBar(p).setVisible(false));
+	                } else {
+	                	Bukkit.getOnlinePlayers().forEach(p -> ClaimEventsEnterLeave.activeBossBar(p, p.getLocation().getChunk()));
+	                }
 	                try {
 	                	config.save(configFile);
 	                	sender.sendMessage(ClaimLanguage.getMessage("setting-changed-via-command").replaceAll("%setting%", "BossBar").replaceAll("%value%", args[1]));
@@ -905,6 +960,17 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         	}
         	if(sender instanceof Player) {
         		Player player = (Player) sender;
+            	if(args[0].equalsIgnoreCase("bans")) {
+            		Chunk chunk = ClaimMain.getAdminChunkByName(args[1]);
+            		if(chunk == null) {
+            			player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
+            			return true;
+            		}
+            		cPlayer.setGuiPage(1);
+            		ClaimBansGui menu = new ClaimBansGui(player,chunk,1);
+            		menu.openInventory(player);
+            		return true;
+            	}
             	if(args[0].equalsIgnoreCase("tp")) {
             		Chunk chunk = ClaimMain.getAdminChunkByName(args[1]);
             		if(chunk == null) {
@@ -948,10 +1014,6 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         		Player player = (Player) sender;
         		String playerName = player.getName();
             	if(args[0].equalsIgnoreCase("ban")) {
-                	if (!player.hasPermission("scs.command.claim.ban")) {
-                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    	return false;
-                	}
             		if(args[1].equalsIgnoreCase("*")) {
                 		if(ClaimMain.getPlayerClaimsCount("admin") == 0) {
                 			player.sendMessage(ClaimLanguage.getMessage("no-admin-claim"));
@@ -1011,10 +1073,6 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
             		return true;
             	}
             	if(args[0].equalsIgnoreCase("unban")) {
-                	if (!player.hasPermission("scs.command.claim.unban")) {
-                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    	return false;
-                	}
             		if(args[1].equalsIgnoreCase("*")) {
                 		if(ClaimMain.getPlayerClaimsCount("admin") == 0) {
                 			player.sendMessage(ClaimLanguage.getMessage("no-admin-claim"));

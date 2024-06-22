@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.OptionalInt;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -26,11 +27,14 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.Particle;
 import org.bukkit.WeatherType;
 import org.bukkit.World;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BossBar;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -41,6 +45,7 @@ import fr.xyness.SCS.Listeners.ClaimEventsEnterLeave;
 import fr.xyness.SCS.Support.ClaimBluemap;
 import fr.xyness.SCS.Support.ClaimDynmap;
 import fr.xyness.SCS.Support.ClaimVault;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
@@ -57,6 +62,8 @@ public class ClaimMain {
 	private static Map<String,Map<Chunk,String>> claimsId = new HashMap<>();
     
     private final static Map<Player, Location> playerLocations = new HashMap<>();
+    private static final Map<Player, BukkitTask> activeTasks = new ConcurrentHashMap<>();
+    private static final Map<Player, ScheduledTask> activeFoliaTasks = new ConcurrentHashMap<>();
     private static Set<String> commandArgs = Set.of("add","autoclaim","automap","list","map","members","remove","see","setdesc","setname","setspawn","settings","tp","chat","ban","unban","bans","owner");
     
     
@@ -87,8 +94,65 @@ public class ClaimMain {
     	case "CHAT":
     		player.sendMessage(message);
     		return;
+    	case "BOSSBAR":
+    		sendBossbarMessage(player,message);
+    		return;
     	}
-    	
+    }
+    
+    // Method to send bossbar message to a player
+    public static void sendBossbarMessage(Player player, String message) {
+    	BossBar b = ClaimEventsEnterLeave.checkBossBar(player);
+		b.setTitle(message);
+		b.setVisible(true);
+		b.setColor(BarColor.RED);
+		if (SimpleClaimSystem.isFolia()) {
+			if(activeFoliaTasks.containsKey(player)) {
+				activeFoliaTasks.get(player).cancel();
+			}
+	        final int[] counter = {20};
+	        ScheduledTask task = Bukkit.getAsyncScheduler().runAtFixedRate(SimpleClaimSystem.getInstance(), subtask -> {
+	            if (!player.isOnline()) {
+	                subtask.cancel();
+	                return;
+	            }
+
+	            if (counter[0] <= 0) {
+	                subtask.cancel();
+	                b.setColor(BarColor.valueOf(ClaimSettings.getSetting("bossbar-color")));
+	                b.setProgress(1);
+	                ClaimEventsEnterLeave.activeBossBar(player, player.getLocation().getChunk());
+	            } else {
+	                counter[0]--;
+	                b.setProgress(counter[0] / 20.0);
+	            }
+	        }, 0, 100, TimeUnit.MILLISECONDS);
+	        activeFoliaTasks.put(player, task);
+	    } else {
+			if(activeTasks.containsKey(player)) {
+				activeTasks.get(player).cancel();
+			}
+	        BukkitTask task = new BukkitRunnable() {
+	            int countdown = 20;
+	            public void run() {
+	                if (!player.isOnline()) {
+	                    this.cancel();
+	                    return;
+	                }
+
+	                if (countdown <= 0) {
+	                    this.cancel();
+		                b.setColor(BarColor.valueOf(ClaimSettings.getSetting("bossbar-color")));
+		                b.setProgress(1);
+		                ClaimEventsEnterLeave.activeBossBar(player, player.getLocation().getChunk());
+	                } else {
+	                    b.setProgress(countdown / 20.0);
+	                    countdown--;
+	                }
+	            }
+	        }.runTaskTimer(SimpleClaimSystem.getInstance(), 0L, 2L);
+	        activeTasks.put(player, task);
+	    }
     }
     
     
@@ -1364,6 +1428,7 @@ public class ClaimMain {
         perms.put(perm, result);
         
         if(perm.equals("Weather")) updateWeatherChunk(chunk,result);
+        if(perm.equals("Fly")) updateFlyChunk(chunk,result);
         
         Runnable task = () -> {
     		StringBuilder sb = new StringBuilder();
@@ -1403,6 +1468,7 @@ public class ClaimMain {
         perms.put(perm, result);
         
         if(perm.equals("Weather")) updateWeatherChunk(chunk,result);
+        if(perm.equals("Fly")) updateFlyChunk(chunk,result);
     	
         Runnable task = () -> {
     		StringBuilder sb = new StringBuilder();
@@ -3088,7 +3154,37 @@ public class ClaimMain {
 				for(Entity e : chunk.getEntities()) {
 					if(!(e instanceof Player)) continue;
 					Player p = (Player) e;
-					p.setPlayerWeather(WeatherType.CLEAR);;
+					p.setPlayerWeather(WeatherType.CLEAR);
+				}
+			}
+		};
+		if(SimpleClaimSystem.isFolia()) {
+    		Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> task.run());
+		} else {
+			task.run();
+		}
+	}
+	
+	// Method to update the fly in the chunk
+	public static void updateFlyChunk(Chunk chunk, boolean result) {
+		Runnable task = () -> {
+			if(result) {
+				for(Entity e : chunk.getEntities()) {
+					if(!(e instanceof Player)) continue;
+					Player p = (Player) e;
+					CPlayer cPlayer = CPlayerMain.getCPlayer(p.getName());
+					if(cPlayer.getClaimFly()) {
+						cPlayer.setClaimFly(false);
+					}
+				}
+			} else {
+				for(Entity e : chunk.getEntities()) {
+					if(!(e instanceof Player)) continue;
+					Player p = (Player) e;
+					CPlayer cPlayer = CPlayerMain.getCPlayer(p.getName());
+					if(cPlayer.getClaimFly()) {
+						cPlayer.setClaimFly(false);
+					}
 				}
 			}
 		};

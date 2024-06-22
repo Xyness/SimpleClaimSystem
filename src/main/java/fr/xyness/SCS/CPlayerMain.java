@@ -68,6 +68,26 @@ public class CPlayerMain {
     	if(player.hasPermission("scs.admin")) return true;
     	return player.hasPermission(perm);
     }
+	
+    // Active player fly
+	public static void activePlayerFly(Player player) {
+		CPlayer cPlayer = players.get(player.getName());
+		if (!player.getAllowFlight()) {
+		    player.setAllowFlight(true);
+		}
+		player.setFlying(true);
+		cPlayer.setClaimFly(true);
+	}
+	
+	// Remove player fly
+	public static void removePlayerFly(Player player) {
+		CPlayer cPlayer = players.get(player.getName());
+		if(cPlayer.getClaimFly()){
+			player.setFlying(false);
+			player.setAllowFlight(false);
+			cPlayer.setClaimFly(false);
+		}
+	}
     
     // Method to update the perms of a player (when /aclaim reload)
     public static void updatePlayerPermSetting(Player player) {
