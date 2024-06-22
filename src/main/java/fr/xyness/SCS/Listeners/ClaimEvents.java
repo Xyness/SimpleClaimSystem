@@ -126,7 +126,7 @@ public class ClaimEvents implements Listener {
                 Chunk chunk = cPlayer.getChunk();
                 
                 if(clickedSlot == ClaimGuis.getItemSlot("settings", "define-loc")) {
-                	if (!player.hasPermission("scs.command.claim.setspawn")) {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setspawn")) {
                     	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                     	return;
                 	}
@@ -142,7 +142,7 @@ public class ClaimEvents implements Listener {
                 }
                 
                 if(clickedSlot == ClaimGuis.getItemSlot("settings", "manage-members")) {
-                	if (!player.hasPermission("scs.command.claim.members")) {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.members")) {
                     	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                     	return;
                 	}
@@ -153,7 +153,7 @@ public class ClaimEvents implements Listener {
                 }
                 
                 if(clickedSlot == ClaimGuis.getItemSlot("settings", "manage-bans")) {
-                	if (!player.hasPermission("scs.command.claim.bans")) {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans")) {
                     	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                     	return;
                 	}
@@ -164,7 +164,7 @@ public class ClaimEvents implements Listener {
                 }
                 
                 if(clickedSlot == ClaimGuis.getItemSlot("settings", "define-name")) {
-                	if (!player.hasPermission("scs.command.claim.setname")) {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setname")) {
                     	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                     	return;
                 	}
@@ -174,7 +174,7 @@ public class ClaimEvents implements Listener {
                 }
                 
                 if(clickedSlot == ClaimGuis.getItemSlot("settings", "my-claims")) {
-                	if (!player.hasPermission("scs.command.claim.list")) {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.list")) {
                     	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                     	return;
                 	}
@@ -379,7 +379,7 @@ public class ClaimEvents implements Listener {
                 if(clickedSlot >= ClaimGuis.getGuiMinSlot("members") && clickedSlot <= ClaimGuis.getGuiMaxSlot("members")) {
                 	String owner = cPlayer.getMapString(clickedSlot);
                 	if(owner.equals(player.getName())) return;
-                	if (!player.hasPermission("scs.command.claim.remove")) {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) {
                     	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                     	return;
                 	}
@@ -446,7 +446,7 @@ public class ClaimEvents implements Listener {
                 if(clickedSlot >= ClaimGuis.getGuiMinSlot("bans") && clickedSlot <= ClaimGuis.getGuiMaxSlot("bans")) {
                 	String owner = cPlayer.getMapString(clickedSlot);
                 	if(owner.equals(player.getName())) return;
-                	if (!player.hasPermission("scs.command.claim.unban")) {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
                     	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                     	return;
                 	}
@@ -511,7 +511,7 @@ public class ClaimEvents implements Listener {
                 
 	            if(clickedSlot >= ClaimGuis.getGuiMinSlot("list") && clickedSlot <= ClaimGuis.getGuiMaxSlot("list")) {
 		            if(event.getClick() == ClickType.LEFT) {
-		            	if(player.hasPermission("scs.command.claim.tp")) {
+		            	if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.tp")) {
 			            	player.closeInventory();
 				        	ClaimMain.goClaim(player, cPlayer.getMapLoc(clickedSlot));
 				        	return;
@@ -521,7 +521,7 @@ public class ClaimEvents implements Listener {
 		            }
 		            if(cPlayer.getFilter().equals("not_owner")) return;
 		            if(event.getClick() == ClickType.RIGHT) {
-	                	if (!player.hasPermission("scs.command.claim.settings")) {
+	                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.settings")) {
 	                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
 	                    	return;
 	                	}
@@ -530,7 +530,7 @@ public class ClaimEvents implements Listener {
 			        	return;
 		            }
 		            if(event.getClick() == ClickType.SHIFT_LEFT) {
-	                	if (!player.hasPermission("scs.command.unclaim")) {
+	                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim")) {
 	                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
 	                    	return;
 	                	}
@@ -550,7 +550,7 @@ public class ClaimEvents implements Listener {
 		            }
 		            if(event.getClick() == ClickType.SHIFT_RIGHT) {
 	            		if(ClaimSettings.getBooleanSetting("economy")) {
-	                    	if (!player.hasPermission("scs.command.sclaim")) {
+	                    	if (!CPlayerMain.checkPermPlayer(player, "scs.command.sclaim")) {
 	                        	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
 	                        	return;
 	                    	}
@@ -740,7 +740,7 @@ public class ClaimEvents implements Listener {
 	            if(clickedSlot >= ClaimGuis.getGuiMinSlot("claims_owner") && clickedSlot <= ClaimGuis.getGuiMaxSlot("claims_owner")) {
 	            	Chunk chunk = cPlayer.getMapChunk(clickedSlot);
 	            	if(event.getClick() == ClickType.LEFT) {
-	            		if(player.hasPermission("scs.command.claim.tp")) {
+	            		if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.tp")) {
 				            if(!ClaimMain.canPermCheck(chunk, "Visitors") && !ClaimMain.getOwnerInClaim(chunk).equals(player.getName())) {
 				            	player.sendMessage(ClaimLanguage.getMessage("error-claim-visitors-deny"));
 				            	return;
@@ -754,7 +754,7 @@ public class ClaimEvents implements Listener {
 	            	}
 	            	if(event.getClick() == ClickType.SHIFT_LEFT) {
 	            		if(ClaimSettings.getBooleanSetting("economy")) {
-	                    	if (!player.hasPermission("scs.command.claim.sclaim")) {
+	                    	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.sclaim")) {
 	                        	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
 	                        	return;
 	                    	}
@@ -887,7 +887,7 @@ public class ClaimEvents implements Listener {
     @EventHandler(priority = EventPriority.LOW)
 	public void onPlayerBreak(BlockBreakEvent event){
 		Player player = event.getPlayer();
-		if(player.hasPermission("scs.bypass")) return;
+		if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(ClaimMain.checkIfClaimExists(chunk)) {
 			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Destroy")) {
@@ -906,7 +906,7 @@ public class ClaimEvents implements Listener {
 		if(!ClaimMain.checkIfClaimExists(chunk)) return;
 		if(damager instanceof Player) {
 			Player player = (Player) damager;
-			if(player.hasPermission("scs.bypass")) return;
+			if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
 			if(ClaimMain.checkMembre(chunk, player)) return;
 			if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
 				event.setCancelled(true);
@@ -934,7 +934,7 @@ public class ClaimEvents implements Listener {
 	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerPlace(BlockPlaceEvent event){
 		Player player = event.getPlayer();
-		if(player.hasPermission("scs.bypass")) return;
+		if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
 		Block block = event.getBlock();
 		Chunk chunk = block.getLocation().getChunk();
 		
@@ -970,7 +970,7 @@ public class ClaimEvents implements Listener {
 	public void onHangingPlace(HangingPlaceEvent event) {
 		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
-		if(player.hasPermission("scs.bypass")) return;
+		if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(ClaimMain.checkIfClaimExists(chunk)) {
 			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Build")) {
@@ -1001,7 +1001,7 @@ public class ClaimEvents implements Listener {
             if (event.getRemover() instanceof Player) {
                 if(ClaimMain.checkIfClaimExists(chunk)) {
                 	Player player = (Player) event.getRemover();
-                	if(player.hasPermission("scs.bypass")) return;
+                	if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
                 	if(ClaimMain.checkMembre(chunk, player)) return;
                 	if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
                 		event.setCancelled(true);
@@ -1021,7 +1021,7 @@ public class ClaimEvents implements Listener {
             if (event.getRemover() instanceof Player) {
                 if(ClaimMain.checkIfClaimExists(chunk)) {
                 	Player player = (Player) event.getRemover();
-                	if(player.hasPermission("scs.bypass")) return;
+                	if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
                 	if(ClaimMain.checkMembre(chunk, player)) return;
                 	if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
                 		event.setCancelled(true);
@@ -1043,7 +1043,7 @@ public class ClaimEvents implements Listener {
     public void onBucketUse(PlayerBucketEmptyEvent event) {
 		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
-		if(player.hasPermission("scs.bypass")) return;
+		if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(ClaimMain.checkIfClaimExists(chunk)) {
 			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Build")) {
@@ -1059,7 +1059,7 @@ public class ClaimEvents implements Listener {
     public void onBucketUse(PlayerBucketFillEvent event) {
 		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
-		if(player.hasPermission("scs.bypass")) return;
+		if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(ClaimMain.checkIfClaimExists(chunk)) {
 			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Destroy")) {
@@ -1075,7 +1075,7 @@ public class ClaimEvents implements Listener {
 	public void onEntityPlace(EntityPlaceEvent event) {
 		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
-		if(player.hasPermission("scs.bypass")) return;
+		if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(ClaimMain.checkIfClaimExists(chunk)) {
 			if(!ClaimMain.checkMembre(chunk, player) && !ClaimMain.canPermCheck(chunk, "Build")) {
@@ -1090,7 +1090,7 @@ public class ClaimEvents implements Listener {
 	@EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
 		Player player = event.getPlayer();
-		if(player.hasPermission("scs.bypass")) return;
+		if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
 		Block block = event.getClickedBlock();
 		Chunk chunk;
 		if(block == null) {
@@ -1189,7 +1189,7 @@ public class ClaimEvents implements Listener {
         Chunk chunk = event.getRightClicked().getLocation().getChunk();
         if(ClaimMain.checkIfClaimExists(chunk)) {
         	Player player = event.getPlayer();
-        	if(player.hasPermission("scs.bypass")) return;
+        	if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
         	if(ClaimMain.checkMembre(chunk, player)) return;
         	Entity entity = event.getRightClicked();
         	
@@ -1220,7 +1220,7 @@ public class ClaimEvents implements Listener {
         Chunk chunk = event.getRightClicked().getLocation().getChunk();
         if(ClaimMain.checkIfClaimExists(chunk)) {
         	Player player = event.getPlayer();
-        	if(player.hasPermission("scs.bypass")) return;
+        	if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
         	if(ClaimMain.checkMembre(chunk, player)) return;
         	Entity entity = event.getRightClicked();
         	
@@ -1333,7 +1333,7 @@ public class ClaimEvents implements Listener {
             Entity entity = event.getEntity();
             if (entity instanceof Player) {
                 Player player = (Player) entity;
-                if(player.hasPermission("scs.bypass")) return;
+                if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
                 ItemStack boots = player.getInventory().getBoots();
                 if (boots != null && boots.containsEnchantment(Enchantment.FROST_WALKER)) {
                 	if(ClaimMain.checkMembre(chunk, player)) return;
@@ -1361,7 +1361,7 @@ public class ClaimEvents implements Listener {
         if(!ClaimMain.checkIfClaimExists(chunk)) return;
         Player player = event.getPlayer();
         if(player != null) {
-        	if(player.hasPermission("scs.bypass")) return;
+        	if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
         	if(ClaimMain.checkMembre(chunk, player)) return;
         }
         if(ClaimMain.canPermCheck(chunk, "Firespread")) return;
@@ -1387,7 +1387,7 @@ public class ClaimEvents implements Listener {
             if (!ClaimMain.checkIfClaimExists(chunk)) return;
             if (damager instanceof Player) {
             	Player player = (Player) damager;
-            	if(player.hasPermission("scs.bypass")) return;
+            	if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
             	if(ClaimMain.checkMembre(chunk, player)) return;
                 if (!ClaimMain.canPermCheck(chunk, "Destroy")) {
                 	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("destroy"), ClaimSettings.getSetting("protection-message"));
@@ -1437,7 +1437,7 @@ public class ClaimEvents implements Listener {
         	Chunk chunk = vehicle.getLocation().getChunk();
             if (ClaimMain.checkIfClaimExists(chunk) &&
                 !ClaimMain.canPermCheck(chunk, "Entities")) {
-            	if(player.hasPermission("scs.bypass")) return;
+            	if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
             	if(ClaimMain.checkMembre(chunk, player)) return;
                 event.setCancelled(true);
                 ClaimMain.sendMessage(player,ClaimLanguage.getMessage("entities"), ClaimSettings.getSetting("protection-message"));
@@ -1455,7 +1455,7 @@ public class ClaimEvents implements Listener {
             Player player = (Player) entity;
             Chunk chunk = block.getLocation().getChunk();
             if (ClaimMain.checkIfClaimExists(chunk)) {
-            	if(player.hasPermission("scs.bypass")) return;
+            	if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
             	if(ClaimMain.checkMembre(chunk, player)) return;
                 if(!ClaimMain.canPermCheck(chunk, "Destroy")) {
                 	ClaimMain.sendMessage(player,ClaimLanguage.getMessage("destroy"), ClaimSettings.getSetting("protection-message"));
@@ -1504,7 +1504,7 @@ public class ClaimEvents implements Listener {
     
     // Damages setting
     private void processDamageByPlayer(Player player, Chunk chunk, EntityDamageByEntityEvent event) {
-        if(player.hasPermission("scs.bypass")) return;
+        if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
         if(ClaimMain.checkMembre(chunk, player)) return;
         if(!ClaimMain.canPermCheck(chunk, "Damages")) {
             event.setCancelled(true);

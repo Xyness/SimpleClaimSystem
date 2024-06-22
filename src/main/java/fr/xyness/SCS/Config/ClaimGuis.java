@@ -15,6 +15,8 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class ClaimGuis {
@@ -363,6 +365,15 @@ public class ClaimGuis {
              }
          }
          return true;
+     }
+     
+     // Method to set item flags
+     public static ItemMeta setItemFlag(ItemMeta meta) {
+    	 if(Bukkit.getVersion().contains("1.20")) {
+    		 meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS, ItemFlag.HIDE_ARMOR_TRIM);
+    	 }
+    	 meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_POTION_EFFECTS, ItemFlag.HIDE_DYE, ItemFlag.HIDE_PLACED_ON, ItemFlag.HIDE_UNBREAKABLE);
+    	 return meta;
      }
      
      // Method to execute custom actions

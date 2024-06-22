@@ -163,7 +163,7 @@ public class AdminClaimGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(name);
             meta.setLore(lore);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
         return item;
@@ -185,7 +185,7 @@ public class AdminClaimGui implements InventoryHolder {
             meta.setDisplayName(name);
             meta.setLore(lore);
             meta.setCustomModelData(model_data);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
         return item;

@@ -53,52 +53,52 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
 
         if(sender instanceof Player) {
         	Player player = (Player) sender;
-        	if(!player.hasPermission("scs.command.claim")) return completions;
+        	if(!CPlayerMain.checkPermPlayer(player, "scs.command.claim")) return completions;
 	        if (args.length == 1) {
-	        	if(player.hasPermission("scs.command.claim.settings")) completions.add("settings");
-	            if(player.hasPermission("scs.command.claim.add")) completions.add("add");
-	            if(player.hasPermission("scs.command.claim.remove")) completions.add("remove");
-	            if(player.hasPermission("scs.command.claim.list")) completions.add("list");
-	            if(player.hasPermission("scs.command.claim.setspawn")) completions.add("setspawn");
-	            if(player.hasPermission("scs.command.claim.setname")) completions.add("setname");
-	            if(player.hasPermission("scs.command.claim.members")) completions.add("members");
-	            if(player.hasPermission("scs.command.claim.setdesc")) completions.add("setdesc");
-	            if(player.hasPermission("scs.command.claim.chat")) completions.add("chat");
-	            if(player.hasPermission("scs.command.claim.map")) completions.add("map");
-	            if(player.hasPermission("scs.command.claim.autoclaim")) completions.add("autoclaim");
-	            if(player.hasPermission("scs.command.claim.automap")) completions.add("automap");
-	            if(player.hasPermission("scs.command.claim.see")) completions.add("see");
-	            if(player.hasPermission("scs.command.claim.tp")) completions.add("tp");
-	            if(player.hasPermission("scs.command.claim.ban")) completions.add("ban");
-	            if(player.hasPermission("scs.command.claim.unban")) completions.add("unban");
-	            if(player.hasPermission("scs.command.claim.bans")) completions.add("bans");
+	        	if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.settings")) completions.add("settings");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.add")) completions.add("add");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) completions.add("remove");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.list")) completions.add("list");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.setspawn")) completions.add("setspawn");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.setname")) completions.add("setname");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.members")) completions.add("members");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.setdesc")) completions.add("setdesc");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.chat")) completions.add("chat");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.map")) completions.add("map");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.autoclaim")) completions.add("autoclaim");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.automap")) completions.add("automap");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.see")) completions.add("see");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.tp")) completions.add("tp");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.ban")) completions.add("ban");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) completions.add("unban");
+	            if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans")) completions.add("bans");
 	            return completions;
 	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("see") && player.hasPermission("scs.command.claim.see.others")) {
+	        if (args.length == 2 && args[0].equalsIgnoreCase("see") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.see.others")) {
 	        	completions.addAll(ClaimMain.getClaimsOwners());
 	        	return completions;
 	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("setname") && player.hasPermission("scs.command.claim.setname")) {
+	        if (args.length == 2 && args[0].equalsIgnoreCase("setname") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.setname")) {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("chat") && player.hasPermission("scs.command.claim.chat")) {
+	        if (args.length == 2 && args[0].equalsIgnoreCase("chat") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.chat")) {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("setdesc") && player.hasPermission("scs.command.claim.setdesc")) {
+	        if (args.length == 2 && args[0].equalsIgnoreCase("setdesc") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.setdesc")) {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("settings") && player.hasPermission("scs.command.claim.settings")) {
+	        if (args.length == 2 && args[0].equalsIgnoreCase("settings") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.settings")) {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("tp") && player.hasPermission("scs.command.claim.tp")) {
+	        if (args.length == 2 && args[0].equalsIgnoreCase("tp") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.tp")) {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("add") && player.hasPermission("scs.command.claim.add")) {
+	        if (args.length == 2 && args[0].equalsIgnoreCase("add") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.add")) {
 	        	Chunk chunk = player.getLocation().getChunk();
         		String owner = ClaimMain.getOwnerInClaim(chunk);
         		if(ClaimMain.checkIfClaimExists(chunk)) {
@@ -113,7 +113,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("ban") && player.hasPermission("scs.command.claim.ban")) {
+	        if (args.length == 2 && args[0].equalsIgnoreCase("ban") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.ban")) {
 	        	Chunk chunk = player.getLocation().getChunk();
         		String owner = ClaimMain.getOwnerInClaim(chunk);
         		if(ClaimMain.checkIfClaimExists(chunk)) {
@@ -128,7 +128,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("unban") && player.hasPermission("scs.command.claim.unban")) {
+	        if (args.length == 2 && args[0].equalsIgnoreCase("unban") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
 	        	Chunk chunk = player.getLocation().getChunk();
         		String owner = ClaimMain.getOwnerInClaim(chunk);
         		if(ClaimMain.checkIfClaimExists(chunk)) {
@@ -140,7 +140,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("remove") && player.hasPermission("scs.command.claim.remove")) {
+	        if (args.length == 2 && args[0].equalsIgnoreCase("remove") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) {
 	        	Chunk chunk = player.getLocation().getChunk();
         		String owner = ClaimMain.getOwnerInClaim(chunk);
         		if(ClaimMain.checkIfClaimExists(chunk)) {
@@ -153,49 +153,49 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("members") && player.hasPermission("scs.command.claim.members")) {
+	        if (args.length == 2 && args[0].equalsIgnoreCase("members") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.members")) {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("bans") && player.hasPermission("scs.command.claim.bans")) {
+	        if (args.length == 2 && args[0].equalsIgnoreCase("bans") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans")) {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
-	        if (args.length == 2 && args[0].equalsIgnoreCase("owner") && player.hasPermission("scs.command.claim.owner")) {
+	        if (args.length == 2 && args[0].equalsIgnoreCase("owner") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.owner")) {
 	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
 	        	return completions;
 	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("remove") && player.hasPermission("scs.command.claim.remove") && !args[1].equals("*")) {
+	        if (args.length == 3 && args[0].equalsIgnoreCase("remove") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove") && !args[1].equals("*")) {
 	        	Chunk chunk = ClaimMain.getChunkByClaimName(player.getName(), args[1]);
 	        	completions.addAll(ClaimMain.getClaimMembers(chunk));
 	        	completions.remove(player.getName());
 	        	return completions;
 	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("unban") && player.hasPermission("scs.command.claim.unban")) {
+	        if (args.length == 3 && args[0].equalsIgnoreCase("unban") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
 	        	Chunk chunk = ClaimMain.getChunkByClaimName(player.getName(), args[1]);
 	        	completions.addAll(ClaimMain.getClaimBans(chunk));
 	        	return completions;
 	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("add") && player.hasPermission("scs.command.claim.add")) {
+	        if (args.length == 3 && args[0].equalsIgnoreCase("add") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.add")) {
 	        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
 	        		completions.add(p.getName());
 	        	}
 	        	completions.remove(player.getName());
 	        	return completions;
 	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("remove") && player.hasPermission("scs.command.claim.remove")) {
+	        if (args.length == 3 && args[0].equalsIgnoreCase("remove") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) {
 	        	completions.addAll(ClaimMain.getAllMembersOfAllPlayerClaim(player.getName()));
 	        	completions.remove(player.getName());
 	        	return completions;
 	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("ban") && player.hasPermission("scs.command.claim.ban")) {
+	        if (args.length == 3 && args[0].equalsIgnoreCase("ban") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.ban")) {
 	        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
 	        		completions.add(p.getName());
 	        	}
 	        	completions.remove(player.getName());
 	        	return completions;
 	        }
-	        if (args.length == 3 && args[0].equalsIgnoreCase("owner") && player.hasPermission("scs.command.claim.owner")) {
+	        if (args.length == 3 && args[0].equalsIgnoreCase("owner") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.owner")) {
 	        	for(OfflinePlayer p : Bukkit.getOfflinePlayers()) {
 	        		completions.add(p.getName());
 	        	}
@@ -225,13 +225,13 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         String playerName = player.getName();
         CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
         
-        if(!player.hasPermission("scs.command.claim")) {
+        if(!CPlayerMain.checkPermPlayer(player, "scs.command.claim")) {
         	sender.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         	return false;
         }
         
         if (args.length > 1 && args[0].equals("setdesc")) {
-        	if (!player.hasPermission("scs.command.claim.setdesc")) {
+        	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setdesc")) {
             	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
             	return false;
         	}
@@ -255,7 +255,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         
         if (args.length == 3) {
         	if(args[0].equalsIgnoreCase("setname")) {
-            	if (!player.hasPermission("scs.command.claim.setname")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setname")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -281,7 +281,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("ban")) {
-            	if (!player.hasPermission("scs.command.claim.ban")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.ban")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -344,7 +344,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("unban")) {
-            	if (!player.hasPermission("scs.command.claim.unban")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -392,7 +392,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("add")) {
-            	if (!player.hasPermission("scs.command.claim.add")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.add")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -471,7 +471,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("remove")) {
-            	if (!player.hasPermission("scs.command.claim.remove")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -518,7 +518,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("owner")) {
-            	if (!player.hasPermission("scs.command.claim.owner")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.owner")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -579,7 +579,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         
         if (args.length == 2) {
         	if(args[0].equalsIgnoreCase("ban")) {
-            	if (!player.hasPermission("scs.command.claim.ban")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.ban")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -618,7 +618,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("unban")) {
-            	if (!player.hasPermission("scs.command.claim.unban")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -647,7 +647,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("owner")) {
-            	if (!player.hasPermission("scs.command.claim.owner")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.owner")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -682,7 +682,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("remove")) {
-            	if (!player.hasPermission("scs.command.claim.remove")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -716,7 +716,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("add")) {
-            	if (!player.hasPermission("scs.command.claim.add")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.add")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -764,7 +764,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("see")) {
-        		if(!player.hasPermission("scs.command.claim.see.others")) {
+        		if(!CPlayerMain.checkPermPlayer(player, "scs.command.claim.see.others")) {
         			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         			return true;
         		}
@@ -784,7 +784,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("settings")) {
-            	if (!player.hasPermission("scs.command.claim.settings")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.settings")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -798,7 +798,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("members")) {
-            	if (!player.hasPermission("scs.command.claim.members")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.members")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -813,7 +813,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("bans")) {
-            	if (!player.hasPermission("scs.command.claim.bans")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -828,7 +828,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("tp")) {
-        		if(!player.hasPermission("scs.command.claim.tp")) {
+        		if(!CPlayerMain.checkPermPlayer(player, "scs.command.claim.tp")) {
         			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         			return true;
         		}
@@ -844,7 +844,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         
         if (args.length == 1) {
         	if(args[0].equalsIgnoreCase("chat")) {
-            	if (!player.hasPermission("scs.command.claim.chat")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.chat")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -858,7 +858,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("automap")) {
-        		if(!player.hasPermission("scs.command.claim.automap")) {
+        		if(!CPlayerMain.checkPermPlayer(player, "scs.command.claim.automap")) {
         			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         			return true;
         		}
@@ -877,7 +877,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
     			return true;
         	}
         	if(args[0].equalsIgnoreCase("map")) {
-        		if(!player.hasPermission("scs.command.claim.map")) {
+        		if(!CPlayerMain.checkPermPlayer(player, "scs.command.claim.map")) {
         			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         			return true;
         		}
@@ -890,7 +890,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("autoclaim")) {
-        		if(!player.hasPermission("scs.command.claim.autoclaim")) {
+        		if(!CPlayerMain.checkPermPlayer(player, "scs.command.claim.autoclaim")) {
         			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         			return true;
         		}
@@ -909,7 +909,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
     			return true;
         	}
         	if(args[0].equalsIgnoreCase("setspawn")) {
-            	if (!player.hasPermission("scs.command.claim.setspawn")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setspawn")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -929,7 +929,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
             	return true;
         	}
         	if(args[0].equalsIgnoreCase("settings")) {
-            	if (!player.hasPermission("scs.command.claim.settings")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.settings")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -948,7 +948,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
                 return true;
         	}
         	if(args[0].equalsIgnoreCase("members")) {
-            	if (!player.hasPermission("scs.command.claim.members")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.members")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -968,7 +968,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
                 return true;
         	}
         	if(args[0].equalsIgnoreCase("bans")) {
-            	if (!player.hasPermission("scs.command.claim.bans")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -988,7 +988,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
                 return true;
         	}
         	if(args[0].equalsIgnoreCase("list")) {
-            	if (!player.hasPermission("scs.command.claim.list")) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.list")) {
                 	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                 	return false;
             	}
@@ -999,7 +999,7 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		return true;
         	}
         	if(args[0].equalsIgnoreCase("see")) {
-        		if(!player.hasPermission("scs.command.claim.see")) {
+        		if(!CPlayerMain.checkPermPlayer(player, "scs.command.claim.see")) {
         			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
         			return true;
         		}
@@ -1011,20 +1011,16 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         		ClaimMain.displayChunk(player,player.getLocation().getChunk(),false);
         		return true;
         	}
-        	if (!player.hasPermission("scs.claim.radius")) {
-            	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-            	return false;
-        	}
+    		if(!CPlayerMain.checkPermPlayer(player, "scs.command.claim.radius")) {
+    			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+    			return true;
+    		}
             if(ClaimSettings.isWorldDisabled(player.getWorld().getName())) {
             	player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName()));
             	return true;
             }
     		try {
     			int radius = Integer.parseInt(args[0]);
-        		if(!player.hasPermission("scs.command.claim.radius")) {
-        			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-        			return true;
-        		}
     			if(!cPlayer.canRadiusClaim(radius)) {
     				player.sendMessage(ClaimLanguage.getMessage("cant-radius-claim"));
     				return true;
@@ -1058,11 +1054,6 @@ public class ClaimCommand implements CommandExecutor,TabCompleter {
         	ClaimMain.getHelp(player,args[0],"claim");
         	return true;
         }
-        
-    	if (!player.hasPermission("scs.claim")) {
-        	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-        	return false;
-    	}
         
     	String world = player.getWorld().getName();
         if(ClaimSettings.isWorldDisabled(world)) {

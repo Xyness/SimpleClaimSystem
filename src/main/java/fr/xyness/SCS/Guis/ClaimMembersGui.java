@@ -84,7 +84,7 @@ public class ClaimMembersGui implements InventoryHolder {
 	        } else {
 	        	lore = new ArrayList<>(getLore(ClaimLanguage.getMessage("territory-access-lore")));
 	        }
-	        lore.add(player.hasPermission("scs.command.claim.remove") ? ClaimLanguage.getMessage("access-claim-clickable-removemember") : ClaimLanguage.getMessage("gui-button-no-permission") + " to remove this player");
+	        lore.add(CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove") ? ClaimLanguage.getMessage("access-claim-clickable-removemember") : ClaimLanguage.getMessage("gui-button-no-permission") + " to remove this player");
 	        int startItem = (page - 1) * items_count;
 	    	int i = min_member_slot;
 	    	int count = 0;
@@ -217,7 +217,7 @@ public class ClaimMembersGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(name);
             meta.setLore(lore);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
         return item;
@@ -239,7 +239,7 @@ public class ClaimMembersGui implements InventoryHolder {
             meta.setDisplayName(name);
             meta.setLore(lore);
             meta.setCustomModelData(model_data);
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
         return item;
@@ -271,7 +271,7 @@ public class ClaimMembersGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(ClaimLanguage.getMessage("previous-page-title").replaceAll("%page%", String.valueOf(page)));
             meta.setLore(getLore(ClaimLanguage.getMessage("previous-page-lore").replaceAll("%page%", String.valueOf(page))));
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
 
@@ -304,7 +304,7 @@ public class ClaimMembersGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(ClaimLanguage.getMessage("previous-page-settings-title"));
             meta.setLore(getLore(ClaimLanguage.getMessage("previous-page-settings-lore")));
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
 
@@ -337,7 +337,7 @@ public class ClaimMembersGui implements InventoryHolder {
         if (meta != null) {
             meta.setDisplayName(ClaimLanguage.getMessage("next-page-title").replaceAll("%page%", String.valueOf(page)));
             meta.setLore(getLore(ClaimLanguage.getMessage("next-page-lore").replaceAll("%page%", String.valueOf(page))));
-            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_ATTRIBUTES);
+            meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
 
