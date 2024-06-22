@@ -173,6 +173,11 @@ items:
     material: PLAYER_HEAD
     custom_model_data: false
     custom_model_data_value: 0
+  Fly:
+    slot: 31
+    material: ELYTRA
+    custom_model_data: false
+    custom_model_data_value: 0
   Pvp:
     slot: 32
     material: IRON_SWORD

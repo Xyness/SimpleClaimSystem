@@ -56,7 +56,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	static ClaimBluemap bluemapC;
 	
 	public static JavaPlugin plugin;
-	public static String Version = "1.9.0.2b1";
+	public static String Version = "1.9.0.2b2";
 	public static HikariDataSource dataSource;
 	private static boolean isFolia = false;
 	private static boolean isUpdateAvailable;
@@ -120,7 +120,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	
 	// Execute task in async thread
 	public static void executeAsync(Runnable gTask) {
-		if (SimpleClaimSystem.isFolia()) {
+		if (isFolia || Bukkit.getVersion().contains("1.20")) {
 			Bukkit.getAsyncScheduler().runNow(plugin, task -> gTask.run());
 		} else {
 			Bukkit.getScheduler().runTaskAsynchronously(plugin, gTask);
@@ -129,7 +129,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 	
 	// Execute task in sync thread
 	public static void executeSync(Runnable gTask) {
-		if (SimpleClaimSystem.isFolia()) {
+		if (isFolia || Bukkit.getVersion().contains("1.20")) {
 			Bukkit.getGlobalRegionScheduler().execute(plugin, () -> gTask.run());
 		} else {
 			Bukkit.getScheduler().runTask(plugin, gTask);
@@ -143,7 +143,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 			return;
 		}
 		try {
-			Class.forName("io.papermc.paper.threadedregions.scheduler.AsyncScheduler");
+			Class.forName("io.papermc.paper.threadedregions.RegionizedServerInitEvent");
 			isFolia = true;
 			return;
 		} catch (ClassNotFoundException e) {
@@ -168,6 +168,11 @@ public class SimpleClaimSystem extends JavaPlugin {
         
         // Checking for update
         isUpdateAvailable = checkForUpdates(plugin);
+        
+        // Folia
+        if(isFolia) {
+        	plugin.getLogger().info("Folia detected. Claim fly disabled.");
+        }
         
         // Register bStats
         ClaimbStats.enableMetrics(plugin);
@@ -474,10 +479,11 @@ public class SimpleClaimSystem extends JavaPlugin {
         if(configC.equalsIgnoreCase("action_bar") || 
         		configC.equalsIgnoreCase("title") ||
         		configC.equalsIgnoreCase("subtitle") ||
-        		configC.equalsIgnoreCase("chat")) {
+        		configC.equalsIgnoreCase("chat") ||
+        		configC.equalsIgnoreCase("bossbar")) {
         	ClaimSettings.addSetting("protection-message", configC);
         } else {
-        	plugin.getLogger().info("'protection-message' must be 'ACTION_BAR', 'TITLE', 'SUBTITLE' or 'CHAT'. Using default value.");
+        	plugin.getLogger().info("'protection-message' must be 'ACTION_BAR', 'TITLE', 'SUBTITLE', 'CHAT' or 'BOSSBAR'. Using default value.");
         	ClaimSettings.addSetting("protection-message", "ACTION_BAR");
         }
         
@@ -501,6 +507,14 @@ public class SimpleClaimSystem extends JavaPlugin {
         // Add claim particles setting
         configC = plugin.getConfig().getString("claim-particles");
         ClaimSettings.addSetting("claim-particles", configC);
+        
+        // Add claim fly disabled on damage setting
+        configC = plugin.getConfig().getString("claim-fly-disabled-on-damage");
+        ClaimSettings.addSetting("claim-fly-disabled-on-damage", configC);
+        
+        // Add claim fly message setting
+        configC = plugin.getConfig().getString("claim-fly-message-auto-fly");
+        ClaimSettings.addSetting("claim-fly-message-auto-fly", configC);
         
         // Checking if enter/leave messages in a claim in the action bar are enabled
         configC = plugin.getConfig().getString("enter-leave-messages");

@@ -31,6 +31,8 @@ public class CPlayer {
 	private Boolean claim_chat;
 	private Boolean claim_automap;
 	private Boolean claim_autoclaim;
+	private Boolean claim_autofly;
+	private Boolean claim_fly;
 	
 	// Gui variable
 	private Integer gui_page;
@@ -69,6 +71,8 @@ public class CPlayer {
 		this.claim_chat = false;
 		this.claim_automap = false;
 		this.claim_autoclaim = false;
+		this.claim_autofly = false;
+		this.claim_fly = false;
 	}
 	
 	
@@ -97,6 +101,8 @@ public class CPlayer {
 	public void addMapString(Integer slot, String s) { this.mapString.put(slot, s); } // Set the string by slot for gui
 	public void setFilter(String filter) { this.filter = filter; } // Set the filter for gui
 	public void setOwner(String owner) { this.owner = owner; } // Set the owner for gui
+	public void setClaimAutofly(Boolean setting) { this.claim_autofly = setting; } // Set the player's autofly mode
+	public void setClaimFly(Boolean setting) { this.claim_fly = setting; } // Set the player's fly mode
 	
 	// Getters
 	public Player getPlayer() { return this.player; } // Return the player
@@ -112,6 +118,8 @@ public class CPlayer {
 	public String getMapString(Integer slot) { return this.mapString.get(slot); } // Return a string by its slot
 	public String getFilter() { return this.filter; } // Return the gui filter
 	public String getOwner() { return this.owner; } // Return the owner
+	public Boolean getClaimAutofly() { return this.claim_autofly; } // Return the player's autofly status
+	public Boolean getClaimFly() { return this.claim_fly; } // Return the player's fly status
 	
 	// Get the player's max claims
 	public Integer getMaxClaims() {

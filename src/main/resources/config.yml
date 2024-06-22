@@ -33,7 +33,7 @@ bluemap-claim-fill-color: 8033CC33
 bluemap-hover-text: "%claim-name% - Owner: %owner%"
 
 # Where the protection messages are displayed
-# Allowed type : ACTION_BAR (default), SUBTITLE, TITLE and CHAT
+# Allowed type : ACTION_BAR (default), BOSSBAR, SUBTITLE, TITLE and CHAT
 protection-message: ACTION_BAR
 
 # Worlds where claims are disabled
@@ -51,6 +51,12 @@ claim-confirmation: false
 
 # Display particles on the borders when claiming?
 claim-particles: true
+
+# Disable claim fly on damage (of any type)
+claim-fly-disabled-on-damage: true
+
+# Send a message to player when auto fly enable the fly ?
+claim-fly-message-auto-fly: true
 
 # Enable/Disable the enter/leave message in the action bar
 enter-leave-messages: true
@@ -161,6 +167,7 @@ status-settings:
   Pvp: true
   Monsters: true
   Weather: true
+  Fly: true
 
 # List of default values for the settings
 default-values-settings:
@@ -189,6 +196,7 @@ default-values-settings:
   Pvp: true
   Monsters: true
   Weather: true
+  Fly: true
 
 # List of blocked containers for the settings "Interact with blocks"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
