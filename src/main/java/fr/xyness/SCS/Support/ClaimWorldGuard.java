@@ -1,4 +1,5 @@
 package fr.xyness.SCS.Support;
+
 import com.sk89q.worldguard.WorldGuard;
 import com.sk89q.worldguard.protection.ApplicableRegionSet;
 import com.sk89q.worldguard.protection.flags.StateFlag;
@@ -9,24 +10,28 @@ import com.sk89q.worldguard.protection.regions.RegionQuery;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import org.bukkit.entity.Player;
 
+/**
+ * This class handles the integration with WorldGuard for managing claim flags.
+ */
 public class ClaimWorldGuard {
-	
 	
 	// ***************
 	// *  Variables  *
 	// ***************
 	
-	
+	/** Indicates whether the custom flag has been registered. */
 	public static boolean registered = false;
-	public static final StateFlag SCS_CLAIM_FLAG = new StateFlag("scs-claim", true);
 	
+	/** The custom flag for claims in WorldGuard. */
+	public static final StateFlag SCS_CLAIM_FLAG = new StateFlag("scs-claim", true);
 	
 	// ********************
 	// *  Others Methods  *
 	// ********************
 	
-	
-	// Method to register the flag "scs-claim"
+	/**
+	 * Registers the custom flag "scs-claim" with WorldGuard.
+	 */
 	public static void registerCustomFlag() {
 		if(!registered) {
 			FlagRegistry registry = WorldGuard.getInstance().getFlagRegistry();
@@ -35,13 +40,23 @@ public class ClaimWorldGuard {
 		}
 	}
     
-	// Method to check if the flag "scs-claim" is enable/disable in a region
+	/**
+	 * Checks if the "scs-claim" flag is enabled in a specific region.
+	 *
+	 * @param region the region to check.
+	 * @return true if the flag is enabled, false otherwise.
+	 */
     public static boolean checkClaimFlagInRegion(ProtectedRegion region) {
         StateFlag.State flagValue = region.getFlag(SCS_CLAIM_FLAG);
         return flagValue == StateFlag.State.ALLOW;
     }
     
-    // Method to check if the flag "scs-claim" is enable/disable at the player's location
+    /**
+     * Checks if the "scs-claim" flag is enabled at the player's location.
+     *
+     * @param player the player whose location is to be checked.
+     * @return true if the flag is enabled at the player's location, false otherwise.
+     */
     public static boolean checkFlagClaim(Player player) {
         RegionContainer container = WorldGuard.getInstance().getPlatform().getRegionContainer();
         RegionQuery query = container.createQuery();

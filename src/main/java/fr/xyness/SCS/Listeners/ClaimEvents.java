@@ -47,7 +47,6 @@ import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
-import org.bukkit.event.hanging.HangingBreakEvent.RemoveCause;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -74,15 +73,19 @@ import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Guis.*;
 
+/**
+ * Event listener for claim-related events.
+ */
 public class ClaimEvents implements Listener {
-	
 	
 	// ******************
 	// *  EventHandler  *
 	// ******************
 	
-	
-	// Check for claim chat
+	/**
+	 * Handles player chat events for claim chat.
+	 * @param event the player chat event.
+	 */
 	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
@@ -99,7 +102,10 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
-	// Gui event
+	/**
+	 * Handles inventory click events in the claim GUIs.
+	 * @param event the inventory click event.
+	 */
 	@EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
     	Player player = (Player) event.getWhoClicked();
@@ -112,669 +118,29 @@ public class ClaimEvents implements Listener {
         	CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
         	
         	if (holder instanceof ClaimGui) {
-        		event.setCancelled(true);
-                ItemStack clickedItem = event.getCurrentItem();
-                if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
-                int clickedSlot = event.getSlot();
-                
-                Chunk chunk = cPlayer.getChunk();
-                
-                if(clickedSlot == ClaimGuis.getItemSlot("settings", "define-loc")) {
-                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setspawn")) {
-                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    	return;
-                	}
-                	if(chunk.equals(player.getLocation().getChunk())) {
-	                	player.closeInventory();
-	                	Location l = player.getLocation();
-	                	ClaimMain.setClaimLocation(player, chunk, l);
-	                	player.sendMessage(ClaimLanguage.getMessage("loc-change-success").replaceAll("%coords%", ClaimMain.getClaimCoords(chunk)));
-	                	return;
-                	}
-                	player.sendMessage(ClaimLanguage.getMessage("error-not-right-claim"));
-                	return;
-                }
-                
-                if(clickedSlot == ClaimGuis.getItemSlot("settings", "manage-members")) {
-                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.members")) {
-                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    	return;
-                	}
-                	cPlayer.setGuiPage(1);
-                    ClaimMembersGui menu = new ClaimMembersGui(player,chunk,1);
-                    menu.openInventory(player);
-                    return;
-                }
-                
-                if(clickedSlot == ClaimGuis.getItemSlot("settings", "manage-bans")) {
-                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans")) {
-                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    	return;
-                	}
-                	cPlayer.setGuiPage(1);
-                    ClaimBansGui menu = new ClaimBansGui(player,chunk,1);
-                    menu.openInventory(player);
-                    return;
-                }
-                
-                if(clickedSlot == ClaimGuis.getItemSlot("settings", "define-name")) {
-                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setname")) {
-                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    	return;
-                	}
-                	player.closeInventory();
-                	player.sendMessage(ClaimLanguage.getMessage("name-change-ask"));
-                	return;
-                }
-                
-                if(clickedSlot == ClaimGuis.getItemSlot("settings", "my-claims")) {
-                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.list")) {
-                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    	return;
-                	}
-                	cPlayer.setGuiPage(1);
-                	cPlayer.setChunk(chunk);
-                    ClaimListGui menu = new ClaimListGui(player,1,"owner");
-                    menu.openInventory(player);
-                	return;
-                }
-                
-                if(clickedSlot == ClaimGuis.getItemSlot("settings", "apply-all-claims")) {
-                	player.closeInventory();
-                	if(ClaimMain.applyAllSettings(chunk, player)) {
-                		player.sendMessage(ClaimLanguage.getMessage("apply-all-settings-success"));
-                	}
-                	return;
-                }
-                
-                if(ClaimGuis.isAllowedSlot(clickedSlot)) {
-                	ItemMeta meta = clickedItem.getItemMeta();
-                    if (meta != null && meta.hasLore()) {
-                    	String title = meta.getDisplayName();
-                        List<String> lore = meta.getLore();
-                        String check = lore.get(lore.size()-1);
-                        if(check.equals(ClaimLanguage.getMessage("choice-setting-disabled"))) return;
-                        String action = ClaimGuis.getSlotPerm(clickedSlot);
-                        if(title.contains(ClaimLanguage.getMessage("status-enabled"))){
-                            if(ClaimMain.updatePerm(player, chunk, action, false)) {
-                            	title = title.replace(ClaimLanguage.getMessage("status-enabled"), ClaimLanguage.getMessage("status-disabled"));
-                            	meta.setDisplayName(title);
-                            	lore.remove(lore.size()-1);
-                            	lore.add(ClaimLanguage.getMessage("choice-disabled"));
-                            	meta.setLore(lore);
-                            	clickedItem.setItemMeta(meta);
-                            	return;
-                            }
-                            player.closeInventory();
-                            player.sendMessage(ClaimLanguage.getMessage("error"));
-                            return;
-                        }
-                        if(ClaimMain.updatePerm(player, chunk, action, true)) {
-                        	title = title.replace(ClaimLanguage.getMessage("status-disabled"), ClaimLanguage.getMessage("status-enabled"));
-                        	meta.setDisplayName(title);
-                        	lore.remove(lore.size()-1);
-                        	lore.add(ClaimLanguage.getMessage("choice-enabled"));
-                        	meta.setLore(lore);
-                        	clickedItem.setItemMeta(meta);
-                        	return;
-                        }
-                        player.closeInventory();
-                        player.sendMessage(ClaimLanguage.getMessage("error"));
-                        return;
-                    }
-                }
-                
-	            ClaimGuis.executeAction(player, "settings", clickedSlot, event.getClick());
-                return;
-        	}
-        	
-        	if (holder instanceof AdminClaimGui) {
-        		event.setCancelled(true);
-                ItemStack clickedItem = event.getCurrentItem();
-                if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
-                int clickedSlot = event.getSlot();
-                
-                Chunk chunk = cPlayer.getChunk();
-                
-                if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "define-loc")) {
-                	if(chunk.equals(player.getLocation().getChunk())) {
-	                	player.closeInventory();
-	                	Location l = player.getLocation();
-	                	ClaimMain.setClaimLocation(player, chunk, l);
-	                	player.sendMessage(ClaimLanguage.getMessage("loc-change-success").replaceAll("%coords%", ClaimMain.getClaimCoords(chunk)));
-	                	return;
-                	}
-                	player.sendMessage(ClaimLanguage.getMessage("error-not-right-claim"));
-                	return;
-                }
-                
-                if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "manage-members")) {
-                	cPlayer.setGuiPage(1);
-                    ClaimMembersGui menu = new ClaimMembersGui(player,chunk,1);
-                    menu.openInventory(player);
-                    return;
-                }
-                
-                if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "manage-bans")) {
-                	cPlayer.setGuiPage(1);
-                    ClaimBansGui menu = new ClaimBansGui(player,chunk,1);
-                    menu.openInventory(player);
-                    return;
-                }
-                
-                if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "define-name")) {
-                	player.closeInventory();
-                	player.sendMessage(ClaimLanguage.getMessage("name-change-ask"));
-                	return;
-                }
-                
-                if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "admin-claims")) {
-                	cPlayer.setGuiPage(1);
-                	cPlayer.setChunk(chunk);
-                	AdminClaimListGui menu = new AdminClaimListGui(player,1);
-                    menu.openInventory(player);
-                	return;
-                }
-                
-                if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "apply-all-admin-claims")) {
-                	player.closeInventory();
-                	if(ClaimMain.applyAllSettingsAdmin(chunk)) {
-                		player.sendMessage(ClaimLanguage.getMessage("apply-all-admin-settings-success"));
-                	}
-                	return;
-                }
-                
-                if(ClaimGuis.isAllowedSlot(clickedSlot)) {
-                	ItemMeta meta = clickedItem.getItemMeta();
-                    if (meta != null && meta.hasLore()) {
-                    	String title = meta.getDisplayName();
-                        List<String> lore = meta.getLore();
-                        String check = lore.get(lore.size()-1);
-                        if(check.equals(ClaimLanguage.getMessage("choice-setting-disabled"))) return;
-                        String action = ClaimGuis.getSlotPerm(clickedSlot);
-                        if(title.contains(ClaimLanguage.getMessage("status-enabled"))){
-                            if(ClaimMain.updateAdminPerm(chunk, action, false)) {
-                            	title = title.replace(ClaimLanguage.getMessage("status-enabled"), ClaimLanguage.getMessage("status-disabled"));
-                            	meta.setDisplayName(title);
-                            	lore.remove(lore.size()-1);
-                            	lore.add(ClaimLanguage.getMessage("choice-disabled"));
-                            	meta.setLore(lore);
-                            	clickedItem.setItemMeta(meta);
-                            	return;
-                            }
-                            player.closeInventory();
-                            player.sendMessage(ClaimLanguage.getMessage("error"));
-                            return;
-                        }
-                        if(ClaimMain.updateAdminPerm(chunk, action, true)) {
-                        	title = title.replace(ClaimLanguage.getMessage("status-disabled"), ClaimLanguage.getMessage("status-enabled"));
-                        	meta.setDisplayName(title);
-                        	lore.remove(lore.size()-1);
-                        	lore.add(ClaimLanguage.getMessage("choice-enabled"));
-                        	meta.setLore(lore);
-                        	clickedItem.setItemMeta(meta);
-                        	return;
-                        }
-                        player.closeInventory();
-                        player.sendMessage(ClaimLanguage.getMessage("error"));
-                        return;
-                    }
-                }
-                
-	            ClaimGuis.executeAction(player, "admin_settings", clickedSlot, event.getClick());
-                return;
-        	}
-        	
-        	if (holder instanceof ClaimMembersGui) {
-        		event.setCancelled(true);
-                ItemStack clickedItem = event.getCurrentItem();
-                if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
-                int clickedSlot = event.getSlot();
-                
-                Chunk chunk = cPlayer.getChunk();
-                
-	            if (clickedSlot == ClaimGuis.getItemSlot("members", "back-page-list")) {
-                	int page = cPlayer.getGuiPage();
-                	if(ClaimGuis.getItemSlot("members", "back-page-list") == ClaimGuis.getItemSlot("members", "back-page-settings") && page == 1) {
-    	            	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
-    		                AdminClaimGui menu = new AdminClaimGui(player,chunk);
-    		                menu.openInventory(player);
-    		                return;
-    	            	}
-	                    ClaimGui menu = new ClaimGui(player,chunk);
-	                    menu.openInventory(player);
-	                    return;
-                	}
-                	cPlayer.setGuiPage(page-1);
-                    ClaimMembersGui menu = new ClaimMembersGui(player,chunk,page-1);
-                    menu.openInventory(player);
-	                return;
-	            }
-	            
-	            if (clickedSlot == ClaimGuis.getItemSlot("members", "back-page-settings")) {
-	            	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
-		                AdminClaimGui menu = new AdminClaimGui(player,chunk);
-		                menu.openInventory(player);
-		                return;
-	            	}
-	                ClaimGui menu = new ClaimGui(player,chunk);
-	                menu.openInventory(player);
-	                return;
-	            }
-                
-	            if (clickedSlot == ClaimGuis.getItemSlot("members", "next-page-list")) {
-                	int page = cPlayer.getGuiPage()+1;
-                	cPlayer.setGuiPage(page);
-                    ClaimMembersGui menu = new ClaimMembersGui(player,chunk,page);
-                    menu.openInventory(player);
-	                return;
-	            }
-                
-                if(clickedSlot >= ClaimGuis.getGuiMinSlot("members") && clickedSlot <= ClaimGuis.getGuiMaxSlot("members")) {
-                	String owner = cPlayer.getMapString(clickedSlot);
-                	if(owner.equals(player.getName())) return;
-                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) {
-                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    	return;
-                	}
-                	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
-                		ClaimMain.removeAdminClaimMembers(chunk, owner);
-                	} else {
-                		ClaimMain.removeClaimMembers(player, chunk, owner);
-                	}
-                    int page = cPlayer.getGuiPage();
-                	ClaimMembersGui menu = new ClaimMembersGui(player,chunk,page);
-                	menu.openInventory(player);
-                    return;
-                }
-                
-	            ClaimGuis.executeAction(player, "members", clickedSlot, event.getClick());
-                return;
-        	}
-        	
-        	if (holder instanceof ClaimBansGui) {
-        		event.setCancelled(true);
-                ItemStack clickedItem = event.getCurrentItem();
-                if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
-                int clickedSlot = event.getSlot();
-                
-                Chunk chunk = cPlayer.getChunk();
-                
-	            if (clickedSlot == ClaimGuis.getItemSlot("bans", "back-page-list")) {
-                	int page = cPlayer.getGuiPage();
-                	if(ClaimGuis.getItemSlot("bans", "back-page-list") == ClaimGuis.getItemSlot("bans", "back-page-settings") && page == 1) {
-    	            	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
-    		                AdminClaimGui menu = new AdminClaimGui(player,chunk);
-    		                menu.openInventory(player);
-    		                return;
-    	            	}
-	                    ClaimGui menu = new ClaimGui(player,chunk);
-	                    menu.openInventory(player);
-	                    return;
-                	}
-                	cPlayer.setGuiPage(page-1);
-                    ClaimBansGui menu = new ClaimBansGui(player,chunk,page-1);
-                    menu.openInventory(player);
-	                return;
-	            }
-	            
-	            if (clickedSlot == ClaimGuis.getItemSlot("bans", "back-page-settings")) {
-	            	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
-		                AdminClaimGui menu = new AdminClaimGui(player,chunk);
-		                menu.openInventory(player);
-		                return;
-	            	}
-	                ClaimGui menu = new ClaimGui(player,chunk);
-	                menu.openInventory(player);
-	                return;
-	            }
-                
-	            if (clickedSlot == ClaimGuis.getItemSlot("bans", "next-page-list")) {
-                	int page = cPlayer.getGuiPage()+1;
-                	cPlayer.setGuiPage(page);
-                    ClaimBansGui menu = new ClaimBansGui(player,chunk,page);
-                    menu.openInventory(player);
-	                return;
-	            }
-                
-                if(clickedSlot >= ClaimGuis.getGuiMinSlot("bans") && clickedSlot <= ClaimGuis.getGuiMaxSlot("bans")) {
-                	String owner = cPlayer.getMapString(clickedSlot);
-                	if(owner.equals(player.getName())) return;
-                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
-                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    	return;
-                	}
-                	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
-                		ClaimMain.removeAdminClaimBan(chunk, owner);
-                	} else {
-                		ClaimMain.removeClaimBan(player, chunk, owner);
-                	}
-                    int page = cPlayer.getGuiPage();
-                	ClaimBansGui menu = new ClaimBansGui(player,chunk,page);
-                	menu.openInventory(player);
-                    return;
-                }
-                
-	            ClaimGuis.executeAction(player, "bans", clickedSlot, event.getClick());
-                return;
-        	}
-        	
-        	if (holder instanceof ClaimListGui) {
-        		event.setCancelled(true);
-                ItemStack clickedItem = event.getCurrentItem();
-                if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
-                int clickedSlot = event.getSlot();
-                
-	            if (clickedSlot == ClaimGuis.getItemSlot("list", "back-page-list")) {
-	            	int page = cPlayer.getGuiPage()-1;
-	            	if(ClaimGuis.getItemSlot("list", "back-page-list") == ClaimGuis.getItemSlot("list", "back-page-settings") && page == 0) {
-	            		if(!ClaimMain.checkIfClaimExists(cPlayer.getChunk())) {
-	            			player.sendMessage(ClaimLanguage.getMessage("the-claim-does-not-exists-anymore"));
-	            			return;
-	            		}
-	            		ClaimGui menu = new ClaimGui(player,cPlayer.getChunk());
-	            		menu.openInventory(player);
-	            		return;
-	            	}
-	            	cPlayer.setGuiPage(page);
-                    ClaimListGui menu = new ClaimListGui(player,page,cPlayer.getFilter());
-                    menu.openInventory(player);
-	                return;
-	            }
-	            
-	            if (clickedSlot == ClaimGuis.getItemSlot("list", "filter")) {
-	            	cPlayer.setGuiPage(1);
-                	String filter = cPlayer.getFilter();
-                	if(filter.equals("owner")) {
-                		filter = "not_owner";
-                	} else {
-                		filter = "owner";
-                	}
-                    ClaimListGui menu = new ClaimListGui(player,1,filter);
-                    menu.openInventory(player);
-	                return;
-	            }
-                
-	            if (clickedSlot == ClaimGuis.getItemSlot("list", "next-page-list")) {
-	            	int page = cPlayer.getGuiPage()+1;
-	            	cPlayer.setGuiPage(page);
-                    ClaimListGui menu = new ClaimListGui(player,page,cPlayer.getFilter());
-                    menu.openInventory(player);
-	                return;
-	            }
-                
-	            if(clickedSlot >= ClaimGuis.getGuiMinSlot("list") && clickedSlot <= ClaimGuis.getGuiMaxSlot("list")) {
-		            if(event.getClick() == ClickType.LEFT) {
-		            	if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.tp")) {
-			            	player.closeInventory();
-				        	ClaimMain.goClaim(player, cPlayer.getMapLoc(clickedSlot));
-				        	return;
-		            	}
-		            	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-		            	return;
-		            }
-		            if(cPlayer.getFilter().equals("not_owner")) return;
-		            if(event.getClick() == ClickType.RIGHT) {
-	                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.settings")) {
-	                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-	                    	return;
-	                	}
-	                    ClaimGui menu = new ClaimGui(player,cPlayer.getMapChunk(clickedSlot));
-	                    menu.openInventory(player);
-			        	return;
-		            }
-		            if(event.getClick() == ClickType.SHIFT_LEFT) {
-	                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim")) {
-	                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-	                    	return;
-	                	}
-		            	Chunk chunk = cPlayer.getMapChunk(clickedSlot);
-			        	if(ClaimMain.deleteClaim(player, chunk)) {
-			        		for(Entity e : chunk.getEntities()) {
-			    				if(!(e instanceof Player)) continue;
-			    				Player p = (Player) e;
-			    				ClaimEventsEnterLeave.disableBossBar(p);
-			    			}
-			    			player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
-			            	int page = cPlayer.getGuiPage();
-		                    ClaimListGui menu = new ClaimListGui(player,page,cPlayer.getFilter());
-		                    menu.openInventory(player);
-			        	}
-			        	return;
-		            }
-		            if(event.getClick() == ClickType.SHIFT_RIGHT) {
-	            		if(ClaimSettings.getBooleanSetting("economy")) {
-	                    	if (!CPlayerMain.checkPermPlayer(player, "scs.command.sclaim")) {
-	                        	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-	                        	return;
-	                    	}
-	            			Chunk chunk = cPlayer.getMapChunk(clickedSlot);
-	            			if(ClaimMain.claimIsInSale(chunk)) {
-	                			if(ClaimMain.delChunkSale(player, chunk)) {
-	                				player.sendMessage(ClaimLanguage.getMessage("claim-in-sale-cancel").replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk)));
-	    			            	int page = cPlayer.getGuiPage();
-	    		                    ClaimListGui menu = new ClaimListGui(player,page,cPlayer.getFilter());
-	    		                    menu.openInventory(player);
-	                				return;
-	                			}
-	                			player.sendMessage(ClaimLanguage.getMessage("error"));
-	                			return;
-	                		}
-	            			player.sendMessage(ClaimLanguage.getMessage("claim-is-not-in-sale"));
-	            			return;
-	            		}
-	            		player.sendMessage(ClaimLanguage.getMessage("economy-disabled"));
-	            		return;
-		            }
-	            }
-	            
-	            ClaimGuis.executeAction(player, "list", clickedSlot, event.getClick());
-                return;
-        	}
-        	
-        	if (holder instanceof AdminClaimListGui) {
-        		event.setCancelled(true);
-                ItemStack clickedItem = event.getCurrentItem();
-                if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
-                int clickedSlot = event.getSlot();
-                
-	            if (clickedSlot == ClaimGuis.getItemSlot("admin_list", "back-page-list")) {
-	            	int page = cPlayer.getGuiPage()-1;
-	            	if(ClaimGuis.getItemSlot("admin_list", "back-page-list") == ClaimGuis.getItemSlot("admin_list", "back-page-settings") && page == 0) {
-	            		if(!ClaimMain.checkIfClaimExists(cPlayer.getChunk())) {
-	            			player.sendMessage(ClaimLanguage.getMessage("the-claim-does-not-exists-anymore"));
-	            			return;
-	            		}
-	            		AdminClaimGui menu = new AdminClaimGui(player,cPlayer.getChunk());
-	            		menu.openInventory(player);
-	            		return;
-	            	}
-	            	cPlayer.setGuiPage(page);
-                    AdminClaimListGui menu = new AdminClaimListGui(player,page);
-                    menu.openInventory(player);
-	                return;
-	            }
-                
-	            if (clickedSlot == ClaimGuis.getItemSlot("admin_list", "next-page-list")) {
-	            	int page = cPlayer.getGuiPage()+1;
-	            	cPlayer.setGuiPage(page);
-                    AdminClaimListGui menu = new AdminClaimListGui(player,page);
-                    menu.openInventory(player);
-	                return;
-	            }
-                
-	            if(clickedSlot >= ClaimGuis.getGuiMinSlot("admin_list") && clickedSlot <= ClaimGuis.getGuiMaxSlot("admin_list")) {
-		            if(event.getClick() == ClickType.LEFT) {
-		            	player.closeInventory();
-			        	ClaimMain.goClaim(player, cPlayer.getMapLoc(clickedSlot));
-			        	return;
-		            }
-		            if(event.getClick() == ClickType.RIGHT) {
-	                    AdminClaimGui menu = new AdminClaimGui(player,cPlayer.getMapChunk(clickedSlot));
-	                    menu.openInventory(player);
-			        	return;
-		            }
-		            if(event.getClick() == ClickType.SHIFT_LEFT) {
-		            	Chunk chunk = cPlayer.getMapChunk(clickedSlot);
-			        	if(ClaimMain.deleteClaim(player, chunk)) {
-			        		for(Entity e : chunk.getEntities()) {
-			    				if(!(e instanceof Player)) continue;
-			    				Player p = (Player) e;
-			    				ClaimEventsEnterLeave.disableBossBar(p);
-			    			}
-			    			player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
-			            	int page = cPlayer.getGuiPage();
-		                    AdminClaimListGui menu = new AdminClaimListGui(player,page);
-		                    menu.openInventory(player);
-			        	}
-			        	return;
-		            }
-	            }
-	            
-	            ClaimGuis.executeAction(player, "admin_list", clickedSlot, event.getClick());
-                return;
-        	}
-        	
-        	if (holder instanceof ClaimsGui) {
-        		event.setCancelled(true);
-                ItemStack clickedItem = event.getCurrentItem();
-                if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
-                int clickedSlot = event.getSlot();
-                
-                if (clickedSlot == ClaimGuis.getItemSlot("claims", "back-page-list")) {
-	            	int page = cPlayer.getGuiPage()-1;
-	            	cPlayer.setGuiPage(page);
-                    ClaimsGui menu = new ClaimsGui(player,page,cPlayer.getFilter());
-                    menu.openInventory(player);
-	                return;
-	            }
-                
-	            if (clickedSlot == ClaimGuis.getItemSlot("claims", "next-page-list")) {
-	            	int page = cPlayer.getGuiPage()+1;
-	            	cPlayer.setGuiPage(page);
-                    ClaimsGui menu = new ClaimsGui(player,page,cPlayer.getFilter());
-                    menu.openInventory(player);
-	                return;
-	            }
-	            
-	            if (clickedSlot == ClaimGuis.getItemSlot("claims", "filter")) {
-	            	cPlayer.setGuiPage(1);
-                	String filter = cPlayer.getFilter();
-                	if(filter.equals("all")) {
-                		filter = "sales";
-                	} else if (filter.equals("sales")) {
-                		filter = "online";
-                	} else if (filter.equals("online")) {
-                		filter = "offline";
-                	} else {
-                		filter = "all";
-                	}
-                    ClaimsGui menu = new ClaimsGui(player,1,filter);
-                    menu.openInventory(player);
-	                return;
-	            }
-                
-	            if(clickedSlot >= ClaimGuis.getGuiMinSlot("claims") && clickedSlot <= ClaimGuis.getGuiMaxSlot("claims")) {
-	            	String filter = cPlayer.getFilter();
-	            	cPlayer.setGuiPage(1);
-	            	if(filter.equals("sales")) {
-	            		ClaimsOwnerGui menu = new ClaimsOwnerGui(player,1,filter,cPlayer.getMapString(clickedSlot));
-	            		menu.openInventory(player);
-	            		return;
-	            	}
-	            	ClaimsOwnerGui menu = new ClaimsOwnerGui(player,1,"all",cPlayer.getMapString(clickedSlot));
-	            	menu.openInventory(player);
-	            	return;
-	            }
-	            
-	            ClaimGuis.executeAction(player, "claims", clickedSlot, event.getClick());
-	            return;
-        	}
-        	
-        	if (holder instanceof ClaimsOwnerGui) {
-        		event.setCancelled(true);
-                ItemStack clickedItem = event.getCurrentItem();
-                if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
-                int clickedSlot = event.getSlot();
-                
-                if (clickedSlot == ClaimGuis.getItemSlot("claims_owner", "back-page-list")) {
-                	if(cPlayer.getGuiPage() == 1) {
-                		ClaimsGui menu = new ClaimsGui(player,1,"all");
-                		menu.openInventory(player);
-                		return;
-                	}
-	            	int page = cPlayer.getGuiPage()-1;
-	            	cPlayer.setGuiPage(page);
-                    ClaimsOwnerGui menu = new ClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner());
-                    menu.openInventory(player);
-	                return;
-	            }
-                
-	            if (clickedSlot == ClaimGuis.getItemSlot("claims_owner", "next-page-list")) {
-	            	int page = cPlayer.getGuiPage()+1;
-	            	cPlayer.setGuiPage(page);
-	            	ClaimsOwnerGui menu = new ClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner());
-                    menu.openInventory(player);
-	                return;
-	            }
-	            
-	            if (clickedSlot == ClaimGuis.getItemSlot("claims_owner", "filter")) {
-	            	cPlayer.setGuiPage(1);
-                	String filter = cPlayer.getFilter();
-                	if(filter.equals("all")) {
-                		filter = "sales";
-                	} else {
-                		filter = "all";
-                	}
-                    ClaimsOwnerGui menu = new ClaimsOwnerGui(player,1,filter,cPlayer.getOwner());
-                    menu.openInventory(player);
-	                return;
-	            }
-                
-	            if(clickedSlot >= ClaimGuis.getGuiMinSlot("claims_owner") && clickedSlot <= ClaimGuis.getGuiMaxSlot("claims_owner")) {
-	            	Chunk chunk = cPlayer.getMapChunk(clickedSlot);
-	            	if(event.getClick() == ClickType.LEFT) {
-	            		if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.tp")) {
-				            if(!ClaimMain.canPermCheck(chunk, "Visitors") && !ClaimMain.getOwnerInClaim(chunk).equals(player.getName())) {
-				            	player.sendMessage(ClaimLanguage.getMessage("error-claim-visitors-deny"));
-				            	return;
-				            }
-			            	player.closeInventory();
-				        	ClaimMain.goClaim(player, cPlayer.getMapLoc(clickedSlot));
-				        	return;
-	            		}
-	            		player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-	            		return;
-	            	}
-	            	if(event.getClick() == ClickType.SHIFT_LEFT) {
-	            		if(ClaimSettings.getBooleanSetting("economy")) {
-	                    	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.sclaim")) {
-	                        	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-	                        	return;
-	                    	}
-	            			if(ClaimMain.getOwnerInClaim(chunk).equals(player.getName())) {
-	            				player.sendMessage(ClaimLanguage.getMessage("cant-buy-your-own-claim"));
-	            				return;
-	            			}
-		            		if(ClaimMain.claimIsInSale(chunk)) {
-		            			ClaimMain.sellChunk(player, chunk);
-		            			return;
-		            		}
-		            		player.sendMessage(ClaimLanguage.getMessage("claim-is-not-in-sale"));
-		            		return;
-	            		}
-	            		player.sendMessage(ClaimLanguage.getMessage("economy-disabled"));
-	            		return;
-	            	}
-	            }
-	            
-	            ClaimGuis.executeAction(player, "claims_owner", clickedSlot, event.getClick());
-	            return;
+        		handleClaimGuiClick(event, player, cPlayer);
+        	} else if (holder instanceof AdminClaimGui) {
+        		handleAdminClaimGuiClick(event, player, cPlayer);
+        	} else if (holder instanceof ClaimMembersGui) {
+        		handleClaimMembersGuiClick(event, player, cPlayer);
+        	} else if (holder instanceof ClaimBansGui) {
+        		handleClaimBansGuiClick(event, player, cPlayer);
+        	} else if (holder instanceof ClaimListGui) {
+        		handleClaimListGuiClick(event, player, cPlayer);
+        	} else if (holder instanceof AdminClaimListGui) {
+        		handleAdminClaimListGuiClick(event, player, cPlayer);
+        	} else if (holder instanceof ClaimsGui) {
+        		handleClaimsGuiClick(event, player, cPlayer);
+        	} else if (holder instanceof ClaimsOwnerGui) {
+        		handleClaimsOwnerGuiClick(event, player, cPlayer);
         	}
         }
 	}
 	
-	// Disable claim fly on damage
+	/**
+	 * Handles player damage events to disable claim fly on damage.
+	 * @param event the player damage event.
+	 */
 	@EventHandler
 	public void onPlayerDamage(EntityDamageEvent event) {
 		if(event.getEntity() instanceof Player) {
@@ -787,7 +153,10 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
-	// PvP setting
+	/**
+	 * Handles PvP settings in claims.
+	 * @param event the player hit event.
+	 */
 	@EventHandler
 	public void onPlayerHit(EntityDamageByEntityEvent event) {
 	    if(event.isCancelled()) return;
@@ -819,8 +188,10 @@ public class ClaimEvents implements Listener {
 	    }
 	}
 
-    
-    // Monsters setting
+    /**
+     * Handles creature spawn events to prevent monster spawning in claims.
+     * @param event the creature spawn event.
+     */
     @EventHandler
     public void onCreatureSpawn(CreatureSpawnEvent event) {
 		Chunk chunk = event.getLocation().getChunk();
@@ -834,7 +205,10 @@ public class ClaimEvents implements Listener {
 		}
     }
 	
-    // Explosions setting
+    /**
+     * Handles entity explosion events to prevent explosions in claims.
+     * @param event the entity explosion event.
+     */
     @EventHandler
     public void onEntityExplode(EntityExplodeEvent event) {
         Iterator<Block> blockIterator = event.blockList().iterator();
@@ -847,7 +221,10 @@ public class ClaimEvents implements Listener {
         }
     }
     
-    // Explosions setting
+    /**
+     * Handles projectile hit events to prevent explosions in claims.
+     * @param event the projectile hit event.
+     */
     @EventHandler
     public void onProjectileHit(ProjectileHitEvent event) {
         if (event.getEntityType() == EntityType.WITHER_SKULL) {
@@ -866,7 +243,10 @@ public class ClaimEvents implements Listener {
         }
     }
     
-    // Explosions setting
+    /**
+     * Handles block explosion events to prevent explosions in claims.
+     * @param event the block explosion event.
+     */
     @EventHandler
     public void onBlockExplode(BlockExplodeEvent event) {
         Iterator<Block> blockIterator = event.blockList().iterator();
@@ -879,7 +259,10 @@ public class ClaimEvents implements Listener {
         }
     }
 	
-	// Explosions setting
+    /**
+     * Handles entity change block events to prevent wither or wither skulls from changing blocks in claims.
+     * @param event the entity change block event.
+     */
     @EventHandler
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
         if (event.getEntityType() == EntityType.WITHER || event.getEntityType() == EntityType.WITHER_SKULL) {
@@ -890,7 +273,10 @@ public class ClaimEvents implements Listener {
         }
     }
 	
-    // Destroy setting
+    /**
+     * Handles block break events to prevent destruction in claims.
+     * @param event the block break event.
+     */
     @EventHandler(priority = EventPriority.LOW)
 	public void onPlayerBreak(BlockBreakEvent event){
 		Player player = event.getPlayer();
@@ -905,7 +291,10 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
-	// Destroy setting (vehicles)
+    /**
+     * Handles vehicle damage events to prevent destruction of vehicles in claims.
+     * @param event the vehicle damage event.
+     */
 	@EventHandler
 	public void onVehicleDamage(VehicleDamageEvent event){
 		Entity damager = event.getAttacker();
@@ -927,7 +316,10 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
-	// Weather settings
+    /**
+     * Handles lightning strike events to prevent weather-related damage in claims.
+     * @param event the lightning strike event.
+     */
     @EventHandler
     public void onLightningStrike(LightningStrikeEvent event) {
         Location strikeLocation = event.getLightning().getLocation();
@@ -937,7 +329,10 @@ public class ClaimEvents implements Listener {
         }
     }
 	
-	// Build setting
+    /**
+     * Handles block place events to prevent building in claims.
+     * @param event the block place event.
+     */
 	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerPlace(BlockPlaceEvent event){
 		Player player = event.getPlayer();
@@ -972,7 +367,10 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
-	// Build setting
+    /**
+     * Handles hanging place events to prevent hanging items in claims.
+     * @param event the hanging place event.
+     */
 	@EventHandler
 	public void onHangingPlace(HangingPlaceEvent event) {
 		if(event.isCancelled()) return;
@@ -988,18 +386,24 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
-	// Destroy painting by physics (boat or something else)
+    /**
+     * Handles hanging break events to prevent hanging items from being broken by physics in claims.
+     * @param event the hanging break event.
+     */
 	@EventHandler
 	public void onHangingBreak(HangingBreakEvent event) {
 		Chunk chunk = event.getEntity().getChunk();
 		if(ClaimMain.checkIfClaimExists(chunk)) {
-			if(event.getCause() == RemoveCause.PHYSICS && !ClaimMain.canPermCheck(chunk, "Destroy")) {
+			if(event.getCause() == HangingBreakEvent.RemoveCause.PHYSICS && !ClaimMain.canPermCheck(chunk, "Destroy")) {
 				event.setCancelled(true);
 			}
 		}
 	}
 	
-	// Destroy setting
+    /**
+     * Handles hanging break by entity events to prevent hanging items from being broken by players in claims.
+     * @param event the hanging break by entity event.
+     */
 	@EventHandler
     public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
 		if(event.isCancelled()) return;
@@ -1045,7 +449,10 @@ public class ClaimEvents implements Listener {
         }
     }
 	
-	// Build setting
+    /**
+     * Handles bucket empty events to prevent liquid placement in claims.
+     * @param event the bucket empty event.
+     */
 	@EventHandler
     public void onBucketUse(PlayerBucketEmptyEvent event) {
 		if(event.isCancelled()) return;
@@ -1061,7 +468,10 @@ public class ClaimEvents implements Listener {
 		}
     }
 	
-	// Destroy setting (fill bucket)
+    /**
+     * Handles bucket fill events to prevent liquid removal in claims.
+     * @param event the bucket fill event.
+     */
 	@EventHandler
     public void onBucketUse(PlayerBucketFillEvent event) {
 		if(event.isCancelled()) return;
@@ -1077,7 +487,10 @@ public class ClaimEvents implements Listener {
 		}
     }
 	
-	// Build setting
+    /**
+     * Handles entity place events to prevent entity placement in claims.
+     * @param event the entity place event.
+     */
 	@EventHandler
 	public void onEntityPlace(EntityPlaceEvent event) {
 		if(event.isCancelled()) return;
@@ -1093,7 +506,10 @@ public class ClaimEvents implements Listener {
 		}
 	}
 	
-	// Buttons, trapdoors, doors, fencegates, levers, repeaters/comparators, bells, tripwires, items and pressure plates settings
+    /**
+     * Handles player interact events to prevent interactions with blocks and items in claims.
+     * @param event the player interact event.
+     */
 	@EventHandler
     public void onPlayerInteract(PlayerInteractEvent event) {
 		Player player = event.getPlayer();
@@ -1190,7 +606,10 @@ public class ClaimEvents implements Listener {
 		}
     }
 	
-	// Entities setting
+    /**
+     * Handles player interact entity events to prevent entity interactions in claims.
+     * @param event the player interact entity event.
+     */
 	@EventHandler
     public void onPlayerInteractEntity(PlayerInteractAtEntityEvent event) {
         Chunk chunk = event.getRightClicked().getLocation().getChunk();
@@ -1221,7 +640,10 @@ public class ClaimEvents implements Listener {
         return;
     }
 	
-	// Entities setting
+    /**
+     * Handles secondary player interact entity events to prevent entity interactions in claims.
+     * @param event the player interact entity event.
+     */
 	@EventHandler
     public void onPlayerInteractEntity2(PlayerInteractEntityEvent event) {
         Chunk chunk = event.getRightClicked().getLocation().getChunk();
@@ -1252,7 +674,10 @@ public class ClaimEvents implements Listener {
         return;
     }
 	
-	// Liquids setting
+    /**
+     * Handles liquid flow events to prevent liquids from flowing into claims.
+     * @param event the block from-to event.
+     */
 	@EventHandler
     public void onLiquidFlow(BlockFromToEvent event) {
     	Block block = event.getBlock();
@@ -1288,7 +713,10 @@ public class ClaimEvents implements Listener {
     	}
     }
     
-	// Redstone setting
+    /**
+     * Handles block dispense events to prevent redstone interactions across claim boundaries.
+     * @param event the block dispense event.
+     */
 	@EventHandler
     public void onDispense(BlockDispenseEvent event) {
     	Block block = event.getBlock();
@@ -1302,7 +730,10 @@ public class ClaimEvents implements Listener {
     	}
     }
     
-	// Redstone setting
+    /**
+     * Handles piston extend events to prevent pistons from moving blocks across claim boundaries.
+     * @param event the block piston extend event.
+     */
 	@EventHandler
     public void onPistonExtend(BlockPistonExtendEvent event) {
         Block piston = event.getBlock();
@@ -1316,7 +747,10 @@ public class ClaimEvents implements Listener {
         }
     }
 
-	// Redstone setting
+    /**
+     * Handles piston retract events to prevent pistons from moving blocks across claim boundaries.
+     * @param event the block piston retract event.
+     */
 	@EventHandler
     public void onPistonRetract(BlockPistonRetractEvent event) {
         Block piston = event.getBlock();
@@ -1330,7 +764,10 @@ public class ClaimEvents implements Listener {
         }
     }
     
-	// Frostwalker setting
+    /**
+     * Handles frost walker events to prevent frost walker enchantment from creating frosted ice in claims.
+     * @param event the entity block form event.
+     */
     @EventHandler
     public void onFrostWalkerUse(EntityBlockFormEvent event) {
     	Chunk chunk = event.getBlock().getLocation().getChunk();
@@ -1350,7 +787,10 @@ public class ClaimEvents implements Listener {
         }
     }
     
-    // Firespread setting
+    /**
+     * Handles block spread events to prevent fire spread in claims.
+     * @param event the block spread event.
+     */
     @EventHandler
     public void onBlockSpread(BlockSpreadEvent event) {
         if (event.getNewState().getType() == Material.FIRE) {
@@ -1361,7 +801,10 @@ public class ClaimEvents implements Listener {
         }
     }
     
-    // Firespread setting
+    /**
+     * Handles block ignite events to prevent fire spread in claims.
+     * @param event the block ignite event.
+     */
     @EventHandler
     public void onBlockIgnite(BlockIgniteEvent event) {
         Chunk chunk = event.getBlock().getLocation().getChunk();
@@ -1375,7 +818,10 @@ public class ClaimEvents implements Listener {
         event.setCancelled(true);
     }
     
-    // Firespread setting
+    /**
+     * Handles block burn events to prevent fire spread in claims.
+     * @param event the block burn event.
+     */
     @EventHandler
     public void onBlockBurn(BlockBurnEvent event) {
         Chunk chunk = event.getBlock().getLocation().getChunk();
@@ -1384,7 +830,10 @@ public class ClaimEvents implements Listener {
         event.setCancelled(true);
     }
     
-    // Armorstands/Paintings/Itemframes
+    /**
+     * Handles entity damage by entity events to prevent damage to armor stands, item frames, and glow item frames in claims.
+     * @param event the entity damage by entity event.
+     */
     @EventHandler
     public void onEntityDamageByEntity2(EntityDamageByEntityEvent event) {
     	Entity entity = event.getEntity();
@@ -1409,7 +858,10 @@ public class ClaimEvents implements Listener {
         }
     }
     
-    // Damages setting
+    /**
+     * Handles entity damage by entity events to prevent damage to non-player, non-monster, non-armor stand, non-item frame entities in claims.
+     * @param event the entity damage by entity event.
+     */
     @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         Entity entity = event.getEntity();
@@ -1432,7 +884,10 @@ public class ClaimEvents implements Listener {
         }
     }
     
-    // Vehicle enter (interact entities)
+    /**
+     * Handles vehicle enter events to prevent players from entering restricted vehicles in claims.
+     * @param event the vehicle enter event.
+     */
     @EventHandler
     public void onVehicleEnter(VehicleEnterEvent event) {
         Entity entity = event.getEntered();
@@ -1452,7 +907,10 @@ public class ClaimEvents implements Listener {
         }
     }
     
-    // Destroy setting (trampling)
+    /**
+     * Handles block change events to prevent trampling of farmland in claims.
+     * @param event the entity change block event.
+     */
     @EventHandler
     public void onBlockChange(EntityChangeBlockEvent event) {
         Entity entity = event.getEntity();
@@ -1473,13 +931,18 @@ public class ClaimEvents implements Listener {
         }
     }
     
+    // ********************
+    // *  Others Methods  *
+    // ********************
     
-	// ********************
-	// *  Others Methods  *
-	// ********************
-    
-
-    // Function that checks if the blocks that are affected by the piston are not in a chunk claim
+    /**
+     * Handles piston movement checks across claim boundaries.
+     * @param blocks the list of blocks affected by the piston.
+     * @param direction the direction of piston movement.
+     * @param pistonChunk the chunk where the piston is located.
+     * @param retractOrNot flag indicating whether the piston is retracting.
+     * @return true if the piston can move the blocks, false otherwise.
+     */
     private boolean canPistonMoveBlock(List<Block> blocks, BlockFace direction, Chunk pistonChunk, boolean retractOrNot) {
     	if(retractOrNot) {
 	        for (Block block : blocks) {
@@ -1509,7 +972,12 @@ public class ClaimEvents implements Listener {
         return true;
     }
     
-    // Damages setting
+    /**
+     * Processes damage by a player to prevent unauthorized damage in claims.
+     * @param player the player causing the damage.
+     * @param chunk the chunk where the damage occurs.
+     * @param event the entity damage by entity event.
+     */
     private void processDamageByPlayer(Player player, Chunk chunk, EntityDamageByEntityEvent event) {
         if(CPlayerMain.checkPermPlayer(player, "scs.bypass")) return;
         if(ClaimMain.checkMembre(chunk, player)) return;
@@ -1517,5 +985,678 @@ public class ClaimEvents implements Listener {
             event.setCancelled(true);
             ClaimMain.sendMessage(player, ClaimLanguage.getMessage("damages"), ClaimSettings.getSetting("protection-message"));
         }
+    }
+    
+    /**
+     * Handles claim GUI click events.
+     * @param event the inventory click event.
+     * @param player the player clicking in the inventory.
+     * @param cPlayer the CPlayer object for the player.
+     */
+    private void handleClaimGuiClick(InventoryClickEvent event, Player player, CPlayer cPlayer) {
+    	event.setCancelled(true);
+        ItemStack clickedItem = event.getCurrentItem();
+        if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
+        int clickedSlot = event.getSlot();
+        
+        Chunk chunk = cPlayer.getChunk();
+        
+        if(clickedSlot == ClaimGuis.getItemSlot("settings", "define-loc")) {
+        	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setspawn")) {
+            	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+            	return;
+        	}
+        	if(chunk.equals(player.getLocation().getChunk())) {
+            	player.closeInventory();
+            	Location l = player.getLocation();
+            	ClaimMain.setClaimLocation(player, chunk, l);
+            	player.sendMessage(ClaimLanguage.getMessage("loc-change-success").replaceAll("%coords%", ClaimMain.getClaimCoords(chunk)));
+            	return;
+        	}
+        	player.sendMessage(ClaimLanguage.getMessage("error-not-right-claim"));
+        	return;
+        }
+        
+        if(clickedSlot == ClaimGuis.getItemSlot("settings", "manage-members")) {
+        	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.members")) {
+            	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+            	return;
+        	}
+        	cPlayer.setGuiPage(1);
+            ClaimMembersGui menu = new ClaimMembersGui(player,chunk,1);
+            menu.openInventory(player);
+            return;
+        }
+        
+        if(clickedSlot == ClaimGuis.getItemSlot("settings", "manage-bans")) {
+        	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans")) {
+            	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+            	return;
+        	}
+        	cPlayer.setGuiPage(1);
+            new ClaimBansGui(player,chunk,1);
+            return;
+        }
+        
+        if(clickedSlot == ClaimGuis.getItemSlot("settings", "define-name")) {
+        	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setname")) {
+            	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+            	return;
+        	}
+        	player.closeInventory();
+        	player.sendMessage(ClaimLanguage.getMessage("name-change-ask"));
+        	return;
+        }
+        
+        if(clickedSlot == ClaimGuis.getItemSlot("settings", "my-claims")) {
+        	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.list")) {
+            	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+            	return;
+        	}
+        	cPlayer.setGuiPage(1);
+        	cPlayer.setChunk(chunk);
+            new ClaimListGui(player,1,"owner");
+        	return;
+        }
+        
+        if(clickedSlot == ClaimGuis.getItemSlot("settings", "apply-all-claims")) {
+        	player.closeInventory();
+        	if(ClaimMain.applyAllSettings(chunk, player)) {
+        		player.sendMessage(ClaimLanguage.getMessage("apply-all-settings-success"));
+        	}
+        	return;
+        }
+        
+        if(ClaimGuis.isAllowedSlot(clickedSlot)) {
+        	ItemMeta meta = clickedItem.getItemMeta();
+            if (meta != null && meta.hasLore()) {
+            	String title = meta.getDisplayName();
+                List<String> lore = meta.getLore();
+                String check = lore.get(lore.size()-1);
+                if(check.equals(ClaimLanguage.getMessage("choice-setting-disabled"))) return;
+                String action = ClaimGuis.getSlotPerm(clickedSlot);
+                if(title.contains(ClaimLanguage.getMessage("status-enabled"))){
+                    if(ClaimMain.updatePerm(player, chunk, action, false)) {
+                    	title = title.replace(ClaimLanguage.getMessage("status-enabled"), ClaimLanguage.getMessage("status-disabled"));
+                    	meta.setDisplayName(title);
+                    	lore.remove(lore.size()-1);
+                    	lore.add(ClaimLanguage.getMessage("choice-disabled"));
+                    	meta.setLore(lore);
+                    	clickedItem.setItemMeta(meta);
+                    	return;
+                    }
+                    player.closeInventory();
+                    player.sendMessage(ClaimLanguage.getMessage("error"));
+                    return;
+                }
+                if(ClaimMain.updatePerm(player, chunk, action, true)) {
+                	title = title.replace(ClaimLanguage.getMessage("status-disabled"), ClaimLanguage.getMessage("status-enabled"));
+                	meta.setDisplayName(title);
+                	lore.remove(lore.size()-1);
+                	lore.add(ClaimLanguage.getMessage("choice-enabled"));
+                	meta.setLore(lore);
+                	clickedItem.setItemMeta(meta);
+                	return;
+                }
+                player.closeInventory();
+                player.sendMessage(ClaimLanguage.getMessage("error"));
+                return;
+            }
+        }
+        
+        ClaimGuis.executeAction(player, "settings", clickedSlot, event.getClick());
+        return;
+    }
+
+    /**
+     * Handles admin claim GUI click events.
+     * @param event the inventory click event.
+     * @param player the player clicking in the inventory.
+     * @param cPlayer the CPlayer object for the player.
+     */
+    private void handleAdminClaimGuiClick(InventoryClickEvent event, Player player, CPlayer cPlayer) {
+    	event.setCancelled(true);
+        ItemStack clickedItem = event.getCurrentItem();
+        if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
+        int clickedSlot = event.getSlot();
+        
+        Chunk chunk = cPlayer.getChunk();
+        
+        if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "define-loc")) {
+        	if(chunk.equals(player.getLocation().getChunk())) {
+            	player.closeInventory();
+            	Location l = player.getLocation();
+            	ClaimMain.setClaimLocation(player, chunk, l);
+            	player.sendMessage(ClaimLanguage.getMessage("loc-change-success").replaceAll("%coords%", ClaimMain.getClaimCoords(chunk)));
+            	return;
+        	}
+        	player.sendMessage(ClaimLanguage.getMessage("error-not-right-claim"));
+        	return;
+        }
+        
+        if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "manage-members")) {
+        	cPlayer.setGuiPage(1);
+            ClaimMembersGui menu = new ClaimMembersGui(player,chunk,1);
+            menu.openInventory(player);
+            return;
+        }
+        
+        if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "manage-bans")) {
+        	cPlayer.setGuiPage(1);
+            new ClaimBansGui(player,chunk,1);
+            return;
+        }
+        
+        if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "define-name")) {
+        	player.closeInventory();
+        	player.sendMessage(ClaimLanguage.getMessage("name-change-ask"));
+        	return;
+        }
+        
+        if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "admin-claims")) {
+        	cPlayer.setGuiPage(1);
+        	cPlayer.setChunk(chunk);
+        	new AdminClaimListGui(player,1);
+        	return;
+        }
+        
+        if(clickedSlot == ClaimGuis.getItemSlot("admin_settings", "apply-all-admin-claims")) {
+        	player.closeInventory();
+        	if(ClaimMain.applyAllSettingsAdmin(chunk)) {
+        		player.sendMessage(ClaimLanguage.getMessage("apply-all-admin-settings-success"));
+        	}
+        	return;
+        }
+        
+        if(ClaimGuis.isAllowedSlot(clickedSlot)) {
+        	ItemMeta meta = clickedItem.getItemMeta();
+            if (meta != null && meta.hasLore()) {
+            	String title = meta.getDisplayName();
+                List<String> lore = meta.getLore();
+                String check = lore.get(lore.size()-1);
+                if(check.equals(ClaimLanguage.getMessage("choice-setting-disabled"))) return;
+                String action = ClaimGuis.getSlotPerm(clickedSlot);
+                if(title.contains(ClaimLanguage.getMessage("status-enabled"))){
+                    if(ClaimMain.updateAdminPerm(chunk, action, false)) {
+                    	title = title.replace(ClaimLanguage.getMessage("status-enabled"), ClaimLanguage.getMessage("status-disabled"));
+                    	meta.setDisplayName(title);
+                    	lore.remove(lore.size()-1);
+                    	lore.add(ClaimLanguage.getMessage("choice-disabled"));
+                    	meta.setLore(lore);
+                    	clickedItem.setItemMeta(meta);
+                    	return;
+                    }
+                    player.closeInventory();
+                    player.sendMessage(ClaimLanguage.getMessage("error"));
+                    return;
+                }
+                if(ClaimMain.updateAdminPerm(chunk, action, true)) {
+                	title = title.replace(ClaimLanguage.getMessage("status-disabled"), ClaimLanguage.getMessage("status-enabled"));
+                	meta.setDisplayName(title);
+                	lore.remove(lore.size()-1);
+                	lore.add(ClaimLanguage.getMessage("choice-enabled"));
+                	meta.setLore(lore);
+                	clickedItem.setItemMeta(meta);
+                	return;
+                }
+                player.closeInventory();
+                player.sendMessage(ClaimLanguage.getMessage("error"));
+                return;
+            }
+        }
+        
+        ClaimGuis.executeAction(player, "admin_settings", clickedSlot, event.getClick());
+        return;
+    }
+
+    /**
+     * Handles claim members GUI click events.
+     * @param event the inventory click event.
+     * @param player the player clicking in the inventory.
+     * @param cPlayer the CPlayer object for the player.
+     */
+    private void handleClaimMembersGuiClick(InventoryClickEvent event, Player player, CPlayer cPlayer) {
+    	event.setCancelled(true);
+        ItemStack clickedItem = event.getCurrentItem();
+        if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
+        int clickedSlot = event.getSlot();
+        
+        Chunk chunk = cPlayer.getChunk();
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("members", "back-page-list")) {
+        	int page = cPlayer.getGuiPage();
+        	if(ClaimGuis.getItemSlot("members", "back-page-list") == ClaimGuis.getItemSlot("members", "back-page-settings") && page == 1) {
+            	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
+	                new AdminClaimGui(player,chunk);
+	                return;
+            	}
+                new ClaimGui(player,chunk);
+                return;
+        	}
+        	cPlayer.setGuiPage(page-1);
+            ClaimMembersGui menu = new ClaimMembersGui(player,chunk,page-1);
+            menu.openInventory(player);
+            return;
+        }
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("members", "back-page-settings")) {
+        	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
+                new AdminClaimGui(player,chunk);
+                return;
+        	}
+            new ClaimGui(player,chunk);
+            return;
+        }
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("members", "next-page-list")) {
+        	int page = cPlayer.getGuiPage()+1;
+        	cPlayer.setGuiPage(page);
+            ClaimMembersGui menu = new ClaimMembersGui(player,chunk,page);
+            menu.openInventory(player);
+            return;
+        }
+        
+        if(clickedSlot >= ClaimGuis.getGuiMinSlot("members") && clickedSlot <= ClaimGuis.getGuiMaxSlot("members")) {
+        	String owner = cPlayer.getMapString(clickedSlot);
+        	if(owner.equals(player.getName())) return;
+        	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) {
+            	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+            	return;
+        	}
+        	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
+        		ClaimMain.removeAdminClaimMembers(chunk, owner);
+        	} else {
+        		ClaimMain.removeClaimMembers(player, chunk, owner);
+        	}
+            int page = cPlayer.getGuiPage();
+        	ClaimMembersGui menu = new ClaimMembersGui(player,chunk,page);
+        	menu.openInventory(player);
+            return;
+        }
+        
+        ClaimGuis.executeAction(player, "members", clickedSlot, event.getClick());
+        return;
+    }
+
+    /**
+     * Handles claim bans GUI click events.
+     * @param event the inventory click event.
+     * @param player the player clicking in the inventory.
+     * @param cPlayer the CPlayer object for the player.
+     */
+    private void handleClaimBansGuiClick(InventoryClickEvent event, Player player, CPlayer cPlayer) {
+    	event.setCancelled(true);
+        ItemStack clickedItem = event.getCurrentItem();
+        if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
+        int clickedSlot = event.getSlot();
+        
+        Chunk chunk = cPlayer.getChunk();
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("bans", "back-page-list")) {
+        	int page = cPlayer.getGuiPage();
+        	if(ClaimGuis.getItemSlot("bans", "back-page-list") == ClaimGuis.getItemSlot("bans", "back-page-settings") && page == 1) {
+            	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
+	                new AdminClaimGui(player,chunk);
+	                return;
+            	}
+                new ClaimGui(player,chunk);
+                return;
+        	}
+        	cPlayer.setGuiPage(page-1);
+            new ClaimBansGui(player,chunk,page-1);
+            return;
+        }
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("bans", "back-page-settings")) {
+        	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
+                new AdminClaimGui(player,chunk);
+                return;
+        	}
+            new ClaimGui(player,chunk);
+            return;
+        }
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("bans", "next-page-list")) {
+        	int page = cPlayer.getGuiPage()+1;
+        	cPlayer.setGuiPage(page);
+            new ClaimBansGui(player,chunk,page);
+            return;
+        }
+        
+        if(clickedSlot >= ClaimGuis.getGuiMinSlot("bans") && clickedSlot <= ClaimGuis.getGuiMaxSlot("bans")) {
+        	String owner = cPlayer.getMapString(clickedSlot);
+        	if(owner.equals(player.getName())) return;
+        	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
+            	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+            	return;
+        	}
+        	if(ClaimMain.getOwnerInClaim(chunk).equals("admin")) {
+        		ClaimMain.removeAdminClaimBan(chunk, owner);
+        	} else {
+        		ClaimMain.removeClaimBan(player, chunk, owner);
+        	}
+            int page = cPlayer.getGuiPage();
+        	new ClaimBansGui(player,chunk,page);
+            return;
+        }
+        
+        ClaimGuis.executeAction(player, "bans", clickedSlot, event.getClick());
+        return;
+    }
+
+    /**
+     * Handles claim list GUI click events.
+     * @param event the inventory click event.
+     * @param player the player clicking in the inventory.
+     * @param cPlayer the CPlayer object for the player.
+     */
+    private void handleClaimListGuiClick(InventoryClickEvent event, Player player, CPlayer cPlayer) {
+    	event.setCancelled(true);
+        ItemStack clickedItem = event.getCurrentItem();
+        if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
+        int clickedSlot = event.getSlot();
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("list", "back-page-list")) {
+        	int page = cPlayer.getGuiPage()-1;
+        	if(ClaimGuis.getItemSlot("list", "back-page-list") == ClaimGuis.getItemSlot("list", "back-page-settings") && page == 0) {
+        		if(!ClaimMain.checkIfClaimExists(cPlayer.getChunk())) {
+        			player.sendMessage(ClaimLanguage.getMessage("the-claim-does-not-exists-anymore"));
+        			return;
+        		}
+        		new ClaimGui(player,cPlayer.getChunk());
+        		return;
+        	}
+        	cPlayer.setGuiPage(page);
+            new ClaimListGui(player,page,cPlayer.getFilter());
+            return;
+        }
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("list", "filter")) {
+        	cPlayer.setGuiPage(1);
+        	String filter = cPlayer.getFilter();
+        	if(filter.equals("owner")) {
+        		filter = "not_owner";
+        	} else {
+        		filter = "owner";
+        	}
+            new ClaimListGui(player,1,filter);
+            return;
+        }
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("list", "next-page-list")) {
+        	int page = cPlayer.getGuiPage()+1;
+        	cPlayer.setGuiPage(page);
+            new ClaimListGui(player,page,cPlayer.getFilter());
+            return;
+        }
+        
+        if(clickedSlot >= ClaimGuis.getGuiMinSlot("list") && clickedSlot <= ClaimGuis.getGuiMaxSlot("list")) {
+            if(event.getClick() == ClickType.LEFT) {
+            	if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.tp")) {
+	            	player.closeInventory();
+		        	ClaimMain.goClaim(player, cPlayer.getMapLoc(clickedSlot));
+		        	return;
+            	}
+            	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+            	return;
+            }
+            if(cPlayer.getFilter().equals("not_owner")) return;
+            if(event.getClick() == ClickType.RIGHT) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.settings")) {
+                	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                	return;
+            	}
+                new ClaimGui(player,cPlayer.getMapChunk(clickedSlot));
+	        	return;
+            }
+            if(event.getClick() == ClickType.SHIFT_LEFT) {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim")) {
+                	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                	return;
+            	}
+            	Chunk chunk = cPlayer.getMapChunk(clickedSlot);
+	        	if(ClaimMain.deleteClaim(player, chunk)) {
+	        		for(Entity e : chunk.getEntities()) {
+	    				if(!(e instanceof Player)) continue;
+	    				Player p = (Player) e;
+	    				ClaimEventsEnterLeave.disableBossBar(p);
+	    			}
+	    			player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
+	            	int page = cPlayer.getGuiPage();
+                    new ClaimListGui(player,page,cPlayer.getFilter());
+	        	}
+	        	return;
+            }
+            if(event.getClick() == ClickType.SHIFT_RIGHT) {
+        		if(ClaimSettings.getBooleanSetting("economy")) {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.sclaim")) {
+                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                    	return;
+                	}
+        			Chunk chunk = cPlayer.getMapChunk(clickedSlot);
+        			if(ClaimMain.claimIsInSale(chunk)) {
+            			if(ClaimMain.delChunkSale(player, chunk)) {
+            				player.sendMessage(ClaimLanguage.getMessage("claim-in-sale-cancel").replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk)));
+    			            	int page = cPlayer.getGuiPage();
+    		                    new ClaimListGui(player,page,cPlayer.getFilter());
+            				return;
+            			}
+            			player.sendMessage(ClaimLanguage.getMessage("error"));
+            			return;
+            		}
+        			player.sendMessage(ClaimLanguage.getMessage("claim-is-not-in-sale"));
+        			return;
+        		}
+        		player.sendMessage(ClaimLanguage.getMessage("economy-disabled"));
+        		return;
+            }
+        }
+        
+        ClaimGuis.executeAction(player, "list", clickedSlot, event.getClick());
+        return;
+    }
+
+    /**
+     * Handles admin claim list GUI click events.
+     * @param event the inventory click event.
+     * @param player the player clicking in the inventory.
+     * @param cPlayer the CPlayer object for the player.
+     */
+    private void handleAdminClaimListGuiClick(InventoryClickEvent event, Player player, CPlayer cPlayer) {
+    	event.setCancelled(true);
+        ItemStack clickedItem = event.getCurrentItem();
+        if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
+        int clickedSlot = event.getSlot();
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("admin_list", "back-page-list")) {
+        	int page = cPlayer.getGuiPage()-1;
+        	if(ClaimGuis.getItemSlot("admin_list", "back-page-list") == ClaimGuis.getItemSlot("admin_list", "back-page-settings") && page == 0) {
+        		if(!ClaimMain.checkIfClaimExists(cPlayer.getChunk())) {
+        			player.sendMessage(ClaimLanguage.getMessage("the-claim-does-not-exists-anymore"));
+        			return;
+        		}
+        		new AdminClaimGui(player,cPlayer.getChunk());
+        		return;
+        	}
+        	cPlayer.setGuiPage(page);
+            new AdminClaimListGui(player,page);
+            return;
+        }
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("admin_list", "next-page-list")) {
+        	int page = cPlayer.getGuiPage()+1;
+        	cPlayer.setGuiPage(page);
+            new AdminClaimListGui(player,page);
+            return;
+        }
+        
+        if(clickedSlot >= ClaimGuis.getGuiMinSlot("admin_list") && clickedSlot <= ClaimGuis.getGuiMaxSlot("admin_list")) {
+            if(event.getClick() == ClickType.LEFT) {
+            	player.closeInventory();
+	        	ClaimMain.goClaim(player, cPlayer.getMapLoc(clickedSlot));
+	        	return;
+            }
+            if(event.getClick() == ClickType.RIGHT) {
+                new AdminClaimGui(player,cPlayer.getMapChunk(clickedSlot));
+	        	return;
+            }
+            if(event.getClick() == ClickType.SHIFT_LEFT) {
+            	Chunk chunk = cPlayer.getMapChunk(clickedSlot);
+	        	if(ClaimMain.deleteClaim(player, chunk)) {
+	        		for(Entity e : chunk.getEntities()) {
+	    				if(!(e instanceof Player)) continue;
+	    				Player p = (Player) e;
+	    				ClaimEventsEnterLeave.disableBossBar(p);
+	    			}
+	    			player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
+	            	int page = cPlayer.getGuiPage();
+                    new AdminClaimListGui(player,page);
+	        	}
+	        	return;
+            }
+        }
+        
+        ClaimGuis.executeAction(player, "admin_list", clickedSlot, event.getClick());
+        return;
+    }
+
+    /**
+     * Handles claims GUI click events.
+     * @param event the inventory click event.
+     * @param player the player clicking in the inventory.
+     * @param cPlayer the CPlayer object for the player.
+     */
+    private void handleClaimsGuiClick(InventoryClickEvent event, Player player, CPlayer cPlayer) {
+    	event.setCancelled(true);
+        ItemStack clickedItem = event.getCurrentItem();
+        if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
+        int clickedSlot = event.getSlot();
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("claims", "back-page-list")) {
+        	int page = cPlayer.getGuiPage()-1;
+        	cPlayer.setGuiPage(page);
+            new ClaimsGui(player,page,cPlayer.getFilter());
+            return;
+        }
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("claims", "next-page-list")) {
+        	int page = cPlayer.getGuiPage()+1;
+        	cPlayer.setGuiPage(page);
+            new ClaimsGui(player,page,cPlayer.getFilter());
+            return;
+        }
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("claims", "filter")) {
+        	cPlayer.setGuiPage(1);
+        	String filter = cPlayer.getFilter();
+        	if(filter.equals("all")) {
+        		filter = "sales";
+        	} else if (filter.equals("sales")) {
+        		filter = "online";
+        	} else if (filter.equals("online")) {
+        		filter = "offline";
+        	} else {
+        		filter = "all";
+        	}
+            new ClaimsGui(player,1,filter);
+            return;
+        }
+        
+        if(clickedSlot >= ClaimGuis.getGuiMinSlot("claims") && clickedSlot <= ClaimGuis.getGuiMaxSlot("claims")) {
+        	String filter = cPlayer.getFilter();
+        	cPlayer.setGuiPage(1);
+        	if(filter.equals("sales")) {
+        		new ClaimsOwnerGui(player,1,filter,cPlayer.getMapString(clickedSlot));
+        		return;
+        	}
+        	new ClaimsOwnerGui(player,1,"all",cPlayer.getMapString(clickedSlot));
+        	return;
+        }
+        
+        ClaimGuis.executeAction(player, "claims", clickedSlot, event.getClick());
+        return;
+    }
+
+    /**
+     * Handles claims owner GUI click events.
+     * @param event the inventory click event.
+     * @param player the player clicking in the inventory.
+     * @param cPlayer the CPlayer object for the player.
+     */
+    private void handleClaimsOwnerGuiClick(InventoryClickEvent event, Player player, CPlayer cPlayer) {
+    	event.setCancelled(true);
+        ItemStack clickedItem = event.getCurrentItem();
+        if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
+        int clickedSlot = event.getSlot();
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("claims_owner", "back-page-list")) {
+        	if(cPlayer.getGuiPage() == 1) {
+        		new ClaimsGui(player,1,"all");
+        		return;
+        	}
+        	int page = cPlayer.getGuiPage()-1;
+        	cPlayer.setGuiPage(page);
+            new ClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner());
+            return;
+        }
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("claims_owner", "next-page-list")) {
+        	int page = cPlayer.getGuiPage()+1;
+        	cPlayer.setGuiPage(page);
+        	new ClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner());
+            return;
+        }
+        
+        if (clickedSlot == ClaimGuis.getItemSlot("claims_owner", "filter")) {
+        	cPlayer.setGuiPage(1);
+        	String filter = cPlayer.getFilter();
+        	if(filter.equals("all")) {
+        		filter = "sales";
+        	} else {
+        		filter = "all";
+        	}
+            new ClaimsOwnerGui(player,1,filter,cPlayer.getOwner());
+            return;
+        }
+        
+        if(clickedSlot >= ClaimGuis.getGuiMinSlot("claims_owner") && clickedSlot <= ClaimGuis.getGuiMaxSlot("claims_owner")) {
+        	Chunk chunk = cPlayer.getMapChunk(clickedSlot);
+        	if(event.getClick() == ClickType.LEFT) {
+        		if(CPlayerMain.checkPermPlayer(player, "scs.command.claim.tp")) {
+		            if(!ClaimMain.canPermCheck(chunk, "Visitors") && !ClaimMain.getOwnerInClaim(chunk).equals(player.getName())) {
+		            	player.sendMessage(ClaimLanguage.getMessage("error-claim-visitors-deny"));
+		            	return;
+		            }
+	            	player.closeInventory();
+		        	ClaimMain.goClaim(player, cPlayer.getMapLoc(clickedSlot));
+		        	return;
+        		}
+        		player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+        		return;
+        	}
+        	if(event.getClick() == ClickType.SHIFT_LEFT) {
+        		if(ClaimSettings.getBooleanSetting("economy")) {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.sclaim")) {
+                    	player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                    	return;
+                	}
+        			if(ClaimMain.getOwnerInClaim(chunk).equals(player.getName())) {
+        				player.sendMessage(ClaimLanguage.getMessage("cant-buy-your-own-claim"));
+        				return;
+        			}
+            		if(ClaimMain.claimIsInSale(chunk)) {
+            			ClaimMain.sellChunk(player, chunk);
+            			return;
+            		}
+            		player.sendMessage(ClaimLanguage.getMessage("claim-is-not-in-sale"));
+            		return;
+        		}
+        		player.sendMessage(ClaimLanguage.getMessage("economy-disabled"));
+        		return;
+        	}
+        }
+        
+        ClaimGuis.executeAction(player, "claims_owner", clickedSlot, event.getClick());
+        return;
     }
 }

@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import org.bukkit.Chunk;
 import org.bukkit.command.Command;
@@ -20,39 +22,72 @@ import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Listeners.ClaimEventsEnterLeave;
 
-public class UnclaimCommand implements CommandExecutor,TabCompleter {
-	
-	
-	// ******************
-	// *  Tab Complete  *
-	// ******************
-	
-	
+/**
+ * Handles the /unclaim command for unclaiming territory.
+ */
+public class UnclaimCommand implements CommandExecutor, TabCompleter {
+
+    // ******************
+    // *  Tab Complete  *
+    // ******************
+
+    /**
+     * Provides tab completion suggestions for the /unclaim command.
+     *
+     * @param sender Source of the command
+     * @param cmd Command which was executed
+     * @param alias Alias of the command which was used
+     * @param args Passed command arguments
+     * @return A list of tab completion suggestions
+     */
 	@Override
     public List<String> onTabComplete(CommandSender sender, Command cmd, String alias, String[] args) {
-        List<String> completions = new ArrayList<>();
-
-        if(sender instanceof Player) {
-        	Player player = (Player) sender;
-        	if(!player.hasPermission("scs.command.unclaim") && !player.hasPermission("scs.admin")) return completions;
-	        if (args.length == 1) {
-	        	if(player.hasPermission("scs.command.unclaim.all") || player.hasPermission("scs.admin")) completions.add("*");
-	        	completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
-	        	return completions;
-	        }
+        if (!(sender instanceof Player)) {
+            return new ArrayList<>();
         }
-        return completions;
-    }
-	
-	
-	// ******************
-	// *  Main command  *
-	// ******************
-	
 
+        Player player = (Player) sender;
+
+        CompletableFuture<List<String>> future = CompletableFuture.supplyAsync(() -> {
+            List<String> completions = new ArrayList<>();
+
+            if (!player.hasPermission("scs.command.unclaim") && !player.hasPermission("scs.admin")) {
+                return completions;
+            }
+
+            if (args.length == 1) {
+                if (player.hasPermission("scs.command.unclaim.all") || player.hasPermission("scs.admin")) {
+                    completions.add("*");
+                }
+                completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
+            }
+
+            return completions;
+        });
+
+        try {
+            return future.get(); // Return the result from the CompletableFuture
+        } catch (ExecutionException | InterruptedException e) {
+            return new ArrayList<>();
+        }
+    }
+
+    // ******************
+    // *  Main command  *
+    // ******************
+
+    /**
+     * Executes the given command, returning its success.
+     *
+     * @param sender Source of the command
+     * @param command Command which was executed
+     * @param label Alias of the command which was used
+     * @param args Passed command arguments
+     * @return true if a valid command, otherwise false
+     */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-    	
+        
         if (!(sender instanceof Player)) {
             sender.sendMessage(ClaimLanguage.getMessage("command-only-by-players"));
             return true;
@@ -62,135 +97,135 @@ public class UnclaimCommand implements CommandExecutor,TabCompleter {
         String playerName = player.getName();
         CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
         
-        if(!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim")) {
-        	sender.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-        	return false;
+        if (!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim")) {
+            sender.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+            return false;
         }
         
-        if(ClaimSettings.isWorldDisabled(player.getWorld().getName())) {
-        	player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName()));
-        	return true;
+        if (ClaimSettings.isWorldDisabled(player.getWorld().getName())) {
+            player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName()));
+            return true;
         }
         
         if (args.length > 1) {
-        	player.sendMessage(ClaimLanguage.getMessage("help-unclaim").replaceAll("%help-separator%", ClaimLanguage.getMessage("help-separator")));
+            player.sendMessage(ClaimLanguage.getMessage("help-unclaim").replaceAll("%help-separator%", ClaimLanguage.getMessage("help-separator")));
             return true;
         }
         
         if (args.length == 1) {
-        	if(args[0].equals("*")) {
-        		if(!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim.all")) {
-        			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-        			return true;
-        		}
-        		if(cPlayer.getClaimsCount() == 0) {
-        			player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
-        			return true;
-        		}
-        		ClaimMain.deleteAllClaim(player);
-        		return true;
-        	}
-    		Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[0]);
-    		if(chunk == null) {
-    			if(!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim.radius")) {
-        			player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-        			return true;
-        		}
-        		try {
-        			int radius = Integer.parseInt(args[0]);
-        			if(!cPlayer.canRadiusClaim(radius)) {
-        				player.sendMessage(ClaimLanguage.getMessage("cant-radius-claim"));
-        				return true;
-        			}
-        			List<Chunk> chunks = ClaimCommand.getChunksInRadius(player.getLocation(),radius);
-        			Set<Chunk> toDeletePlayer = new HashSet<>();
-        			Set<Chunk> toDeleteAdmin = new HashSet<>();
-        			int i = 0;
-        			for(Chunk c : chunks) {
-        				if(ClaimMain.getOwnerInClaim(c).equals("admin") && player.hasPermission("scs.admin")) {
-        					toDeleteAdmin.add(c);
-        					for(Entity e : c.getEntities()) {
-        						if(!(e instanceof Player)) continue;
-        						Player p = (Player) e;
-        						ClaimEventsEnterLeave.disableBossBar(p);
-        					}
-        					i++;
-        					continue;
-        				}
-        				if(ClaimMain.getOwnerInClaim(c).equals(player.getName())) {
-        					toDeletePlayer.add(c);
-        					for(Entity e : c.getEntities()) {
-        						if(!(e instanceof Player)) continue;
-        						Player p = (Player) e;
-        						ClaimEventsEnterLeave.disableBossBar(p);
-        					}
-        					i++;
-        				}
-        			}
-        			if(player.hasPermission("scs.admin") && !toDeleteAdmin.isEmpty()) ClaimMain.deleteClaimRadius(player, toDeleteAdmin);
-        			if(!toDeletePlayer.isEmpty()) ClaimMain.deleteClaimRadius(player, toDeletePlayer);
-        			if(i == chunks.size()) {
-            			player.sendMessage(ClaimLanguage.getMessage("territory-delete-radius-success").replace("%number%", String.valueOf(i)));
-            			return true;
-        			}
-        			player.sendMessage(ClaimLanguage.getMessage("territory-delete-error").replace("%number%", String.valueOf(i)).replace("%number-max%", String.valueOf(chunks.size())));
-        			return true;
-        		} catch(NumberFormatException e){
-        			player.sendMessage(ClaimLanguage.getMessage("help-command.unclaim-unclaim").replaceAll("%help-separator%", ClaimLanguage.getMessage("help-separator")));
+            if (args[0].equals("*")) {
+                if (!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim.all")) {
+                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
                     return true;
-        		}
-    		}
-			if(ClaimMain.deleteClaim(player, chunk)) {
-				for(Entity e : chunk.getEntities()) {
-					if(!(e instanceof Player)) continue;
-					Player p = (Player) e;
-					ClaimEventsEnterLeave.disableBossBar(p);
-				}
-				player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
-				return true;
-			}
-			player.sendMessage(ClaimLanguage.getMessage("error"));
-	        return true;
+                }
+                if (cPlayer.getClaimsCount() == 0) {
+                    player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
+                    return true;
+                }
+                ClaimMain.deleteAllClaim(player);
+                return true;
+            }
+            Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[0]);
+            if (chunk == null) {
+                if (!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim.radius")) {
+                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                    return true;
+                }
+                try {
+                    int radius = Integer.parseInt(args[0]);
+                    if (!cPlayer.canRadiusClaim(radius)) {
+                        player.sendMessage(ClaimLanguage.getMessage("cant-radius-claim"));
+                        return true;
+                    }
+                    List<Chunk> chunks = ClaimCommand.getChunksInRadius(player.getLocation(), radius);
+                    Set<Chunk> toDeletePlayer = new HashSet<>();
+                    Set<Chunk> toDeleteAdmin = new HashSet<>();
+                    int i = 0;
+                    for (Chunk c : chunks) {
+                        if (ClaimMain.getOwnerInClaim(c).equals("admin") && player.hasPermission("scs.admin")) {
+                            toDeleteAdmin.add(c);
+                            for (Entity e : c.getEntities()) {
+                                if (!(e instanceof Player)) continue;
+                                Player p = (Player) e;
+                                ClaimEventsEnterLeave.disableBossBar(p);
+                            }
+                            i++;
+                            continue;
+                        }
+                        if (ClaimMain.getOwnerInClaim(c).equals(player.getName())) {
+                            toDeletePlayer.add(c);
+                            for (Entity e : c.getEntities()) {
+                                if (!(e instanceof Player)) continue;
+                                Player p = (Player) e;
+                                ClaimEventsEnterLeave.disableBossBar(p);
+                            }
+                            i++;
+                        }
+                    }
+                    if (player.hasPermission("scs.admin") && !toDeleteAdmin.isEmpty()) ClaimMain.deleteClaimRadius(player, toDeleteAdmin);
+                    if (!toDeletePlayer.isEmpty()) ClaimMain.deleteClaimRadius(player, toDeletePlayer);
+                    if (i == chunks.size()) {
+                        player.sendMessage(ClaimLanguage.getMessage("territory-delete-radius-success").replace("%number%", String.valueOf(i)));
+                        return true;
+                    }
+                    player.sendMessage(ClaimLanguage.getMessage("territory-delete-error").replace("%number%", String.valueOf(i)).replace("%number-max%", String.valueOf(chunks.size())));
+                    return true;
+                } catch (NumberFormatException e) {
+                    player.sendMessage(ClaimLanguage.getMessage("help-command.unclaim-unclaim").replaceAll("%help-separator%", ClaimLanguage.getMessage("help-separator")));
+                    return true;
+                }
+            }
+            if (ClaimMain.deleteClaim(player, chunk)) {
+                for (Entity e : chunk.getEntities()) {
+                    if (!(e instanceof Player)) continue;
+                    Player p = (Player) e;
+                    ClaimEventsEnterLeave.disableBossBar(p);
+                }
+                player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
+                return true;
+            }
+            player.sendMessage(ClaimLanguage.getMessage("error"));
+            return true;
         }
         
-		Chunk chunk = player.getLocation().getChunk();
-		String owner = ClaimMain.getOwnerInClaim(chunk);
-		
-		if(!ClaimMain.checkIfClaimExists(chunk)) {
-			player.sendMessage(ClaimLanguage.getMessage("free-territory"));
-			return true;
-		}
-		
-		if(owner.equals("admin") && player.hasPermission("scs.admin")) {
-			if(ClaimMain.deleteClaim(player, chunk)) {
-				for(Entity e : chunk.getEntities()) {
-					if(!(e instanceof Player)) continue;
-					Player p = (Player) e;
-					ClaimEventsEnterLeave.disableBossBar(p);
-				}
-				player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
-				return true;
-			}
-			player.sendMessage(ClaimLanguage.getMessage("error"));
-	        return true;
-		}
-		
-		if(!owner.equals(player.getName())) {
-			player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
-			return true;
-		}
-		
-		if(ClaimMain.deleteClaim(player, chunk)) {
-			for(Entity e : chunk.getEntities()) {
-				if(!(e instanceof Player)) continue;
-				Player p = (Player) e;
-				ClaimEventsEnterLeave.disableBossBar(p);
-			}
-			player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
-			return true;
-		}
-		
-		player.sendMessage(ClaimLanguage.getMessage("error"));
+        Chunk chunk = player.getLocation().getChunk();
+        String owner = ClaimMain.getOwnerInClaim(chunk);
+        
+        if (!ClaimMain.checkIfClaimExists(chunk)) {
+            player.sendMessage(ClaimLanguage.getMessage("free-territory"));
+            return true;
+        }
+        
+        if (owner.equals("admin") && player.hasPermission("scs.admin")) {
+            if (ClaimMain.deleteClaim(player, chunk)) {
+                for (Entity e : chunk.getEntities()) {
+                    if (!(e instanceof Player)) continue;
+                    Player p = (Player) e;
+                    ClaimEventsEnterLeave.disableBossBar(p);
+                }
+                player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
+                return true;
+            }
+            player.sendMessage(ClaimLanguage.getMessage("error"));
+            return true;
+        }
+        
+        if (!owner.equals(player.getName())) {
+            player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
+            return true;
+        }
+        
+        if (ClaimMain.deleteClaim(player, chunk)) {
+            for (Entity e : chunk.getEntities()) {
+                if (!(e instanceof Player)) continue;
+                Player p = (Player) e;
+                ClaimEventsEnterLeave.disableBossBar(p);
+            }
+            player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
+            return true;
+        }
+        
+        player.sendMessage(ClaimLanguage.getMessage("error"));
         return true;
     }
 }
