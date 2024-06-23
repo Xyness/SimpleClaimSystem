@@ -1,10 +1,5 @@
 package fr.xyness.SCS.Commands;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import org.bukkit.Chunk;
-import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -15,17 +10,28 @@ import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Guis.ClaimsGui;
 
+/**
+ * Handles the /claims command, which opens a GUI for the player to view their claims.
+ */
 public class ClaimsCommand implements CommandExecutor {
 	
+    // ******************
+    // *  Main command  *
+    // ******************
 	
-	// ******************
-	// *  Main command  *
-	// ******************
-
-	
+    /**
+     * Executes the given command, returning its success.
+     *
+     * @param sender Source of the command
+     * @param command Command which was executed
+     * @param label Alias of the command which was used
+     * @param args Passed command arguments
+     * @return true if a valid command, otherwise false
+     */
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
     	
+        // Check if the sender is a player
         if (!(sender instanceof Player)) {
             sender.sendMessage(ClaimLanguage.getMessage("command-only-by-players"));
             return true;
@@ -34,37 +40,16 @@ public class ClaimsCommand implements CommandExecutor {
         Player player = (Player) sender;
         CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
         
+        // Check if the player has the required permission
         if(!CPlayerMain.checkPermPlayer(player, "scs.command.claims")) {
-        	sender.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-        	return false;
+            sender.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+            return false;
         }
         
+        // Open the claims GUI for the player
         cPlayer.setGuiPage(1);
-        ClaimsGui menu = new ClaimsGui(player,1,"all");
-        menu.openInventory(player);
+        new ClaimsGui(player, 1, "all");
         return true;
     }
-    
-    
-	// *******************
-	// *  Others methods *
-	// *******************
-    
-    
-    // Method to get chunks in radius
-    public static List<Chunk> getChunksInRadius(Location center, int radius) {
-        List<Chunk> chunks = new ArrayList<>();
-        Chunk centerChunk = center.getChunk();
-        int startX = centerChunk.getX() - radius;
-        int startZ = centerChunk.getZ() - radius;
-        int endX = centerChunk.getX() + radius;
-        int endZ = centerChunk.getZ() + radius;
 
-        for (int x = startX; x <= endX; x++) {
-            for (int z = startZ; z <= endZ; z++) {
-                chunks.add(center.getWorld().getChunkAt(x, z));
-            }
-        }
-        return chunks;
-    }
 }

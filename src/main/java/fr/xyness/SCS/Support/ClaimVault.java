@@ -5,23 +5,27 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 
 import net.milkbowl.vault.economy.Economy;
 
+/**
+ * This class handles the integration with the Vault economy system.
+ */
 public class ClaimVault {
-	
 	
 	// ***************
 	// *  Variables  *
 	// ***************
 	
-	
+	/** The economy instance provided by Vault. */
 	private static Economy econ;
-	
 	
 	// ********************
 	// *  Others Methods  *
 	// ********************
 	
-	
-	// Method to setup the economy
+	/**
+	 * Sets up the economy by hooking into Vault.
+	 *
+	 * @return true if the economy was successfully set up, false otherwise.
+	 */
 	public static boolean setupEconomy() {
         RegisteredServiceProvider<Economy> rsp = Bukkit.getServer().getServicesManager().getRegistration(Economy.class);
         if (rsp == null) {
@@ -31,17 +35,32 @@ public class ClaimVault {
         return econ != null;
     }
 	
-	// Method to get the player's balance
+	/**
+	 * Gets the balance of a player.
+	 *
+	 * @param playerName the name of the player.
+	 * @return the balance of the player.
+	 */
 	public static double getPlayerBalance(String playerName) {
 		return econ.getBalance(playerName);
 	}
 	
-	// Method to add money to the player's balance
+	/**
+	 * Adds money to a player's balance.
+	 *
+	 * @param playerName the name of the player.
+	 * @param money the amount of money to add.
+	 */
 	public static void addPlayerBalance(String playerName, double money) {
 		econ.depositPlayer(playerName, money);
 	}
 	
-	// Method to remove money from the player's balance
+	/**
+	 * Removes money from a player's balance.
+	 *
+	 * @param playerName the name of the player.
+	 * @param money the amount of money to remove.
+	 */
 	public static void removePlayerBalance(String playerName, double money) {
 		econ.withdrawPlayer(playerName, money);
 	}

@@ -12,117 +12,398 @@ import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 public class CPlayer {
-	
-	
-	// ***************
-	// *  Variables  *
-	// ***************
-	
-	
-	private Player player;
-	private String playerName;
-	private Integer claims_count;
-	private Integer max_claims;
-	private Integer max_radius_claims;
-	private Integer teleportation_delay;
-	private Integer max_members;
-	private Double claim_cost;
-	private Double claim_cost_multiplier;
-	private Boolean claim_chat;
-	private Boolean claim_automap;
-	private Boolean claim_autoclaim;
-	private Boolean claim_autofly;
-	private Boolean claim_fly;
-	
-	// Gui variable
-	private Integer gui_page;
-	private Chunk chunk;
-	private Map<Integer,Chunk> mapChunk = new HashMap<>();
-	private Map<Integer,Location> mapLoc = new HashMap<>();
-	private Map<Integer,String> mapString = new HashMap<>();
-	private String filter;
-	private String owner;
-	
-	// Pattern placeholders
-	private static final Pattern CLAIM_PATTERN = Pattern.compile("scs\\.claim\\.(\\d+)");
-	private static final Pattern RADIUS_PATTERN = Pattern.compile("scs\\.radius\\.(\\d+)");
-	private static final Pattern DELAY_PATTERN = Pattern.compile("scs\\.delay\\.(\\d+)");
-	private static final Pattern COST_PATTERN = Pattern.compile("scs\\.cost\\.(\\d+)");
-	private static final Pattern MULTIPLIER_PATTERN = Pattern.compile("scs\\.multiplier\\.(\\d+)");
-	private static final Pattern MEMBERS_PATTERN = Pattern.compile("scs\\.members\\.(\\d+)");
     
+    // ***************
+    // *  Variables  *
+    // ***************
     
-	// ******************
-	// *  Constructors  *
-	// ******************
-	
-	
-	public CPlayer(Player player, Integer claims_count, Integer max_claims, Integer max_radius_claims, Integer teleportation_delay, Integer max_members, Double claim_cost, Double claim_cost_multiplier) {
-		this.player = player;
-		this.playerName = player.getName();
-		this.claims_count = claims_count;
-		this.max_claims = max_claims;
-		this.max_radius_claims = max_radius_claims;
-		this.teleportation_delay = teleportation_delay;
-		this.max_members = max_members;
-		this.claim_cost = claim_cost;
-		this.claim_cost_multiplier = claim_cost_multiplier;
-		this.gui_page = 0;
-		this.claim_chat = false;
-		this.claim_automap = false;
-		this.claim_autoclaim = false;
-		this.claim_autofly = false;
-		this.claim_fly = false;
-	}
-	
-	
-	// ********************
-	// *  Others Methods  *
-	// ********************
-	
-	
-	// Setters
-	public void setPlayer(Player player) { this.player = player; } // Set the player
-	public void setName(String playerName) { this.playerName = playerName; } // Set the player's name
-	public void setClaimsCount(Integer claims_count) { this.claims_count = claims_count; } // Set the player's claims count
-	public void setMaxClaims(Integer max_claims) { this.max_claims = max_claims; } // Set the player's max claims
-	public void setMaxRadiusClaims(Integer max_radius_claims) { this.max_radius_claims = max_radius_claims; } // Set the player's max radius claims
-	public void setTeleportationDelay(Integer teleportation_delay) { this.teleportation_delay = teleportation_delay; } // Set the player's teleportation delay
-	public void setMaxMembers(Integer max_members) { this.max_members = max_members; } // Set the player's max members per player's claim
-	public void setClaimCost(Double claim_cost) { this.claim_cost = claim_cost; } // Set the player's claim cost
-	public void setClaimCostMultiplier(Double claim_cost_multiplier) { this.claim_cost_multiplier = claim_cost_multiplier; } // Set the player's claim cost multiplier
-	public void setGuiPage(Integer page) { this.gui_page = page; } // Set the player's gui page
-	public void setClaimChat(Boolean setting) { this.claim_chat = setting; } // Set the player's chat mode
-	public void setClaimAutomap(Boolean setting) { this.claim_automap = setting; } // Set the player's automap mode
-	public void setClaimAutoclaim(Boolean setting) { this.claim_autoclaim = setting; } // Set the player's autoclaim mode
-	public void setChunk(Chunk chunk) { this.chunk = chunk; } // Set the chunk for gui
-	public void addMapChunk(Integer slot, Chunk chunk) { this.mapChunk.put(slot, chunk); } // Set the chunks by slot for gui
-	public void addMapLoc(Integer slot, Location loc) { this.mapLoc.put(slot, loc); } // Set the locs by slot for gui
-	public void addMapString(Integer slot, String s) { this.mapString.put(slot, s); } // Set the string by slot for gui
-	public void setFilter(String filter) { this.filter = filter; } // Set the filter for gui
-	public void setOwner(String owner) { this.owner = owner; } // Set the owner for gui
-	public void setClaimAutofly(Boolean setting) { this.claim_autofly = setting; } // Set the player's autofly mode
-	public void setClaimFly(Boolean setting) { this.claim_fly = setting; } // Set the player's fly mode
-	
-	// Getters
-	public Player getPlayer() { return this.player; } // Return the player
-	public String getName() { return this.playerName; } // Return the player's name
-	public Integer getClaimsCount() { return this.claims_count; } // Return the player's claims count
-	public Integer getGuiPage() { return this.gui_page; } // Return the player's current gui page
-	public Boolean getClaimChat() { return this.claim_chat; } // Return the player's chat mode (true = claim chat mode, false = public chat mode)
-	public Boolean getClaimAutomap() { return this.claim_automap; } // Return the player's automap status
-	public Boolean getClaimAutoclaim() { return this.claim_autoclaim; } // Return the player's autoclaim status
-	public Chunk getChunk() { return this.chunk; } // Return the current chunk of gui
-	public Chunk getMapChunk(Integer slot) { return this.mapChunk.get(slot); } // Return a chunk by its slot
-	public Location getMapLoc(Integer slot) { return this.mapLoc.get(slot); } // Return a loc by its slot
-	public String getMapString(Integer slot) { return this.mapString.get(slot); } // Return a string by its slot
-	public String getFilter() { return this.filter; } // Return the gui filter
-	public String getOwner() { return this.owner; } // Return the owner
-	public Boolean getClaimAutofly() { return this.claim_autofly; } // Return the player's autofly status
-	public Boolean getClaimFly() { return this.claim_fly; } // Return the player's fly status
-	
-	// Get the player's max claims
-	public Integer getMaxClaims() {
+    /** The player associated with this CPlayer instance */
+    private Player player;
+    
+    /** The name of the player */
+    private String playerName;
+    
+    /** The number of claims the player has */
+    private Integer claims_count;
+    
+    /** The maximum number of claims the player can have */
+    private Integer max_claims;
+    
+    /** The maximum radius for claims */
+    private Integer max_radius_claims;
+    
+    /** The teleportation delay for the player */
+    private Integer teleportation_delay;
+    
+    /** The maximum number of members per player's claim */
+    private Integer max_members;
+    
+    /** The cost of a claim */
+    private Double claim_cost;
+    
+    /** The multiplier for the claim cost */
+    private Double claim_cost_multiplier;
+    
+    /** Whether the player has claim chat enabled */
+    private Boolean claim_chat;
+    
+    /** Whether the player has claim automap enabled */
+    private Boolean claim_automap;
+    
+    /** Whether the player has claim autoclaim enabled */
+    private Boolean claim_autoclaim;
+    
+    /** Whether the player has claim autofly enabled */
+    private Boolean claim_autofly;
+    
+    /** Whether the player has claim fly enabled */
+    private Boolean claim_fly;
+    
+    /** The current GUI page */
+    private Integer gui_page;
+    
+    /** The current chunk for the GUI */
+    private Chunk chunk;
+    
+    /** A map of chunks for the GUI, indexed by slot */
+    private Map<Integer, Chunk> mapChunk = new HashMap<>();
+    
+    /** A map of locations for the GUI, indexed by slot */
+    private Map<Integer, Location> mapLoc = new HashMap<>();
+    
+    /** A map of strings for the GUI, indexed by slot */
+    private Map<Integer, String> mapString = new HashMap<>();
+    
+    /** The filter for the GUI */
+    private String filter;
+    
+    /** The owner for the GUI */
+    private String owner;
+    
+    /** Pattern for matching claim permissions */
+    private static final Pattern CLAIM_PATTERN = Pattern.compile("scs\\.claim\\.(\\d+)");
+    
+    /** Pattern for matching radius permissions */
+    private static final Pattern RADIUS_PATTERN = Pattern.compile("scs\\.radius\\.(\\d+)");
+    
+    /** Pattern for matching delay permissions */
+    private static final Pattern DELAY_PATTERN = Pattern.compile("scs\\.delay\\.(\\d+)");
+    
+    /** Pattern for matching cost permissions */
+    private static final Pattern COST_PATTERN = Pattern.compile("scs\\.cost\\.(\\d+)");
+    
+    /** Pattern for matching multiplier permissions */
+    private static final Pattern MULTIPLIER_PATTERN = Pattern.compile("scs\\.multiplier\\.(\\d+)");
+    
+    /** Pattern for matching member permissions */
+    private static final Pattern MEMBERS_PATTERN = Pattern.compile("scs\\.members\\.(\\d+)");
+    
+    // ******************
+    // *  Constructors  *
+    // ******************
+    
+    /**
+     * Constructor initializing all fields.
+     * 
+     * @param player The player associated with this CPlayer instance
+     * @param claims_count The number of claims the player has
+     * @param max_claims The maximum number of claims the player can have
+     * @param max_radius_claims The maximum radius for claims
+     * @param teleportation_delay The teleportation delay for the player
+     * @param max_members The maximum number of members per player's claim
+     * @param claim_cost The cost of a claim
+     * @param claim_cost_multiplier The multiplier for the claim cost
+     */
+    public CPlayer(Player player, Integer claims_count, Integer max_claims, Integer max_radius_claims, Integer teleportation_delay, Integer max_members, Double claim_cost, Double claim_cost_multiplier) {
+        this.player = player;
+        this.playerName = player.getName();
+        this.claims_count = claims_count;
+        this.max_claims = max_claims;
+        this.max_radius_claims = max_radius_claims;
+        this.teleportation_delay = teleportation_delay;
+        this.max_members = max_members;
+        this.claim_cost = claim_cost;
+        this.claim_cost_multiplier = claim_cost_multiplier;
+        this.gui_page = 0;
+        this.claim_chat = false;
+        this.claim_automap = false;
+        this.claim_autoclaim = false;
+        this.claim_autofly = false;
+        this.claim_fly = false;
+    }
+    
+    // ********************
+    // *  Other Methods  *
+    // ********************
+    
+    // Setters
+    
+    /**
+     * Sets the player.
+     * 
+     * @param player The new player
+     */
+    public void setPlayer(Player player) { this.player = player; }
+    
+    /**
+     * Sets the player's name.
+     * 
+     * @param playerName The new player name
+     */
+    public void setName(String playerName) { this.playerName = playerName; }
+    
+    /**
+     * Sets the player's claims count.
+     * 
+     * @param claims_count The new claims count
+     */
+    public void setClaimsCount(Integer claims_count) { this.claims_count = claims_count; }
+    
+    /**
+     * Sets the player's max claims.
+     * 
+     * @param max_claims The new max claims
+     */
+    public void setMaxClaims(Integer max_claims) { this.max_claims = max_claims; }
+    
+    /**
+     * Sets the player's max radius claims.
+     * 
+     * @param max_radius_claims The new max radius claims
+     */
+    public void setMaxRadiusClaims(Integer max_radius_claims) { this.max_radius_claims = max_radius_claims; }
+    
+    /**
+     * Sets the player's teleportation delay.
+     * 
+     * @param teleportation_delay The new teleportation delay
+     */
+    public void setTeleportationDelay(Integer teleportation_delay) { this.teleportation_delay = teleportation_delay; }
+    
+    /**
+     * Sets the player's max members per claim.
+     * 
+     * @param max_members The new max members
+     */
+    public void setMaxMembers(Integer max_members) { this.max_members = max_members; }
+    
+    /**
+     * Sets the player's claim cost.
+     * 
+     * @param claim_cost The new claim cost
+     */
+    public void setClaimCost(Double claim_cost) { this.claim_cost = claim_cost; }
+    
+    /**
+     * Sets the player's claim cost multiplier.
+     * 
+     * @param claim_cost_multiplier The new claim cost multiplier
+     */
+    public void setClaimCostMultiplier(Double claim_cost_multiplier) { this.claim_cost_multiplier = claim_cost_multiplier; }
+    
+    /**
+     * Sets the player's GUI page.
+     * 
+     * @param page The new GUI page
+     */
+    public void setGuiPage(Integer page) { this.gui_page = page; }
+    
+    /**
+     * Sets the player's chat mode.
+     * 
+     * @param setting The new chat mode
+     */
+    public void setClaimChat(Boolean setting) { this.claim_chat = setting; }
+    
+    /**
+     * Sets the player's automap mode.
+     * 
+     * @param setting The new automap mode
+     */
+    public void setClaimAutomap(Boolean setting) { this.claim_automap = setting; }
+    
+    /**
+     * Sets the player's autoclaim mode.
+     * 
+     * @param setting The new autoclaim mode
+     */
+    public void setClaimAutoclaim(Boolean setting) { this.claim_autoclaim = setting; }
+    
+    /**
+     * Sets the chunk for the GUI.
+     * 
+     * @param chunk The new chunk
+     */
+    public void setChunk(Chunk chunk) { this.chunk = chunk; }
+    
+    /**
+     * Adds a chunk to the GUI map.
+     * 
+     * @param slot The slot index
+     * @param chunk The chunk to add
+     */
+    public void addMapChunk(Integer slot, Chunk chunk) { this.mapChunk.put(slot, chunk); }
+    
+    /**
+     * Adds a location to the GUI map.
+     * 
+     * @param slot The slot index
+     * @param loc The location to add
+     */
+    public void addMapLoc(Integer slot, Location loc) { this.mapLoc.put(slot, loc); }
+    
+    /**
+     * Adds a string to the GUI map.
+     * 
+     * @param slot The slot index
+     * @param s The string to add
+     */
+    public void addMapString(Integer slot, String s) { this.mapString.put(slot, s); }
+    
+    /**
+     * Sets the filter for the GUI.
+     * 
+     * @param filter The new filter
+     */
+    public void setFilter(String filter) { this.filter = filter; }
+    
+    /**
+     * Sets the owner for the GUI.
+     * 
+     * @param owner The new owner
+     */
+    public void setOwner(String owner) { this.owner = owner; }
+    
+    /**
+     * Sets the player's autofly mode.
+     * 
+     * @param setting The new autofly mode
+     */
+    public void setClaimAutofly(Boolean setting) { this.claim_autofly = setting; }
+    
+    /**
+     * Sets the player's fly mode.
+     * 
+     * @param setting The new fly mode
+     */
+    public void setClaimFly(Boolean setting) { this.claim_fly = setting; }
+    
+    // Getters
+    
+    /**
+     * Gets the player.
+     * 
+     * @return The player
+     */
+    public Player getPlayer() { return this.player; }
+    
+    /**
+     * Gets the player's name.
+     * 
+     * @return The player's name
+     */
+    public String getName() { return this.playerName; }
+    
+    /**
+     * Gets the player's claims count.
+     * 
+     * @return The claims count
+     */
+    public Integer getClaimsCount() { return this.claims_count; }
+    
+    /**
+     * Gets the player's current GUI page.
+     * 
+     * @return The current GUI page
+     */
+    public Integer getGuiPage() { return this.gui_page; }
+    
+    /**
+     * Gets the player's chat mode.
+     * 
+     * @return True if claim chat mode is enabled, false otherwise
+     */
+    public Boolean getClaimChat() { return this.claim_chat; }
+    
+    /**
+     * Gets the player's automap status.
+     * 
+     * @return True if automap is enabled, false otherwise
+     */
+    public Boolean getClaimAutomap() { return this.claim_automap; }
+    
+    /**
+     * Gets the player's autoclaim status.
+     * 
+     * @return True if autoclaim is enabled, false otherwise
+     */
+    public Boolean getClaimAutoclaim() { return this.claim_autoclaim; }
+    
+    /**
+     * Gets the current chunk for the GUI.
+     * 
+     * @return The current chunk
+     */
+    public Chunk getChunk() { return this.chunk; }
+    
+    /**
+     * Gets a chunk by its slot.
+     * 
+     * @param slot The slot index
+     * @return The chunk at the specified slot
+     */
+    public Chunk getMapChunk(Integer slot) { return this.mapChunk.get(slot); }
+    
+    /**
+     * Gets a location by its slot.
+     * 
+     * @param slot The slot index
+     * @return The location at the specified slot
+     */
+    public Location getMapLoc(Integer slot) { return this.mapLoc.get(slot); }
+    
+    /**
+     * Gets a string by its slot.
+     * 
+     * @param slot The slot index
+     * @return The string at the specified slot
+     */
+    public String getMapString(Integer slot) { return this.mapString.get(slot); }
+    
+    /**
+     * Gets the filter for the GUI.
+     * 
+     * @return The filter
+     */
+    public String getFilter() { return this.filter; }
+    
+    /**
+     * Gets the owner for the GUI.
+     * 
+     * @return The owner
+     */
+    public String getOwner() { return this.owner; }
+    
+    /**
+     * Gets the player's autofly status.
+     * 
+     * @return True if autofly is enabled, false otherwise
+     */
+    public Boolean getClaimAutofly() { return this.claim_autofly; }
+    
+    /**
+     * Gets the player's fly status.
+     * 
+     * @return True if fly is enabled, false otherwise
+     */
+    public Boolean getClaimFly() { return this.claim_fly; }
+    
+    /**
+     * Gets the player's max claims.
+     * 
+     * @return The maximum number of claims
+     */
+    public Integer getMaxClaims() {
         if (player.hasPermission("scs.admin")) return 0;
 
         Set<String> permissions = player.getEffectivePermissions().stream()
@@ -137,10 +418,14 @@ public class CPlayer {
         
         if(maxClaims == -1) return max_claims;
         return maxClaims;
-	}
-	
-	// Get the player's max radius claims
-	public Integer getMaxRadiusClaims() {
+    }
+    
+    /**
+     * Gets the player's max radius claims.
+     * 
+     * @return The maximum radius claims
+     */
+    public Integer getMaxRadiusClaims() {
         if (player.hasPermission("scs.admin")) return 0;
 
         Set<String> permissions = player.getEffectivePermissions().stream()
@@ -155,10 +440,14 @@ public class CPlayer {
         
         if(maxClaims == -1) return max_radius_claims;
         return maxClaims;
-	}
-	
-	// Check if the player can claim anymore
-	public boolean canClaim() {
+    }
+    
+    /**
+     * Checks if the player can claim more chunks.
+     * 
+     * @return True if the player can claim more, false otherwise
+     */
+    public boolean canClaim() {
         if (player.hasPermission("scs.admin")) return true;
 
         Set<String> permissions = player.getEffectivePermissions().stream()
@@ -176,9 +465,14 @@ public class CPlayer {
 
         return maxClaims > claims_count || maxClaims == 0;
     }
-	
-	// Check if the player can claim anymore (with a given amount of new claims)
-	public boolean canClaimWithNumber(int n) {
+    
+    /**
+     * Checks if the player can claim more chunks with a given amount of new claims.
+     * 
+     * @param n The number of new claims
+     * @return True if the player can claim the specified number of chunks, false otherwise
+     */
+    public boolean canClaimWithNumber(int n) {
         if (player.hasPermission("scs.admin")) return true;
 
         Set<String> permissions = player.getEffectivePermissions().stream()
@@ -191,14 +485,19 @@ public class CPlayer {
             .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
             .max().orElse(-1);
         
-        if (maxClaims >= claims_count+n) return true;
+        if (maxClaims >= claims_count + n) return true;
         if (maxClaims == -1) maxClaims = max_claims;
 
-        return maxClaims >= claims_count+n || maxClaims == 0;
+        return maxClaims >= claims_count + n || maxClaims == 0;
     }
-	
-	// Check if the player can use the given radius for radius claim
-	public boolean canRadiusClaim(int r) {
+    
+    /**
+     * Checks if the player can use the given radius for a radius claim.
+     * 
+     * @param r The radius
+     * @return True if the player can use the radius, false otherwise
+     */
+    public boolean canRadiusClaim(int r) {
         if (player.hasPermission("scs.admin")) return true;
 
         Set<String> permissions = player.getEffectivePermissions().stream()
@@ -216,9 +515,13 @@ public class CPlayer {
 
         return radius >= r || radius == 0;
     }
-	
-	// Get the teleportation delay of player
-	public int getDelay() {
+    
+    /**
+     * Gets the teleportation delay for the player.
+     * 
+     * @return The teleportation delay
+     */
+    public int getDelay() {
         if (player.hasPermission("scs.admin")) return 0;
 
         Set<String> permissions = player.getEffectivePermissions().stream()
@@ -234,9 +537,13 @@ public class CPlayer {
         if (delay == -1) return teleportation_delay;
         return delay;
     }
-	
-	// Get the player's claim cost
-	public double getCost() {
+    
+    /**
+     * Gets the cost of a claim for the player.
+     * 
+     * @return The claim cost
+     */
+    public double getCost() {
         if (player.hasPermission("scs.admin")) return 0.0;
 
         Set<String> permissions = player.getEffectivePermissions().stream()
@@ -252,9 +559,13 @@ public class CPlayer {
         if (cost == -1) return claim_cost;
         return cost;
     }
-	
-	// Get the player's claim cost multiplier
-	public double getMultiplier() {
+    
+    /**
+     * Gets the claim cost multiplier for the player.
+     * 
+     * @return The claim cost multiplier
+     */
+    public double getMultiplier() {
         if (player.hasPermission("scs.admin")) return 0.0;
 
         Set<String> permissions = player.getEffectivePermissions().stream()
@@ -270,9 +581,13 @@ public class CPlayer {
         if (multiplier == -1) return claim_cost_multiplier;
         return multiplier;
     }
-	
-	// Get the player's max members per player's claim
-	public int getMaxMembers() {
+    
+    /**
+     * Gets the maximum number of members per claim for the player.
+     * 
+     * @return The maximum number of members
+     */
+    public int getMaxMembers() {
         if (player.hasPermission("scs.admin")) return 0;
 
         Set<String> permissions = player.getEffectivePermissions().stream()
@@ -288,31 +603,50 @@ public class CPlayer {
         if (members == -1) return max_members;
         return members;
     }
-	
-    // Get the multiplied cost for a claim
+    
+    /**
+     * Gets the multiplied cost for a claim.
+     * 
+     * @return The multiplied claim cost
+     */
     public Double getMultipliedCost() {
-    	if(player.hasPermission("scs.admin")) return 0.0;
-    	Double cost = getCost();
-    	Double multiplier = getMultiplier();
-    	return cost * Math.pow(multiplier, (claims_count - 1));
+        if (player.hasPermission("scs.admin")) return 0.0;
+        Double cost = getCost();
+        Double multiplier = getMultiplier();
+        return cost * Math.pow(multiplier, (claims_count - 1));
     }
     
-    // Get the multiplied cost for a radius claim
+    /**
+     * Gets the multiplied cost for a radius claim.
+     * 
+     * @param r The radius
+     * @return The multiplied radius claim cost
+     */
     public Double getRadiusMultipliedCost(int r) {
-    	if(player.hasPermission("scs.admin")) return 0.0;
-    	int n = claims_count;
-    	Double price = 0.0;
-    	Double cost = getCost();
-    	Double multiplier = getMultiplier();
-    	for(int i = 0; i<r; i++) {
-    		price += cost * Math.pow(multiplier, (n - 1));
-    		n++;
-    	}
-    	return price;
+        if (player.hasPermission("scs.admin")) return 0.0;
+        int n = claims_count;
+        Double price = 0.0;
+        Double cost = getCost();
+        Double multiplier = getMultiplier();
+        for(int i = 0; i < r; i++) {
+            price += cost * Math.pow(multiplier, (n - 1));
+            n++;
+        }
+        return price;
     }
     
-	public void clearMapChunk() { mapChunk.clear(); } // Clear chunk map
-	public void clearMapLoc() { mapLoc.clear(); } // Clear loc map
-	public void clearMapString() { mapString.clear(); } // Clear string map
-	
+    /**
+     * Clears the chunk map.
+     */
+    public void clearMapChunk() { mapChunk.clear(); }
+    
+    /**
+     * Clears the location map.
+     */
+    public void clearMapLoc() { mapLoc.clear(); }
+    
+    /**
+     * Clears the string map.
+     */
+    public void clearMapString() { mapString.clear(); }
 }

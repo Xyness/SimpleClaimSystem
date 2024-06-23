@@ -11,36 +11,54 @@ import fr.xyness.SCS.*;
 import fr.xyness.SCS.Config.*;
 import me.clip.placeholderapi.PlaceholderAPI;
 
+/**
+ * Class representing the Claims GUI.
+ */
 public class ClaimsGui implements InventoryHolder {
-	
-	
-	// ***************
-	// *  Variables  *
-	// ***************
-	
-
+    
+    // ***************
+    // *  Variables  *
+    // ***************
+    
+    /** The inventory for this GUI. */
     private final Inventory inv;
+    
+    /** The player who opened the GUI. */
     private final Player player;
+    
+    /** The current page of the GUI. */
     private final int page;
+    
+    /** The filter applied to the claims. */
     private final String filter;
+    
+    /** The number of items per page. */
     private final int itemsPerPage;
-    private final int minMemberSlot;
-    private final int maxMemberSlot;
     
+    /** The minimum slot index for owner items. */
+    private final int minSlot;
     
-	// ******************
-	// *  Constructors  *
-	// ******************
+    /** The maximum slot index for owner items. */
+    private final int maxSlot;
     
+    // ******************
+    // *  Constructors  *
+    // ******************
     
-    // Main constructor
+    /**
+     * Main constructor for ClaimsGui.
+     * 
+     * @param player The player who opened the GUI.
+     * @param page   The current page of the GUI.
+     * @param filter The filter applied to the claims.
+     */
     public ClaimsGui(Player player, int page, String filter) {
         this.player = player;
         this.page = page;
         this.filter = filter;
-        this.minMemberSlot = ClaimGuis.getGuiMinSlot("claims");
-        this.maxMemberSlot = ClaimGuis.getGuiMaxSlot("claims");
-        this.itemsPerPage = maxMemberSlot - minMemberSlot + 1;
+        this.minSlot = ClaimGuis.getGuiMinSlot("claims");
+        this.maxSlot = ClaimGuis.getGuiMaxSlot("claims");
+        this.itemsPerPage = maxSlot - minSlot + 1;
 
         String title = ClaimGuis.getGuiTitle("claims").replace("%page%", String.valueOf(page));
         if (ClaimSettings.getBooleanSetting("placeholderapi")) {
@@ -50,13 +68,13 @@ public class ClaimsGui implements InventoryHolder {
         initializeItems();
     }
     
-    
-	// ********************
-	// *  Others Methods  *
-	// ********************
+    // ********************
+    // *  Others Methods  *
+    // ********************
 
-    
-    // Method to initialize items (in async mode)
+    /**
+     * Initialize items in the GUI asynchronously.
+     */
     private void initializeItems() {
         if (SimpleClaimSystem.isFolia()) {
             Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> loadItems());
@@ -65,7 +83,9 @@ public class ClaimsGui implements InventoryHolder {
         }
     }
 
-    // Method to load items
+    /**
+     * Load items into the inventory.
+     */
     private void loadItems() {
         CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
         cPlayer.setFilter(filter);
@@ -78,7 +98,7 @@ public class ClaimsGui implements InventoryHolder {
         setItemAsync(ClaimGuis.getItemSlot("claims", "filter"), true, filterItem(filter));
 
         int startItem = (page - 1) * itemsPerPage;
-        int i = minMemberSlot;
+        int i = minSlot;
         int count = 0;
 
         for (Map.Entry<String, Integer> entry : owners.entrySet()) {
@@ -86,7 +106,7 @@ public class ClaimsGui implements InventoryHolder {
             int claimAmount = entry.getValue();
 
             if (count++ < startItem) continue;
-            if (i > maxMemberSlot) {
+            if (i > maxSlot) {
                 setItemAsync(ClaimGuis.getItemSlot("claims", "next-page-list"), true, nextPage(page + 1));
                 break;
             }
@@ -112,9 +132,16 @@ public class ClaimsGui implements InventoryHolder {
             }
             setItemAsync(ClaimGuis.getCustomItemSlot("claims", key), createCustomItem(key, title, lore));
         }
+        
+        SimpleClaimSystem.executeSync(() -> openInventory(player));
     }
 
-    // Method to get the owners with the filter
+    /**
+     * Get the owners based on the filter.
+     * 
+     * @param filter The filter to apply.
+     * @return A map of owners and their claim count.
+     */
     private Map<String, Integer> getOwnersByFilter(String filter) {
         switch (filter) {
             case "sales":
@@ -128,7 +155,13 @@ public class ClaimsGui implements InventoryHolder {
         }
     }
 
-    // Method to create the item for the gui
+    /**
+     * Create an item representing an owner's claim.
+     * 
+     * @param owner The owner of the claim.
+     * @param lore  The lore for the item.
+     * @return The created ItemStack.
+     */
     private ItemStack createOwnerClaimItem(String owner, List<String> lore) {
         String title = ClaimLanguage.getMessageWP("owner-claim-title", owner).replace("%owner%", owner);
         if (ClaimGuis.getItemCheckCustomModelData("claims", "claim-item")) {
@@ -140,7 +173,14 @@ public class ClaimsGui implements InventoryHolder {
         return createItem(ClaimGuis.getItemMaterial("claims", "claim-item"), title, lore);
     }
 
-    // Method to create the item (if PLAYER_HEAD) for the gui
+    /**
+     * Create a player head item representing an owner's claim.
+     * 
+     * @param owner The owner of the claim.
+     * @param title The title for the item.
+     * @param lore  The lore for the item.
+     * @return The created ItemStack.
+     */
     private ItemStack createPlayerHeadItem(String owner, String title, List<String> lore) {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
@@ -151,7 +191,14 @@ public class ClaimsGui implements InventoryHolder {
         return item;
     }
 
-    // Method to create custom item (ItemsAdder)
+    /**
+     * Create a custom item.
+     * 
+     * @param key   The key of the custom item.
+     * @param title The title for the item.
+     * @param lore  The lore for the item.
+     * @return The created ItemStack.
+     */
     private ItemStack createCustomItem(String key, String title, List<String> lore) {
         if (ClaimGuis.getCustomItemCheckCustomModelData("claims", key)) {
             return createItemWMD(title, lore, ClaimGuis.getCustomItemMaterialMD("claims", key), ClaimGuis.getCustomItemCustomModelData("claims", key));
@@ -160,12 +207,23 @@ public class ClaimsGui implements InventoryHolder {
         }
     }
 
-    // Method to get split the lore in list
+    /**
+     * Split a lore string into a list of strings.
+     * 
+     * @param lore The lore string to split.
+     * @return A list of lore lines.
+     */
     public static List<String> getLore(String lore) {
         return Arrays.asList(lore.split("\n"));
     }
 
-    // Method to get lore with placeholders (lore in string)
+    /**
+     * Apply placeholders to a lore string for a player.
+     * 
+     * @param lore   The lore string.
+     * @param player The player to apply placeholders for.
+     * @return A list of lore lines with placeholders applied.
+     */
     public static List<String> getLoreP(String lore, Player player) {
         if (!ClaimSettings.getBooleanSetting("placeholderapi")) {
             return getLore(lore);
@@ -178,14 +236,26 @@ public class ClaimsGui implements InventoryHolder {
         return lores;
     }
 
-    // Method to get lore with placeholders (lore in list)
+    /**
+     * Apply placeholders to a list of lore lines for a player.
+     * 
+     * @param lore   The list of lore lines.
+     * @param player The player to apply placeholders for.
+     * @return A list of lore lines with placeholders applied.
+     */
     public static List<String> getLoreWP(List<String> lore, String player) {
         if (!ClaimSettings.getBooleanSetting("placeholderapi")) return lore;
         Player p = Bukkit.getPlayer(player);
         return p == null ? replaceOfflinePlaceholders(lore, Bukkit.getOfflinePlayerIfCached(player)) : replacePlaceholders(lore, p);
     }
 
-    // Method to apply placeholders (for online player)
+    /**
+     * Replace placeholders in lore lines for an online player.
+     * 
+     * @param lore   The list of lore lines.
+     * @param player The online player.
+     * @return A list of lore lines with placeholders applied.
+     */
     private static List<String> replacePlaceholders(List<String> lore, Player player) {
         List<String> result = new ArrayList<>();
         for (String s : lore) {
@@ -194,7 +264,13 @@ public class ClaimsGui implements InventoryHolder {
         return result;
     }
 
-    // Method to apply placeholders (for offline player)
+    /**
+     * Replace placeholders in lore lines for an offline player.
+     * 
+     * @param lore   The list of lore lines.
+     * @param player The offline player.
+     * @return A list of lore lines with placeholders applied.
+     */
     private static List<String> replaceOfflinePlaceholders(List<String> lore, OfflinePlayer player) {
         List<String> result = new ArrayList<>();
         for (String s : lore) {
@@ -203,7 +279,14 @@ public class ClaimsGui implements InventoryHolder {
         return result;
     }
 
-    // Method to create item
+    /**
+     * Create a standard item.
+     * 
+     * @param material The material of the item.
+     * @param name     The display name of the item.
+     * @param lore     The lore of the item.
+     * @return The created ItemStack.
+     */
     private ItemStack createItem(Material material, String name, List<String> lore) {
         ItemStack item = new ItemStack(material != null ? material : Material.STONE, 1);
         ItemMeta meta = item.getItemMeta();
@@ -216,7 +299,15 @@ public class ClaimsGui implements InventoryHolder {
         return item;
     }
 
-    // Method to create custom item
+    /**
+     * Create a custom item with model data.
+     * 
+     * @param name          The display name of the item.
+     * @param lore          The lore of the item.
+     * @param customItemName The custom item name.
+     * @param modelData     The custom model data.
+     * @return The created ItemStack.
+     */
     private ItemStack createItemWMD(String name, List<String> lore, String customItemName, int modelData) {
         CustomStack customStack = CustomStack.getInstance(customItemName);
         ItemStack item = customStack != null ? customStack.getItemStack() : new ItemStack(Material.STONE, 1);
@@ -231,17 +322,32 @@ public class ClaimsGui implements InventoryHolder {
         return item;
     }
 
-    // Method to get the back page item
+    /**
+     * Create an item for navigating to the previous page.
+     * 
+     * @param page The page number.
+     * @return The created ItemStack.
+     */
     private ItemStack backPage(int page) {
         return createNavigationItem("back-page-list", page);
     }
 
-    // Method to get the next page item
+    /**
+     * Create an item for navigating to the next page.
+     * 
+     * @param page The page number.
+     * @return The created ItemStack.
+     */
     private ItemStack nextPage(int page) {
         return createNavigationItem("next-page-list", page);
     }
 
-    // Method to get the filter item
+    /**
+     * Create the filter item.
+     * 
+     * @param filter The current filter.
+     * @return The created ItemStack.
+     */
     private ItemStack filterItem(String filter) {
         String loreFilter = ClaimLanguage.getMessage("filter-new-lore");
         loreFilter = loreFilter.replaceAll("%status_color_" + getStatusIndex(filter) + "%", ClaimLanguage.getMessage("status_color_active_filter"));
@@ -252,7 +358,12 @@ public class ClaimsGui implements InventoryHolder {
                 getLore(loreFilter));
     }
 
-    // Method to get index of filter
+    /**
+     * Get the index of the current filter.
+     * 
+     * @param filter The current filter.
+     * @return The index of the filter.
+     */
     private int getStatusIndex(String filter) {
         switch (filter) {
             case "sales":
@@ -266,7 +377,13 @@ public class ClaimsGui implements InventoryHolder {
         }
     }
 
-    // Method to create the navigation item
+    /**
+     * Create a navigation item.
+     * 
+     * @param key  The key for the item.
+     * @param page The page number.
+     * @return The created ItemStack.
+     */
     private ItemStack createNavigationItem(String key, int page) {
         ItemStack item;
         if (ClaimGuis.getItemCheckCustomModelData("claims", key)) {
@@ -286,13 +403,25 @@ public class ClaimsGui implements InventoryHolder {
         return item;
     }
 
-    // Method to set the item in sync mode
+    /**
+     * Set an item in the inventory asynchronously.
+     * 
+     * @param slot     The slot index.
+     * @param condition The condition to check.
+     * @param item     The item to set.
+     */
     private void setItemAsync(int slot, boolean condition, ItemStack item) {
         if (condition) {
             setItemAsync(slot, item);
         }
     }
 
+    /**
+     * Set an item in the inventory asynchronously.
+     * 
+     * @param slot The slot index.
+     * @param item The item to set.
+     */
     private void setItemAsync(int slot, ItemStack item) {
         if (SimpleClaimSystem.isFolia()) {
             Bukkit.getGlobalRegionScheduler().execute(SimpleClaimSystem.getInstance(), () -> inv.setItem(slot, item));
@@ -306,6 +435,11 @@ public class ClaimsGui implements InventoryHolder {
         return inv;
     }
 
+    /**
+     * Open the inventory for the player.
+     * 
+     * @param player The player to open the inventory for.
+     */
     public void openInventory(Player player) {
         player.openInventory(inv);
     }
