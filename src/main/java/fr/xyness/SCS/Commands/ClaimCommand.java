@@ -253,931 +253,1070 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         String playerName = player.getName();
         CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
 
-        if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim")) {
-            sender.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-            return false;
-        }
-
         if (args.length > 1 && args[0].equals("setdesc")) {
-            if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setdesc")) {
-                player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                return false;
-            }
-            if (ClaimMain.getClaimsNameFromOwner(playerName).contains(args[1])) {
-                String description = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
-                if (description.length() > Integer.parseInt(ClaimSettings.getSetting("max-length-claim-description"))) {
-                    player.sendMessage(ClaimLanguage.getMessage("claim-description-too-long"));
-                    return true;
+        	SimpleClaimSystem.executeAsync(() -> {
+                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setdesc")) {
+                	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                    return;
                 }
-                Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
-                if (ClaimMain.setChunkDescription(player, chunk, description)) {
-                    player.sendMessage(ClaimLanguage.getMessage("claim-set-description-success").replaceAll("%name%", args[1]).replaceAll("%description%", description));
-                    return true;
+                if (ClaimMain.getClaimsNameFromOwner(playerName).contains(args[1])) {
+                    String description = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
+                    if (description.length() > Integer.parseInt(ClaimSettings.getSetting("max-length-claim-description"))) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-description-too-long")));
+                        return;
+                    }
+                    Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                    if (ClaimMain.setChunkDescription(player, chunk, description)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-set-description-success").replaceAll("%name%", args[1]).replaceAll("%description%", description)));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                    return;
                 }
-                player.sendMessage(ClaimLanguage.getMessage("error"));
-                return true;
-            }
-            player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
+                SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found")));
+                return;
+        	});
+        	
             return true;
         }
 
         if (args.length == 3) {
             if (args[0].equalsIgnoreCase("setname")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setname")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                if (ClaimMain.getClaimsNameFromOwner(playerName).contains(args[1])) {
-                    if (args[2].length() > Integer.parseInt(ClaimSettings.getSetting("max-length-claim-name"))) {
-                        player.sendMessage(ClaimLanguage.getMessage("claim-name-too-long"));
-                        return true;
+            	SimpleClaimSystem.executeAsync(() -> {
+                    if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setname")) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
                     }
-                    if (args[2].contains("claim-")) {
-                        player.sendMessage(ClaimLanguage.getMessage("you-cannot-use-this-name"));
-                        return true;
+                    if (ClaimMain.getClaimsNameFromOwner(playerName).contains(args[1])) {
+                        if (args[2].length() > Integer.parseInt(ClaimSettings.getSetting("max-length-claim-name"))) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-name-too-long")));
+                            return;
+                        }
+                        if (args[2].contains("claim-")) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("you-cannot-use-this-name")));
+                            return;
+                        }
+                        if (ClaimMain.checkName(playerName, args[2])) {
+                            Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                            SimpleClaimSystem.executeSync(() -> {
+                            	ClaimMain.setClaimName(player, chunk, args[2]);
+                            	player.sendMessage(ClaimLanguage.getMessage("name-change-success").replaceAll("%name%", args[2]));
+                            });
+                            return;
+                        }
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error-name-exists").replaceAll("%name%", args[1])));
+                        return;
                     }
-                    if (ClaimMain.checkName(playerName, args[2])) {
-                        Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
-                        ClaimMain.setClaimName(player, chunk, args[2]);
-                        player.sendMessage(ClaimLanguage.getMessage("name-change-success").replaceAll("%name%", args[2]));
-                        return true;
-                    }
-                    player.sendMessage(ClaimLanguage.getMessage("error-name-exists").replaceAll("%name%", args[1]));
-                    return true;
-                }
-                player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
+                    SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found")));
+                    return;
+            	});
+            	
                 return true;
             }
             if (args[0].equalsIgnoreCase("ban")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.ban")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                if (args[1].equalsIgnoreCase("*")) {
-                    if (cPlayer.getClaimsCount() == 0) {
-                        player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
-                        return true;
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.ban")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    if (args[1].equalsIgnoreCase("*")) {
+                        if (cPlayer.getClaimsCount() == 0) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim")));
+                            return;
+                        }
+                        Player target = Bukkit.getPlayer(args[2]);
+                        String targetName = "";
+                        if (target == null) {
+                            OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                            if (otarget == null) {
+                            	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
+                                return;
+                            }
+                            targetName = otarget.getName();
+                        } else {
+                            targetName = target.getName();
+                        }
+                        if (targetName.equals(playerName)) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-ban-yourself")));
+                            return;
+                        }
+                        if (ClaimMain.addAllClaimBan(player, targetName)) {
+                            String message = ClaimLanguage.getMessage("add-ban-all-success").replaceAll("%player%", targetName);
+                            SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                            return;
+                        }
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                        return;
+                    }
+                    Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                    if (chunk == null) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found")));
+                        return;
                     }
                     Player target = Bukkit.getPlayer(args[2]);
                     String targetName = "";
                     if (target == null) {
                         OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
                         if (otarget == null) {
-                            player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-                            return true;
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
+                            return;
                         }
                         targetName = otarget.getName();
                     } else {
                         targetName = target.getName();
                     }
                     if (targetName.equals(playerName)) {
-                        player.sendMessage(ClaimLanguage.getMessage("cant-ban-yourself"));
-                        return true;
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-ban-yourself")));
+                        return;
                     }
-                    if (ClaimMain.addAllClaimBan(player, targetName)) {
-                        String message = ClaimLanguage.getMessage("add-ban-all-success").replaceAll("%player%", targetName);
-                        player.sendMessage(message);
-                        return true;
+                    if (ClaimMain.addClaimBan(player, chunk, targetName)) {
+                        String message = ClaimLanguage.getMessage("add-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
                     }
-                    player.sendMessage(ClaimLanguage.getMessage("error"));
-                    return true;
-                }
-                Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
-                if (chunk == null) {
-                    player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
-                    return true;
-                }
-                Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
-                    if (otarget == null) {
-                        player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-                        return true;
-                    }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                if (targetName.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("cant-ban-yourself"));
-                    return true;
-                }
-                if (ClaimMain.addClaimBan(player, chunk, targetName)) {
-                    String message = ClaimLanguage.getMessage("add-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
-                    player.sendMessage(message);
-                    return true;
-                }
-                player.sendMessage(ClaimLanguage.getMessage("error"));
+                    SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("unban")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                if (args[1].equalsIgnoreCase("*")) {
-                    if (cPlayer.getClaimsCount() == 0) {
-                        player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
-                        return true;
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
                     }
-                    Player target = Bukkit.getPlayer(args[2]);
-                    String targetName = "";
-                    if (target == null) {
-                        OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
-                        if (otarget == null) {
-                            targetName = args[2];
+                    if (args[1].equalsIgnoreCase("*")) {
+                        if (cPlayer.getClaimsCount() == 0) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim")));
+                            return;
                         }
-                        targetName = otarget.getName();
-                    } else {
-                        targetName = target.getName();
+                        Player target = Bukkit.getPlayer(args[2]);
+                        String targetName = "";
+                        if (target == null) {
+                            OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                            targetName = otarget == null ? args[2] : otarget.getName();
+                        } else {
+                            targetName = target.getName();
+                        }
+                        if (ClaimMain.removeAllClaimBan(player, targetName)) {
+                            String message = ClaimLanguage.getMessage("remove-ban-all-success").replaceAll("%player%", targetName);
+                            SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                            return;
+                        }
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                        return;
                     }
-                    if (ClaimMain.removeAllClaimBan(player, targetName)) {
-                        String message = ClaimLanguage.getMessage("remove-ban-all-success").replaceAll("%player%", targetName);
-                        player.sendMessage(message);
-                        return true;
+                    Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                    if (chunk == null) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found")));
+                        return;
                     }
-                    player.sendMessage(ClaimLanguage.getMessage("error"));
-                    return true;
-                }
-                Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
-                if (chunk == null) {
-                    player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
-                    return true;
-                }
-                if (!ClaimMain.checkBan(chunk, args[2])) {
-                    String message = ClaimLanguage.getMessage("not-banned").replaceAll("%player%", args[2]);
-                    player.sendMessage(message);
-                    return true;
-                }
-                String targetName = ClaimMain.getRealNameFromClaimBans(chunk, args[2]);
-                if (ClaimMain.removeClaimBan(player, chunk, targetName)) {
-                    String message = ClaimLanguage.getMessage("remove-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
-                    player.sendMessage(message);
-                    return true;
-                }
-                player.sendMessage(ClaimLanguage.getMessage("error"));
+                    if (!ClaimMain.checkBan(chunk, args[2])) {
+                        String message = ClaimLanguage.getMessage("not-banned").replaceAll("%player%", args[2]);
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
+                    }
+                    String targetName = ClaimMain.getRealNameFromClaimBans(chunk, args[2]);
+                    if (ClaimMain.removeClaimBan(player, chunk, targetName)) {
+                        String message = ClaimLanguage.getMessage("remove-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("add")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.add")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                if (args[1].equalsIgnoreCase("*")) {
-                    if (cPlayer.getClaimsCount() == 0) {
-                        player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
-                        return true;
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.add")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
                     }
-                    Set<Chunk> chunks = ClaimMain.getChunksFromOwner(playerName);
-                    for (Chunk c : chunks) {
-                        if (!CPlayerMain.canAddMember(player, c)) {
-                            player.sendMessage(ClaimLanguage.getMessage("cant-add-member-anymore"));
-                            return true;
+                    if (args[1].equalsIgnoreCase("*")) {
+                        if (cPlayer.getClaimsCount() == 0) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim")));
+                            return;
                         }
+                        Set<Chunk> chunks = ClaimMain.getChunksFromOwner(playerName);
+                        for (Chunk c : chunks) {
+                            if (!CPlayerMain.canAddMember(player, c)) {
+                            	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-add-member-anymore")));
+                                return;
+                            }
+                        }
+                        Player target = Bukkit.getPlayer(args[2]);
+                        String targetName = "";
+                        if (target == null) {
+                            OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                            if (otarget == null) {
+                            	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
+                                return;
+                            }
+                            targetName = otarget.getName();
+                        } else {
+                            targetName = target.getName();
+                        }
+                        if (targetName.equals(playerName)) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-add-yourself")));
+                            return;
+                        }
+                        if (ClaimMain.addAllClaimMembers(player, targetName)) {
+                            String message = ClaimLanguage.getMessage("add-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", "all your claims");
+                            SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                            return;
+                        }
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                        return;
+                    }
+                    Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                    if (chunk == null) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found")));
+                        return;
+                    }
+                    if (!CPlayerMain.canAddMember(player, chunk)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-add-member-anymore")));
+                        return;
                     }
                     Player target = Bukkit.getPlayer(args[2]);
                     String targetName = "";
                     if (target == null) {
                         OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
                         if (otarget == null) {
-                            player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-                            return true;
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
+                            return;
                         }
                         targetName = otarget.getName();
                     } else {
                         targetName = target.getName();
                     }
                     if (targetName.equals(playerName)) {
-                        player.sendMessage(ClaimLanguage.getMessage("cant-add-yourself"));
-                        return true;
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-add-yourself")));
+                        return;
                     }
-                    if (ClaimMain.addAllClaimMembers(player, targetName)) {
-                        String message = ClaimLanguage.getMessage("add-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", "all your claims");
-                        player.sendMessage(message);
-                        return true;
+                    if (ClaimMain.checkMembre(chunk, targetName)) {
+                        String message = ClaimLanguage.getMessage("already-member").replaceAll("%player%", targetName);
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
                     }
-                    player.sendMessage(ClaimLanguage.getMessage("error"));
-                    return true;
-                }
-                Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
-                if (chunk == null) {
-                    player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
-                    return true;
-                }
-                if (!CPlayerMain.canAddMember(player, chunk)) {
-                    player.sendMessage(ClaimLanguage.getMessage("cant-add-member-anymore"));
-                    return true;
-                }
-                Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
-                    if (otarget == null) {
-                        player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-                        return true;
+                    if (ClaimMain.addClaimMembers(player, chunk, targetName)) {
+                        String message = ClaimLanguage.getMessage("add-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
                     }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                if (targetName.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("cant-add-yourself"));
-                    return true;
-                }
-                if (ClaimMain.checkMembre(chunk, targetName)) {
-                    String message = ClaimLanguage.getMessage("already-member").replaceAll("%player%", targetName);
-                    player.sendMessage(message);
-                    return true;
-                }
-                if (ClaimMain.addClaimMembers(player, chunk, targetName)) {
-                    String message = ClaimLanguage.getMessage("add-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
-                    player.sendMessage(message);
-                    return true;
-                }
-                player.sendMessage(ClaimLanguage.getMessage("error"));
+                    SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("remove")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                if (args[1].equalsIgnoreCase("*")) {
-                    if (cPlayer.getClaimsCount() == 0) {
-                        player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
-                        return true;
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
                     }
-                    if (args[2].equals(playerName)) {
-                        player.sendMessage(ClaimLanguage.getMessage("cant-remove-owner"));
-                        return true;
+                    if (args[1].equalsIgnoreCase("*")) {
+                        if (cPlayer.getClaimsCount() == 0) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim")));
+                            return;
+                        }
+                        if (args[2].equals(playerName)) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-remove-owner")));
+                            return;
+                        }
+                        String targetName = args[2];
+                        if (ClaimMain.removeAllClaimMembers(player, targetName)) {
+                            String message = ClaimLanguage.getMessage("remove-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", "all your claims");
+                            SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                            return;
+                        }
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                        return;
+                    }
+                    Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                    if (chunk == null) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found")));
+                        return;
                     }
                     String targetName = args[2];
-                    if (ClaimMain.removeAllClaimMembers(player, targetName)) {
-                        String message = ClaimLanguage.getMessage("remove-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", "all your claims");
-                        player.sendMessage(message);
-                        return true;
+                    if (targetName.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-remove-owner")));
+                        return;
                     }
-                    player.sendMessage(ClaimLanguage.getMessage("error"));
-                    return true;
-                }
-                Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
-                if (chunk == null) {
-                    player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
-                    return true;
-                }
-                String targetName = args[2];
-                if (targetName.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("cant-remove-owner"));
-                    return true;
-                }
-                if (!ClaimMain.checkMembre(chunk, targetName)) {
-                    String message = ClaimLanguage.getMessage("not-member").replaceAll("%player%", targetName);
-                    player.sendMessage(message);
-                    return true;
-                }
-                String realName = ClaimMain.getRealNameFromClaimMembers(chunk, targetName);
-                if (ClaimMain.removeClaimMembers(player, chunk, realName)) {
-                    String message = ClaimLanguage.getMessage("remove-member-success").replaceAll("%player%", realName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
-                    player.sendMessage(message);
-                    return true;
-                }
-                player.sendMessage(ClaimLanguage.getMessage("error"));
+                    if (!ClaimMain.checkMembre(chunk, targetName)) {
+                        String message = ClaimLanguage.getMessage("not-member").replaceAll("%player%", targetName);
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
+                    }
+                    String realName = ClaimMain.getRealNameFromClaimMembers(chunk, targetName);
+                    if (ClaimMain.removeClaimMembers(player, chunk, realName)) {
+                        String message = ClaimLanguage.getMessage("remove-member-success").replaceAll("%player%", realName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("owner")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.owner")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                if (args[1].equalsIgnoreCase("*")) {
-                    if (cPlayer.getClaimsCount() == 0) {
-                        player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
-                        return true;
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.owner")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    if (args[1].equalsIgnoreCase("*")) {
+                        if (cPlayer.getClaimsCount() == 0) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim")));
+                            return;
+                        }
+                        Player target = Bukkit.getPlayer(args[2]);
+                        String targetName = "";
+                        if (target == null) {
+                            OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                            if (otarget == null) {
+                            	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
+                                return;
+                            }
+                            targetName = otarget.getName();
+                        } else {
+                            targetName = target.getName();
+                        }
+                        if (targetName.equals(playerName)) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-transfer-ownership-yourself")));
+                            return;
+                        }
+                        Set<Chunk> chunks = ClaimMain.getChunksFromOwner(playerName);
+                        final String tName = targetName;
+                        SimpleClaimSystem.executeSync(() -> {
+                        	chunks.forEach(c -> ClaimMain.setOwner(player, tName, c, false));
+                        	player.sendMessage(ClaimLanguage.getMessage("setowner-all-success").replaceAll("%owner%", tName));
+                        });
+                        return;
+                    }
+                    Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                    if (chunk == null) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found")));
+                        return;
                     }
                     Player target = Bukkit.getPlayer(args[2]);
                     String targetName = "";
                     if (target == null) {
                         OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
                         if (otarget == null) {
-                            player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-                            return true;
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
+                            return;
                         }
                         targetName = otarget.getName();
                     } else {
                         targetName = target.getName();
                     }
                     if (targetName.equals(playerName)) {
-                        player.sendMessage(ClaimLanguage.getMessage("cant-transfer-ownership-yourself"));
-                        return true;
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-transfer-ownership-yourself")));
+                        return;
                     }
-                    Set<Chunk> chunks = ClaimMain.getChunksFromOwner(playerName);
-                    for (Chunk c : chunks) {
-                        ClaimMain.setOwner(player, targetName, c, false);
-                    }
-                    player.sendMessage(ClaimLanguage.getMessage("setowner-all-success").replaceAll("%owner%", targetName));
-                    return true;
-                }
-                Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
-                if (chunk == null) {
-                    player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
-                    return true;
-                }
-                Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
-                    if (otarget == null) {
-                        player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2]));
-                        return true;
-                    }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                if (targetName.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("cant-transfer-ownership-yourself"));
-                    return true;
-                }
-                ClaimMain.setOwner(player, targetName, chunk, false);
-                player.sendMessage(ClaimLanguage.getMessage("setowner-claim-success").replaceAll("%owner%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk)));
+                    final String tName = targetName;
+                    SimpleClaimSystem.executeSync(() -> {
+                    	ClaimMain.setOwner(player, tName, chunk, false);
+                    	player.sendMessage(ClaimLanguage.getMessage("setowner-claim-success").replaceAll("%owner%", tName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk)));
+                    });
+                    return;
+                });
+                
                 return true;
             }
         }
 
         if (args.length == 2) {
             if (args[0].equalsIgnoreCase("ban")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.ban")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                Chunk chunk = player.getLocation().getChunk();
-                String owner = ClaimMain.getOwnerInClaim(chunk);
-                if (!ClaimMain.checkIfClaimExists(chunk)) {
-                    player.sendMessage(ClaimLanguage.getMessage("free-territory"));
-                    return true;
-                }
-                if (!owner.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
-                    return true;
-                }
-                Player target = Bukkit.getPlayer(args[1]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[1]);
-                    if (otarget == null) {
-                        player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[1]));
-                        return true;
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.ban")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
                     }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                if (targetName.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("cant-ban-yourself"));
-                    return true;
-                }
-                if (ClaimMain.addClaimBan(player, chunk, targetName)) {
-                    String message = ClaimLanguage.getMessage("add-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
-                    player.sendMessage(message);
-                    return true;
-                }
-                player.sendMessage(ClaimLanguage.getMessage("error"));
+                    Chunk chunk = player.getLocation().getChunk();
+                    String owner = ClaimMain.getOwnerInClaim(chunk);
+                    if (!ClaimMain.checkIfClaimExists(chunk)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("free-territory")));
+                        return;
+                    }
+                    if (!owner.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-not-yours")));
+                        return;
+                    }
+                    Player target = Bukkit.getPlayer(args[1]);
+                    String targetName = "";
+                    if (target == null) {
+                        OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[1]);
+                        if (otarget == null) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[1])));
+                            return;
+                        }
+                        targetName = otarget.getName();
+                    } else {
+                        targetName = target.getName();
+                    }
+                    if (targetName.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-ban-yourself")));
+                        return;
+                    }
+                    if (ClaimMain.addClaimBan(player, chunk, targetName)) {
+                        String message = ClaimLanguage.getMessage("add-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("unban")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                Chunk chunk = player.getLocation().getChunk();
-                String owner = ClaimMain.getOwnerInClaim(chunk);
-                if (!ClaimMain.checkIfClaimExists(chunk)) {
-                    player.sendMessage(ClaimLanguage.getMessage("free-territory"));
-                    return true;
-                }
-                if (!owner.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
-                    return true;
-                }
-                if (!ClaimMain.checkBan(chunk, args[1])) {
-                    String message = ClaimLanguage.getMessage("not-banned").replaceAll("%player%", args[1]);
-                    player.sendMessage(message);
-                    return true;
-                }
-                String targetName = ClaimMain.getRealNameFromClaimBans(chunk, args[1]);
-                if (ClaimMain.removeClaimBan(player, chunk, targetName)) {
-                    String message = ClaimLanguage.getMessage("remove-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
-                    player.sendMessage(message);
-                    return true;
-                }
-                player.sendMessage(ClaimLanguage.getMessage("error"));
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    Chunk chunk = player.getLocation().getChunk();
+                    String owner = ClaimMain.getOwnerInClaim(chunk);
+                    if (!ClaimMain.checkIfClaimExists(chunk)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("free-territory")));
+                        return;
+                    }
+                    if (!owner.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-not-yours")));
+                        return;
+                    }
+                    if (!ClaimMain.checkBan(chunk, args[1])) {
+                        String message = ClaimLanguage.getMessage("not-banned").replaceAll("%player%", args[1]);
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
+                    }
+                    String targetName = ClaimMain.getRealNameFromClaimBans(chunk, args[1]);
+                    if (ClaimMain.removeClaimBan(player, chunk, targetName)) {
+                        String message = ClaimLanguage.getMessage("remove-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("owner")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.owner")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                Chunk chunk = player.getLocation().getChunk();
-                String owner = ClaimMain.getOwnerInClaim(chunk);
-                if (!ClaimMain.checkIfClaimExists(chunk)) {
-                    player.sendMessage(ClaimLanguage.getMessage("free-territory"));
-                    return true;
-                }
-                if (!owner.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
-                    return true;
-                }
-                Player target = Bukkit.getPlayer(args[1]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[1]);
-                    if (otarget == null) {
-                        player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[1]));
-                        return true;
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.owner")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
                     }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                if (targetName.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("cant-transfer-ownership-yourself"));
-                    return true;
-                }
-                ClaimMain.setOwner(player, targetName, chunk, false);
-                player.sendMessage(ClaimLanguage.getMessage("setowner-claim-success").replaceAll("%owner%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk)));
+                    Chunk chunk = player.getLocation().getChunk();
+                    String owner = ClaimMain.getOwnerInClaim(chunk);
+                    if (!ClaimMain.checkIfClaimExists(chunk)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("free-territory")));
+                        return;
+                    }
+                    if (!owner.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-not-yours")));
+                        return;
+                    }
+                    Player target = Bukkit.getPlayer(args[1]);
+                    String targetName = "";
+                    if (target == null) {
+                        OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[1]);
+                        if (otarget == null) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[1])));
+                            return;
+                        }
+                        targetName = otarget.getName();
+                    } else {
+                        targetName = target.getName();
+                    }
+                    if (targetName.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-transfer-ownership-yourself")));
+                        return;
+                    }
+                    final String tName = targetName;
+                    SimpleClaimSystem.executeSync(() -> {
+                    	ClaimMain.setOwner(player, tName, chunk, false);
+                    	player.sendMessage(ClaimLanguage.getMessage("setowner-claim-success").replaceAll("%owner%", tName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk)));
+                    });
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("remove")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                Chunk chunk = player.getLocation().getChunk();
-                String owner = ClaimMain.getOwnerInClaim(chunk);
-                if (!ClaimMain.checkIfClaimExists(chunk)) {
-                    player.sendMessage(ClaimLanguage.getMessage("free-territory"));
-                    return true;
-                }
-                if (!owner.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
-                    return true;
-                }
-                String targetName = args[1];
-                if (targetName.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("cant-remove-owner"));
-                    return true;
-                }
-                if (!ClaimMain.checkMembre(chunk, targetName)) {
-                    String message = ClaimLanguage.getMessage("not-member").replaceAll("%player%", targetName);
-                    player.sendMessage(message);
-                    return true;
-                }
-                String realName = ClaimMain.getRealNameFromClaimMembers(chunk, targetName);
-                if (ClaimMain.removeClaimMembers(player, chunk, realName)) {
-                    String message = ClaimLanguage.getMessage("remove-member-success").replaceAll("%player%", realName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
-                    player.sendMessage(message);
-                    return true;
-                }
-                player.sendMessage(ClaimLanguage.getMessage("error"));
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    Chunk chunk = player.getLocation().getChunk();
+                    String owner = ClaimMain.getOwnerInClaim(chunk);
+                    if (!ClaimMain.checkIfClaimExists(chunk)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("free-territory")));
+                        return;
+                    }
+                    if (!owner.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-not-yours")));
+                        return;
+                    }
+                    String targetName = args[1];
+                    if (targetName.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-remove-owner")));
+                        return;
+                    }
+                    if (!ClaimMain.checkMembre(chunk, targetName)) {
+                        String message = ClaimLanguage.getMessage("not-member").replaceAll("%player%", targetName);
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
+                    }
+                    String realName = ClaimMain.getRealNameFromClaimMembers(chunk, targetName);
+                    if (ClaimMain.removeClaimMembers(player, chunk, realName)) {
+                        String message = ClaimLanguage.getMessage("remove-member-success").replaceAll("%player%", realName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("add")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.add")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                Chunk chunk = player.getLocation().getChunk();
-                String owner = ClaimMain.getOwnerInClaim(chunk);
-                if (!ClaimMain.checkIfClaimExists(chunk)) {
-                    player.sendMessage(ClaimLanguage.getMessage("free-territory"));
-                    return true;
-                }
-                if (!owner.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
-                    return true;
-                }
-                if (!CPlayerMain.canAddMember(player, chunk)) {
-                    player.sendMessage(ClaimLanguage.getMessage("cant-add-member-anymore"));
-                    return true;
-                }
-                Player target = Bukkit.getPlayer(args[1]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[1]);
-                    if (otarget == null) {
-                        player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[1]));
-                        return true;
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.add")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
                     }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                if (targetName.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("cant-add-yourself"));
-                    return true;
-                }
-                if (ClaimMain.checkMembre(chunk, targetName)) {
-                    String message = ClaimLanguage.getMessage("already-member").replaceAll("%player%", targetName);
-                    player.sendMessage(message);
-                    return true;
-                }
-                if (ClaimMain.addClaimMembers(player, chunk, targetName)) {
-                    String message = ClaimLanguage.getMessage("add-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
-                    player.sendMessage(message);
-                    return true;
-                }
-                player.sendMessage(ClaimLanguage.getMessage("error"));
+                    Chunk chunk = player.getLocation().getChunk();
+                    String owner = ClaimMain.getOwnerInClaim(chunk);
+                    if (!ClaimMain.checkIfClaimExists(chunk)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("free-territory")));
+                        return;
+                    }
+                    if (!owner.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-not-yours")));
+                        return;
+                    }
+                    if (!CPlayerMain.canAddMember(player, chunk)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-add-member-anymore")));
+                        return;
+                    }
+                    Player target = Bukkit.getPlayer(args[1]);
+                    String targetName = "";
+                    if (target == null) {
+                        OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[1]);
+                        if (otarget == null) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[1])));
+                            return;
+                        }
+                        targetName = otarget.getName();
+                    } else {
+                        targetName = target.getName();
+                    }
+                    if (targetName.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-add-yourself")));
+                        return;
+                    }
+                    if (ClaimMain.checkMembre(chunk, targetName)) {
+                        String message = ClaimLanguage.getMessage("already-member").replaceAll("%player%", targetName);
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
+                    }
+                    if (ClaimMain.addClaimMembers(player, chunk, targetName)) {
+                        String message = ClaimLanguage.getMessage("add-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(message));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("see")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.see.others")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return true;
-                }
-                String world = player.getWorld().getName();
-                if (ClaimSettings.isWorldDisabled(world)) {
-                    player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world));
-                    return true;
-                }
-                if (ClaimMain.getPlayerClaimsCount(args[1]) == 0) {
-                    player.sendMessage(ClaimLanguage.getMessage("target-does-not-have-claim").replaceAll("%name%", args[1]));
-                    return true;
-                }
-                Set<Chunk> chunks = ClaimMain.getChunksFromOwner(args[1]);
-                for (Chunk c : chunks) {
-                    ClaimMain.displayChunk(player, c, false);
-                }
+            	SimpleClaimSystem.executeAsync(() -> {
+                    if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.see.others")) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    String world = player.getWorld().getName();
+                    if (ClaimSettings.isWorldDisabled(world)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world)));
+                        return;
+                    }
+                    if (ClaimMain.getPlayerClaimsCount(args[1]) == 0) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("target-does-not-have-claim").replaceAll("%name%", args[1])));
+                        return;
+                    }
+                    Set<Chunk> chunks = ClaimMain.getChunksFromOwner(args[1]);
+                    SimpleClaimSystem.executeSync(() -> chunks.forEach(c -> ClaimMain.displayChunk(player, c, false)));
+                    return;
+            	});
+            	
                 return true;
             }
             if (args[0].equalsIgnoreCase("settings")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.settings")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
-                if (chunk == null) {
-                    player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
-                    return true;
-                }
-                new ClaimGui(player, chunk);
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.settings")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                    if (chunk == null) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found")));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> new ClaimGui(player, chunk));
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("members")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.members")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
-                if (chunk == null) {
-                    player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
-                    return true;
-                }
-                cPlayer.setGuiPage(1);
-                new ClaimMembersGui(player, chunk, 1);
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.members")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                    if (chunk == null) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found")));
+                        return;
+                    }
+                    cPlayer.setGuiPage(1);
+                    SimpleClaimSystem.executeSync(() -> new ClaimMembersGui(player, chunk, 1));
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("bans")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
-                if (chunk == null) {
-                    player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
-                    return true;
-                }
-                cPlayer.setGuiPage(1);
-                new ClaimBansGui(player, chunk, 1);
+            	SimpleClaimSystem.executeAsync(() -> {
+                    if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans")) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                    if (chunk == null) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found")));
+                        return;
+                    }
+                    cPlayer.setGuiPage(1);
+                    SimpleClaimSystem.executeSync(() -> new ClaimBansGui(player, chunk, 1));
+                    return;
+            	});
+            	
                 return true;
             }
             if (args[0].equalsIgnoreCase("tp")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.tp")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return true;
-                }
-                Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
-                if (chunk == null) {
-                    player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
-                    return true;
-                }
-                ClaimMain.goClaim(player, ClaimMain.getClaimLocationByChunk(chunk));
+            	SimpleClaimSystem.executeAsync(() -> {
+                    if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.tp")) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                    if (chunk == null) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found")));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> ClaimMain.goClaim(player, ClaimMain.getClaimLocationByChunk(chunk)));
+                    return;
+            	});
+            	
                 return true;
             }
         }
 
         if (args.length == 1) {
             if (args[0].equalsIgnoreCase("fly")) {
-                if (SimpleClaimSystem.isFolia()) {
-                    player.sendMessage(ClaimLanguage.getMessage("fly-disabled-on-this-server"));
-                    return true;
-                }
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.fly")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                Chunk chunk = player.getLocation().getChunk();
-                if (!ClaimMain.checkIfClaimExists(chunk)) {
-                    player.sendMessage(ClaimLanguage.getMessage("free-territory"));
-                    return true;
-                }
-                Claim claim = ClaimMain.getClaimFromChunk(chunk);
-                if (claim.getOwner().equals(playerName)) {
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (SimpleClaimSystem.isFolia()) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("fly-disabled-on-this-server")));
+                        return;
+                    }
+                    if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.fly")) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    Chunk chunk = player.getLocation().getChunk();
+                    if (!ClaimMain.checkIfClaimExists(chunk)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("free-territory")));
+                        return;
+                    }
+                    Claim claim = ClaimMain.getClaimFromChunk(chunk);
+                    if (claim.getOwner().equals(playerName)) {
+                        if (cPlayer.getClaimFly()) {
+                            CPlayerMain.removePlayerFly(player);
+                            SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("fly-disabled")));
+                            return;
+                        }
+                        CPlayerMain.activePlayerFly(player);
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("fly-enabled")));
+                        return;
+                    }
+                    if (!claim.getPermission("Fly")) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-fly-in-this-claim")));
+                        return;
+                    }
                     if (cPlayer.getClaimFly()) {
                         CPlayerMain.removePlayerFly(player);
-                        player.sendMessage(ClaimLanguage.getMessage("fly-disabled"));
-                        return true;
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("fly-disabled")));
+                        return;
                     }
-                    CPlayerMain.activePlayerFly(player);
-                    player.sendMessage(ClaimLanguage.getMessage("fly-enabled"));
-                    return true;
-                }
-                if (!claim.getPermission("Fly")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cant-fly-in-this-claim"));
-                    return true;
-                }
-                if (cPlayer.getClaimFly()) {
-                    CPlayerMain.removePlayerFly(player);
-                    player.sendMessage(ClaimLanguage.getMessage("fly-disabled"));
-                    return true;
-                }
-                CPlayerMain.activePlayerFly(player);
-                player.sendMessage(ClaimLanguage.getMessage("fly-enabled"));
+                    SimpleClaimSystem.executeSync(() -> {
+                        CPlayerMain.activePlayerFly(player);
+                        player.sendMessage(ClaimLanguage.getMessage("fly-enabled"));
+                    });
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("autofly")) {
-                if (SimpleClaimSystem.isFolia()) {
-                    player.sendMessage(ClaimLanguage.getMessage("fly-disabled-on-this-server"));
-                    return true;
-                }
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.autofly")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                if (cPlayer.getClaimAutofly()) {
-                    cPlayer.setClaimAutofly(false);
-                    player.sendMessage(ClaimLanguage.getMessage("autofly-disabled"));
-                    return true;
-                }
-                cPlayer.setClaimAutofly(true);
-                player.sendMessage(ClaimLanguage.getMessage("autofly-enabled"));
-                Chunk chunk = player.getLocation().getChunk();
-
-                if (ClaimMain.checkIfClaimExists(chunk)) {
-                    Claim claim = ClaimMain.getClaimFromChunk(chunk);
-                    if (claim.getOwner().equals(playerName) || claim.getPermission("Fly")) {
-                    	if(cPlayer.getClaimFly()) return true;
-                        CPlayerMain.activePlayerFly(player);
-                        player.sendMessage(ClaimLanguage.getMessage("fly-enabled"));
-                        return true;
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (SimpleClaimSystem.isFolia()) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("fly-disabled-on-this-server")));
+                        return;
                     }
-                }
+                    if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.autofly")) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    if (cPlayer.getClaimAutofly()) {
+                        cPlayer.setClaimAutofly(false);
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("autofly-disabled")));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> {
+                        cPlayer.setClaimAutofly(true);
+                        player.sendMessage(ClaimLanguage.getMessage("autofly-enabled"));
+                    });
+                    Chunk chunk = player.getLocation().getChunk();
+                    if (ClaimMain.checkIfClaimExists(chunk)) {
+                        Claim claim = ClaimMain.getClaimFromChunk(chunk);
+                        if (claim.getOwner().equals(playerName) || claim.getPermission("Fly")) {
+                        	if(cPlayer.getClaimFly()) return;
+                        	SimpleClaimSystem.executeSync(() -> {
+                                CPlayerMain.activePlayerFly(player);
+                                player.sendMessage(ClaimLanguage.getMessage("fly-enabled"));	
+                        	});
+                            return;
+                        }
+                    }
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("chat")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.chat")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                if (cPlayer.getClaimChat()) {
-                    cPlayer.setClaimChat(false);
-                    player.sendMessage(ClaimLanguage.getMessage("talking-now-in-public"));
-                    return true;
-                }
-                cPlayer.setClaimChat(true);
-                player.sendMessage(ClaimLanguage.getMessage("talking-now-in-claim"));
+            	SimpleClaimSystem.executeAsync(() -> {
+                    if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.chat")) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    if (cPlayer.getClaimChat()) {
+                    	SimpleClaimSystem.executeSync(() -> {
+                            cPlayer.setClaimChat(false);
+                            player.sendMessage(ClaimLanguage.getMessage("talking-now-in-public"));
+                    	});
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> {
+                        cPlayer.setClaimChat(true);
+                        player.sendMessage(ClaimLanguage.getMessage("talking-now-in-claim"));
+                    });
+                    return;
+            	});
+            	
                 return true;
             }
             if (args[0].equalsIgnoreCase("automap")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.automap")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return true;
-                }
-                String world = player.getWorld().getName();
-                if (ClaimSettings.isWorldDisabled(world)) {
-                    player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world));
-                    return true;
-                }
-                if (cPlayer.getClaimAutomap()) {
-                    cPlayer.setClaimAutomap(false);
-                    player.sendMessage(ClaimLanguage.getMessage("automap-off"));
-                    return true;
-                }
-                cPlayer.setClaimAutomap(true);
-                player.sendMessage(ClaimLanguage.getMessage("automap-on"));
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.automap")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    String world = player.getWorld().getName();
+                    if (ClaimSettings.isWorldDisabled(world)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world)));
+                        return;
+                    }
+                    if (cPlayer.getClaimAutomap()) {
+                    	SimpleClaimSystem.executeSync(() -> {
+                            cPlayer.setClaimAutomap(false);
+                            player.sendMessage(ClaimLanguage.getMessage("automap-off"));
+                    	});
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> {
+                        cPlayer.setClaimAutomap(true);
+                        player.sendMessage(ClaimLanguage.getMessage("automap-on"));
+                    });
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("map")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.map")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return true;
-                }
-                String world = player.getWorld().getName();
-                if (ClaimSettings.isWorldDisabled(world)) {
-                    player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world));
-                    return true;
-                }
-                ClaimMain.getMap(player, player.getLocation().getChunk());
+            	SimpleClaimSystem.executeAsync(() -> {
+                    if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.map")) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    String world = player.getWorld().getName();
+                    if (ClaimSettings.isWorldDisabled(world)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world)));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> ClaimMain.getMap(player, player.getLocation().getChunk()));
+                    return;
+            	});
+            	
                 return true;
             }
             if (args[0].equalsIgnoreCase("autoclaim")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.autoclaim")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return true;
-                }
-                String world = player.getWorld().getName();
-                if (ClaimSettings.isWorldDisabled(world)) {
-                    player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world));
-                    return true;
-                }
-                if (cPlayer.getClaimAutoclaim()) {
-                    cPlayer.setClaimAutoclaim(false);
-                    player.sendMessage(ClaimLanguage.getMessage("autoclaim-off"));
-                    return true;
-                }
-                cPlayer.setClaimAutoclaim(true);
-                player.sendMessage(ClaimLanguage.getMessage("autoclaim-on"));
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.autoclaim")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    String world = player.getWorld().getName();
+                    if (ClaimSettings.isWorldDisabled(world)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world)));
+                        return;
+                    }
+                    if (cPlayer.getClaimAutoclaim()) {
+                    	SimpleClaimSystem.executeSync(() -> {
+                            cPlayer.setClaimAutoclaim(false);
+                            player.sendMessage(ClaimLanguage.getMessage("autoclaim-off"));
+                    	});
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> {
+                        cPlayer.setClaimAutoclaim(true);
+                        player.sendMessage(ClaimLanguage.getMessage("autoclaim-on"));
+                    });
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("setspawn")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setspawn")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                Chunk chunk = player.getLocation().getChunk();
-                String owner = ClaimMain.getOwnerInClaim(chunk);
-                if (!ClaimMain.checkIfClaimExists(chunk)) {
-                    player.sendMessage(ClaimLanguage.getMessage("free-territory"));
-                    return true;
-                }
-                if (!owner.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
-                    return true;
-                }
-                Location l = player.getLocation();
-                ClaimMain.setClaimLocation(player, chunk, l);
-                player.sendMessage(ClaimLanguage.getMessage("loc-change-success").replaceAll("%coords%", ClaimMain.getClaimCoords(chunk)));
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.setspawn")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    Chunk chunk = player.getLocation().getChunk();
+                    String owner = ClaimMain.getOwnerInClaim(chunk);
+                    if (!ClaimMain.checkIfClaimExists(chunk)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("free-territory")));
+                        return;
+                    }
+                    if (!owner.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-not-yours")));
+                        return;
+                    }
+                    Location l = player.getLocation();
+                    SimpleClaimSystem.executeSync(() -> {
+                    	ClaimMain.setClaimLocation(player, chunk, l);
+                    	player.sendMessage(ClaimLanguage.getMessage("loc-change-success").replaceAll("%coords%", ClaimMain.getClaimCoords(chunk)));
+                    });
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("settings")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.settings")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                Chunk chunk = player.getLocation().getChunk();
-                String owner = ClaimMain.getOwnerInClaim(chunk);
-                if (!ClaimMain.checkIfClaimExists(chunk)) {
-                    player.sendMessage(ClaimLanguage.getMessage("free-territory"));
-                    return true;
-                }
-                if (!owner.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
-                    return true;
-                }
-                new ClaimGui(player, chunk);
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.settings")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    Chunk chunk = player.getLocation().getChunk();
+                    String owner = ClaimMain.getOwnerInClaim(chunk);
+                    if (!ClaimMain.checkIfClaimExists(chunk)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("free-territory")));
+                        return;
+                    }
+                    if (!owner.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-not-yours")));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> new ClaimGui(player, chunk));
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("members")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.members")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                Chunk chunk = player.getLocation().getChunk();
-                String owner = ClaimMain.getOwnerInClaim(chunk);
-                if (!ClaimMain.checkIfClaimExists(chunk)) {
-                    player.sendMessage(ClaimLanguage.getMessage("free-territory"));
-                    return true;
-                }
-                if (!owner.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
-                    return true;
-                }
-                cPlayer.setGuiPage(1);
-                new ClaimMembersGui(player, chunk, 1);
+            	SimpleClaimSystem.executeAsync(() -> {
+                    if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.members")) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    Chunk chunk = player.getLocation().getChunk();
+                    String owner = ClaimMain.getOwnerInClaim(chunk);
+                    if (!ClaimMain.checkIfClaimExists(chunk)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("free-territory")));
+                        return;
+                    }
+                    if (!owner.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-not-yours")));
+                        return;
+                    }
+                    cPlayer.setGuiPage(1);
+                    SimpleClaimSystem.executeSync(() -> new ClaimMembersGui(player, chunk, 1));
+                    return;
+            	});
+            	
                 return true;
             }
             if (args[0].equalsIgnoreCase("bans")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                Chunk chunk = player.getLocation().getChunk();
-                String owner = ClaimMain.getOwnerInClaim(chunk);
-                if (!ClaimMain.checkIfClaimExists(chunk)) {
-                    player.sendMessage(ClaimLanguage.getMessage("free-territory"));
-                    return true;
-                }
-                if (!owner.equals(playerName)) {
-                    player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
-                    return true;
-                }
-                cPlayer.setGuiPage(1);
-                new ClaimBansGui(player, chunk, 1);
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    Chunk chunk = player.getLocation().getChunk();
+                    String owner = ClaimMain.getOwnerInClaim(chunk);
+                    if (!ClaimMain.checkIfClaimExists(chunk)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("free-territory")));
+                        return;
+                    }
+                    if (!owner.equals(playerName)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-not-yours")));
+                        return;
+                    }
+                    cPlayer.setGuiPage(1);
+                    SimpleClaimSystem.executeSync(() -> new ClaimBansGui(player, chunk, 1));
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("list")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.list")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return false;
-                }
-                cPlayer.setGuiPage(1);
-                cPlayer.setChunk(null);
-                new ClaimListGui(player, 1, "owner");
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.list")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    cPlayer.setGuiPage(1);
+                    cPlayer.setChunk(null);
+                    SimpleClaimSystem.executeSync(() -> new ClaimListGui(player, 1, "owner"));
+                    return;
+                });
+                
                 return true;
             }
             if (args[0].equalsIgnoreCase("see")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.see")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return true;
-                }
-                String world = player.getWorld().getName();
-                if (ClaimSettings.isWorldDisabled(world)) {
-                    player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world));
-                    return true;
-                }
-                ClaimMain.displayChunk(player, player.getLocation().getChunk(), false);
-                return true;
-            }
-            if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.radius")) {
-                player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                return true;
-            }
-            if (ClaimSettings.isWorldDisabled(player.getWorld().getName())) {
-                player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName()));
-                return true;
-            }
-            try {
-                int radius = Integer.parseInt(args[0]);
-                if (!cPlayer.canRadiusClaim(radius)) {
-                    player.sendMessage(ClaimLanguage.getMessage("cant-radius-claim"));
-                    return true;
-                }
-                Set<Chunk> chunks = new HashSet<>(getChunksInRadius(player.getLocation(), radius));
-                if (ClaimSettings.getBooleanSetting("claim-confirmation")) {
-                    if (isOnCreate.contains(player)) {
-                        isOnCreate.remove(player);
-                        ClaimMain.createClaimRadius(player, chunks, radius);
-                        return true;
+                SimpleClaimSystem.executeAsync(() -> {
+                	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.see")) {
+                		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
                     }
-                    isOnCreate.add(player);
-                    String AnswerA = ClaimLanguage.getMessage("claim-confirmation-button");
-                    TextComponent AnswerA_C = new TextComponent(AnswerA);
-                    AnswerA_C.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ClaimLanguage.getMessage("claim-confirmation-button")).create()));
-                    AnswerA_C.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim " + String.valueOf(radius)));
-                    TextComponent finale = new TextComponent(ClaimLanguage.getMessage("claim-confirmation-ask"));
-                    finale.addExtra(AnswerA_C);
-                    player.sendMessage(finale);
-                    return true;
+                    String world = player.getWorld().getName();
+                    if (ClaimSettings.isWorldDisabled(world)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world)));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> ClaimMain.displayChunk(player, player.getLocation().getChunk(), false));
+                    return;
+                });
+                
+                return true;
+            }
+            SimpleClaimSystem.executeAsync(() -> {
+            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.radius")) {
+            		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                    return;
                 }
-                ClaimMain.createClaimRadius(player, chunks, radius);
-                return true;
-            } catch (NumberFormatException e) {
-                ClaimMain.getHelp(player, args[0], "claim");
-                return true;
-            }
-        }
-
-        if (args.length > 0) {
-            ClaimMain.getHelp(player, args[0], "claim");
+                if (ClaimSettings.isWorldDisabled(player.getWorld().getName())) {
+                	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName())));
+                    return;
+                }
+                try {
+                    int radius = Integer.parseInt(args[0]);
+                    if (!cPlayer.canRadiusClaim(radius)) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-radius-claim")));
+                        return;
+                    }
+                    Set<Chunk> chunks = new HashSet<>(getChunksInRadius(player.getLocation(), radius));
+                    if (ClaimSettings.getBooleanSetting("claim-confirmation")) {
+                        if (isOnCreate.contains(player)) {
+                            isOnCreate.remove(player);
+                            SimpleClaimSystem.executeSync(() -> ClaimMain.createClaimRadius(player, chunks, radius));
+                            return;
+                        }
+                        isOnCreate.add(player);
+                        String AnswerA = ClaimLanguage.getMessage("claim-confirmation-button");
+                        TextComponent AnswerA_C = new TextComponent(AnswerA);
+                        AnswerA_C.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ClaimLanguage.getMessage("claim-confirmation-button")).create()));
+                        AnswerA_C.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim " + String.valueOf(radius)));
+                        TextComponent finale = new TextComponent(ClaimLanguage.getMessage("claim-confirmation-ask"));
+                        finale.addExtra(AnswerA_C);
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(finale));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> ClaimMain.createClaimRadius(player, chunks, radius));
+                } catch (NumberFormatException e) {
+                	SimpleClaimSystem.executeSync(() -> ClaimMain.getHelp(player, args[0], "claim"));
+                }
+                return;
+            });
+            
             return true;
         }
 
-        String world = player.getWorld().getName();
-        if (ClaimSettings.isWorldDisabled(world)) {
-            player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world));
-            return true;
-        }
-
-        if (ClaimSettings.getBooleanSetting("worldguard")) {
-            if (!ClaimWorldGuard.checkFlagClaim(player)) {
-                player.sendMessage(ClaimLanguage.getMessage("worldguard-cannot-claim-in-region"));
-                return true;
+        SimpleClaimSystem.executeAsync(() -> {
+        	if (args.length > 0) {
+        		SimpleClaimSystem.executeSync(() -> ClaimMain.getHelp(player, args[0], "claim"));
+                return;
             }
-        }
 
-        if (ClaimSettings.getBooleanSetting("claim-confirmation")) {
-            if (isOnCreate.contains(player)) {
-                isOnCreate.remove(player);
-                Chunk chunk = player.getLocation().getChunk();
-                ClaimMain.createClaim(player, chunk);
-                return true;
+            String world = player.getWorld().getName();
+            if (ClaimSettings.isWorldDisabled(world)) {
+            	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", world)));
+                return;
             }
-            isOnCreate.add(player);
-            ClaimMain.displayChunk(player, player.getChunk(), false);
-            String AnswerA = ClaimLanguage.getMessage("claim-confirmation-button");
-            TextComponent AnswerA_C = new TextComponent(AnswerA);
-            AnswerA_C.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ClaimLanguage.getMessage("claim-confirmation-button")).create()));
-            AnswerA_C.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim"));
-            TextComponent finale = new TextComponent(ClaimLanguage.getMessage("claim-confirmation-ask"));
-            finale.addExtra(AnswerA_C);
-            player.sendMessage(finale);
-            return true;
-        }
 
-        Chunk chunk = player.getLocation().getChunk();
-        ClaimMain.createClaim(player, chunk);
+            if (ClaimSettings.getBooleanSetting("worldguard")) {
+                if (!ClaimWorldGuard.checkFlagClaim(player)) {
+                	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("worldguard-cannot-claim-in-region")));
+                    return;
+                }
+            }
 
+            if (ClaimSettings.getBooleanSetting("claim-confirmation")) {
+                if (isOnCreate.contains(player)) {
+                    isOnCreate.remove(player);
+                    Chunk chunk = player.getLocation().getChunk();
+                    SimpleClaimSystem.executeSync(() -> ClaimMain.createClaim(player, chunk));
+                    return;
+                }
+                isOnCreate.add(player);
+                ClaimMain.displayChunk(player, player.getChunk(), false);
+                String AnswerA = ClaimLanguage.getMessage("claim-confirmation-button");
+                TextComponent AnswerA_C = new TextComponent(AnswerA);
+                AnswerA_C.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ClaimLanguage.getMessage("claim-confirmation-button")).create()));
+                AnswerA_C.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim"));
+                TextComponent finale = new TextComponent(ClaimLanguage.getMessage("claim-confirmation-ask"));
+                finale.addExtra(AnswerA_C);
+                SimpleClaimSystem.executeSync(() -> player.sendMessage(finale));
+                return;
+            }
+
+            Chunk chunk = player.getLocation().getChunk();
+            SimpleClaimSystem.executeSync(() -> ClaimMain.createClaim(player, chunk));
+        });
+        
         return true;
     }
     

@@ -2,6 +2,7 @@
 # *  General settings  *
 # **********************
 
+
 # You can copy the file "en_US.yml" and paste it with another name to create your custom language
 # You have to change just below with the name of your custom language file to apply changes
 lang: "en_US.yml"
@@ -21,16 +22,12 @@ database-settings:
 auto-purge: true
 auto-purge-checking: 60
 auto-purge-time-without-login: 14d
-  
-# Dynmap support
-dynmap-claim-border-color: FF0000
-dynmap-claim-fill-color: 00FF00
-dynmap-hover-text: "%claim-name% - Owner: %owner%"
 
-# Bluemap support
-bluemap-claim-border-color: 80FF0000
-bluemap-claim-fill-color: 8033CC33
-bluemap-hover-text: "%claim-name% - Owner: %owner%"
+
+# ********************
+# *  Claim settings  *
+# ********************
+
 
 # Where the protection messages are displayed
 # Allowed type : ACTION_BAR (default), BOSSBAR, SUBTITLE, TITLE and CHAT
@@ -95,7 +92,37 @@ bossbar-settings:
 # If delay > 0, can the player move
 # true = can move, false = cannot move
 teleportation-delay-moving: false
-  
+
+
+# ******************
+# *  Map settings  *
+# ******************
+
+
+# Dynmap support
+dynmap: true
+dynmap-claim-border-color: FFFFFF
+dynmap-claim-fill-color: A5A5A5
+dynmap-hover-text: "%claim-name% - Owner: %owner%"
+
+# Bluemap support
+bluemap: true
+bluemap-claim-border-color: FFFFFF
+bluemap-claim-fill-color: A5A5A5
+bluemap-hover-text: "%claim-name% - Owner: %owner%"
+
+# Pl3xmap support
+pl3xmap: true
+pl3xmap-claim-border-color: FFFFFF
+pl3xmap-claim-fill-color: A5A5A5
+pl3xmap-hover-text: "%claim-name% - Owner: %owner%"
+
+
+# *************************
+# *  Permission settings  *
+# *************************
+
+
 # Groups settings with permissions
 # 0 for infinite claims
 # 0 for no delay (in seconds)
@@ -133,12 +160,18 @@ groups:
 # Be careful, if you set the claim radius to 0, there is a risk of lag if players claim with a too large radius
 players: {}
   # Xyness:
-    # max-claims: 0
-    # max-radius-claims: 0
-    # teleportation-delay: 0
-    # max-members: 0
-    # claim-cost: 0
-    # claim-cost-multiplier: 0
+  # max-claims: 0
+  # max-radius-claims: 0
+  # teleportation-delay: 0
+  # max-members: 0
+  # claim-cost: 0
+  # claim-cost-multiplier: 0
+
+
+# *************************
+# *  Protection settings  *
+# *************************
+
 
 # Enable/Disable settings, if you put "false", players cannot change this setting is their claims
 status-settings:

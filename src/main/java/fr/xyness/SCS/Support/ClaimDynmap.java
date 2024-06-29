@@ -101,6 +101,7 @@ public class ClaimDynmap {
 		        marker.setLabel(t);
 		    }
 		};
+		SimpleClaimSystem.executeAsync(task);
 	}
 	
 	/**

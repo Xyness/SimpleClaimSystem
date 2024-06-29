@@ -99,6 +99,7 @@ public class AdminClaimGui implements InventoryHolder {
             } else {
                 String title = ClaimLanguage.getMessageWP(lower_name + "-title", playerName)
                         .replaceAll("%coords%", ClaimMain.getClaimCoords(chunk)).replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk));
+                lore.add(ClaimLanguage.getMessage("access-button"));
                 if (ClaimGuis.getItemCheckCustomModelData("admin_settings", key)) {
                     SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getItemSlot("admin_settings", key), createItemWMD(title, lore,
                             ClaimGuis.getItemMaterialMD("admin_settings", key),

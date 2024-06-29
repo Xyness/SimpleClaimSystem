@@ -16,6 +16,7 @@ import org.bukkit.entity.Player;
 
 import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.ClaimMain;
+import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
 
@@ -99,11 +100,6 @@ public class SClaimCommand implements CommandExecutor, TabCompleter {
         Player player = (Player) sender;
         String playerName = player.getName();
         
-        if (!CPlayerMain.checkPermPlayer(player, "scs.command.sclaim")) {
-            sender.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-            return false;
-        }
-        
         if (!ClaimSettings.getBooleanSetting("economy")) {
             player.sendMessage(ClaimLanguage.getMessage("economy-disabled"));
             return true;
@@ -111,46 +107,54 @@ public class SClaimCommand implements CommandExecutor, TabCompleter {
         
         if (args.length == 3) {
             if (args[0].equalsIgnoreCase("sell")) {
-                Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
-                if (chunk == null) {
-                    player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found"));
-                    return true;
-                }
-                try {
-                    Double price = Double.parseDouble(args[2]);
-                    Double max_price = Double.parseDouble(ClaimSettings.getSetting("max-sell-price"));
-                    if (price > max_price || price <= 0) {
-                        player.sendMessage(ClaimLanguage.getMessage("sell-claim-price-syntax").replaceAll("%max-price%", ClaimSettings.getSetting("max-sell-price")));
-                        return true;
+            	SimpleClaimSystem.executeAsync(() -> {
+                    Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                    if (chunk == null) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-player-not-found")));
+                        return;
                     }
-                    if (ClaimMain.setChunkSale(player, chunk, price)) {
-                        player.sendMessage(ClaimLanguage.getMessage("claim-for-sale-success").replaceAll("%name%", args[1]).replaceAll("%price%", args[2]));
-                        for (Player p : Bukkit.getOnlinePlayers()) {
-                            p.sendMessage(ClaimLanguage.getMessage("claim-for-sale-success-broadcast").replaceAll("%name%", args[1]).replaceAll("%price%", args[2]).replaceAll("%player%", playerName));
+                    try {
+                        Double price = Double.parseDouble(args[2]);
+                        Double max_price = Double.parseDouble(ClaimSettings.getSetting("max-sell-price"));
+                        if (price > max_price || price <= 0) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("sell-claim-price-syntax").replaceAll("%max-price%", ClaimSettings.getSetting("max-sell-price"))));
+                            return;
                         }
-                        return true;
+                        if (ClaimMain.setChunkSale(player, chunk, price)) {
+                        	SimpleClaimSystem.executeSync(() -> {
+	                            player.sendMessage(ClaimLanguage.getMessage("claim-for-sale-success").replaceAll("%name%", args[1]).replaceAll("%price%", args[2]));
+	                            for (Player p : Bukkit.getOnlinePlayers()) {
+	                                p.sendMessage(ClaimLanguage.getMessage("claim-for-sale-success-broadcast").replaceAll("%name%", args[1]).replaceAll("%price%", args[2]).replaceAll("%player%", playerName));
+	                            }
+                        	});
+                            return;
+                        }
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                    } catch (NumberFormatException e) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-price-must-be-number")));
                     }
-                    player.sendMessage(ClaimLanguage.getMessage("error"));
-                    return true;
-                } catch (NumberFormatException e) {
-                    player.sendMessage(ClaimLanguage.getMessage("claim-price-must-be-number"));
-                    return true;
-                }
+                    return;
+            	});
+            	return true;
             }
+            player.sendMessage(ClaimLanguage.getMessage("help-command.sclaim-sclaim").replaceAll("%help-separator%", ClaimLanguage.getMessage("help-separator")));
+            return true;
         }
         
         if (args.length == 2) {
             if (args[0].equalsIgnoreCase("cancel")) {
-                Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
-                if (ClaimMain.claimIsInSale(chunk)) {
-                    if (ClaimMain.delChunkSale(player, chunk)) {
-                        player.sendMessage(ClaimLanguage.getMessage("claim-in-sale-cancel").replaceAll("%name%", args[1]));
-                        return true;
+            	SimpleClaimSystem.executeAsync(() -> {
+                    Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                    if (ClaimMain.claimIsInSale(chunk)) {
+                        if (ClaimMain.delChunkSale(player, chunk)) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-in-sale-cancel").replaceAll("%name%", args[1])));
+                            return;
+                        }
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+                        return;
                     }
-                    player.sendMessage(ClaimLanguage.getMessage("error"));
-                    return true;
-                }
-                player.sendMessage(ClaimLanguage.getMessage("claim-is-not-in-sale"));
+                    SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("claim-is-not-in-sale")));
+            	});
                 return true;
             }
         }

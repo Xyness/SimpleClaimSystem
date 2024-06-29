@@ -139,6 +139,10 @@ set-max-length-claim-name-success: "§fThe length of claim name is now §e%amoun
 set-max-length-claim-description-success: "§fThe length of claim description is now §e%amount% characters§f."
 player-does-not-have-claim: "§cThis player does not have claim."
 player-teleport-to-other-claim-aclaim: "§fYou have been teleported to the claim §e%name%§f of §e%player%§f."
+player-unclaim-other-claim-aclaim: "§fYou deleted the claim §e%name%§f of §e%player%§f."
+player-claim-unclaimed-by-admin: "§fYour claim §e%name%§f has been deleted by §c%player%§f."
+player-unclaim-other-all-claim-aclaim: "§fYou deleted §eall the claims§f of §e%player%§f."
+player-all-claim-unclaimed-by-admin: "§eAll your claims§f have been deleted by §c%player%§f."
 player-banned: "§cYou are banned from this claim"
 cant-ban-yourself: "§cYou can not ban yourself."
 add-ban-success: "§e%player%§f is now banned from the claim §e%claim-name%§f."
@@ -267,22 +271,22 @@ choice-enabled: "§7▸ §fClick to §ndisable"
 choice-setting-disabled: "§cThis setting cannot be modified"
 
 define-loc-title: "§eChange the spawn §b(%coords%)"
-define-loc-lore: "§7The location where you spawn on teleport\n§7▸ §fClick to set the location at yours"
+define-loc-lore: "§7The location where you spawn on teleport"
 
 define-name-title: "§eChange the name §b(%name%)"
-define-name-lore: "§7The name appears on the list of claims\n§7▸ §fClick to set a new name"
+define-name-lore: "§7The name appears on the list of claims"
 
 my-claims-title: "§eMy others claims"
-my-claims-lore: "§7List of your claims\n§7▸ §fClick to access"
+my-claims-lore: "§7List of your claims"
 
 admin-claims-title: "§eOthers admin claims"
-admin-claims-lore: "§7List of admin claims\n§7▸ §fClick to access"
+admin-claims-lore: "§7List of admin claims"
 
 apply-all-admin-claims-title: "§eApply settings to all admin claims"
 apply-all-admin-claims-lore: "§7Apply these settings to all admin claims\n§7▸ §fClick to set"
 
 apply-all-claims-title: "§eApply settings to all claims"
-apply-all-claims-lore: "§7Apply these settings to all my claims\n§7▸ §fClick to set"
+apply-all-claims-lore: "§7Apply these settings to all my claims"
 
 visitors-title: "§eVisitors §7(%status%§7)"
 visitors-lore: "§7Can players teleport to your claim with /claims"
@@ -363,10 +367,18 @@ fly-title: "§eFly §7(%status%§7)"
 fly-lore: "§7Allow visitors to fly"
 
 manage-members-title: "§eMembers"
-manage-members-lore: "§7Manage members\n§7▸ §fClick to access"
+manage-members-lore: "§7Manage members"
 
 manage-bans-title: "§eBans"
-manage-bans-lore: "§7Manage banned players\n§7▸ §fClick to access"
+manage-bans-lore: "§7Manage banned players"
+
+main-menu-title: "§aMain menu"
+main-menu-lore: "§7Open your profile"
+
+admin-main-menu-title: "§aMain menu §7(admin)"
+admin-main-menu-lore: "§7Open the admin menu"
+
+access-button: "§7▸ §fClick to perform"
 
 filter-title: "§eFilter"
 filter-new-lore: "§7Change filter\n%status_color_1%➲ All owners\n%status_color_2%➲ Owners with claims in sale\n%status_color_3%➲ Online owners\n%status_color_4%➲ Offline owners\n§7▸ §fClick to change"
@@ -392,21 +404,25 @@ claim_setting-if-no-claim: "§cNone"
 
 # > Map messages
 
-map-direction-message: "§7(Direction: %direction%)"
-map-coords-message: "§7(%coords%)"
+map-coords-message: "§7Coords: %coords% (%direction%)"
 map-actual-claim-name-message: "§b%name%"
-map-no-claim-name-message: "§cNone"
+map-actual-claim-name-message-owner: "§7(§4%owner%§7)"
+map-no-claim-name-message: "§cNo claim"
 map-claim-relation-member: "§a"
 map-claim-relation-visitor: "§7"
 map-no-claim-color: "§f"
-map-cursor: "+"
+map-cursor: "⬛"
 map-cursor-color: "§6"
-map-symbol-no-claim: "-"
-map-symbol-claim: "/"
+map-symbol-no-claim: "⬛"
+map-symbol-claim: "⬛"
 map-direction-south: "South"
 map-direction-north: "North"
 map-direction-east: "East"
 map-direction-west: "West"
+map-legend-you: "%cursor-color%⬛ You"
+map-legend-free: "%no-claim-color%⬛ Free claim"
+map-legend-yours: "%claim-relation-member%⬛ Your claims"
+map-legend-other: "%claim-relation-visitor%⬛ Others claims"
 
 
 # > Claims messages
