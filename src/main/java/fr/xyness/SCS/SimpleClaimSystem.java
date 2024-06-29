@@ -43,6 +43,7 @@ import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Listeners.*;
 import fr.xyness.SCS.Others.ClaimPurge;
 import fr.xyness.SCS.Support.*;
+import net.pl3x.map.core.Pl3xMap;
 
 public class SimpleClaimSystem extends JavaPlugin {
     
@@ -56,11 +57,14 @@ public class SimpleClaimSystem extends JavaPlugin {
     /** Instance of ClaimBluemap for Bluemap integration */
     static ClaimBluemap bluemapC;
     
+    /** Instance of ClaimPl3xMap for Pl3xmap integration */
+    static ClaimPl3xMap pl3xmapC;
+    
     /** The plugin instance */
     public static JavaPlugin plugin;
     
     /** The version of the plugin */
-    public static String Version = "1.9.0.3-BETA";
+    public static String Version = "1.9.0.3-BETA-b1";
     
     /** Data source for database connections */
     public static HikariDataSource dataSource;
@@ -161,7 +165,7 @@ public class SimpleClaimSystem extends JavaPlugin {
      * @param gTask The task to execute
      */
     public static void executeAsync(Runnable gTask) {
-        if (isFolia || Bukkit.getVersion().contains("1.20")) {
+        if (isFolia) {
             Bukkit.getAsyncScheduler().runNow(plugin, task -> gTask.run());
         } else {
             Bukkit.getScheduler().runTaskAsynchronously(plugin, gTask);
@@ -174,7 +178,7 @@ public class SimpleClaimSystem extends JavaPlugin {
      * @param gTask The task to execute
      */
     public static void executeSync(Runnable gTask) {
-        if (isFolia || Bukkit.getVersion().contains("1.20")) {
+        if (isFolia) {
             Bukkit.getGlobalRegionScheduler().execute(plugin, () -> gTask.run());
         } else {
             Bukkit.getScheduler().runTask(plugin, gTask);
@@ -187,7 +191,7 @@ public class SimpleClaimSystem extends JavaPlugin {
      * @param gTask The task to execute
      */
     public static void executeEntitySync(Player player, Runnable gTask) {
-        if (isFolia || Bukkit.getVersion().contains("1.20")) {
+        if (isFolia) {
         	player.getScheduler().execute(plugin, gTask, null, 0);
         } else {
             Bukkit.getScheduler().runTask(plugin, gTask);
@@ -221,7 +225,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         if (reload) plugin.getLogger().info("============================================================");
         plugin.saveDefaultConfig();
         plugin.reloadConfig();
-        updateConfigWithDefaults(plugin);
+        updateConfigWithDefaults();
         checkFolia();
         
         // Unregister all handlers
@@ -231,7 +235,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         ClaimSettings.clearAll();
         
         // Check for updates
-        isUpdateAvailable = checkForUpdates(plugin);
+        isUpdateAvailable = checkForUpdates();
         
         // Folia check
         if (isFolia) {
@@ -240,12 +244,6 @@ public class SimpleClaimSystem extends JavaPlugin {
         
         // Register bStats
         ClaimbStats.enableMetrics(plugin);
-        
-        // Check "guis" folder
-        File dossier = new File(plugin.getDataFolder(), "guis");
-        if (!dossier.exists()) {
-            dossier.mkdirs();
-        }
         
         // Check PlaceholderAPI
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -285,14 +283,6 @@ public class SimpleClaimSystem extends JavaPlugin {
         Plugin dynmap = Bukkit.getPluginManager().getPlugin("dynmap");
         if (dynmap != null) {
             ClaimSettings.addSetting("dynmap", "true");
-            if (!reload) {
-                DynmapAPI dynmapAPI = (DynmapAPI) dynmap;
-                MarkerAPI markerAPI = dynmapAPI.getMarkerAPI();
-                if (markerAPI != null) {
-                    MarkerSet markerSet = markerAPI.createMarkerSet("SimpleClaimSystem", "Claims", null, false);
-                    dynmapC = new ClaimDynmap(dynmapAPI, markerAPI, markerSet);
-                }
-            }
         } else {
             ClaimSettings.addSetting("dynmap", "false");
         }
@@ -301,23 +291,33 @@ public class SimpleClaimSystem extends JavaPlugin {
         Plugin bluemap = Bukkit.getPluginManager().getPlugin("bluemap");
         if (bluemap != null) {
             ClaimSettings.addSetting("bluemap", "true");
-            BlueMapAPI.onEnable(api -> {
-                // Register marker set
-                bluemapC = new ClaimBluemap(api, plugin);
-            });
         } else {
             ClaimSettings.addSetting("bluemap", "false");
         }
         
+        // Check Pl3xmap
+        Plugin pl3xmap = Bukkit.getPluginManager().getPlugin("pl3xmap");
+        if (pl3xmap != null) {
+            ClaimSettings.addSetting("pl3xmap", "true");
+        } else {
+            ClaimSettings.addSetting("pl3xmap", "false");
+        }
+        
+        // Check "guis" folder
+        File dossier = new File(plugin.getDataFolder(), "guis");
+        if (!dossier.exists()) {
+            dossier.mkdirs();
+        }
+        
         // Check GUI files
-        checkAndSaveResource(plugin, "guis/settings.yml");
-        checkAndSaveResource(plugin, "guis/members.yml");
-        checkAndSaveResource(plugin, "guis/list.yml");
-        checkAndSaveResource(plugin, "guis/claims.yml");
-        checkAndSaveResource(plugin, "guis/admin_settings.yml");
-        checkAndSaveResource(plugin, "guis/admin_list.yml");
-        checkAndSaveResource(plugin, "guis/claims_owner.yml");
-        checkAndSaveResource(plugin, "guis/bans.yml");
+        checkAndSaveResource("guis/settings.yml");
+        checkAndSaveResource("guis/members.yml");
+        checkAndSaveResource("guis/list.yml");
+        checkAndSaveResource("guis/claims.yml");
+        checkAndSaveResource("guis/admin_settings.yml");
+        checkAndSaveResource("guis/admin_list.yml");
+        checkAndSaveResource("guis/claims_owner.yml");
+        checkAndSaveResource("guis/bans.yml");
         ClaimGuis.loadGuiSettings(plugin, check_itemsadder);
 
         // Check "langs" folder
@@ -327,8 +327,8 @@ public class SimpleClaimSystem extends JavaPlugin {
         }
         
         // Check default language file for additions
-        checkAndSaveResource(plugin, "langs/en_US.yml");
-        updateLangFileWithMissingKeys(plugin, "en_US.yml");
+        checkAndSaveResource("langs/en_US.yml");
+        updateLangFileWithMissingKeys("en_US.yml");
         
         // Check custom language file
         String lang = plugin.getConfig().getString("lang");
@@ -337,7 +337,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             plugin.getLogger().info("File '" + lang + "' not found, using en_US.yml");
             lang = "en_US.yml";
         } else {
-            updateLangFileWithMissingKeys(plugin, lang);
+            updateLangFileWithMissingKeys(lang);
         }
         ClaimSettings.addSetting("lang", lang);
         
@@ -376,7 +376,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             configH.setMaxLifetime(600000);
             dataSource = new HikariDataSource(configH);
             try (Connection connection = dataSource.getConnection()) {
-                plugin.getLogger().info("✓ Database connection successful");
+                plugin.getLogger().info("Database connection successful");
                 try (Statement stmt = connection.createStatement()) {
                     String sql = "CREATE TABLE IF NOT EXISTS scs_claims " +
                             "(id_pk INT AUTO_INCREMENT PRIMARY KEY, " +
@@ -483,14 +483,47 @@ public class SimpleClaimSystem extends JavaPlugin {
         }
         
         // Add Dynmap settings
+        configC = plugin.getConfig().getString("dynmap");
+        if(configC.equalsIgnoreCase("true") && ClaimSettings.getBooleanSetting("dynmap")) {
+            if (!reload) {
+                DynmapAPI dynmapAPI = (DynmapAPI) dynmap;
+                MarkerAPI markerAPI = dynmapAPI.getMarkerAPI();
+                if (markerAPI != null) {
+                    MarkerSet markerSet = markerAPI.createMarkerSet("SimpleClaimSystem", "Claims", null, false);
+                    dynmapC = new ClaimDynmap(dynmapAPI, markerAPI, markerSet);
+                }
+            }
+        } else {
+        	ClaimSettings.addSetting("dynmap", "false");
+        }
         ClaimSettings.addSetting("dynmap-claim-border-color", plugin.getConfig().getString("dynmap-claim-border-color"));
         ClaimSettings.addSetting("dynmap-claim-fill-color", plugin.getConfig().getString("dynmap-claim-fill-color"));
         ClaimSettings.addSetting("dynmap-hover-text", plugin.getConfig().getString("dynmap-hover-text"));
         
         // Add Bluemap settings
+        configC = plugin.getConfig().getString("bluemap");
+        if(configC.equalsIgnoreCase("true") && ClaimSettings.getBooleanSetting("bluemap")) {
+            BlueMapAPI.onEnable(api -> {
+                // Register marker set
+                bluemapC = new ClaimBluemap(api);
+            });
+        } else {
+        	ClaimSettings.addSetting("bluemap", "false");
+        }
         ClaimSettings.addSetting("bluemap-claim-border-color", plugin.getConfig().getString("bluemap-claim-border-color"));
         ClaimSettings.addSetting("bluemap-claim-fill-color", plugin.getConfig().getString("bluemap-claim-fill-color"));
         ClaimSettings.addSetting("bluemap-hover-text", plugin.getConfig().getString("bluemap-hover-text"));
+        
+        // Add Pl3xmap settings
+        configC = plugin.getConfig().getString("pl3xmap");
+        if(configC.equalsIgnoreCase("true") && ClaimSettings.getBooleanSetting("pl3xmap")) {
+        	pl3xmapC = new ClaimPl3xMap();
+        } else {
+        	ClaimSettings.addSetting("pl3xmap", "false");
+        }
+        ClaimSettings.addSetting("pl3xmap-claim-border-color", plugin.getConfig().getString("pl3xmap-claim-border-color"));
+        ClaimSettings.addSetting("pl3xmap-claim-fill-color", plugin.getConfig().getString("pl3xmap-claim-fill-color"));
+        ClaimSettings.addSetting("pl3xmap-hover-text", plugin.getConfig().getString("pl3xmap-hover-text"));
         
         // Add the message type for protection
         configC = plugin.getConfig().getString("protection-message");
@@ -605,6 +638,9 @@ public class SimpleClaimSystem extends JavaPlugin {
         // Register listener for entering/leaving claims
         plugin.getServer().getPluginManager().registerEvents(new ClaimEventsEnterLeave(), plugin);
         
+        // Register listener for guis
+        plugin.getServer().getPluginManager().registerEvents(new ClaimGuiEvents(), plugin);
+        
         // Add enabled/disabled settings
         LinkedHashMap<String, Boolean> v = new LinkedHashMap<>();
         ConfigurationSection statusSettings = plugin.getConfig().getConfigurationSection("status-settings");
@@ -659,33 +695,39 @@ public class SimpleClaimSystem extends JavaPlugin {
      * @param sender The command sender
      * @param lang The language file to reload
      */
-    public static void reloadLang(JavaPlugin plugin, CommandSender sender, String lang) {
-        sender.sendMessage("Loading language file [...]");
-        
-        // Check default language file for additions
-        File custom = new File(plugin.getDataFolder() + File.separator + "langs", lang);
-        if (!custom.exists()) {
-            sender.sendMessage("File '" + lang + "' not found, using en_US.yml");
-            lang = "en_US.yml";
-        } else {
-            updateLangFileWithMissingKeys(plugin, lang);
-        }
-        ClaimSettings.addSetting("lang", lang);
-        
-        // Load selected language file
-        File lang_final = new File(plugin.getDataFolder() + File.separator + "langs", lang);
-        FileConfiguration config = YamlConfiguration.loadConfiguration(lang_final);
-        Map<String, String> messages = new HashMap<>();
-        for (String key : config.getKeys(false)) {
-            String value = config.getString(key);
-            messages.put(key, value);
-        }
-        ClaimLanguage.setLanguage(messages);
-        
-        plugin.getConfig().set("lang", lang);
-        plugin.saveConfig();
-        
-        sender.sendMessage("'" + lang + "' language file loaded");
+    public static void reloadLang(CommandSender sender, String l) {
+    	Runnable task = () -> {
+    		String lang = l;
+            
+            // Check default language file for additions
+            File custom = new File(plugin.getDataFolder() + File.separator + "langs", lang);
+            final boolean check = !custom.exists() ? true : false;
+            if (!custom.exists()) {
+                lang = "en_US.yml";
+            } else {
+                updateLangFileWithMissingKeys(lang);
+            }
+            ClaimSettings.addSetting("lang", lang);
+            
+            // Load selected language file
+            File lang_final = new File(plugin.getDataFolder() + File.separator + "langs", lang);
+            FileConfiguration config = YamlConfiguration.loadConfiguration(lang_final);
+            Map<String, String> messages = new HashMap<>();
+            for (String key : config.getKeys(false)) {
+                String value = config.getString(key);
+                messages.put(key, value);
+            }
+            ClaimLanguage.setLanguage(messages);
+            
+            plugin.getConfig().set("lang", lang);
+            plugin.saveConfig();
+            
+            executeSync(() -> {
+            	if(check) sender.sendMessage("The file you indicate doesn't exists. Using default file.");
+            	sender.sendMessage("Language file loaded.");
+            });
+    	};
+    	executeAsync(task);
     }
     
     /**
@@ -694,7 +736,7 @@ public class SimpleClaimSystem extends JavaPlugin {
      * @param plugin The plugin instance
      * @param file The language file to update
      */
-    private static void updateLangFileWithMissingKeys(JavaPlugin plugin, String file) {
+    private static void updateLangFileWithMissingKeys(String file) {
         try {
             InputStream defLangStream = plugin.getClass().getClassLoader().getResourceAsStream("langs/en_US.yml");
             if (defLangStream == null) return;
@@ -720,7 +762,7 @@ public class SimpleClaimSystem extends JavaPlugin {
      * 
      * @param plugin The plugin instance
      */
-    public static void updateConfigWithDefaults(JavaPlugin plugin) {
+    public static void updateConfigWithDefaults() {
         File configFile = new File(plugin.getDataFolder(), "config.yml");
         if (!configFile.exists()) {
             plugin.saveDefaultConfig();
@@ -755,7 +797,7 @@ public class SimpleClaimSystem extends JavaPlugin {
      * @param plugin The plugin instance
      * @return True if an update is available, false otherwise
      */
-    public static boolean checkForUpdates(JavaPlugin plugin) {
+    public static boolean checkForUpdates() {
         try {
             URL url = new URL("https://raw.githubusercontent.com/Xyness/SimpleClaimSystem/main/version.yml");
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
@@ -792,7 +834,7 @@ public class SimpleClaimSystem extends JavaPlugin {
      * @param plugin The plugin instance
      * @param resource The resource file to check and save
      */
-    private static void checkAndSaveResource(JavaPlugin plugin, String resource) {
+    private static void checkAndSaveResource(String resource) {
         File file = new File(plugin.getDataFolder() + File.separator + resource);
         if (!file.exists()) {
             file.getParentFile().mkdirs();

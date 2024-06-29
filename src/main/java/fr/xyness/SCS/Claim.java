@@ -76,7 +76,7 @@ public class Claim {
     }
     
     // ********************
-    // *  Other Methods  *
+    // *  Other Methods   *
     // ********************
     
     // Setters

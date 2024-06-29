@@ -7,7 +7,9 @@ import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import org.bukkit.*;
 import org.bukkit.boss.BarColor;
@@ -25,6 +27,7 @@ import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Listeners.ClaimEventsEnterLeave;
 import fr.xyness.SCS.Support.ClaimBluemap;
 import fr.xyness.SCS.Support.ClaimDynmap;
+import fr.xyness.SCS.Support.ClaimPl3xMap;
 import fr.xyness.SCS.Support.ClaimVault;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import net.md_5.bungee.api.ChatMessageType;
@@ -696,34 +699,36 @@ public class ClaimMain {
      * Transfers local claims database to a distant database.
      */
     public static void transferClaims() {
-        HikariConfig localConfig = new HikariConfig();
-        localConfig.setJdbcUrl("jdbc:sqlite:SimpleClaimSystem.getInstance()/SimpleClaimSystem/claims.db");
-        localConfig.setDriverClassName("org.sqlite.JDBC");
-        try (HikariDataSource localDataSource = new HikariDataSource(localConfig);
-             Connection localConn = localDataSource.getConnection();
-             PreparedStatement selectStmt = localConn.prepareStatement("SELECT * FROM scs_claims");
-             ResultSet rs = selectStmt.executeQuery();
-             Connection remoteConn = SimpleClaimSystem.getDataSource().getConnection();
-             PreparedStatement insertStmt = remoteConn.prepareStatement(
-                     "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions, isSale, SalePrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
-             )) {
+    	Runnable task = () -> {
+            HikariConfig localConfig = new HikariConfig();
+            localConfig.setJdbcUrl("jdbc:sqlite:SimpleClaimSystem.getInstance()/SimpleClaimSystem/claims.db");
+            localConfig.setDriverClassName("org.sqlite.JDBC");
+            try (HikariDataSource localDataSource = new HikariDataSource(localConfig);
+                 Connection localConn = localDataSource.getConnection();
+                 PreparedStatement selectStmt = localConn.prepareStatement("SELECT * FROM scs_claims");
+                 ResultSet rs = selectStmt.executeQuery();
+                 Connection remoteConn = SimpleClaimSystem.getDataSource().getConnection();
+                 PreparedStatement insertStmt = remoteConn.prepareStatement(
+                         "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions, isSale, SalePrice) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                 )) {
 
-            int count = 0;
-            while (rs.next()) {
-                for (int i = 1; i <= 13; i++) {
-                    insertStmt.setObject(i, rs.getObject(i));
+                int count = 0;
+                while (rs.next()) {
+                    for (int i = 1; i <= 13; i++) {
+                        insertStmt.setObject(i, rs.getObject(i));
+                    }
+                    insertStmt.addBatch();
+                    count++;
                 }
-                insertStmt.addBatch();
-                count++;
+                insertStmt.executeBatch();
+                SimpleClaimSystem.getInstance().getLogger().info(count + " claims transferred");
+                SimpleClaimSystem.getInstance().getLogger().info("Safe reloading..");
+                SimpleClaimSystem.executeSync(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "aclaim reload"));
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-            insertStmt.executeBatch();
-            SimpleClaimSystem.getInstance().getLogger().info(count + " claims transferred");
-            SimpleClaimSystem.getInstance().getLogger().info("Safe reloading..");
-            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "aclaim reload");
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    	};
+    	SimpleClaimSystem.executeAsync(task);
     }
 
     /**
@@ -839,8 +844,7 @@ public class ClaimMain {
                         if (SimpleClaimSystem.isFolia()) {
                             Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), world, X, Z, task -> {
                                 Chunk chunk = world.getChunkAt(X, Z);
-                                if (ClaimSettings.getBooleanSetting("dynmap"))
-                                    ClaimDynmap.createChunkZone(chunk, name, owner);
+                                if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.createChunkZone(chunk, name, owner);
                                 if (claimsId.containsKey(owner)) {
                                     claimsId.get(owner).put(chunk, id);
                                 } else {
@@ -864,8 +868,7 @@ public class ClaimMain {
                             });
                         } else {
                             Chunk chunk = world.getChunkAt(X, Z);
-                            if (ClaimSettings.getBooleanSetting("dynmap"))
-                                ClaimDynmap.createChunkZone(chunk, name, owner);
+                            if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.createChunkZone(chunk, name, owner);
                             if (claimsId.containsKey(owner)) {
                                 claimsId.get(owner).put(chunk, id);
                             } else {
@@ -950,6 +953,7 @@ public class ClaimMain {
 
         if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.createChunkZone(chunk, claimName, playerName);
         if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.createChunkZone(chunk, claimName, playerName);
+        if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.createChunkZone(chunk, claimName, playerName);
 
         activateBossBar(chunk);
 
@@ -1068,6 +1072,8 @@ public class ClaimMain {
         claimsId.computeIfAbsent("admin", k -> new HashMap<>()).put(chunk, String.valueOf(id));
 
         if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.createChunkZone(chunk, claimName, "admin");
+        if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.createChunkZone(chunk, claimName, "admin");
+        if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.createChunkZone(chunk, claimName, "admin");
 
         activateBossBar(chunk);
 
@@ -1118,9 +1124,9 @@ public class ClaimMain {
             listClaims.put(chunk, new Claim(chunk, playerName, Set.of(playerName), getSpawnLocation(player, chunk), claimName, ClaimLanguage.getMessage("default-description"), perms, false, 0.0, new HashSet<>()));
             claimsId.computeIfAbsent(playerName, k -> new HashMap<>()).put(chunk, String.valueOf(id));
 
-            if (ClaimSettings.getBooleanSetting("dynmap")) {
-                ClaimDynmap.createChunkZone(chunk, claimName, playerName);
-            }
+            if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.createChunkZone(chunk, claimName, playerName);
+            if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.createChunkZone(chunk, claimName, playerName);
+            if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.createChunkZone(chunk, claimName, playerName);
 
             activateBossBar(chunk);
         }
@@ -1169,9 +1175,9 @@ public class ClaimMain {
             listClaims.put(chunk, new Claim(chunk, "admin", new HashSet<>(), getSpawnLocation(player, chunk), claimName, ClaimLanguage.getMessage("default-description"), perms, false, 0.0, new HashSet<>()));
             claimsId.computeIfAbsent("admin", k -> new HashMap<>()).put(chunk, String.valueOf(id));
 
-            if (ClaimSettings.getBooleanSetting("dynmap")) {
-                ClaimDynmap.createChunkZone(chunk, claimName, "admin");
-            }
+            if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.createChunkZone(chunk, claimName, "admin");
+            if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.createChunkZone(chunk, claimName, "admin");
+            if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.createChunkZone(chunk, claimName, "admin");
 
             activateBossBar(chunk);
         }
@@ -2243,6 +2249,7 @@ public class ClaimMain {
         Runnable task = () -> {
             if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
             if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
+            if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.updateName(chunk);
             try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
                 String updateQuery = "UPDATE scs_claims SET claim_name = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
                 try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2293,6 +2300,7 @@ public class ClaimMain {
         Runnable task = () -> {
             if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
             if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
+            if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.updateName(chunk);
             try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
                 String updateQuery = "UPDATE scs_claims SET claim_name = ? WHERE uuid = ? AND name = ? AND X = ? AND Z = ?";
                 try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
@@ -2380,6 +2388,7 @@ public class ClaimMain {
             listClaims.remove(chunk);
             if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
             if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
+            if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.deleteMarker(chunk);
             if (SimpleClaimSystem.isFolia()) {
                 Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
                     for (Entity e : chunk.getEntities()) {
@@ -2453,6 +2462,7 @@ public class ClaimMain {
         Runnable task = () -> {
             if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
             if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
+            if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.deleteMarker(chunk);
             String id = claimsId.get(owner).get(chunk);
             String uuid = player.getUniqueId().toString();
             if (owner.equals("admin")) uuid = "aucun";
@@ -2497,6 +2507,7 @@ public class ClaimMain {
             if (!listClaims.containsKey(chunk)) continue;
             if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
             if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
+            if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.deleteMarker(chunk);
             ids.add(Integer.parseInt(claimsId.get(player.getName()).get(chunk)));
             claimsId.get(playerName).remove(chunk);
             if (claimsId.get(playerName).isEmpty()) claimsId.remove(playerName);
@@ -2561,6 +2572,7 @@ public class ClaimMain {
             if (!listClaims.containsKey(chunk)) continue;
             if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
             if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
+            if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.deleteMarker(chunk);
             ids.add(Integer.parseInt(claimsId.get(playerName).get(chunk)));
             claimsId.get(playerName).remove(chunk);
             if (claimsId.get(playerName).isEmpty()) claimsId.remove(playerName);
@@ -2629,6 +2641,7 @@ public class ClaimMain {
         Runnable task = () -> {
             if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.deleteMarker(chunk);
             if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.deleteMarker(chunk);
+            if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.deleteMarker(chunk);
             try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
                 String deleteQuery = "DELETE FROM scs_claims WHERE id = ? AND uuid = ? AND name = ? AND X = ? AND Z = ?";
                 try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
@@ -2843,6 +2856,7 @@ public class ClaimMain {
                 String members_string = String.join(";", members);
                 if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
                 if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
+                if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.updateName(chunk);
                 Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), chunk.getWorld(), chunk.getX(), chunk.getZ(), subtask -> {
                     for (Entity e : chunk.getEntities()) {
                         if (!(e instanceof Player)) continue;
@@ -2926,6 +2940,7 @@ public class ClaimMain {
                 String members_string = String.join(";", members);
                 if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
                 if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
+                if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.updateName(chunk);
                 Bukkit.getScheduler().runTask(SimpleClaimSystem.getInstance(), stask -> {
                     for (Entity e : chunk.getEntities()) {
                         if (!(e instanceof Player)) continue;
@@ -2993,6 +3008,7 @@ public class ClaimMain {
                 claim.setOwner(playerName);
                 if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
                 if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
+                if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.updateName(chunk);
                 claim.setName("claim-" + nextKey);
                 Map<Chunk, String> newid = new HashMap<>();
                 if (claimsId.get(playerName) != null) {
@@ -3062,6 +3078,7 @@ public class ClaimMain {
                 claim.setOwner(playerName);
                 if (ClaimSettings.getBooleanSetting("dynmap")) ClaimDynmap.updateName(chunk);
                 if (ClaimSettings.getBooleanSetting("bluemap")) ClaimBluemap.updateName(chunk);
+                if (ClaimSettings.getBooleanSetting("pl3xmap")) ClaimPl3xMap.updateName(chunk);
                 claim.setName("claim-" + nextKey);
                 Map<Chunk, String> newid = new HashMap<>();
                 if (claimsId.get(playerName) != null) {
@@ -3296,45 +3313,53 @@ public class ClaimMain {
      * @param to the chunk to be displayed on the map
      */
     public static void getMap(Player player, Chunk to) {
-        String direction = getDirection(player.getLocation().getYaw());
-        Chunk centerChunk = to;
-        int centerX = centerChunk.getX();
-        int centerZ = centerChunk.getZ();
-        boolean isClaimed = checkIfClaimExists(centerChunk);
-        String name = isClaimed ? ClaimLanguage.getMessage("map-actual-claim-name-message").replaceAll("%name%", getClaimNameByChunk(centerChunk)) : ClaimLanguage.getMessage("map-no-claim-name-message");
-        String coords = ClaimLanguage.getMessage("map-coords-message").replaceAll("%coords%", String.valueOf(centerChunk.getX()) + "," + String.valueOf(centerChunk.getZ()));
-        String directionS = ClaimLanguage.getMessage("map-direction-message").replaceAll("%direction%", direction);
-        String colorRelationNoClaim = ClaimLanguage.getMessage("map-no-claim-color");
-        StringBuilder mapMessage = new StringBuilder(name + " " + coords + " " + directionS + "\n" + colorRelationNoClaim);
-        String colorCursor = ClaimLanguage.getMessage("map-cursor-color");
-        String symbolNoClaim = ClaimLanguage.getMessage("map-symbol-no-claim");
-        String symbolClaim = ClaimLanguage.getMessage("map-symbol-claim");
-        String mapCursor = ClaimLanguage.getMessage("map-cursor");
-        World world = player.getWorld();
-        for (int dz = -4; dz <= 4; dz++) {
-            for (int dx = -12; dx <= 12; dx++) {
-                int[] offset = adjustDirection(dx, dz, direction);
-                int relX = offset[0];
-                int relZ = offset[1];
-                Chunk chunk = world.getChunkAt(centerX + relX, centerZ + relZ);
-                if (checkIfClaimExists(chunk)) {
-                    String color = getRelation(player, chunk);
-                    if (chunk.equals(centerChunk)) {
-                        mapMessage.append(color + mapCursor + colorRelationNoClaim);
-                        continue;
-                    }
-                    mapMessage.append(color + symbolClaim + colorRelationNoClaim);
-                    continue;
+        SimpleClaimSystem.executeAsync(() -> {
+            String direction = getDirection(player.getLocation().getYaw());
+            Chunk centerChunk = to;
+            int centerX = centerChunk.getX();
+            int centerZ = centerChunk.getZ();
+            boolean isClaimed = checkIfClaimExists(centerChunk);
+            
+            String name = isClaimed 
+                ? ClaimLanguage.getMessage("map-actual-claim-name-message").replaceAll("%name%", getClaimNameByChunk(centerChunk)) 
+                : ClaimLanguage.getMessage("map-no-claim-name-message");
+            String coords = ClaimLanguage.getMessage("map-coords-message").replaceAll("%coords%", centerX + "," + centerZ).replaceAll("%direction%", direction);
+            String colorRelationNoClaim = ClaimLanguage.getMessage("map-no-claim-color");
+            String colorCursor = ClaimLanguage.getMessage("map-cursor-color");
+            String symbolNoClaim = ClaimLanguage.getMessage("map-symbol-no-claim");
+            String symbolClaim = ClaimLanguage.getMessage("map-symbol-claim");
+            String mapCursor = ClaimLanguage.getMessage("map-cursor");
+            World world = player.getWorld();
+
+            StringBuilder mapMessage = new StringBuilder(colorRelationNoClaim);
+            Function<Chunk, String> getChunkSymbol = chunk -> chunk.equals(centerChunk) 
+                ? colorCursor + mapCursor + colorRelationNoClaim
+                : checkIfClaimExists(chunk) 
+                    ? getRelation(player, chunk) + symbolClaim + colorRelationNoClaim
+                    : colorRelationNoClaim + symbolNoClaim;
+
+            Map<Integer, String> legendMap = new HashMap<>();
+            legendMap.put(-3, "  " + name + (isClaimed ? " " + ClaimLanguage.getMessage("map-actual-claim-name-message-owner").replaceAll("%owner%", getOwnerInClaim(centerChunk)) : ""));
+            legendMap.put(-2, "  " + coords);
+            legendMap.put(0, "  " + ClaimLanguage.getMessage("map-legend-you").replaceAll("%cursor-color%", colorCursor));
+            legendMap.put(1, "  " + ClaimLanguage.getMessage("map-legend-free").replaceAll("%no-claim-color%", colorRelationNoClaim));
+            legendMap.put(2, "  " + ClaimLanguage.getMessage("map-legend-yours").replaceAll("%claim-relation-member%", ClaimLanguage.getMessage("map-claim-relation-member")));
+            legendMap.put(3, "  " + ClaimLanguage.getMessage("map-legend-other").replaceAll("%claim-relation-visitor%", ClaimLanguage.getMessage("map-claim-relation-visitor")));
+
+            IntStream.rangeClosed(-4, 4).forEach(dz -> {
+                IntStream.rangeClosed(-10, 10).forEach(dx -> {
+                    int[] offset = adjustDirection(dx, dz, direction);
+                    Chunk chunk = world.getChunkAt(centerX + offset[0], centerZ + offset[1]);
+                    mapMessage.append(getChunkSymbol.apply(chunk));
+                });
+                if (legendMap.containsKey(dz)) {
+                    mapMessage.append(legendMap.get(dz));
                 }
-                if (chunk.equals(centerChunk)) {
-                    mapMessage.append(colorCursor + mapCursor + colorRelationNoClaim);
-                    continue;
-                }
-                mapMessage.append(symbolNoClaim);
-            }
-            mapMessage.append("\n");
-        }
-        player.sendMessage(mapMessage.toString());
+                mapMessage.append("\n");
+            });
+
+            SimpleClaimSystem.executeSync(() -> player.sendMessage(mapMessage.toString()));
+        });
     }
 
     /**
@@ -3374,10 +3399,7 @@ public class ClaimMain {
      * @return the relation as a string
      */
     public static String getRelation(Player player, Chunk chunk) {
-        if (getClaimMembers(chunk).contains(player.getName())) {
-            return ClaimLanguage.getMessage("map-claim-relation-member");
-        }
-        return ClaimLanguage.getMessage("map-claim-relation-visitor");
+    	return ClaimMain.checkMembre(chunk, player) ? ClaimLanguage.getMessage("map-claim-relation-member") : ClaimLanguage.getMessage("map-claim-relation-visitor");
     }
 
     /**

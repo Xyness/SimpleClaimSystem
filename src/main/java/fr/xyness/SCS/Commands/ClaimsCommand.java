@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 
 import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.CPlayerMain;
+import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Guis.ClaimsGui;
 
@@ -31,24 +32,20 @@ public class ClaimsCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
     	
-        // Check if the sender is a player
-        if (!(sender instanceof Player)) {
-            sender.sendMessage(ClaimLanguage.getMessage("command-only-by-players"));
-            return true;
-        }
-
-        Player player = (Player) sender;
-        CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
-        
-        // Check if the player has the required permission
-        if(!CPlayerMain.checkPermPlayer(player, "scs.command.claims")) {
-            sender.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-            return false;
-        }
-        
-        // Open the claims GUI for the player
-        cPlayer.setGuiPage(1);
-        new ClaimsGui(player, 1, "all");
+    	SimpleClaimSystem.executeAsync(() -> {
+	        // Check if the sender is a player
+	        if (!(sender instanceof Player)) {
+	        	SimpleClaimSystem.executeSync(() -> sender.sendMessage(ClaimLanguage.getMessage("command-only-by-players")));
+	            return;
+	        }
+	
+	        Player player = (Player) sender;
+	        CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
+	        
+	        // Open the claims GUI for the player
+	        cPlayer.setGuiPage(1);
+	        SimpleClaimSystem.executeSync(() -> new ClaimsGui(player, 1, "all"));
+    	});
         return true;
     }
 

@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -18,6 +19,7 @@ import org.bukkit.entity.Player;
 import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.ClaimMain;
+import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Listeners.ClaimEventsEnterLeave;
@@ -97,11 +99,6 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
         String playerName = player.getName();
         CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
         
-        if (!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim")) {
-            sender.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-            return false;
-        }
-        
         if (ClaimSettings.isWorldDisabled(player.getWorld().getName())) {
             player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName()));
             return true;
@@ -113,119 +110,101 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
         }
         
         if (args.length == 1) {
-            if (args[0].equals("*")) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim.all")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return true;
-                }
-                if (cPlayer.getClaimsCount() == 0) {
-                    player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim"));
-                    return true;
-                }
-                ClaimMain.deleteAllClaim(player);
-                return true;
-            }
-            Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[0]);
-            if (chunk == null) {
-                if (!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim.radius")) {
-                    player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
-                    return true;
-                }
-                try {
-                    int radius = Integer.parseInt(args[0]);
-                    if (!cPlayer.canRadiusClaim(radius)) {
-                        player.sendMessage(ClaimLanguage.getMessage("cant-radius-claim"));
-                        return true;
+            SimpleClaimSystem.executeAsync(() -> {
+            	if (args[0].equals("*")) {
+                    if (!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim.all")) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
                     }
-                    List<Chunk> chunks = ClaimCommand.getChunksInRadius(player.getLocation(), radius);
-                    Set<Chunk> toDeletePlayer = new HashSet<>();
-                    Set<Chunk> toDeleteAdmin = new HashSet<>();
-                    int i = 0;
-                    for (Chunk c : chunks) {
-                        if (ClaimMain.getOwnerInClaim(c).equals("admin") && player.hasPermission("scs.admin")) {
-                            toDeleteAdmin.add(c);
-                            for (Entity e : c.getEntities()) {
-                                if (!(e instanceof Player)) continue;
-                                Player p = (Player) e;
-                                ClaimEventsEnterLeave.disableBossBar(p);
-                            }
-                            i++;
-                            continue;
+                    if (cPlayer.getClaimsCount() == 0) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-has-no-claim")));
+                        return;
+                    }
+                    SimpleClaimSystem.executeSync(() -> ClaimMain.deleteAllClaim(player));
+                    return;
+                }
+                Chunk chunk = ClaimMain.getChunkByClaimName(playerName, args[0]);
+                if (chunk == null) {
+                    if (!CPlayerMain.checkPermPlayer(player, "scs.command.unclaim.radius")) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
+                        return;
+                    }
+                    try {
+                        int radius = Integer.parseInt(args[0]);
+                        if (!cPlayer.canRadiusClaim(radius)) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-radius-claim")));
+                            return;
                         }
-                        if (ClaimMain.getOwnerInClaim(c).equals(player.getName())) {
-                            toDeletePlayer.add(c);
-                            for (Entity e : c.getEntities()) {
-                                if (!(e instanceof Player)) continue;
-                                Player p = (Player) e;
-                                ClaimEventsEnterLeave.disableBossBar(p);
+                        List<Chunk> chunks = ClaimCommand.getChunksInRadius(player.getLocation(), radius);
+                        Set<Chunk> toDeletePlayer = new HashSet<>();
+                        Set<Chunk> toDeleteAdmin = new HashSet<>();
+                        int i = 0;
+                        for (Chunk c : chunks) {
+                            if (ClaimMain.getOwnerInClaim(c).equals("admin") && player.hasPermission("scs.admin")) {
+                                toDeleteAdmin.add(c);
+                                i++;
+                                continue;
                             }
-                            i++;
+                            if (ClaimMain.getOwnerInClaim(c).equals(player.getName())) {
+                                toDeletePlayer.add(c);
+                                i++;
+                            }
                         }
+                        if (player.hasPermission("scs.admin") && !toDeleteAdmin.isEmpty()) ClaimMain.deleteClaimRadius(player, toDeleteAdmin);
+                        if (!toDeletePlayer.isEmpty()) ClaimMain.deleteClaimRadius(player, toDeletePlayer);
+                        final String i_f = String.valueOf(i);
+                        if (i == chunks.size()) {
+                        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-delete-radius-success").replace("%number%", i_f)));
+                            return;
+                        }
+                        SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-delete-error").replace("%number%", i_f).replace("%number-max%", String.valueOf(chunks.size()))));
+                        return;
+                    } catch (NumberFormatException e) {
+                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("help-command.unclaim-unclaim").replaceAll("%help-separator%", ClaimLanguage.getMessage("help-separator"))));
+                        return;
                     }
-                    if (player.hasPermission("scs.admin") && !toDeleteAdmin.isEmpty()) ClaimMain.deleteClaimRadius(player, toDeleteAdmin);
-                    if (!toDeletePlayer.isEmpty()) ClaimMain.deleteClaimRadius(player, toDeletePlayer);
-                    if (i == chunks.size()) {
-                        player.sendMessage(ClaimLanguage.getMessage("territory-delete-radius-success").replace("%number%", String.valueOf(i)));
-                        return true;
-                    }
-                    player.sendMessage(ClaimLanguage.getMessage("territory-delete-error").replace("%number%", String.valueOf(i)).replace("%number-max%", String.valueOf(chunks.size())));
-                    return true;
-                } catch (NumberFormatException e) {
-                    player.sendMessage(ClaimLanguage.getMessage("help-command.unclaim-unclaim").replaceAll("%help-separator%", ClaimLanguage.getMessage("help-separator")));
-                    return true;
                 }
-            }
-            if (ClaimMain.deleteClaim(player, chunk)) {
-                for (Entity e : chunk.getEntities()) {
-                    if (!(e instanceof Player)) continue;
-                    Player p = (Player) e;
-                    ClaimEventsEnterLeave.disableBossBar(p);
+                if (ClaimMain.deleteClaim(player, chunk)) {
+                	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-delete-success")));
+                    return;
                 }
-                player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
-                return true;
-            }
-            player.sendMessage(ClaimLanguage.getMessage("error"));
+                SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+            });
+            
             return true;
         }
         
-        Chunk chunk = player.getLocation().getChunk();
-        String owner = ClaimMain.getOwnerInClaim(chunk);
+        SimpleClaimSystem.executeAsync(() -> {
+	        Chunk chunk = player.getLocation().getChunk();
+	        String owner = ClaimMain.getOwnerInClaim(chunk);
+	        
+	        if (!ClaimMain.checkIfClaimExists(chunk)) {
+	        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("free-territory")));
+	            return;
+	        }
+	        
+	        if (owner.equals("admin") && player.hasPermission("scs.admin")) {
+	            if (ClaimMain.deleteClaim(player, chunk)) {
+	            	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-delete-success")));
+	                return;
+	            }
+	            SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+	            return;
+	        }
+	        
+	        if (!owner.equals(player.getName())) {
+	        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-not-yours")));
+	            return;
+	        }
+	        
+	        if (ClaimMain.deleteClaim(player, chunk)) {
+	        	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("territory-delete-success")));
+	            return;
+	        }
+	        
+	        SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("error")));
+        });
         
-        if (!ClaimMain.checkIfClaimExists(chunk)) {
-            player.sendMessage(ClaimLanguage.getMessage("free-territory"));
-            return true;
-        }
-        
-        if (owner.equals("admin") && player.hasPermission("scs.admin")) {
-            if (ClaimMain.deleteClaim(player, chunk)) {
-                for (Entity e : chunk.getEntities()) {
-                    if (!(e instanceof Player)) continue;
-                    Player p = (Player) e;
-                    ClaimEventsEnterLeave.disableBossBar(p);
-                }
-                player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
-                return true;
-            }
-            player.sendMessage(ClaimLanguage.getMessage("error"));
-            return true;
-        }
-        
-        if (!owner.equals(player.getName())) {
-            player.sendMessage(ClaimLanguage.getMessage("territory-not-yours"));
-            return true;
-        }
-        
-        if (ClaimMain.deleteClaim(player, chunk)) {
-            for (Entity e : chunk.getEntities()) {
-                if (!(e instanceof Player)) continue;
-                Player p = (Player) e;
-                ClaimEventsEnterLeave.disableBossBar(p);
-            }
-            player.sendMessage(ClaimLanguage.getMessage("territory-delete-success"));
-            return true;
-        }
-        
-        player.sendMessage(ClaimLanguage.getMessage("error"));
         return true;
     }
 }

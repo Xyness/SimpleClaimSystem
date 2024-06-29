@@ -133,7 +133,7 @@ public class CPlayer {
     }
     
     // ********************
-    // *  Other Methods  *
+    // *  Other Methods   *
     // ********************
     
     // Setters

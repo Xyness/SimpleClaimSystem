@@ -24,6 +24,7 @@ import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimSettings;
+import net.pl3x.map.core.util.Colors;
 
 /**
  * This class integrates claims with the BlueMap plugin, allowing claims to be displayed as markers on the BlueMap.
@@ -35,7 +36,7 @@ public class ClaimBluemap {
 	// ***************
 	
 	/** The BlueMap API instance. */
-	private BlueMapAPI api;
+	private static BlueMapAPI api;
 	
 	/** A map storing the MarkerSets for each world. */
 	private static Map<World, MarkerSet> markerSets = new HashMap<>();
@@ -51,46 +52,31 @@ public class ClaimBluemap {
 	 * @param api    the BlueMap API instance.
 	 * @param plugin the JavaPlugin instance.
 	 */
-	public ClaimBluemap(BlueMapAPI api, JavaPlugin plugin) {
+	public ClaimBluemap(BlueMapAPI api) {
 		this.api = api;
 		Set<Chunk> claims = ClaimMain.getAllClaimsChunk();
 		
 		for (World w : Bukkit.getWorlds()) {
 			MarkerSet markerSet = MarkerSet.builder()
-	                .label("Claims (" + w.getName() + ")")
+	                .label("Claims")
 	                .build();
 			markerSets.put(w, markerSet);
-	    	if (SimpleClaimSystem.isFolia()) {
-	    		Bukkit.getAsyncScheduler().runNow(plugin, task -> {
-	    			for (Chunk c : claims) {
-	    				Claim claim = ClaimMain.getClaimFromChunk(c);
-	    				if (claim == null) continue;
-	    				if (!claim.getLocation().getWorld().equals(w)) continue;
-	    				createChunkZone(c, claim.getName(), claim.getOwner());
-	    			}
-	    			api.getWorld(w).ifPresent(world -> {
-	    			    for (BlueMapMap map : world.getMaps()) {
-	    			        map.getMarkerSets().put("Claims", markerSet);
-	    			    }
-	    			});
-	    		});
-	    	} else {
-	    		Bukkit.getScheduler().runTaskAsynchronously(plugin, task -> {
-	       			for (Chunk c : claims) {
-	    				Claim claim = ClaimMain.getClaimFromChunk(c);
-	    				if (claim == null) continue;
-	    				if (!claim.getLocation().getWorld().equals(w)) continue;
-	    				createChunkZone(c, claim.getName(), claim.getOwner());
-	    			}
-	    			api.getWorld(w).ifPresent(world -> {
-	    			    for (BlueMapMap map : world.getMaps()) {
-	    			        map.getMarkerSets().put("Claims", markerSet);
-	    			    }
-	    			});
-	    		});
-	    	}
+	    	Runnable task = () -> {
+       			for (Chunk c : claims) {
+    				Claim claim = ClaimMain.getClaimFromChunk(c);
+    				if (claim == null) continue;
+    				if (!claim.getLocation().getWorld().equals(w)) continue;
+    				createChunkZone(c, claim.getName(), claim.getOwner());
+    			}
+    			api.getWorld(w).ifPresent(world -> {
+    			    for (BlueMapMap map : world.getMaps()) {
+    			        map.getMarkerSets().put("Claims", markerSet);
+    			    }
+    			});
+	    	};
+	    	SimpleClaimSystem.executeAsync(task);
 		}
-    	plugin.getLogger().info("Claims added to BlueMap.");
+		SimpleClaimSystem.getInstance().getLogger().info("Claims added to BlueMap.");
 	}
 	
 	// ********************
@@ -129,8 +115,8 @@ public class ClaimBluemap {
 		    
 		    String fcolor = ClaimSettings.getSetting("bluemap-claim-fill-color");
 		    String lcolor = ClaimSettings.getSetting("bluemap-claim-border-color");
-		    Color fillColor = new Color((int) Long.parseLong(fcolor, 16));
-		    Color strokeColor = new Color((int) Long.parseLong(lcolor, 16));
+		    Color fillColor = new Color(Colors.setAlpha(0xFF, Integer.parseInt(fcolor, 16)));
+		    Color strokeColor = new Color(Colors.setAlpha(0xFF, Integer.parseInt(lcolor, 16)));
 
 		    ExtrudeMarker marker = ExtrudeMarker.builder()
 		            .label(hoverText)
@@ -158,12 +144,13 @@ public class ClaimBluemap {
 			String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 			MarkerSet markerSet = markerSets.get(chunk.getWorld());
 			if (markerSet == null) return;
-	    	Marker marker = markerSet.get(markerId);
+	    	ExtrudeMarker marker = (ExtrudeMarker) markerSet.get(markerId);
 	    	if (marker != null) {
 	        	String t = ClaimSettings.getSetting("dynmap-hover-text");
 	        	t = t.replaceAll("%claim-name%", ClaimMain.getClaimNameByChunk(chunk));
 	        	t = t.replaceAll("%owner%", ClaimMain.getOwnerInClaim(chunk));
 	    		marker.setLabel(t);
+	    		marker.setDetail(t);
 	    	}
 		};
 		SimpleClaimSystem.executeAsync(task);

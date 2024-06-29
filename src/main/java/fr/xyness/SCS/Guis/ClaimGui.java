@@ -86,7 +86,7 @@ public class ClaimGui implements InventoryHolder {
                 boolean permission = claim.getPermission(key);
                 String statut = permission ? default_statut_enabled : default_statut_disabled;
                 choix = permission ? default_choix_enabled : default_choix_disabled;
-                lore.add(ClaimSettings.isEnabled(key) ? choix : ClaimLanguage.getMessage("choice-setting-disabled"));
+                lore.add(ClaimSettings.isEnabled(key) ? checkPermPerm(player,key) ? choix : ClaimLanguage.getMessage("gui-button-no-permission")+" to use this setting" : ClaimLanguage.getMessage("choice-setting-disabled"));
                 if (ClaimGuis.getItemCheckCustomModelData("settings", key)) {
                     SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getItemSlot("settings", key),
                             createItemWMD(ClaimLanguage.getMessageWP(lower_name + "-title", playerName)
@@ -102,10 +102,7 @@ public class ClaimGui implements InventoryHolder {
                 String title = ClaimLanguage.getMessageWP(lower_name + "-title", playerName)
                         .replaceAll("%coords%", ClaimMain.getClaimCoords(chunk))
                         .replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk));
-                if (!checkPermButton(player, key)) {
-                    lore.remove(lore.size() - 1);
-                    lore.add(ClaimLanguage.getMessage("gui-button-no-permission"));
-                }
+                lore.add(!checkPermButton(player, key) ? ClaimLanguage.getMessage("gui-button-no-permission") : ClaimLanguage.getMessage("access-button"));
                 if (ClaimGuis.getItemCheckCustomModelData("settings", key)) {
                     SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getItemSlot("settings", key),
                             createItemWMD(title, lore, ClaimGuis.getItemMaterialMD("settings", key),
@@ -158,6 +155,17 @@ public class ClaimGui implements InventoryHolder {
             default:
                 return false;
         }
+    }
+    
+    /**
+     * Checks if the player has the permission for the specified key.
+     *
+     * @param player The player to check.
+     * @param perm    The perm to check permission for.
+     * @return True if the player has the permission, otherwise false.
+     */
+    public static boolean checkPermPerm(Player player, String perm) {
+    	return CPlayerMain.checkPermPlayer(player, "scs.setting."+perm);
     }
 
     /**
