@@ -25,6 +25,7 @@ import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
+import fr.xyness.SCS.Others.MinecraftSkinUtil;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
@@ -120,9 +121,8 @@ public class ClaimMembersGui implements InventoryHolder {
                 continue;
             }
             if (ClaimGuis.getItemMaterialMD("members", "player-item").contains("PLAYER_HEAD")) {
-                ItemStack item = new ItemStack(Material.PLAYER_HEAD);
+                ItemStack item = MinecraftSkinUtil.createPlayerHead(p);
                 SkullMeta meta = (SkullMeta) item.getItemMeta();
-                meta.setOwningPlayer(Bukkit.getOfflinePlayer(p));
                 meta.setDisplayName(ClaimLanguage.getMessageWP("player-member-title", p).replace("%player%", p));
                 if (owner.equals(p)) {
                     List<String> lore_chef = new ArrayList<>(getLore(ClaimLanguage.getMessageWP("owner-territory-lore", p)));
