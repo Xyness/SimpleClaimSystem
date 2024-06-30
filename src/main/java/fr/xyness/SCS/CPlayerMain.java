@@ -1,10 +1,15 @@
 package fr.xyness.SCS;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import fr.xyness.SCS.Config.ClaimSettings;
@@ -21,9 +26,35 @@ public class CPlayerMain {
     /** A map of player names to their configuration settings */
     private static Map<String, Map<String, Double>> playersConfigSettings = new HashMap<>();
     
+    /** Set of offline players */
+    private static Map<String,OfflinePlayer> offlinePlayers = new HashMap<>();
+    
     // ********************
     // *  Other Methods  *
     // ********************
+    
+    /**
+     * Get the offline player by his name.
+     *
+     * @param meta The player name.
+     * @return The OfflinePlayer object.
+     */
+    public static OfflinePlayer getOfflinePlayer(String playerName) {
+    	OfflinePlayer player = offlinePlayers.get(playerName);
+    	return player;
+    }
+    
+    /**
+     * Load all offline players
+     */
+    public static void loadOfflinePlayers() {
+    	SimpleClaimSystem.executeAsync(() -> {
+        	List<OfflinePlayer> op = new ArrayList<>(Arrays.asList(Bukkit.getOfflinePlayers()));
+        	op.forEach(p -> {
+        		offlinePlayers.put(p.getName(), p);
+        	});
+    	});
+    }
     
     /**
      * Removes the CPlayer instance associated with the given player name.

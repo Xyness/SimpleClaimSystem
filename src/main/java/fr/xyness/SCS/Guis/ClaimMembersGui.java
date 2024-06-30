@@ -12,7 +12,6 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -121,9 +120,9 @@ public class ClaimMembersGui implements InventoryHolder {
                 continue;
             }
             if (ClaimGuis.getItemMaterialMD("members", "player-item").contains("PLAYER_HEAD")) {
-                ItemStack item = new ItemStack(Material.PLAYER_HEAD, 1);
+                ItemStack item = new ItemStack(Material.PLAYER_HEAD);
                 SkullMeta meta = (SkullMeta) item.getItemMeta();
-                meta.setOwningPlayer(Bukkit.getOfflinePlayerIfCached(p));
+                meta.setOwningPlayer(Bukkit.getOfflinePlayer(p));
                 meta.setDisplayName(ClaimLanguage.getMessageWP("player-member-title", p).replace("%player%", p));
                 if (owner.equals(p)) {
                     List<String> lore_chef = new ArrayList<>(getLore(ClaimLanguage.getMessageWP("owner-territory-lore", p)));
@@ -204,27 +203,23 @@ public class ClaimMembersGui implements InventoryHolder {
     }
     
     /**
-     * Gets the lore with placeholders from PlaceholderAPI.
+     * Get a list of lore lines with placeholders replaced.
      * 
-     * @param lore   The list of lore strings.
-     * @param player The player.
-     * @return The list of lore lines.
+     * @param lore       The list of lore lines.
+     * @param playerName The name of the player for whom to replace placeholders.
+     * @return A list of lore lines with placeholders replaced.
      */
-    public static List<String> getLoreWP(List<String> lore, String player) {
-        if (!ClaimSettings.getBooleanSetting("placeholderapi")) return lore;
+    public static List<String> getLoreWP(List<String> lore, String playerName) {
+        if (!ClaimSettings.getBooleanSetting("placeholderapi")) {
+            return lore;
+        }
         List<String> lores = new ArrayList<>();
-        Player p = Bukkit.getPlayer(player);
-        if (p == null) {
-            OfflinePlayer o_offline = Bukkit.getOfflinePlayerIfCached(player);
-            for (String s : lore) {
-                lores.add(PlaceholderAPI.setPlaceholders(o_offline, s));
-            }
-            return lores;
+        Player player = Bukkit.getPlayer(playerName);
+        OfflinePlayer offlinePlayer = player != null ? player : CPlayerMain.getOfflinePlayer(playerName);
+        if(offlinePlayer == null) return lores;
+        for (String line : lore) {
+            lores.add(PlaceholderAPI.setPlaceholders(offlinePlayer, line));
         }
-        for (String s : lore) {
-            lores.add(PlaceholderAPI.setPlaceholders(p, s));
-        }
-
         return lores;
     }
     

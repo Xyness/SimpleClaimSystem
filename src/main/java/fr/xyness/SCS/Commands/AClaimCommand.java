@@ -1118,7 +1118,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
                 			Player target = Bukkit.getPlayer(args[2]);
                 			String targetName = "";
                 			if(target == null) {
-                				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                				OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                 				if(otarget == null) {
                 					SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
                     				return;
@@ -1147,7 +1147,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
             			Player target = Bukkit.getPlayer(args[2]);
             			String targetName = "";
             			if(target == null) {
-            				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+            				OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
             				if(otarget == null) {
             					SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
                 				return;
@@ -1181,7 +1181,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
                 			Player target = Bukkit.getPlayer(args[2]);
                 			String targetName = "";
                 			if(target == null) {
-                				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                				OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                 				targetName = otarget == null ? args[2] : otarget.getName();
                 			} else {
                 				targetName = target.getName();
@@ -1267,7 +1267,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
                 			Player target = Bukkit.getPlayer(args[2]);
                 			String targetName = "";
                 			if(target == null) {
-                				OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                				OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                 				if(otarget == null) {
                 					SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
                     				return;
@@ -1287,7 +1287,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
                         Player target = Bukkit.getPlayer(args[2]);
                         String targetName = "";
                         if (target == null) {
-                            OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                            OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                             if (otarget == null) {
                             	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
                                 return;
@@ -1482,7 +1482,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
             			Player target = Bukkit.getPlayer(args[2]);
                         String targetName = "";
                         if (target == null) {
-                            OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                            OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                             if (otarget == null) {
                             	SimpleClaimSystem.executeSync(() -> sender.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
                                 return;
@@ -1527,7 +1527,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
             			Player target = Bukkit.getPlayer(args[2]);
                         String targetName = "";
                         if (target == null) {
-                            OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                            OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                             if (otarget == null) {
                             	SimpleClaimSystem.executeSync(() -> sender.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
                                 return;
@@ -1572,7 +1572,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
             			Player target = Bukkit.getPlayer(args[2]);
                         String targetName = "";
                         if (target == null) {
-                            OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                            OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                             if (otarget == null) {
                             	SimpleClaimSystem.executeSync(() -> sender.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
                                 return;
@@ -1617,7 +1617,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	        			Player target = Bukkit.getPlayer(args[2]);
 	                    String targetName = "";
 	                    if (target == null) {
-	                        OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+	                        OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
 	                        if (otarget == null) {
 	                        	SimpleClaimSystem.executeSync(() -> sender.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
 	                            return;
@@ -1662,7 +1662,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	        			Player target = Bukkit.getPlayer(args[2]);
 	                    String targetName = "";
 	                    if (target == null) {
-	                        OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+	                        OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
 	                        if (otarget == null) {
 	                        	SimpleClaimSystem.executeSync(() -> sender.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
 	                            return;
@@ -1708,7 +1708,7 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	        			Player target = Bukkit.getPlayer(args[2]);
 	                    String targetName = "";
 	                    if (target == null) {
-	                        OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+	                        OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
 	                        if (otarget == null) {
 	                        	SimpleClaimSystem.executeSync(() -> sender.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
 	                            return;

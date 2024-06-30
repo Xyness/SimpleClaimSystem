@@ -280,7 +280,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
     private ItemStack createPlayerHeadItem(Claim claim, String displayName, List<String> lore) {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
-        meta.setOwningPlayer(Bukkit.getOfflinePlayerIfCached(claim.getOwner()));
+        meta.setOwningPlayer(Bukkit.getOfflinePlayer(claim.getOwner()));
         meta.setDisplayName(displayName);
         meta.setLore(lore);
         item.setItemMeta(meta);
@@ -490,7 +490,8 @@ public class ClaimsOwnerGui implements InventoryHolder {
         }
         List<String> lores = new ArrayList<>();
         Player player = Bukkit.getPlayer(playerName);
-        OfflinePlayer offlinePlayer = player != null ? player : Bukkit.getOfflinePlayerIfCached(playerName);
+        OfflinePlayer offlinePlayer = player != null ? player : CPlayerMain.getOfflinePlayer(playerName);
+        if(offlinePlayer == null) return lores;
         for (String line : lore) {
             lores.add(PlaceholderAPI.setPlaceholders(offlinePlayer, line));
         }

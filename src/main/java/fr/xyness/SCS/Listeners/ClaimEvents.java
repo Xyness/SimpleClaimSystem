@@ -8,7 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Directional;
@@ -48,8 +47,6 @@ import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
@@ -59,19 +56,14 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.weather.LightningStrikeEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.projectiles.ProjectileSource;
 
 import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.ClaimMain;
-import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
-import fr.xyness.SCS.Guis.*;
 
 /**
  * Event listener for claim-related events.
@@ -108,14 +100,13 @@ public class ClaimEvents implements Listener {
 	 */
 	@EventHandler
 	public void onPlayerDamage(EntityDamageEvent event) {
-		if(event.getEntity() instanceof Player) {
-			Player player = (Player) event.getEntity();
-			CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
-        	if(cPlayer.getClaimFly()) {
-        		CPlayerMain.removePlayerFly(player);
-        		ClaimMain.sendMessage(player, ClaimLanguage.getMessage("claim-fly-disabled-on-damage"), ClaimSettings.getSetting("protection-message"));
-        	}
-		}
+		if(!(event.getEntity() instanceof Player)) return;
+		Player player = (Player) event.getEntity();
+		CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
+    	if(cPlayer != null && cPlayer.getClaimFly()) {
+    		CPlayerMain.removePlayerFly(player);
+    		ClaimMain.sendMessage(player, ClaimLanguage.getMessage("claim-fly-disabled-on-damage"), ClaimSettings.getSetting("protection-message"));
+    	}
 	}
 	
 	/**

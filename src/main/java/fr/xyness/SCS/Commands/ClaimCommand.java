@@ -25,6 +25,7 @@ import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
+import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Guis.ClaimBansGui;
@@ -69,11 +70,13 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         }
         
         Player player = (Player) sender;
+        if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim")) return new ArrayList<>();
+        
+        Chunk chunk = player.getLocation().getChunk();
+        String playerName = player.getName();
 
         CompletableFuture<List<String>> future = CompletableFuture.supplyAsync(() -> {
             List<String> completions = new ArrayList<>();
-
-            if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim")) return completions;
 
             if (args.length == 1) {
                 if (CPlayerMain.checkPermPlayer(player, "scs.command.claim.settings")) completions.add("settings");
@@ -96,127 +99,103 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 if (CPlayerMain.checkPermPlayer(player, "scs.command.claim.fly")) completions.add("fly");
                 if (CPlayerMain.checkPermPlayer(player, "scs.command.claim.autofly")) completions.add("autofly");
                 if (CPlayerMain.checkPermPlayer(player, "scs.command.claim.owner")) completions.add("owner");
-                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("see") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.see.others")) {
                 completions.addAll(ClaimMain.getClaimsOwners());
-                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("setname") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.setname")) {
-                completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
-                return completions;
+                completions.addAll(ClaimMain.getClaimsNameFromOwner(playerName));
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("chat") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.chat")) {
-                completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
-                return completions;
+                completions.addAll(ClaimMain.getClaimsNameFromOwner(playerName));
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("setdesc") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.setdesc")) {
-                completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
-                return completions;
+                completions.addAll(ClaimMain.getClaimsNameFromOwner(playerName));
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("settings") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.settings")) {
-                completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
-                return completions;
+                completions.addAll(ClaimMain.getClaimsNameFromOwner(playerName));
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("tp") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.tp")) {
-                completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
-                return completions;
+                completions.addAll(ClaimMain.getClaimsNameFromOwner(playerName));
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("add") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.add")) {
-                Chunk chunk = player.getLocation().getChunk();
                 String owner = ClaimMain.getOwnerInClaim(chunk);
                 if (ClaimMain.checkIfClaimExists(chunk)) {
-                    if (owner.equals(player.getName())) {
+                    if (owner.equals(playerName)) {
                         completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
-                        completions.remove(player.getName());
+                        completions.remove(playerName);
                     }
                 }
                 completions.add("*");
-                completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
-                return completions;
+                completions.addAll(ClaimMain.getClaimsNameFromOwner(playerName));
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("ban") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.ban")) {
-                Chunk chunk = player.getLocation().getChunk();
                 String owner = ClaimMain.getOwnerInClaim(chunk);
                 if (ClaimMain.checkIfClaimExists(chunk)) {
-                    if (owner.equals(player.getName())) {
+                    if (owner.equals(playerName)) {
                         completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
-                        completions.remove(player.getName());
+                        completions.remove(playerName);
                     }
                 }
                 completions.add("*");
-                completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
-                return completions;
+                completions.addAll(ClaimMain.getClaimsNameFromOwner(playerName));
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("unban") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
-                Chunk chunk = player.getLocation().getChunk();
                 String owner = ClaimMain.getOwnerInClaim(chunk);
                 if (ClaimMain.checkIfClaimExists(chunk)) {
-                    if (owner.equals(player.getName())) {
+                    if (owner.equals(playerName)) {
                         completions.addAll(ClaimMain.getClaimBans(chunk));
                     }
                 }
                 completions.add("*");
-                completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
-                return completions;
+                completions.addAll(ClaimMain.getClaimsNameFromOwner(playerName));
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("remove") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) {
-                Chunk chunk = player.getLocation().getChunk();
                 String owner = ClaimMain.getOwnerInClaim(chunk);
                 if (ClaimMain.checkIfClaimExists(chunk)) {
-                    if (owner.equals(player.getName())) {
+                    if (owner.equals(playerName)) {
                         completions.addAll(ClaimMain.getClaimMembers(chunk));
-                        completions.remove(player.getName());
+                        completions.remove(playerName);
                     }
                 }
                 completions.add("*");
-                completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
-                return completions;
+                completions.addAll(ClaimMain.getClaimsNameFromOwner(playerName));
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("members") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.members")) {
-                completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
-                return completions;
+                completions.addAll(ClaimMain.getClaimsNameFromOwner(playerName));
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("bans") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.bans")) {
-                completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
-                return completions;
+                completions.addAll(ClaimMain.getClaimsNameFromOwner(playerName));
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("owner") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.owner")) {
-                completions.addAll(ClaimMain.getClaimsNameFromOwner(player.getName()));
+                completions.addAll(ClaimMain.getClaimsNameFromOwner(playerName));
                 completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
-                completions.remove(player.getName());
-                return completions;
+                completions.remove(playerName);
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("remove") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove") && !args[1].equals("*")) {
-                Chunk chunk = ClaimMain.getChunkByClaimName(player.getName(), args[1]);
-                completions.addAll(ClaimMain.getClaimMembers(chunk));
-                completions.remove(player.getName());
-                return completions;
+                Chunk c = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                completions.addAll(ClaimMain.getClaimMembers(c));
+                completions.remove(playerName);
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("unban") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.unban")) {
-                Chunk chunk = ClaimMain.getChunkByClaimName(player.getName(), args[1]);
-                completions.addAll(ClaimMain.getClaimBans(chunk));
-                return completions;
+                Chunk c = ClaimMain.getChunkByClaimName(playerName, args[1]);
+                completions.addAll(ClaimMain.getClaimBans(c));
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("add") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.add")) {
                 completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
-                completions.remove(player.getName());
-                return completions;
+                completions.remove(playerName);
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("remove") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.remove")) {
-                completions.addAll(ClaimMain.getAllMembersOfAllPlayerClaim(player.getName()));
-                completions.remove(player.getName());
-                return completions;
+                completions.addAll(ClaimMain.getAllMembersOfAllPlayerClaim(playerName));
+                completions.remove(playerName);
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("ban") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.ban")) {
                 completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
-                completions.remove(player.getName());
-                return completions;
+                completions.remove(playerName);
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("owner") && CPlayerMain.checkPermPlayer(player, "scs.command.claim.owner")) {
                 completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
-                completions.remove(player.getName());
-                return completions;
+                completions.remove(playerName);
             }
             return completions;
         });
@@ -327,7 +306,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         Player target = Bukkit.getPlayer(args[2]);
                         String targetName = "";
                         if (target == null) {
-                            OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                            OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                             if (otarget == null) {
                             	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
                                 return;
@@ -356,7 +335,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     Player target = Bukkit.getPlayer(args[2]);
                     String targetName = "";
                     if (target == null) {
-                        OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                        OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                         if (otarget == null) {
                         	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
                             return;
@@ -394,7 +373,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         Player target = Bukkit.getPlayer(args[2]);
                         String targetName = "";
                         if (target == null) {
-                            OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                            OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                             targetName = otarget == null ? args[2] : otarget.getName();
                         } else {
                             targetName = target.getName();
@@ -450,7 +429,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         Player target = Bukkit.getPlayer(args[2]);
                         String targetName = "";
                         if (target == null) {
-                            OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                            OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                             if (otarget == null) {
                             	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
                                 return;
@@ -483,7 +462,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     Player target = Bukkit.getPlayer(args[2]);
                     String targetName = "";
                     if (target == null) {
-                        OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                        OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                         if (otarget == null) {
                         	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
                             return;
@@ -577,7 +556,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         Player target = Bukkit.getPlayer(args[2]);
                         String targetName = "";
                         if (target == null) {
-                            OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                            OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                             if (otarget == null) {
                             	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
                                 return;
@@ -606,7 +585,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     Player target = Bukkit.getPlayer(args[2]);
                     String targetName = "";
                     if (target == null) {
-                        OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[2]);
+                        OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
                         if (otarget == null) {
                         	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
                             return;
@@ -651,7 +630,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     Player target = Bukkit.getPlayer(args[1]);
                     String targetName = "";
                     if (target == null) {
-                        OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[1]);
+                        OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[1]);
                         if (otarget == null) {
                         	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[1])));
                             return;
@@ -727,7 +706,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     Player target = Bukkit.getPlayer(args[1]);
                     String targetName = "";
                     if (target == null) {
-                        OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[1]);
+                        OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[1]);
                         if (otarget == null) {
                         	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[1])));
                             return;
@@ -811,7 +790,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     Player target = Bukkit.getPlayer(args[1]);
                     String targetName = "";
                     if (target == null) {
-                        OfflinePlayer otarget = Bukkit.getOfflinePlayerIfCached(args[1]);
+                        OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[1]);
                         if (otarget == null) {
                         	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[1])));
                             return;
