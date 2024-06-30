@@ -25,6 +25,7 @@ import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
+import fr.xyness.SCS.Others.MinecraftSkinUtil;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
@@ -122,9 +123,8 @@ public class ClaimBansGui implements InventoryHolder {
                 continue;
             }
             if (ClaimGuis.getItemMaterialMD("bans", "player-item").contains("PLAYER_HEAD")) {
-                ItemStack item = new ItemStack(Material.PLAYER_HEAD);
+                ItemStack item = MinecraftSkinUtil.createPlayerHead(p);
                 SkullMeta meta = (SkullMeta) item.getItemMeta();
-                meta.setOwningPlayer(Bukkit.getOfflinePlayer(p));
                 meta.setDisplayName(ClaimLanguage.getMessageWP("player-ban-title", p).replace("%player%", p));
                 meta.setLore(lore2);
                 item.setItemMeta(meta);

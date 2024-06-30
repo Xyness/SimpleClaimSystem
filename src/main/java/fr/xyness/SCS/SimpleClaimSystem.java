@@ -42,6 +42,7 @@ import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Listeners.*;
 import fr.xyness.SCS.Others.ClaimPurge;
+import fr.xyness.SCS.Others.MinecraftSkinUtil;
 import fr.xyness.SCS.Support.*;
 import net.pl3x.map.core.Pl3xMap;
 
@@ -64,7 +65,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     public static JavaPlugin plugin;
     
     /** The version of the plugin */
-    public static String Version = "1.9.0.3-BETA-b2";
+    public static String Version = "1.9.0.3-BETA-b3";
     
     /** Data source for database connections */
     public static HikariDataSource dataSource;
@@ -683,6 +684,9 @@ public class SimpleClaimSystem extends JavaPlugin {
         
         // Load offline players
         CPlayerMain.loadOfflinePlayers();
+        
+        // Load offline players head
+        MinecraftSkinUtil.loadPlayersHead();
         
         if (reload) {
             Bukkit.getOnlinePlayers().forEach(CPlayerMain::updatePlayerPermSetting);

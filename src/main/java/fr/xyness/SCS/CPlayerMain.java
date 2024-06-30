@@ -193,6 +193,10 @@ public class CPlayerMain {
      */
     public static void addPlayerPermSetting(Player player) {
         Runnable task = () -> {
+        	String playerName = player.getName();
+        	if(!offlinePlayers.containsKey(playerName)) {
+        		offlinePlayers.put(playerName, (OfflinePlayer) player);
+        	}
             Map<String, Map<String, Double>> groupsSettings = ClaimSettings.getGroupsSettings();
             LinkedHashMap<String, String> groups = ClaimSettings.getGroupsValues();
             Map<String, Double> groupPlayerSettings = new HashMap<>();
@@ -213,8 +217,7 @@ public class CPlayerMain {
                     break;
                 }
             }
-            
-            String playerName = player.getName();
+
             if (!playersConfigSettings.containsKey(playerName)) {
                 players.put(playerName, new CPlayer(player, ClaimMain.getPlayerClaimsCount(playerName),
                     (int) Math.round(groupPlayerSettings.get("max-claims")),

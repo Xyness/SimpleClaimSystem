@@ -9,6 +9,7 @@ import org.bukkit.inventory.meta.SkullMeta;
 import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.*;
 import fr.xyness.SCS.Config.*;
+import fr.xyness.SCS.Others.MinecraftSkinUtil;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
@@ -278,9 +279,8 @@ public class ClaimsOwnerGui implements InventoryHolder {
      * @return The created ItemStack.
      */
     private ItemStack createPlayerHeadItem(Claim claim, String displayName, List<String> lore) {
-        ItemStack item = new ItemStack(Material.PLAYER_HEAD);
+        ItemStack item = MinecraftSkinUtil.createPlayerHead(claim.getOwner());
         SkullMeta meta = (SkullMeta) item.getItemMeta();
-        meta.setOwningPlayer(Bukkit.getOfflinePlayer(claim.getOwner()));
         meta.setDisplayName(displayName);
         meta.setLore(lore);
         item.setItemMeta(meta);
