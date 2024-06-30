@@ -184,7 +184,7 @@ public class ClaimsGui implements InventoryHolder {
     private ItemStack createPlayerHeadItem(String owner, String title, List<String> lore) {
         ItemStack item = new ItemStack(Material.PLAYER_HEAD);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
-        meta.setOwningPlayer(Bukkit.getOfflinePlayerIfCached(owner));
+        meta.setOwningPlayer(Bukkit.getOfflinePlayer(owner));
         meta.setDisplayName(title);
         meta.setLore(lore);
         item.setItemMeta(meta);
@@ -237,16 +237,24 @@ public class ClaimsGui implements InventoryHolder {
     }
 
     /**
-     * Apply placeholders to a list of lore lines for a player.
+     * Get a list of lore lines with placeholders replaced.
      * 
-     * @param lore   The list of lore lines.
-     * @param player The player to apply placeholders for.
-     * @return A list of lore lines with placeholders applied.
+     * @param lore       The list of lore lines.
+     * @param playerName The name of the player for whom to replace placeholders.
+     * @return A list of lore lines with placeholders replaced.
      */
-    public static List<String> getLoreWP(List<String> lore, String player) {
-        if (!ClaimSettings.getBooleanSetting("placeholderapi")) return lore;
-        Player p = Bukkit.getPlayer(player);
-        return p == null ? replaceOfflinePlaceholders(lore, Bukkit.getOfflinePlayerIfCached(player)) : replacePlaceholders(lore, p);
+    public static List<String> getLoreWP(List<String> lore, String playerName) {
+        if (!ClaimSettings.getBooleanSetting("placeholderapi")) {
+            return lore;
+        }
+        List<String> lores = new ArrayList<>();
+        Player player = Bukkit.getPlayer(playerName);
+        OfflinePlayer offlinePlayer = player != null ? player : CPlayerMain.getOfflinePlayer(playerName);
+        if(offlinePlayer == null) return lores;
+        for (String line : lore) {
+            lores.add(PlaceholderAPI.setPlaceholders(offlinePlayer, line));
+        }
+        return lores;
     }
 
     /**

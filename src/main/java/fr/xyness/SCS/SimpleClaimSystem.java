@@ -64,7 +64,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     public static JavaPlugin plugin;
     
     /** The version of the plugin */
-    public static String Version = "1.9.0.3-BETA-b1";
+    public static String Version = "1.9.0.3-BETA-b2";
     
     /** Data source for database connections */
     public static HikariDataSource dataSource;
@@ -680,6 +680,9 @@ public class SimpleClaimSystem extends JavaPlugin {
         
         // Load claims system
         ClaimMain.loadClaims();
+        
+        // Load offline players
+        CPlayerMain.loadOfflinePlayers();
         
         if (reload) {
             Bukkit.getOnlinePlayers().forEach(CPlayerMain::updatePlayerPermSetting);

@@ -4,20 +4,28 @@ import java.io.File;
 import java.io.FilenameFilter;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import fr.xyness.SCS.SimpleClaimSystem;
 
 /**
  * Manages GUI settings and operations for the claim system.
@@ -30,18 +38,24 @@ public class ClaimGuis {
     
     /** Stores settings for GUI items */
     private static Map<String, Map<String, Map<String, String>>> guis_item_settings = new HashMap<>();
+    
     /** Stores settings for custom GUI items */
     private static Map<String, Map<String, Map<String, String>>> guis_custom_item_settings = new HashMap<>();
+    
     /** Stores actions for custom GUI items */
     private static Map<String, Map<Integer, String>> guis_custom_item_actions = new HashMap<>();
+    
     /** Stores general GUI settings */
     private static Map<String, Map<String, String>> guis_settings = new HashMap<>();
+    
     /** Stores permissions for clicked slots in GUIs */
     private static Map<Integer, String> guis_items_perms_clicked_slots = new HashMap<>();
+    
     /** Set of settings names */
     private static Set<String> settings_name = Set.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", "Trapdoors",
             "Fencegates","Tripwires","RepeatersComparators","Bells","Entities","Explosions","Liquids","Redstone","Frostwalker","Firespread",
             "Teleportations","Damages","Visitors","Pvp","Monsters","Weather","Fly");
+    
 
     // *****************
     // *  GUI Methods  *
@@ -471,10 +485,10 @@ public class ClaimGuis {
      * @return The ItemMeta with the flags set.
      */
     public static ItemMeta setItemFlag(ItemMeta meta) {
-        if (Bukkit.getVersion().contains("1.20")) {
-            meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS, ItemFlag.HIDE_ARMOR_TRIM);
+        if (!Bukkit.getVersion().contains("1.21")) {
+            meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
         }
-        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_POTION_EFFECTS, ItemFlag.HIDE_DYE, ItemFlag.HIDE_PLACED_ON, ItemFlag.HIDE_UNBREAKABLE);
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_DYE, ItemFlag.HIDE_PLACED_ON, ItemFlag.HIDE_UNBREAKABLE);
         return meta;
     }
 
