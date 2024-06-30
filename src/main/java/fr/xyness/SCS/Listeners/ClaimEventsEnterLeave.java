@@ -90,6 +90,7 @@ public class ClaimEventsEnterLeave implements Listener {
         Player player = event.getPlayer();
         String playerName = player.getName();
         CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
+        if(cPlayer == null) return;
         
         String ownerTO = ClaimMain.getOwnerInClaim(to);
         String ownerFROM = ClaimMain.getOwnerInClaim(from);
@@ -136,6 +137,7 @@ public class ClaimEventsEnterLeave implements Listener {
         String ownerTO = ClaimMain.getOwnerInClaim(to);
         String playerName = player.getName();
         CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
+        if(cPlayer == null) return;
         String world = player.getWorld().getName();
         
         handleWeatherSettings(player, to, null);
@@ -165,7 +167,7 @@ public class ClaimEventsEnterLeave implements Listener {
         Player player = event.getPlayer();
         String playerName = player.getName();
         CPlayer cPlayer = CPlayerMain.getCPlayer(playerName);
-        
+        if(cPlayer == null) return;
         String ownerTO = ClaimMain.getOwnerInClaim(to);
         String ownerFROM = ClaimMain.getOwnerInClaim(from);
 

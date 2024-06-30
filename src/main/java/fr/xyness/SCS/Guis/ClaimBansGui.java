@@ -59,7 +59,7 @@ public class ClaimBansGui implements InventoryHolder {
             title = PlaceholderAPI.setPlaceholders(player, title);
         }
         inv = Bukkit.createInventory(this, ClaimGuis.getGuiRows("bans") * 9, title);
-        SimpleClaimSystem.executeAsync(() -> initializeItems(player, chunk, page));
+        SimpleClaimSystem.executeAsync(() -> loadItems(player, chunk, page));
     }
 
     // ********************
@@ -73,7 +73,7 @@ public class ClaimBansGui implements InventoryHolder {
      * @param chunk  The chunk associated with the claim.
      * @param page   The page number of the GUI.
      */
-    public void initializeItems(Player player, Chunk chunk, int page) {
+    public void loadItems(Player player, Chunk chunk, int page) {
         CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
         cPlayer.setChunk(chunk);
         cPlayer.clearMapString();
@@ -82,13 +82,11 @@ public class ClaimBansGui implements InventoryHolder {
         int max_member_slot = ClaimGuis.getGuiMaxSlot("bans");
         int items_count = max_member_slot - min_member_slot + 1;
 
-        SimpleClaimSystem.executeSync(() -> {
-        	if (page > 1) {
-                inv.setItem(ClaimGuis.getItemSlot("bans", "back-page-list"), backPage(page - 1));
-            } else {
-                inv.setItem(ClaimGuis.getItemSlot("bans", "back-page-settings"), backPage2());
-            }
-        });
+    	if (page > 1) {
+            inv.setItem(ClaimGuis.getItemSlot("bans", "back-page-list"), backPage(page - 1));
+        } else {
+            inv.setItem(ClaimGuis.getItemSlot("bans", "back-page-settings"), backPage2());
+        }
 
         List<String> lore = new ArrayList<>();
         String owner = claim.getOwner();
@@ -108,17 +106,17 @@ public class ClaimBansGui implements InventoryHolder {
             if (count++ < startItem)
                 continue;
             if (i == max_member_slot + 1) {
-                SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getItemSlot("bans", "next-page-list"), nextPage(page + 1)));
+                inv.setItem(ClaimGuis.getItemSlot("bans", "next-page-list"), nextPage(page + 1));
                 break;
             }
             List<String> lore2 = new ArrayList<>(getLoreWP(lore, p));
             cPlayer.addMapString(i, p);
             final int i_f = i;
             if (ClaimGuis.getItemCheckCustomModelData("bans", "player-item")) {
-                SimpleClaimSystem.executeSync(() -> inv.setItem(i_f, createItemWMD(
+                inv.setItem(i_f, createItemWMD(
                         ClaimLanguage.getMessageWP("player-ban-title", p).replace("%player%", p), lore2,
                         ClaimGuis.getItemMaterialMD("bans", "player-item"),
-                        ClaimGuis.getItemCustomModelData("bans", "player-item"))));
+                        ClaimGuis.getItemCustomModelData("bans", "player-item")));
                 i++;
                 continue;
             }
@@ -128,7 +126,7 @@ public class ClaimBansGui implements InventoryHolder {
                 meta.setDisplayName(ClaimLanguage.getMessageWP("player-ban-title", p).replace("%player%", p));
                 meta.setLore(lore2);
                 item.setItemMeta(meta);
-                SimpleClaimSystem.executeSync(() -> inv.setItem(i_f, item));
+                inv.setItem(i_f, item);
                 i++;
                 continue;
             }
@@ -137,7 +135,7 @@ public class ClaimBansGui implements InventoryHolder {
             meta.setDisplayName(ClaimLanguage.getMessageWP("player-ban-title", p).replace("%player%", p));
             meta.setLore(lore2);
             item.setItemMeta(meta);
-            SimpleClaimSystem.executeSync(() -> inv.setItem(i_f, item));
+            inv.setItem(i_f, item);
             i++;
         }
 
@@ -146,12 +144,12 @@ public class ClaimBansGui implements InventoryHolder {
             List<String> custom_lore = new ArrayList<>(getLoreP(ClaimGuis.getCustomItemLore("bans", key), player));
             String title = ClaimSettings.getBooleanSetting("placeholderapi") ? PlaceholderAPI.setPlaceholders(player, ClaimGuis.getCustomItemTitle("bans", key)) : ClaimGuis.getCustomItemTitle("bans", key);
             if (ClaimGuis.getCustomItemCheckCustomModelData("bans", key)) {
-                SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getCustomItemSlot("bans", key), createItemWMD(title, custom_lore,
+                inv.setItem(ClaimGuis.getCustomItemSlot("bans", key), createItemWMD(title, custom_lore,
                         ClaimGuis.getCustomItemMaterialMD("bans", key),
-                        ClaimGuis.getCustomItemCustomModelData("bans", key))));
+                        ClaimGuis.getCustomItemCustomModelData("bans", key)));
             } else {
-                SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getCustomItemSlot("bans", key), createItem(
-                        ClaimGuis.getCustomItemMaterial("bans", key), title, custom_lore)));
+                inv.setItem(ClaimGuis.getCustomItemSlot("bans", key), createItem(
+                        ClaimGuis.getCustomItemMaterial("bans", key), title, custom_lore));
             }
         }
         

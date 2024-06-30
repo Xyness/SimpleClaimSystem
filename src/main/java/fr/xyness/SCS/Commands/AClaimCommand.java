@@ -70,59 +70,75 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
                         "remove-blocked-interact-block", "remove-blocked-item", "remove-blocked-entity", "add-disabled-world",
                         "remove-disabled-world", "set-status-setting", "set-default-value", "set-max-length-claim-description",
                         "set-max-length-claim-name", "set-claims-visitors-off-visible", "set-claim-cost", "set-claim-cost-multiplier", "ban", "unban",
-                        "bans", "set-chat", "set-protection-message", "set-claim-fly-message-auto-fly", "set-claim-fly-disabled-on-damage"));
+                        "bans", "set-chat", "set-protection-message", "set-claim-fly-message-auto-fly", "set-claim-fly-disabled-on-damage","reset-all-player-claims-settings",
+                        "reset-all-admin-claims-settings"));
+                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("set-protection-message")) {
                 completions.addAll(List.of("ACTION_BAR", "BOSSBAR", "TITLE", "SUBTITLE", "CHAT"));
+                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("ban")) {
                 completions.add("*");
                 completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("bans")) {
                 completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("unban")) {
                 completions.add("*");
                 completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+                return completions;
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("unban")) {
                 Chunk chunk = ClaimMain.getChunkByClaimName("admin", args[1]);
                 completions.addAll(ClaimMain.getClaimBans(chunk));
+                return completions;
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("ban")) {
                 Player player = (Player) sender;
                 completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
                 completions.remove(player.getName());
+                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("add")) {
                 completions.add("*");
                 completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+                return completions;
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("add")) {
                 completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
+                return completions;
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("remove") && !args[1].equals("*")) {
                 Chunk chunk = ClaimMain.getChunkByClaimName("admin", args[1]);
                 completions.addAll(ClaimMain.getClaimMembers(chunk));
+                return completions;
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("remove")) {
                 completions.addAll(ClaimMain.getAllMembersOfAllPlayerClaim("admin"));
+                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("remove")) {
                 completions.add("*");
                 completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+                return completions;
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("remove")) {
                 Chunk chunk = ClaimMain.getAdminChunkByName(args[1]);
                 completions.addAll(ClaimMain.getClaimMembers(chunk));
+                return completions;
             }
             if (args.length == 2 && (args[0].equalsIgnoreCase("setdesc") || args[0].equalsIgnoreCase("settings")
                     || args[0].equalsIgnoreCase("setname") || args[0].equalsIgnoreCase("tp") || args[0].equalsIgnoreCase("members"))) {
                 completions.addAll(ClaimMain.getClaimsNameFromOwner("admin"));
+                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("setowner")) {
                 completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
+                return completions;
             }
             if (args.length == 2 && (args[0].equalsIgnoreCase("set-actionbar") || args[0].equalsIgnoreCase("set-title-subtitle")
                     || args[0].equalsIgnoreCase("set-economy") || args[0].equalsIgnoreCase("set-claim-confirmation")
@@ -133,49 +149,66 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
                     || args[0].equalsIgnoreCase("set-claim-particles") || args[0].equalsIgnoreCase("set-claim-fly-disabled-on-damage")
                     || args[0].equalsIgnoreCase("set-claim-fly-message-auto-fly"))) {
                 completions.addAll(List.of("true", "false"));
+                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("set-bossbar-color")) {
                 completions.addAll(List.of(BarColor.values()).stream().map(BarColor::toString).collect(Collectors.toList()));
+                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("remove-disabled-world")) {
                 completions.addAll(ClaimSettings.getDisabledWorlds());
+                return completions;
             }
             if (args.length == 2 && (args[0].equalsIgnoreCase("set-status-setting") || args[0].equalsIgnoreCase("set-default-value"))) {
                 completions.addAll(ClaimGuis.getPerms());
+                return completions;
             }
             if (args.length == 2 && (args[0].equalsIgnoreCase("add-blocked-interact-block") || args[0].equalsIgnoreCase("add-blocked-item"))) {
                 completions.addAll(List.of(Material.values()).stream().map(Material::toString).collect(Collectors.toList()));
+                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("add-blocked-entity")) {
                 completions.addAll(List.of(EntityType.values()).stream().map(EntityType::toString).collect(Collectors.toList()));
+                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("remove-blocked-interact-block")) {
                 completions.addAll(ClaimSettings.getRestrictedContainersString());
+                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("remove-blocked-entity")) {
                 completions.addAll(ClaimSettings.getRestrictedEntitiesString());
+                return completions;
             }
             if (args.length == 2 && args[0].equalsIgnoreCase("remove-blocked-item")) {
                 completions.addAll(ClaimSettings.getRestrictedItemsString());
+                return completions;
             }
             if (args.length == 2 && (args[0].equalsIgnoreCase("group") || args[0].equalsIgnoreCase("player"))) {
                 completions.addAll(List.of("add-limit", "add-radius", "add-members", "set-limit", "set-radius", "set-delay",
                         "set-members", "set-claim-cost", "set-claim-cost-multiplier", "tp", "unclaim"));
+                return completions;
             }
             if (args.length == 3 && (args[0].equalsIgnoreCase("set-status-setting") || args[0].equalsIgnoreCase("set-default-value"))) {
                 String perm = args[1].substring(0, 1).toUpperCase() + args[1].substring(1).toLowerCase();
                 if (ClaimGuis.isAPerm(perm)) {
                     completions.addAll(List.of("true", "false"));
                 }
+                return completions;
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("player")) {
                 completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
+                return completions;
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("player") && (args[1].equalsIgnoreCase("tp") || args[1].equalsIgnoreCase("unclaim"))) {
             	completions.addAll(new HashSet<>(ClaimMain.getClaimsOwners()));
+            	return completions;
             }
             if (args.length == 4 && args[0].equalsIgnoreCase("player") && (args[1].equalsIgnoreCase("tp") || args[1].equalsIgnoreCase("unclaim"))) {
             	completions.addAll(ClaimMain.getClaimsNameFromOwner(args[2]));
+            	if(args[1].equalsIgnoreCase("unclaim")) {
+            		completions.add("*");
+            	}
+            	return completions;
             }
             if (args.length == 3 && args[0].equalsIgnoreCase("group")) {
                 completions.addAll(ClaimSettings.getGroups());
@@ -242,6 +275,22 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
         		}
         		ClaimMain.transferClaims();
         		return true;
+        	}
+        	if(args[0].equalsIgnoreCase("reset-all-player-claims-settings")) {
+        		if(ClaimMain.resetAllClaimsSettings()) {
+        			sender.sendMessage(ClaimLanguage.getMessage("reset-of-player-claims-settings-successful"));
+        			return true;
+        		}
+        		sender.sendMessage(ClaimLanguage.getMessage("error"));
+        		return false;
+        	}
+        	if(args[0].equalsIgnoreCase("reset-all-admin-claims-settings")) {
+        		if(ClaimMain.resetAllAdminClaimsSettings()) {
+        			sender.sendMessage(ClaimLanguage.getMessage("reset-of-admin-claims-settings-successful"));
+        			return true;
+        		}
+        		sender.sendMessage(ClaimLanguage.getMessage("error"));
+        		return false;
         	}
         	if(sender instanceof Player) {
         		Player player = (Player) sender;
@@ -337,21 +386,17 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
 	        		
 	        		return true;
 	        	}
-	        	SimpleClaimSystem.executeAsync(() -> {
-		            if(ClaimSettings.isWorldDisabled(player.getWorld().getName())) {
-		            	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName())));
-		            	return;
-		            }
-		        	try {
-	        			int radius = Integer.parseInt(args[0]);
-	        			Set<Chunk> chunks = new HashSet<>(ClaimCommand.getChunksInRadius(player.getLocation(),radius));
-	        			SimpleClaimSystem.executeSync(() -> ClaimMain.createAdminClaimRadius(player, chunks, radius));
-	        		} catch(NumberFormatException e){
-	        			SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("syntax-admin")));
-	        		}
-		        	return;
-	        	});
-	        	
+	            if(ClaimSettings.isWorldDisabled(player.getWorld().getName())) {
+	            	player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName()));
+	            	return true;
+	            }
+	        	try {
+        			int radius = Integer.parseInt(args[0]);
+        			Set<Chunk> chunks = new HashSet<>(ClaimCommand.getChunksInRadius(player.getLocation(),radius));
+        			ClaimMain.createAdminClaimRadius(player, chunks, radius);
+        		} catch(NumberFormatException e){
+        			player.sendMessage(ClaimLanguage.getMessage("syntax-admin"));
+        		}
 	        	return true;
         	}
         	sender.sendMessage(ClaimLanguage.getMessage("syntax-aclaim"));
@@ -1092,11 +1137,23 @@ public class AClaimCommand implements CommandExecutor, TabCompleter {
             	}
 	        	if(args[0].equalsIgnoreCase("setowner")) {
 	        		SimpleClaimSystem.executeAsync(() -> {
+                        Player target = Bukkit.getPlayer(args[2]);
+                        String targetName = "";
+                        if (target == null) {
+                            OfflinePlayer otarget = CPlayerMain.getOfflinePlayer(args[2]);
+                            if (otarget == null) {
+                            	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("player-never-played").replaceAll("%player%", args[2])));
+                                return;
+                            }
+                            targetName = otarget.getName();
+                        } else {
+                            targetName = target.getName();
+                        }
 		        		Chunk chunk = player.getLocation().getChunk();
-		        		SimpleClaimSystem.executeSync(() -> ClaimMain.setOwner(player, args[1], chunk, true));
+		        		final String tName = targetName;
+		        		SimpleClaimSystem.executeSync(() -> ClaimMain.setOwner(player, tName, chunk, true));
 		        		return;
 	        		});
-	        		
 	        		return true;
 	        	}
         	}

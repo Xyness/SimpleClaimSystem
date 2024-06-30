@@ -16,18 +16,10 @@ import me.clip.placeholderapi.PlaceholderAPI;
  * Class representing the Claims Owner GUI.
  */
 public class ClaimsOwnerGui implements InventoryHolder {
-    
-    // ***************
-    // *  Variables  *
-    // ***************
-    
+
     /** The inventory for this GUI. */
     private final Inventory inv;
-    
-    // ******************
-    // *  Constructors  *
-    // ******************
-    
+
     /**
      * Main constructor for ClaimsOwnerGui.
      * 
@@ -39,13 +31,9 @@ public class ClaimsOwnerGui implements InventoryHolder {
     public ClaimsOwnerGui(Player player, int page, String filter, String owner) {
         String title = getTitle(player, page, owner);
         inv = Bukkit.createInventory(this, ClaimGuis.getGuiRows("claims_owner") * 9, title);
-        initializeItems(player, page, filter, owner);
+        SimpleClaimSystem.executeAsync(() -> loadItems(player, page, filter, owner));
     }
-    
-    // ********************
-    // *  Others Methods  *
-    // ********************
-    
+
     /**
      * Get the title of the GUI, replacing placeholders.
      * 
@@ -62,23 +50,6 @@ public class ClaimsOwnerGui implements InventoryHolder {
             title = PlaceholderAPI.setPlaceholders(player, title);
         }
         return title;
-    }
-
-    /**
-     * Initialize items in the GUI asynchronously.
-     * 
-     * @param player The player who opened the GUI.
-     * @param page   The current page of the GUI.
-     * @param filter The filter applied to the claims.
-     * @param owner  The owner of the claims.
-     */
-    private void initializeItems(Player player, int page, String filter, String owner) {
-        Runnable loadItemsTask = () -> loadItems(player, page, filter, owner);
-        if (SimpleClaimSystem.isFolia()) {
-            Bukkit.getAsyncScheduler().runNow(SimpleClaimSystem.getInstance(), task -> loadItemsTask.run());
-        } else {
-            Bukkit.getScheduler().runTaskAsynchronously(SimpleClaimSystem.getInstance(), loadItemsTask);
-        }
     }
 
     /**
@@ -104,7 +75,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
         fillClaimsItems(player, cPlayer, page, loreTemplate, claims);
         setCustomItems(player);
         
-        SimpleClaimSystem.executeSync(() -> openInventory(player));
+        SimpleClaimSystem.executeSync(() -> player.openInventory(inv));
     }
 
     /**
@@ -115,7 +86,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
      * @return A map of claims and their corresponding chunks.
      */
     private Map<Chunk, Claim> getClaims(String filter, String owner) {
-        return filter.equals("sales") ? ClaimMain.getChunksInSaleFromOwner(owner) : ClaimMain.getChunksFromOwnerGui(owner);
+        return "sales".equals(filter) ? ClaimMain.getChunksInSaleFromOwner(owner) : ClaimMain.getChunksFromOwnerGui(owner);
     }
 
     /**
@@ -124,10 +95,9 @@ public class ClaimsOwnerGui implements InventoryHolder {
      * @param page The current page of the GUI.
      */
     private void setNavigationItems(int page) {
+        inv.setItem(ClaimGuis.getItemSlot("claims_owner", "back-page-list"), createNavigationItem("back-page-list", page > 1 ? page - 1 : 0));
         if (page > 1) {
-            setItemAsync(ClaimGuis.getItemSlot("claims_owner", "back-page-list"), createNavigationItem("back-page-list", page - 1));
-        } else {
-            setItemAsync(ClaimGuis.getItemSlot("claims_owner", "back-page-claims"), createNavigationItem("back-page-claims", 0));
+            inv.setItem(ClaimGuis.getItemSlot("claims_owner", "back-page-claims"), createNavigationItem("back-page-claims", 0));
         }
     }
 
@@ -137,7 +107,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
      * @param filter The filter applied to the claims.
      */
     private void setFilterItem(String filter) {
-        setItemAsync(ClaimGuis.getItemSlot("claims_owner", "filter"), createFilterItem(filter));
+        inv.setItem(ClaimGuis.getItemSlot("claims_owner", "filter"), createFilterItem(filter));
     }
 
     /**
@@ -160,7 +130,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
         for (Map.Entry<Chunk, Claim> entry : claims.entrySet()) {
             if (itemCount++ < startIndex) continue;
             if (slotIndex > maxSlot) {
-                setItemAsync(ClaimGuis.getItemSlot("claims_owner", "next-page-list"), createNavigationItem("next-page-list", page + 1));
+                inv.setItem(ClaimGuis.getItemSlot("claims_owner", "next-page-list"), createNavigationItem("next-page-list", page + 1));
                 break;
             }
             Chunk chunk = entry.getKey();
@@ -171,7 +141,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
             ItemStack item = createClaimItem(claim, player, lore);
             cPlayer.addMapChunk(slotIndex, chunk);
             cPlayer.addMapLoc(slotIndex, ClaimMain.getClaimLocationByChunk(chunk));
-            setItemAsync(slotIndex++, item);
+            inv.setItem(slotIndex++, item);
         }
     }
 
@@ -181,14 +151,13 @@ public class ClaimsOwnerGui implements InventoryHolder {
      * @param player The player who opened the GUI.
      */
     private void setCustomItems(Player player) {
-        Set<String> customItems = new HashSet<>(ClaimGuis.getCustomItems("claims_owner"));
-        for (String key : customItems) {
+        for (String key : ClaimGuis.getCustomItems("claims_owner")) {
             List<String> lore = getLoreP(ClaimGuis.getCustomItemLore("claims_owner", key), player);
             String title = ClaimGuis.getCustomItemTitle("claims_owner", key);
             if (ClaimSettings.getBooleanSetting("placeholderapi")) {
                 title = PlaceholderAPI.setPlaceholders(player, title);
             }
-            setItemAsync(ClaimGuis.getCustomItemSlot("claims_owner", key), createCustomItem(key, title, lore));
+            inv.setItem(ClaimGuis.getCustomItemSlot("claims_owner", key), createCustomItem(key, title, lore));
         }
     }
 
@@ -311,14 +280,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
      * @return The created ItemStack.
      */
     private ItemStack createNavigationItem(String key, int page) {
-        ItemStack item;
-        if (ClaimGuis.getItemCheckCustomModelData("claims_owner", key)) {
-            CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims_owner", key));
-            item = customStack != null ? customStack.getItemStack() : new ItemStack(Material.STONE, 1);
-        } else {
-            Material material = ClaimGuis.getItemMaterial("claims_owner", key);
-            item = new ItemStack(material != null ? material : Material.STONE, 1);
-        }
+        ItemStack item = createItem(ClaimGuis.getItemMaterial("claims_owner", key), null, null);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             if (page == 0) {
@@ -341,23 +303,10 @@ public class ClaimsOwnerGui implements InventoryHolder {
      * @return The created ItemStack.
      */
     private ItemStack createFilterItem(String filter) {
-        ItemStack item;
-        if (ClaimGuis.getItemCheckCustomModelData("claims_owner", "filter")) {
-            CustomStack customStack = CustomStack.getInstance(ClaimGuis.getItemMaterialMD("claims_owner", "filter"));
-            item = customStack != null ? customStack.getItemStack() : new ItemStack(Material.STONE, 1);
-        } else {
-            Material material = ClaimGuis.getItemMaterial("claims_owner", "filter");
-            item = new ItemStack(material != null ? material : Material.STONE, 1);
-        }
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            String loreFilter = getFilterLore(filter);
-            meta.setDisplayName(ClaimLanguage.getMessage("filter-title"));
-            meta.setLore(getLore(loreFilter));
-            meta = ClaimGuis.setItemFlag(meta);
-            item.setItemMeta(meta);
-        }
-        return item;
+        String loreFilter = getFilterLore(filter);
+        return createItem(ClaimGuis.getItemMaterial("claims_owner", "filter"),
+                ClaimLanguage.getMessage("filter-title"),
+                getLore(loreFilter));
     }
 
     /**
@@ -368,7 +317,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
      */
     private String getFilterLore(String filter) {
         String loreFilter = ClaimLanguage.getMessage("filter-owner-lore");
-        if (filter.equals("sales")) {
+        if ("sales".equals(filter)) {
             loreFilter = loreFilter.replace("%status_color_1%", ClaimLanguage.getMessage("status_color_inactive_filter"))
                 .replace("%status_color_2%", ClaimLanguage.getMessage("status_color_active_filter"));
         } else {
@@ -390,8 +339,8 @@ public class ClaimsOwnerGui implements InventoryHolder {
         ItemStack item = new ItemStack(material != null ? material : Material.STONE, 1);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            meta.setDisplayName(name);
-            meta.setLore(lore);
+            if (name != null) meta.setDisplayName(name);
+            if (lore != null) meta.setLore(lore);
             meta = ClaimGuis.setItemFlag(meta);
             item.setItemMeta(meta);
         }
@@ -498,31 +447,8 @@ public class ClaimsOwnerGui implements InventoryHolder {
         return lores;
     }
 
-    /**
-     * Set an item in the inventory asynchronously.
-     * 
-     * @param slot The slot in the inventory.
-     * @param item The item to set in the slot.
-     */
-    private void setItemAsync(int slot, ItemStack item) {
-        if (SimpleClaimSystem.isFolia()) {
-            Bukkit.getGlobalRegionScheduler().execute(SimpleClaimSystem.getInstance(), () -> inv.setItem(slot, item));
-        } else {
-            Bukkit.getScheduler().runTask(SimpleClaimSystem.getInstance(), () -> inv.setItem(slot, item));
-        }
-    }
-
     @Override
     public Inventory getInventory() {
         return inv;
-    }
-
-    /**
-     * Open the inventory for a player.
-     * 
-     * @param player The player to open the inventory for.
-     */
-    public void openInventory(Player player) {
-        player.openInventory(inv);
     }
 }
