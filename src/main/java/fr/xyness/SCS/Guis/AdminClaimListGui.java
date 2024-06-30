@@ -27,6 +27,7 @@ import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
 import fr.xyness.SCS.Config.ClaimSettings;
+import fr.xyness.SCS.Others.MinecraftSkinUtil;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
@@ -57,7 +58,7 @@ public class AdminClaimListGui implements InventoryHolder {
             title = PlaceholderAPI.setPlaceholders(player, title);
         }
         inv = Bukkit.createInventory(this, ClaimGuis.getGuiRows("admin_list") * 9, title);
-        SimpleClaimSystem.executeAsync(() -> initializeItems(player, page));
+        SimpleClaimSystem.executeAsync(() -> loadItems(player, page));
     }
 
     // ********************
@@ -70,7 +71,7 @@ public class AdminClaimListGui implements InventoryHolder {
      * @param player The player for whom the GUI is being initialized.
      * @param page   The page number of the GUI.
      */
-    public void initializeItems(Player player, int page) {
+    public void loadItems(Player player, int page) {
         int min_member_slot = ClaimGuis.getGuiMinSlot("admin_list");
         int max_member_slot = ClaimGuis.getGuiMaxSlot("admin_list");
         int items_count = max_member_slot - min_member_slot + 1;
@@ -83,13 +84,11 @@ public class AdminClaimListGui implements InventoryHolder {
         String lore_remove = ClaimLanguage.getMessage("access-claim-clickable-remove");
         String lore_settings = ClaimLanguage.getMessage("access-claim-clickable-settings");
 
-        SimpleClaimSystem.executeSync(() -> {
-        	if (page > 1) {
-                inv.setItem(ClaimGuis.getItemSlot("admin_list", "back-page-list"), backPage(page - 1));
-            } else if (cPlayer.getChunk() != null) {
-                inv.setItem(ClaimGuis.getItemSlot("admin_list", "back-page-list"), backPage2(cPlayer.getChunk()));
-            }
-        });
+    	if (page > 1) {
+            inv.setItem(ClaimGuis.getItemSlot("admin_list", "back-page-list"), backPage(page - 1));
+        } else if (cPlayer.getChunk() != null) {
+            inv.setItem(ClaimGuis.getItemSlot("admin_list", "back-page-list"), backPage2(cPlayer.getChunk()));
+        }
 
         Map<Chunk, Claim> claims = ClaimMain.getChunksFromOwnerGui("admin");
         List<String> lore = new ArrayList<>(getLore(ClaimLanguage.getMessageWP("access-claim-lore", playerName)));
@@ -100,7 +99,7 @@ public class AdminClaimListGui implements InventoryHolder {
             if (count++ < startItem)
                 continue;
             if (i == max_member_slot + 1) {
-                SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getItemSlot("admin_list", "next-page-list"), nextPage(page + 1)));
+                inv.setItem(ClaimGuis.getItemSlot("admin_list", "next-page-list"), nextPage(page + 1));
                 break;
             }
             Claim claim = claims.get(c);
@@ -127,29 +126,28 @@ public class AdminClaimListGui implements InventoryHolder {
             used_lore.addAll(Arrays.asList(lore_tp,lore_remove,lore_settings));
             final int i_f = i;
             if (ClaimGuis.getItemCheckCustomModelData("admin_list", "claim-item")) {
-                SimpleClaimSystem.executeSync(() -> inv.setItem(i_f, createItemWMD(
+                inv.setItem(i_f, createItemWMD(
                         ClaimLanguage.getMessageWP("access-claim-title", playerName).replaceAll("%name%", claim.getName())
                                 .replaceAll("%coords%", ClaimMain.getClaimCoords(claim)),
                         used_lore, ClaimGuis.getItemMaterialMD("admin_list", "claim-item"),
-                        ClaimGuis.getItemCustomModelData("admin_list", "claim-item"))));
+                        ClaimGuis.getItemCustomModelData("admin_list", "claim-item")));
                 i++;
                 continue;
             }
             if (ClaimGuis.getItemMaterialMD("admin_list", "claim-item").contains("PLAYER_HEAD")) {
-                ItemStack item = new ItemStack(Material.PLAYER_HEAD, 1);
+                ItemStack item = MinecraftSkinUtil.createPlayerHead(playerName);
                 SkullMeta meta = (SkullMeta) item.getItemMeta();
-                meta.setOwningPlayer(player);
                 meta.setDisplayName(ClaimLanguage.getMessageWP("access-claim-title", playerName).replaceAll("%name%", claim.getName()).replaceAll("%coords%", ClaimMain.getClaimCoords(claim)));
                 meta.setLore(used_lore);
                 item.setItemMeta(meta);
-                SimpleClaimSystem.executeSync(() -> inv.setItem(i_f, item));;
+                inv.setItem(i_f, item);
                 i++;
                 continue;
             }
-            SimpleClaimSystem.executeSync(() -> inv.setItem(i_f, createItem(ClaimGuis.getItemMaterial("admin_list", "claim-item"),
+            inv.setItem(i_f, createItem(ClaimGuis.getItemMaterial("admin_list", "claim-item"),
                     ClaimLanguage.getMessageWP("access-claim-title", playerName).replaceAll("%name%", claim.getName())
                             .replaceAll("%coords%", ClaimMain.getClaimCoords(claim)),
-                    used_lore)));
+                    used_lore));
             i++;
         }
 
@@ -158,12 +156,12 @@ public class AdminClaimListGui implements InventoryHolder {
             List<String> custom_lore = new ArrayList<>(getLoreWP(ClaimGuis.getCustomItemLore("admin_list", key), player));
             String title = ClaimSettings.getBooleanSetting("placeholderapi") ? PlaceholderAPI.setPlaceholders(player, ClaimGuis.getCustomItemTitle("admin_list", key)) : ClaimGuis.getCustomItemTitle("admin_list", key);
             if (ClaimGuis.getCustomItemCheckCustomModelData("admin_list", key)) {
-                SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getCustomItemSlot("admin_list", key),
+                inv.setItem(ClaimGuis.getCustomItemSlot("admin_list", key),
                         createItemWMD(title, custom_lore, ClaimGuis.getCustomItemMaterialMD("admin_list", key),
-                                ClaimGuis.getCustomItemCustomModelData("admin_list", key))));
+                                ClaimGuis.getCustomItemCustomModelData("admin_list", key)));
             } else {
-                SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getCustomItemSlot("admin_list", key), createItem(
-                        ClaimGuis.getCustomItemMaterial("admin_list", key), title, custom_lore)));
+                inv.setItem(ClaimGuis.getCustomItemSlot("admin_list", key), createItem(
+                        ClaimGuis.getCustomItemMaterial("admin_list", key), title, custom_lore));
             }
         }
         

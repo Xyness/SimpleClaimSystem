@@ -53,7 +53,7 @@ public class ClaimGui implements InventoryHolder {
             title = PlaceholderAPI.setPlaceholders(player, title);
         }
         inv = Bukkit.createInventory(this, ClaimGuis.getGuiRows("settings") * 9, title);
-        SimpleClaimSystem.executeAsync(() -> initializeItems(player, chunk));
+        SimpleClaimSystem.executeAsync(() -> loadItems(player, chunk));
     }
 
     // ********************
@@ -66,7 +66,7 @@ public class ClaimGui implements InventoryHolder {
      * @param player The player for whom the GUI is being initialized.
      * @param chunk  The chunk associated with the claim.
      */
-    public void initializeItems(Player player, Chunk chunk) {
+    public void loadItems(Player player, Chunk chunk) {
 
         String default_statut_disabled = ClaimLanguage.getMessage("status-disabled");
         String default_statut_enabled = ClaimLanguage.getMessage("status-enabled");
@@ -88,15 +88,15 @@ public class ClaimGui implements InventoryHolder {
                 choix = permission ? default_choix_enabled : default_choix_disabled;
                 lore.add(ClaimSettings.isEnabled(key) ? checkPermPerm(player,key) ? choix : ClaimLanguage.getMessage("gui-button-no-permission")+" to use this setting" : ClaimLanguage.getMessage("choice-setting-disabled"));
                 if (ClaimGuis.getItemCheckCustomModelData("settings", key)) {
-                    SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getItemSlot("settings", key),
+                    inv.setItem(ClaimGuis.getItemSlot("settings", key),
                             createItemWMD(ClaimLanguage.getMessageWP(lower_name + "-title", playerName)
                                     .replaceAll("%status%", statut), lore, ClaimGuis.getItemMaterialMD("settings", key),
-                                    ClaimGuis.getItemCustomModelData("settings", key))));
+                                    ClaimGuis.getItemCustomModelData("settings", key)));
                 } else {
-                    SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getItemSlot("settings", key), createItem(
+                    inv.setItem(ClaimGuis.getItemSlot("settings", key), createItem(
                             ClaimGuis.getItemMaterial("settings", key),
                             ClaimLanguage.getMessageWP(lower_name + "-title", playerName).replaceAll("%status%", statut),
-                            lore)));
+                            lore));
                 }
             } else {
                 String title = ClaimLanguage.getMessageWP(lower_name + "-title", playerName)
@@ -104,12 +104,11 @@ public class ClaimGui implements InventoryHolder {
                         .replaceAll("%name%", ClaimMain.getClaimNameByChunk(chunk));
                 lore.add(!checkPermButton(player, key) ? ClaimLanguage.getMessage("gui-button-no-permission") : ClaimLanguage.getMessage("access-button"));
                 if (ClaimGuis.getItemCheckCustomModelData("settings", key)) {
-                    SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getItemSlot("settings", key),
+                    inv.setItem(ClaimGuis.getItemSlot("settings", key),
                             createItemWMD(title, lore, ClaimGuis.getItemMaterialMD("settings", key),
-                                    ClaimGuis.getItemCustomModelData("settings", key))));
+                                    ClaimGuis.getItemCustomModelData("settings", key)));
                 } else {
-                    SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getItemSlot("settings", key), createItem(ClaimGuis.getItemMaterial("settings", key),
-                            title, lore)));
+                    inv.setItem(ClaimGuis.getItemSlot("settings", key), createItem(ClaimGuis.getItemMaterial("settings", key), title, lore));
                 }
             }
         }
@@ -119,12 +118,12 @@ public class ClaimGui implements InventoryHolder {
             List<String> lore = new ArrayList<>(getLoreWP(ClaimGuis.getCustomItemLore("settings", key), player));
             String title = ClaimSettings.getBooleanSetting("placeholderapi") ? PlaceholderAPI.setPlaceholders(player, ClaimGuis.getCustomItemTitle("settings", key)) : ClaimGuis.getCustomItemTitle("settings", key);
             if (ClaimGuis.getCustomItemCheckCustomModelData("settings", key)) {
-                SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getCustomItemSlot("settings", key),
+                inv.setItem(ClaimGuis.getCustomItemSlot("settings", key),
                         createItemWMD(title, lore, ClaimGuis.getCustomItemMaterialMD("settings", key),
-                                ClaimGuis.getCustomItemCustomModelData("settings", key))));
+                                ClaimGuis.getCustomItemCustomModelData("settings", key)));
             } else {
-                SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getCustomItemSlot("settings", key),
-                        createItem(ClaimGuis.getCustomItemMaterial("settings", key), title, lore)));
+                inv.setItem(ClaimGuis.getCustomItemSlot("settings", key),
+                        createItem(ClaimGuis.getCustomItemMaterial("settings", key), title, lore));
             }
         }
         

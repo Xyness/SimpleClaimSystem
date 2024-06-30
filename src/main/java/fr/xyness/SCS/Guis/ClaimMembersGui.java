@@ -59,7 +59,7 @@ public class ClaimMembersGui implements InventoryHolder {
             title = PlaceholderAPI.setPlaceholders(player, title);
         }
         inv = Bukkit.createInventory(this, ClaimGuis.getGuiRows("members") * 9, title);
-        SimpleClaimSystem.executeAsync(() -> initializeItems(player, chunk, page));
+        SimpleClaimSystem.executeAsync(() -> loadItems(player, chunk, page));
     }
     
     // ********************
@@ -73,7 +73,7 @@ public class ClaimMembersGui implements InventoryHolder {
      * @param chunk  The chunk for which the GUI is displayed.
      * @param page   The current page of the GUI.
      */
-    public void initializeItems(Player player, Chunk chunk, int page) {
+    public void loadItems(Player player, Chunk chunk, int page) {
         CPlayer cPlayer = CPlayerMain.getCPlayer(player.getName());
         cPlayer.setChunk(chunk);
         cPlayer.clearMapString();
@@ -113,10 +113,10 @@ public class ClaimMembersGui implements InventoryHolder {
             cPlayer.addMapString(i, p);
             final int i_f = i;
             if (ClaimGuis.getItemCheckCustomModelData("members", "player-item")) {
-                SimpleClaimSystem.executeSync(() -> inv.setItem(i_f, createItemWMD(ClaimLanguage.getMessageWP("player-member-title", p).replace("%player%", p),
+                inv.setItem(i_f, createItemWMD(ClaimLanguage.getMessageWP("player-member-title", p).replace("%player%", p),
                         lore2,
                         ClaimGuis.getItemMaterialMD("members", "player-item"),
-                        ClaimGuis.getItemCustomModelData("members", "player-item"))));
+                        ClaimGuis.getItemCustomModelData("members", "player-item")));
                 i++;
                 continue;
             }
@@ -131,7 +131,7 @@ public class ClaimMembersGui implements InventoryHolder {
                     meta.setLore(lore2);
                 }
                 item.setItemMeta(meta);
-                SimpleClaimSystem.executeSync(() -> inv.setItem(i_f, item));
+                inv.setItem(i_f, item);
                 i++;
                 continue;
             }
@@ -145,7 +145,7 @@ public class ClaimMembersGui implements InventoryHolder {
                 meta.setLore(lore2);
             }
             item.setItemMeta(meta);
-            SimpleClaimSystem.executeSync(() -> inv.setItem(i_f, item));
+            inv.setItem(i_f, item);
             i++;
         }
         
@@ -154,14 +154,14 @@ public class ClaimMembersGui implements InventoryHolder {
             List<String> custom_lore = new ArrayList<>(getLoreP(ClaimGuis.getCustomItemLore("members", key), player));
             String title = ClaimSettings.getBooleanSetting("placeholderapi") ? PlaceholderAPI.setPlaceholders(player, ClaimGuis.getCustomItemTitle("members", key)) : ClaimGuis.getCustomItemTitle("members", key);
             if (ClaimGuis.getCustomItemCheckCustomModelData("members", key)) {
-                SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getCustomItemSlot("members", key), createItemWMD(title,
+                inv.setItem(ClaimGuis.getCustomItemSlot("members", key), createItemWMD(title,
                         custom_lore,
                         ClaimGuis.getCustomItemMaterialMD("members", key),
-                        ClaimGuis.getCustomItemCustomModelData("members", key))));
+                        ClaimGuis.getCustomItemCustomModelData("members", key)));
             } else {
-                SimpleClaimSystem.executeSync(() -> inv.setItem(ClaimGuis.getCustomItemSlot("members", key), createItem(ClaimGuis.getCustomItemMaterial("members", key),
+                inv.setItem(ClaimGuis.getCustomItemSlot("members", key), createItem(ClaimGuis.getCustomItemMaterial("members", key),
                         title,
-                        custom_lore)));
+                        custom_lore));
             }
         }
         

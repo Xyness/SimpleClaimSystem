@@ -6,7 +6,7 @@
 # > Console messages
 
 command-only-by-players: "§cThis command can only be used by players."
-reload-complete: "§a✓ Reload completed"
+reload-complete: "§aReload completed"
 
 
 # > Players messages
@@ -168,6 +168,8 @@ fly-disabled: "§fFly off."
 autofly-enabled: "§fAuto-fly on."
 autofly-disabled: "§fAuto-fly off."
 cant-fly-in-this-claim: "§cYou cannot fly in this territory."
+reset-of-player-claims-settings-successful: "§eAll settings for all player claims§f have been reset."
+reset-of-admin-claims-settings-successful: "§eAll settings for all admin claims§f have been reset."
 
 
 # > Deny messages

@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -2796,6 +2797,68 @@ public class ClaimMain {
 
         return true;
     }
+    
+    /**
+     * Method to reset all player claims settings
+     * 
+     * @return true if the operation was successful, false otherwise
+     */
+    public static boolean resetAllClaimsSettings() {
+    	String defaultValue = ClaimSettings.getDefaultValuesCode();
+    	LinkedHashMap<String,Boolean> perm = new LinkedHashMap<>(ClaimSettings.getDefaultValues());
+
+        Runnable task = () -> {
+            listClaims.values().forEach(c -> {
+                if (!"admin".equals(c.getOwner())) {
+                    c.setPermissions(perm);
+                }
+            });
+            try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
+                String updateQuery = "UPDATE scs_claims SET Permissions = ? WHERE uuid <> ?";
+                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+                    preparedStatement.setString(1, defaultValue);
+                    preparedStatement.setString(2, "aucun");
+                    preparedStatement.executeUpdate();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        };
+
+        SimpleClaimSystem.executeAsync(task);
+        return true;
+    }
+    
+    /**
+     * Method to reset all admin claims settings
+     * 
+     * @return true if the operation was successful, false otherwise
+     */
+    public static boolean resetAllAdminClaimsSettings() {
+    	String defaultValue = ClaimSettings.getDefaultValuesCode();
+    	LinkedHashMap<String,Boolean> perm = new LinkedHashMap<>(ClaimSettings.getDefaultValues());
+
+        Runnable task = () -> {
+            listClaims.values().forEach(c -> {
+                if ("admin".equals(c.getOwner())) {
+                    c.setPermissions(perm);
+                }
+            });
+            try (Connection connection = SimpleClaimSystem.getDataSource().getConnection()) {
+                String updateQuery = "UPDATE scs_claims SET Permissions = ? WHERE uuid = ?";
+                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+                    preparedStatement.setString(1, defaultValue);
+                    preparedStatement.setString(2, "aucun");
+                    preparedStatement.executeUpdate();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        };
+
+        SimpleClaimSystem.executeAsync(task);
+        return true;
+    }
 
     /**
      * Method when a claim is sold.
@@ -3346,19 +3409,39 @@ public class ClaimMain {
             legendMap.put(2, "  " + ClaimLanguage.getMessage("map-legend-yours").replaceAll("%claim-relation-member%", ClaimLanguage.getMessage("map-claim-relation-member")));
             legendMap.put(3, "  " + ClaimLanguage.getMessage("map-legend-other").replaceAll("%claim-relation-visitor%", ClaimLanguage.getMessage("map-claim-relation-visitor")));
 
-            IntStream.rangeClosed(-4, 4).forEach(dz -> {
-                IntStream.rangeClosed(-10, 10).forEach(dx -> {
-                    int[] offset = adjustDirection(dx, dz, direction);
-                    Chunk chunk = world.getChunkAt(centerX + offset[0], centerZ + offset[1]);
-                    mapMessage.append(getChunkSymbol.apply(chunk));
+            if(SimpleClaimSystem.isFolia()) {
+                Bukkit.getRegionScheduler().run(SimpleClaimSystem.getInstance(), player.getLocation(), task -> {
+                	IntStream.rangeClosed(-4, 4).forEach(dz -> {
+                        IntStream.rangeClosed(-10, 10).forEach(dx -> {
+                            int[] offset = adjustDirection(dx, dz, direction);
+                            int X = centerX + offset[0];
+                            int Z = centerZ + offset[1];
+                            Chunk chunk = world.getChunkAt(X, Z);
+                            mapMessage.append(getChunkSymbol.apply(chunk));
+                        });
+                        if (legendMap.containsKey(dz)) {
+                            mapMessage.append(legendMap.get(dz));
+                        }
+                        mapMessage.append("\n");
+                    });
+                	SimpleClaimSystem.executeSync(() -> player.sendMessage(mapMessage.toString()));
                 });
-                if (legendMap.containsKey(dz)) {
-                    mapMessage.append(legendMap.get(dz));
-                }
-                mapMessage.append("\n");
-            });
-
-            SimpleClaimSystem.executeSync(() -> player.sendMessage(mapMessage.toString()));
+            } else {
+                IntStream.rangeClosed(-4, 4).forEach(dz -> {
+                    IntStream.rangeClosed(-10, 10).forEach(dx -> {
+                        int[] offset = adjustDirection(dx, dz, direction);
+                        int X = centerX + offset[0];
+                        int Z = centerZ + offset[1];
+                        Chunk chunk = world.getChunkAt(X, Z);
+                        mapMessage.append(getChunkSymbol.apply(chunk));
+                    });
+                    if (legendMap.containsKey(dz)) {
+                        mapMessage.append(legendMap.get(dz));
+                    }
+                    mapMessage.append("\n");
+                });
+                SimpleClaimSystem.executeSync(() -> player.sendMessage(mapMessage.toString()));
+            }
         });
     }
 

@@ -1212,45 +1212,41 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 
                 return true;
             }
-            SimpleClaimSystem.executeAsync(() -> {
-            	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.radius")) {
-            		SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission")));
-                    return;
+        	if (!CPlayerMain.checkPermPlayer(player, "scs.command.claim.radius")) {
+        		player.sendMessage(ClaimLanguage.getMessage("cmd-no-permission"));
+                return true;
+            }
+            if (ClaimSettings.isWorldDisabled(player.getWorld().getName())) {
+            	player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName()));
+                return true;
+            }
+            try {
+                int radius = Integer.parseInt(args[0]);
+                if (!cPlayer.canRadiusClaim(radius)) {
+                	player.sendMessage(ClaimLanguage.getMessage("cant-radius-claim"));
+                    return true;
                 }
-                if (ClaimSettings.isWorldDisabled(player.getWorld().getName())) {
-                	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName())));
-                    return;
-                }
-                try {
-                    int radius = Integer.parseInt(args[0]);
-                    if (!cPlayer.canRadiusClaim(radius)) {
-                    	SimpleClaimSystem.executeSync(() -> player.sendMessage(ClaimLanguage.getMessage("cant-radius-claim")));
-                        return;
+                Set<Chunk> chunks = new HashSet<>(getChunksInRadius(player.getLocation(), radius));
+                if (ClaimSettings.getBooleanSetting("claim-confirmation")) {
+                    if (isOnCreate.contains(player)) {
+                        isOnCreate.remove(player);
+                        ClaimMain.createClaimRadius(player, chunks, radius);
+                        return true;
                     }
-                    Set<Chunk> chunks = new HashSet<>(getChunksInRadius(player.getLocation(), radius));
-                    if (ClaimSettings.getBooleanSetting("claim-confirmation")) {
-                        if (isOnCreate.contains(player)) {
-                            isOnCreate.remove(player);
-                            SimpleClaimSystem.executeSync(() -> ClaimMain.createClaimRadius(player, chunks, radius));
-                            return;
-                        }
-                        isOnCreate.add(player);
-                        String AnswerA = ClaimLanguage.getMessage("claim-confirmation-button");
-                        TextComponent AnswerA_C = new TextComponent(AnswerA);
-                        AnswerA_C.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ClaimLanguage.getMessage("claim-confirmation-button")).create()));
-                        AnswerA_C.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim " + String.valueOf(radius)));
-                        TextComponent finale = new TextComponent(ClaimLanguage.getMessage("claim-confirmation-ask"));
-                        finale.addExtra(AnswerA_C);
-                        SimpleClaimSystem.executeSync(() -> player.sendMessage(finale));
-                        return;
-                    }
-                    SimpleClaimSystem.executeSync(() -> ClaimMain.createClaimRadius(player, chunks, radius));
-                } catch (NumberFormatException e) {
-                	SimpleClaimSystem.executeSync(() -> ClaimMain.getHelp(player, args[0], "claim"));
+                    isOnCreate.add(player);
+                    String AnswerA = ClaimLanguage.getMessage("claim-confirmation-button");
+                    TextComponent AnswerA_C = new TextComponent(AnswerA);
+                    AnswerA_C.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(ClaimLanguage.getMessage("claim-confirmation-button")).create()));
+                    AnswerA_C.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim " + String.valueOf(radius)));
+                    TextComponent finale = new TextComponent(ClaimLanguage.getMessage("claim-confirmation-ask"));
+                    finale.addExtra(AnswerA_C);
+                    player.sendMessage(finale);
+                    return true;
                 }
-                return;
-            });
-            
+                ClaimMain.createClaimRadius(player, chunks, radius);
+            } catch (NumberFormatException e) {
+            	ClaimMain.getHelp(player, args[0], "claim");
+            }
             return true;
         }
 
