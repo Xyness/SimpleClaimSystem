@@ -1,5 +1,5 @@
 # SimpleClaimSystem
-SimpleClaimSystem is a plugin allowing you to protect your constructions in a chunk (16x16), you can configure the settings (those that visitors have the right to do), you can also add your friends to your territory! PlaceholderAPI, ItemsAdder, WorldGuard, Vault, Dynmap and Bluemap support!
+SimpleClaimSystem is a plugin allowing you to protect your constructions in a chunk (16x16), you can configure the settings (those that visitors have the right to do), you can also add your friends to your territory! PlaceholderAPI, ItemsAdder, WorldGuard, Vault, Dynmap, Bluemap and Pl3xMap support!
 
 ## Wiki
 https://xyness.gitbook.io/simpleclaimsystem
