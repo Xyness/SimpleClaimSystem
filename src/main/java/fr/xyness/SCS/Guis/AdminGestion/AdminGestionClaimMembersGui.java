@@ -1,0 +1,179 @@
+package fr.xyness.SCS.Guis.AdminGestion;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
+
+import fr.xyness.SCS.CPlayer;
+import fr.xyness.SCS.Claim;
+import fr.xyness.SCS.SimpleClaimSystem;
+
+/**
+ * Class representing the Claim Members GUI.
+ */
+public class AdminGestionClaimMembersGui implements InventoryHolder {
+    
+	
+    // ***************
+    // *  Variables  *
+    // ***************
+    
+	
+	/** Inventory for the GUI. */
+    private Inventory inv;
+    
+    /** Instance of SimpleClaimSystem */
+    private SimpleClaimSystem instance;
+    
+    
+    // ******************
+    // *  Constructors  *
+    // ******************
+    
+    
+    /**
+     * Main constructor for AdminGestionClaimMembersGui.
+     * 
+     * @param player The player who opened the GUI.
+     * @param claim  The claim for which the GUI is displayed.
+     * @param page   The current page of the GUI.
+     * @param instance The instance of the SimpleClaimSystem plugin.
+     */
+    public AdminGestionClaimMembersGui(Player player, Claim claim, int page, SimpleClaimSystem instance) {
+    	this.instance = instance;
+        inv = Bukkit.createInventory(this, 54, "§4[A]§r Members: "+claim.getName()+" ("+claim.getOwner()+")");
+        instance.executeAsync(() -> loadItems(player, claim, page));
+    }
+    
+    
+    // ********************
+    // *  Others Methods  *
+    // ********************
+    
+    
+    /**
+     * Initializes the items for the GUI.
+     * 
+     * @param player The player who opened the GUI.
+     * @param chunk  The chunk for which the GUI is displayed.
+     * @param page   The current page of the GUI.
+     */
+    public void loadItems(Player player, Claim claim, int page) {
+        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getName());
+        cPlayer.setClaim(claim);
+        cPlayer.clearMapString();
+        int min_member_slot = 0;
+        int max_member_slot = 44;
+        int items_count = max_member_slot - min_member_slot + 1;
+        String owner = claim.getOwner();
+        if(page>1) inv.setItem(48, backPage(page - 1));
+        inv.setItem(49, backMainMenu(claim.getName()));
+        List<String> lore = new ArrayList<>(Arrays.asList("§7Has access to this claim"," ","§c[Left-click]§7 to remove member"));
+        int startItem = (page - 1) * items_count;
+        int i = min_member_slot;
+        int count = 0;
+        for (String p : claim.getMembers()) {
+            if (count++ < startItem) continue;
+            if (i == max_member_slot + 1) {
+            	inv.setItem(50, nextPage(page + 1));
+                break;
+            }
+            cPlayer.addMapString(i, p);
+            OfflinePlayer target = instance.getPlayerMain().getOfflinePlayer(p);
+            ItemStack item = instance.getPlayerMain().getPlayerHead(target);
+            SkullMeta meta = (SkullMeta) item.getItemMeta();
+            meta.setDisplayName("§e"+p);
+            if (owner.equals(p)) {
+                meta.setLore(Arrays.asList("§dOwner of the claim"));
+            } else {
+                meta.setLore(lore);
+            }
+            item.setItemMeta(meta);
+            inv.setItem(i, item);
+            i++;
+            continue;
+        }
+        
+        instance.executeEntitySync(player, () -> player.openInventory(inv));
+    }
+    
+    /**
+     * Creates an item for the back main menu slot.
+     *
+     * @param claim_name The name of the current claim.
+     * @return The created back page item.
+     */
+    private ItemStack backMainMenu(String claim_name) {
+        ItemStack item = new ItemStack(Material.DARK_OAK_DOOR);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName("§cMain menu");
+            meta.setLore(instance.getGuis().getLore("§7Go back to the main menu of "+claim_name+"\n§7▸ §fClick to access"));
+            meta = instance.getGuis().setItemFlag(meta);
+            item.setItemMeta(meta);
+        }
+
+        return item;
+    }
+    
+    /**
+     * Create a back page item.
+     * 
+     * @param page The page number.
+     * @return The created ItemStack.
+     */
+    private ItemStack backPage(int page) {
+        ItemStack item = new ItemStack(Material.ARROW);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName("§cPrevious page");
+            meta.setLore(Arrays.asList("§7Go to the page "+String.valueOf(page),"§7▸ §fClick to access"));
+            meta = instance.getGuis().setItemFlag(meta);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+    
+    /**
+     * Create a next page item.
+     * 
+     * @param page The page number.
+     * @return The created ItemStack.
+     */
+    private ItemStack nextPage(int page) {
+        ItemStack item = new ItemStack(Material.ARROW);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            meta.setDisplayName("§cNext page");
+            meta.setLore(Arrays.asList("§7Go to the page "+String.valueOf(page),"§7▸ §fClick to access"));
+            meta = instance.getGuis().setItemFlag(meta);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+    
+    @Override
+    public Inventory getInventory() {
+        return inv;
+    }
+    
+    /**
+     * Opens the inventory for the player.
+     * 
+     * @param player The player.
+     */
+    public void openInventory(Player player) {
+        player.openInventory(inv);
+    }
+
+}
