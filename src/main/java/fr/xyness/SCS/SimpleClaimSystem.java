@@ -372,19 +372,19 @@ public class SimpleClaimSystem extends JavaPlugin {
                             "name VARCHAR(36), " +
                             "claim_name VARCHAR(255), " +
                             "claim_description VARCHAR(255), " +
-                            "X VARCHAR(1020), " +
-                            "Z VARCHAR(1020), " +
+                            "X VARCHAR(1000000000), " +
+                            "Z VARCHAR(1000000000), " +
                             "World VARCHAR(255), " +
                             "Location VARCHAR(255), " +
-                            "Members VARCHAR(1020), " +
+                            "Members VARCHAR(1000000000), " +
                             "Permissions VARCHAR(510), " +
                             "isSale TINYINT(1) DEFAULT 0, " +
                             "SalePrice DOUBLE DEFAULT 0, " +
-                            "Bans VARCHAR(1020) DEFAULT '')";
+                            "Bans VARCHAR(1000000000) DEFAULT '')";
                     stmt.executeUpdate(sql);
                     sql = "ALTER TABLE scs_claims MODIFY COLUMN SalePrice DOUBLE;";
                     stmt.executeUpdate(sql);
-                    sql = "ALTER TABLE scs_claims MODIFY COLUMN X VARCHAR(1020), MODIFY COLUMN Z VARCHAR(1020);";
+                    sql = "ALTER TABLE scs_claims MODIFY COLUMN X VARCHAR(1000000000), MODIFY COLUMN Z VARCHAR(1000000000);";
                     stmt.executeUpdate(sql);
                     String checkColumnSQL = String.format(
                             "SELECT COUNT(*) AS column_count FROM information_schema.columns " +
@@ -425,15 +425,15 @@ public class SimpleClaimSystem extends JavaPlugin {
                             "name VARCHAR(36), " +
                             "claim_name VARCHAR(255), " +
                             "claim_description VARCHAR(255), " +
-                            "X VARCHAR(1020), " +
-                            "Z VARCHAR(1020), " +
+                            "X VARCHAR(1000000000), " +
+                            "Z VARCHAR(1000000000), " +
                             "World VARCHAR(255), " +
                             "Location VARCHAR(255), " +
-                            "Members VARCHAR(1020), " +
+                            "Members VARCHAR(1000000000), " +
                             "Permissions VARCHAR(510), " +
                             "isSale TINYINT(1) DEFAULT 0, " +
                             "SalePrice DOUBLE DEFAULT 0, " +
-                            "Bans VARCHAR(1020) DEFAULT '')";
+                            "Bans VARCHAR(1000000000) DEFAULT '')";
                     stmt.executeUpdate(sql);
                 } catch (SQLException e) {
                     info(ChatColor.RED + "Error creating tables, disabling plugin.");
