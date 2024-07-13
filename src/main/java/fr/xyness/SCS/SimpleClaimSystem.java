@@ -365,26 +365,26 @@ public class SimpleClaimSystem extends JavaPlugin {
             try (Connection connection = dataSource.getConnection()) {
                 info("Database connection successful.");
                 try (Statement stmt = connection.createStatement()) {
-                    String sql = "CREATE TABLE IF NOT EXISTS scs_claims " +
-                            "(id_pk INT AUTO_INCREMENT PRIMARY KEY, " +
-                            "id INT, " +
-                            "uuid VARCHAR(36), " +
-                            "name VARCHAR(36), " +
-                            "claim_name VARCHAR(255), " +
-                            "claim_description VARCHAR(255), " +
-                            "X VARCHAR(1000000000), " +
-                            "Z VARCHAR(1000000000), " +
-                            "World VARCHAR(255), " +
-                            "Location VARCHAR(255), " +
-                            "Members VARCHAR(1000000000), " +
-                            "Permissions VARCHAR(510), " +
-                            "isSale TINYINT(1) DEFAULT 0, " +
-                            "SalePrice DOUBLE DEFAULT 0, " +
-                            "Bans VARCHAR(1000000000) DEFAULT '')";
+                	String sql = "CREATE TABLE IF NOT EXISTS scs_claims " +
+                		    "(id_pk INT AUTO_INCREMENT PRIMARY KEY, " +
+                		    "id INT, " +
+                		    "uuid VARCHAR(36), " +
+                		    "name VARCHAR(36), " +
+                		    "claim_name VARCHAR(255), " +
+                		    "claim_description VARCHAR(255), " +
+                		    "X TEXT, " +
+                		    "Z TEXT, " +
+                		    "World VARCHAR(255), " +
+                		    "Location VARCHAR(255), " +
+                		    "Members TEXT, " +
+                		    "Permissions VARCHAR(510), " +
+                		    "isSale TINYINT(1) DEFAULT 0, " +
+                		    "SalePrice DOUBLE DEFAULT 0, " +
+                		    "Bans TEXT)";
                     stmt.executeUpdate(sql);
                     sql = "ALTER TABLE scs_claims MODIFY COLUMN SalePrice DOUBLE;";
                     stmt.executeUpdate(sql);
-                    sql = "ALTER TABLE scs_claims MODIFY COLUMN X VARCHAR(1000000000), MODIFY COLUMN Z VARCHAR(1000000000);";
+                    sql = "ALTER TABLE scs_claims MODIFY COLUMN X TEXT, MODIFY COLUMN Z TEXT;";
                     stmt.executeUpdate(sql);
                     String checkColumnSQL = String.format(
                             "SELECT COUNT(*) AS column_count FROM information_schema.columns " +
@@ -425,15 +425,15 @@ public class SimpleClaimSystem extends JavaPlugin {
                             "name VARCHAR(36), " +
                             "claim_name VARCHAR(255), " +
                             "claim_description VARCHAR(255), " +
-                            "X VARCHAR(1000000000), " +
-                            "Z VARCHAR(1000000000), " +
+                            "X TEXT, " +
+                            "Z TEXT, " +
                             "World VARCHAR(255), " +
                             "Location VARCHAR(255), " +
-                            "Members VARCHAR(1000000000), " +
+                            "Members TEXT, " +
                             "Permissions VARCHAR(510), " +
                             "isSale TINYINT(1) DEFAULT 0, " +
                             "SalePrice DOUBLE DEFAULT 0, " +
-                            "Bans VARCHAR(1000000000) DEFAULT '')";
+                            "Bans TEXT DEFAULT '')";
                     stmt.executeUpdate(sql);
                 } catch (SQLException e) {
                     info(ChatColor.RED + "Error creating tables, disabling plugin.");

@@ -297,7 +297,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     			String targetName = "";
     			if(target == null) {
     				OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
-    				if(otarget == null) {
+    				if(otarget == null || !otarget.hasPlayedBefore()) {
     					player.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[2]));
         				return;
     				}
@@ -333,7 +333,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 			String targetName = "";
 			if(target == null) {
 				OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
-				if(otarget == null) {
+				if(otarget == null || !otarget.hasPlayedBefore()) {
 					player.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[2]));
     				return;
 				}
@@ -370,7 +370,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     			String targetName = "";
     			if(target == null) {
     				OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
-    				targetName = otarget == null ? args[2] : otarget.getName();
+    				targetName = otarget == null || !otarget.hasPlayedBefore() ? args[2] : otarget.getName();
     			} else {
     				targetName = target.getName();
     			}
@@ -463,7 +463,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     			String targetName = "";
     			if(target == null) {
     				OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
-    				if(otarget == null) {
+    				if(otarget == null || !otarget.hasPlayedBefore()) {
     					player.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[2]));
         				return;
     				}
@@ -490,7 +490,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             String targetName = "";
             if (target == null) {
                 OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
-                if (otarget == null) {
+                if (otarget == null || !otarget.hasPlayedBefore()) {
                 	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[2]));
                     return;
                 }
