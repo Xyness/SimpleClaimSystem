@@ -1728,9 +1728,11 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         int centerX = centerChunk.getX();
         int centerZ = centerChunk.getZ();
         AtomicInteger loadedChunks = new AtomicInteger(0);
+        int totalChunks = calculateNumberOfChunks(radius);
 
         if (instance.isFolia()) {
             List<CompletableFuture<Void>> futures = IntStream.rangeClosed(centerX - radius, centerX + radius)
+                    .parallel()
                     .boxed()
                     .flatMap(x -> IntStream.rangeClosed(centerZ - radius, centerZ + radius)
                             .mapToObj(z -> world.getChunkAtAsync(x, z)
@@ -1738,8 +1740,9 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                                         chunks.add(chunk);
                                         int count = loadedChunks.incrementAndGet();
                                         if (count % 1000 == 0) {
-                                        	instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("chunk-while-loading").replaceAll("%loaded-chunks%", AdminGestionMainGui.getNumberSeparate(String.valueOf(count)))
-                                            		.replaceAll("%chunks-count%", AdminGestionMainGui.getNumberSeparate(String.valueOf(calculateNumberOfChunks(radius))))));
+                                            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("chunk-while-loading")
+                                                    .replace("%loaded-chunks%", AdminGestionMainGui.getNumberSeparate(String.valueOf(count)))
+                                                    .replace("%chunks-count%", AdminGestionMainGui.getNumberSeparate(String.valueOf(totalChunks)))));
                                         }
                                     })
                                     .exceptionally(ex -> {
@@ -1753,15 +1756,21 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         } else {
             return CompletableFuture.runAsync(() -> {
                 IntStream.rangeClosed(centerX - radius, centerX + radius)
-                        .forEach(x -> IntStream.rangeClosed(centerZ - radius, centerZ + radius)
-                                .forEach(z -> {
-                                    chunks.add(world.getChunkAt(x, z));
-                                    int count = loadedChunks.incrementAndGet();
-                                    if (count % 1000 == 0) {
-                                    	instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("chunk-while-loading").replaceAll("%loaded-chunks%", AdminGestionMainGui.getNumberSeparate(String.valueOf(count)))
-                                        		.replaceAll("%chunks-count%", AdminGestionMainGui.getNumberSeparate(String.valueOf(calculateNumberOfChunks(radius))))));
-                                    }
-                                }));
+                	.parallel()
+                    .boxed()
+                    .flatMap(x -> IntStream.rangeClosed(centerZ - radius, centerZ + radius)
+                            .mapToObj(z -> {
+                                Chunk chunk = world.getChunkAt(x, z);
+                                chunks.add(chunk);
+                                int count = loadedChunks.incrementAndGet();
+                                if (count % 1000 == 0) {
+                                    instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("chunk-while-loading")
+                                            .replace("%loaded-chunks%", AdminGestionMainGui.getNumberSeparate(String.valueOf(count)))
+                                            .replace("%chunks-count%", AdminGestionMainGui.getNumberSeparate(String.valueOf(totalChunks)))));
+                                }
+                                return chunk;
+                            }))
+                    .collect(Collectors.toList());
             }).thenApply(v -> chunks);
         }
     }

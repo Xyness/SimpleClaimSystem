@@ -21,7 +21,6 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -1027,9 +1026,7 @@ public class ClaimMain {
                         Runnable task = () -> {
                             Claim claim = new Claim(chunks, owner, members, location, name, description, perms, sale, price, bans, id);
                             chunks.parallelStream().forEach(c -> listClaims.put(c, claim));
-                            if (instance.getSettings().getBooleanSetting("dynmap")) {
-                                chunks.parallelStream().forEach(c -> instance.getDynmap().createChunkZone(c, name, owner));
-                            }
+                            if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(chunks, name, owner);
                             if (instance.getSettings().getBooleanSetting("preload-chunks")) {
                                 if (instance.isFolia()) {
                                     chunks.parallelStream().forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), world, c.getX(), c.getZ(), () -> c.load(true)));
@@ -1177,9 +1174,9 @@ public class ClaimMain {
 		        playerClaims.computeIfAbsent(playerName, k -> new HashSet<>()).add(newClaim);
 		        
 		        // Create bossbars and maps
-		        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(chunk, claimName, playerName);
-		        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createChunkZone(chunk, claimName, playerName);
-		        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createChunkZone(chunk, claimName, playerName);
+		        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(Set.of(chunk), claimName, playerName);
+		        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createChunkZone(Set.of(chunk), claimName, playerName);
+		        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createChunkZone(Set.of(chunk), claimName, playerName);
 		        if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
 	            		Bukkit.getRegionScheduler().execute(instance.getPlugin(), chunk.getWorld(), chunk.getX(), chunk.getZ(), () -> chunk.setForceLoaded(true));
@@ -1262,9 +1259,9 @@ public class ClaimMain {
 		        playerClaims.computeIfAbsent("admin", k -> new HashSet<>()).add(newClaim);
 		
 		        // Create bossbars and maps
-		        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(chunk, claimName, "admin");
-		        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createChunkZone(chunk, claimName, "admin");
-		        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createChunkZone(chunk, claimName, "admin");
+		        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(Set.of(chunk), claimName, "admin");
+		        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createChunkZone(Set.of(chunk), claimName, "admin");
+		        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createChunkZone(Set.of(chunk), claimName, "admin");
 		        if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
 	            		Bukkit.getRegionScheduler().execute(instance.getPlugin(), chunk.getWorld(), chunk.getX(), chunk.getZ(), () -> chunk.setForceLoaded(true));
@@ -1384,7 +1381,7 @@ public class ClaimMain {
 	            }
 	            cPlayer.setClaimsCount(cPlayer.getClaimsCount() + 1);
 	            int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
-	            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("create-claim-radius-success").replace("%number%", String.valueOf(chunksToClaim.size())).replace("%remaining-claims%", String.valueOf(remainingClaims)).replace("%claim-name%", claimName)));
+	            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("create-claim-radius-success").replace("%number%", AdminGestionMainGui.getNumberSeparate(String.valueOf(chunksToClaim.size()))).replace("%remaining-claims%", AdminGestionMainGui.getNumberSeparate(String.valueOf(remainingClaims))).replace("%claim-name%", claimName)));
 	
 	            // Create bossbars, maps
 	            List<Integer> X = Collections.synchronizedList(new ArrayList<>());
@@ -1395,9 +1392,9 @@ public class ClaimMain {
 	                X.add(c.getX());
 	                Z.add(c.getZ());
 	            });
-	            if (instance.getSettings().getBooleanSetting("dynmap")) chunksToClaim.forEach(c -> instance.getDynmap().createChunkZone(c, claimName, playerName));
-	            if (instance.getSettings().getBooleanSetting("bluemap")) chunksToClaim.forEach(c -> instance.getBluemap().createChunkZone(c, claimName, playerName));
-	            if (instance.getSettings().getBooleanSetting("pl3xmap")) chunksToClaim.forEach(c -> instance.getPl3xMap().createChunkZone(c, claimName, playerName));
+	            if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(chunksToClaim, claimName, playerName);
+	            if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createChunkZone(chunksToClaim, claimName, playerName);
+	            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createChunkZone(chunksToClaim, claimName, playerName);
 	            if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
 	            		chunksToClaim.parallelStream().forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
@@ -1490,9 +1487,9 @@ public class ClaimMain {
 		            X.add(c.getX());
 		            Z.add(c.getZ());
 		        });
-	            if (instance.getSettings().getBooleanSetting("dynmap")) chunksToClaim.parallelStream().forEach(c -> instance.getDynmap().createChunkZone(c, claimName, "admin"));
-	            if (instance.getSettings().getBooleanSetting("bluemap")) chunksToClaim.parallelStream().forEach(c -> instance.getBluemap().createChunkZone(c, claimName, "admin"));
-	            if (instance.getSettings().getBooleanSetting("pl3xmap")) chunksToClaim.parallelStream().forEach(c -> instance.getPl3xMap().createChunkZone(c, claimName, "admin"));
+	            if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(chunksToClaim, claimName, "admin");
+	            if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createChunkZone(chunksToClaim, claimName, "admin");
+	            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createChunkZone(chunksToClaim, claimName, "admin");
 	            if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
 	            		chunksToClaim.parallelStream().forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
@@ -2645,9 +2642,9 @@ public class ClaimMain {
 	            // Update name on bossbars and maps
 	        	Set<Chunk> chunks = claim.getChunks();
 	            instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
-	        	if (instance.getSettings().getBooleanSetting("dynmap")) chunks.parallelStream().forEach(c -> instance.getDynmap().updateName(c));
-	        	if (instance.getSettings().getBooleanSetting("bluemap")) chunks.parallelStream().forEach(c -> instance.getBluemap().updateName(c));
-	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) chunks.parallelStream().forEach(c -> instance.getPl3xMap().updateName(c));
+	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(chunks,claim);
+	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(chunks,claim);
+	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(chunks,claim);
 	        	
 	        	// Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
@@ -2688,9 +2685,9 @@ public class ClaimMain {
 	            // Update name on bossbars and maps
 	        	Set<Chunk> chunks = claim.getChunks();
 	            instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
-	        	if (instance.getSettings().getBooleanSetting("dynmap")) chunks.parallelStream().forEach(c -> instance.getDynmap().updateName(c));
-	        	if (instance.getSettings().getBooleanSetting("bluemap")) chunks.parallelStream().forEach(c -> instance.getBluemap().updateName(c));
-	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) chunks.parallelStream().forEach(c -> instance.getPl3xMap().updateName(c));
+	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(chunks,claim);
+	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(chunks,claim);
+	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(chunks,claim);
 	        	
 	        	// Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
@@ -2764,9 +2761,9 @@ public class ClaimMain {
 	        	// Delete all chunks and deactivate bossbars
 	        	Set<Chunk> chunks = claim.getChunks();
 	        	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(chunks));
-	        	if (instance.getSettings().getBooleanSetting("dynmap")) chunks.parallelStream().forEach(c -> instance.getDynmap().deleteMarker(c));
-	        	if (instance.getSettings().getBooleanSetting("bluemap")) chunks.parallelStream().forEach(c -> instance.getBluemap().deleteMarker(c));
-	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) chunks.parallelStream().forEach(c -> instance.getPl3xMap().deleteMarker(c));
+	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
+	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
+	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
 	        	chunks.parallelStream().forEach(c -> listClaims.remove(c));
 	        	
 	        	// Update owner claims count and remove the claim from his claims
@@ -2818,16 +2815,16 @@ public class ClaimMain {
 	        	playerClaims.getOrDefault(playerName, new HashSet<>()).parallelStream().forEach(claim -> {
 	            	Set<Chunk> chunks = claim.getChunks();
 	                instance.executeSync(() -> instance.getBossBars().deactivateBossBar(chunks));
-	            	if (instance.getSettings().getBooleanSetting("dynmap")) chunks.parallelStream().forEach(c -> instance.getDynmap().deleteMarker(c));
-	            	if (instance.getSettings().getBooleanSetting("bluemap")) chunks.parallelStream().forEach(c -> instance.getBluemap().deleteMarker(c));
-	            	if (instance.getSettings().getBooleanSetting("pl3xmap")) chunks.parallelStream().forEach(c -> instance.getPl3xMap().deleteMarker(c));
+	            	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
+	            	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
+	            	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
 	            	chunks.parallelStream().forEach(c -> listClaims.remove(c));
 	            	i[0]++;
 	        	});
 	            playerClaims.remove(playerName);
 	            
 	            // Send the delete message
-	            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("territory-delete-radius-success").replaceAll("%number%", String.valueOf(i[0]))));
+	            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("delete-all-claims-success").replaceAll("%number%", AdminGestionMainGui.getNumberSeparate(String.valueOf(i[0])))));
 	            
 	            // Update the claims count of target player
 	            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
@@ -2865,9 +2862,9 @@ public class ClaimMain {
                 playerClaims.getOrDefault(playerName, new HashSet<>()).parallelStream().forEach(claim -> {
                     Set<Chunk> chunks = claim.getChunks();
                     instance.executeSync(() -> instance.getBossBars().deactivateBossBar(chunks));
-                    if (instance.getSettings().getBooleanSetting("dynmap")) chunks.parallelStream().forEach(c -> instance.getDynmap().deleteMarker(c));
-                    if (instance.getSettings().getBooleanSetting("bluemap")) chunks.parallelStream().forEach(c -> instance.getBluemap().deleteMarker(c));
-                    if (instance.getSettings().getBooleanSetting("pl3xmap")) chunks.parallelStream().forEach(c -> instance.getPl3xMap().deleteMarker(c));
+                    if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
+                    if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
+                    if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
                     chunks.parallelStream().forEach(c -> listClaims.remove(c));
                 });
                 playerClaims.remove(playerName);
@@ -2917,9 +2914,9 @@ public class ClaimMain {
                 playerClaims.getOrDefault("admin", new HashSet<>()).parallelStream().forEach(claim -> {
                     Set<Chunk> chunks = claim.getChunks();
                     instance.executeSync(() -> instance.getBossBars().deactivateBossBar(chunks));
-                    if (instance.getSettings().getBooleanSetting("dynmap")) chunks.parallelStream().forEach(c -> instance.getDynmap().deleteMarker(c));
-                    if (instance.getSettings().getBooleanSetting("bluemap")) chunks.parallelStream().forEach(c -> instance.getBluemap().deleteMarker(c));
-                    if (instance.getSettings().getBooleanSetting("pl3xmap")) chunks.parallelStream().forEach(c -> instance.getPl3xMap().deleteMarker(c));
+                    if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
+                    if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
+                    if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
                     chunks.parallelStream().forEach(c -> listClaims.remove(c));
                 });
                 playerClaims.remove("admin");
@@ -2959,9 +2956,9 @@ public class ClaimMain {
             try {
 	    		// Update claims list and maps
 	    		chunks.parallelStream().forEach(c -> listClaims.remove(c));
-	        	if (instance.getSettings().getBooleanSetting("dynmap")) chunks.parallelStream().forEach(c -> instance.getDynmap().deleteMarker(c));
-	        	if (instance.getSettings().getBooleanSetting("bluemap")) chunks.parallelStream().forEach(c -> instance.getBluemap().deleteMarker(c));
-	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) chunks.parallelStream().forEach(c -> instance.getPl3xMap().deleteMarker(c));
+	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
+	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
+	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
 	        	
 	        	// Update owner claims count and remove the claim from his claims
 	            String owner = claim.getOwner();
@@ -3280,9 +3277,9 @@ public class ClaimMain {
 	            // Update the bossbars, and maps
 	        	Set<Chunk> chunks = claim.getChunks();
 	            instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
-	        	if (instance.getSettings().getBooleanSetting("dynmap")) chunks.parallelStream().forEach(c -> instance.getDynmap().updateName(c));
-	        	if (instance.getSettings().getBooleanSetting("bluemap")) chunks.parallelStream().forEach(c -> instance.getBluemap().updateName(c));
-	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) chunks.parallelStream().forEach(c -> instance.getPl3xMap().updateName(c));
+	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(chunks,claim);
+	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(chunks,claim);
+	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(chunks,claim);
 	            
 	        	// Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
@@ -3372,9 +3369,9 @@ public class ClaimMain {
 	            // Update the bossbars, and maps
 	        	Set<Chunk> chunks = claim.getChunks();
 	        	instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
-	        	if (instance.getSettings().getBooleanSetting("dynmap")) chunks.parallelStream().forEach(c -> instance.getDynmap().updateName(c));
-	        	if (instance.getSettings().getBooleanSetting("bluemap")) chunks.parallelStream().forEach(c -> instance.getBluemap().updateName(c));
-	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) chunks.parallelStream().forEach(c -> instance.getPl3xMap().updateName(c));
+	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(chunks,claim);
+	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(chunks,claim);
+	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(chunks,claim);
 	            
 	            // Updata database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
@@ -3439,9 +3436,9 @@ public class ClaimMain {
                     	instance.info("oui "+String.valueOf(chunk.getX())+" " + String.valueOf(chunk.getZ()));
                     	
                     	// Remove bossbar and maps
-                        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunk);
-                        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunk);
-                        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunk);
+                        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(Set.of(chunk));
+                        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(Set.of(chunk));
+                        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(Set.of(chunk));
                     	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(Set.of(chunk)));
                     	
         	            List<Integer> X = new ArrayList<>();
@@ -3511,9 +3508,9 @@ public class ClaimMain {
                 	listClaims.remove(chunk);
                 	
                 	// Remove bossbar and maps
-                    if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunk);
-                    if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunk);
-                    if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunk);
+                    if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(Set.of(chunk));
+                    if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(Set.of(chunk));
+                    if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(Set.of(chunk));
                 	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(Set.of(chunk)));
                 	
     	            List<Integer> X = new ArrayList<>();
@@ -3590,17 +3587,17 @@ public class ClaimMain {
     public CompletableFuture<Boolean> addChunk(Claim claim, Chunk chunk){
         return CompletableFuture.supplyAsync(() -> {
             try {
-    			// Remove chunk
+    			// Add chunk
             	Set<Chunk> chunks = new HashSet<>(claim.getChunks());
             	if(chunks.contains(chunk)) return false;
             	chunks.add(chunk);
             	claim.setChunks(chunks);
             	listClaims.put(chunk,claim);
             	
-            	// Remove bossbar and maps
-                if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(chunk, claim.getName(), claim.getOwner());
-                if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createChunkZone(chunk, claim.getName(), claim.getOwner());
-                if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createChunkZone(chunk, claim.getName(), claim.getOwner());
+            	// Add bossbar and maps
+                if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(Set.of(chunk), claim.getName(), claim.getOwner());
+                if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createChunkZone(Set.of(chunk), claim.getName(), claim.getOwner());
+                if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createChunkZone(Set.of(chunk), claim.getName(), claim.getOwner());
             	instance.executeSync(() -> instance.getBossBars().activateBossBar(Set.of(chunk)));
             	
 	            List<Integer> X = new ArrayList<>();
@@ -3701,9 +3698,9 @@ public class ClaimMain {
 	                    Z.add(c.getZ());
 	                    listClaims.put(c, claim1);
 	                });
-	                if (instance.getSettings().getBooleanSetting("dynmap")) chunks.parallelStream().forEach(c -> instance.getDynmap().updateName(c));
-	                if (instance.getSettings().getBooleanSetting("bluemap")) chunks.parallelStream().forEach(c -> instance.getBluemap().updateName(c));
-	                if (instance.getSettings().getBooleanSetting("pl3xmap")) chunks.parallelStream().forEach(c -> instance.getPl3xMap().updateName(c));
+	                if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(chunks,claim1);
+	                if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(chunks,claim1);
+	                if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(chunks,claim1);
 	            });
 	            
 	            // Remove 1 claim from player claims count
@@ -3801,9 +3798,9 @@ public class ClaimMain {
 	                    Z.add(c.getZ());
 	                    listClaims.put(c, claim1);
 	                });
-	                if (instance.getSettings().getBooleanSetting("dynmap")) chunks.parallelStream().forEach(c -> instance.getDynmap().updateName(c));
-	                if (instance.getSettings().getBooleanSetting("bluemap")) chunks.parallelStream().forEach(c -> instance.getBluemap().updateName(c));
-	                if (instance.getSettings().getBooleanSetting("pl3xmap")) chunks.parallelStream().forEach(c -> instance.getPl3xMap().updateName(c));
+	                if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(chunks,claim1);
+	                if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(chunks,claim1);
+	                if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(chunks,claim1);
 	            });
 	            
 	            // Remove claim2 from player's claims
@@ -4323,50 +4320,20 @@ public class ClaimMain {
      * @param result the new weather state
      */
     public void updateWeatherChunk(Set<Chunk> chunks, boolean result) {
-    	if(instance.isFolia()) {
-            if (result) {
-        		chunks.parallelStream().forEach(chunk -> {
-        			Bukkit.getRegionScheduler().run(instance.getPlugin(), chunk.getWorld(), chunk.getX(), chunk.getZ(), task -> {
-                        for (Entity e : chunk.getEntities()) {
-                            if (e instanceof Player) {
-                                Player p = (Player) e;
-                                p.resetPlayerWeather();
-                            }
-                        }
-        			});
-        		});
-            } else {
-        		chunks.parallelStream().forEach(chunk -> {
-        			Bukkit.getRegionScheduler().run(instance.getPlugin(), chunk.getWorld(), chunk.getX(), chunk.getZ(), task -> {
-                        for (Entity e : chunk.getEntities()) {
-                            if (e instanceof Player) {
-                                Player p = (Player) e;
-                                p.setPlayerWeather(WeatherType.CLEAR);
-                            }
-                        }
-        			});
-        		});
-            }
+    	if(result) {
+    		Bukkit.getOnlinePlayers().parallelStream().forEach(p -> {
+    			Chunk c = p.getLocation().getChunk();
+    			if(chunks.contains(c)) {
+    				p.resetPlayerWeather();
+    			}
+    		});
     	} else {
-            if (result) {
-        		chunks.parallelStream().forEach(chunk -> {
-                    for (Entity e : chunk.getEntities()) {
-                        if (e instanceof Player) {
-                            Player p = (Player) e;
-                            p.resetPlayerWeather();
-                        }
-                    }
-        		});
-            } else {
-        		chunks.parallelStream().forEach(chunk -> {
-                    for (Entity e : chunk.getEntities()) {
-                        if (e instanceof Player) {
-                            Player p = (Player) e;
-                            p.setPlayerWeather(WeatherType.CLEAR);
-                        }
-                    }
-        		});
-            }
+    		Bukkit.getOnlinePlayers().parallelStream().forEach(p -> {
+    			Chunk c = p.getLocation().getChunk();
+    			if(chunks.contains(c)) {
+    				p.setPlayerWeather(WeatherType.CLEAR);
+    			}
+    		});
     	}
     }
 
@@ -4377,62 +4344,26 @@ public class ClaimMain {
      * @param result the new fly state
      */
     public void updateFlyChunk(Set<Chunk> chunks, boolean result) {
-    	if(instance.isFolia()) {
-            if (result) {
-        		chunks.parallelStream().forEach(chunk -> {
-        			Bukkit.getRegionScheduler().run(instance.getPlugin(), chunk.getWorld(), chunk.getX(), chunk.getZ(), task -> {
-                        for (Entity e : chunk.getEntities()) {
-                            if (e instanceof Player) {
-                                Player p = (Player) e;
-                                CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getName());
-                                if (cPlayer.getClaimAutofly()) {
-                                    instance.getPlayerMain().activePlayerFly(p);
-                                }
-                            }
-                        }
-        			});
-        		});
-            } else {
-        		chunks.parallelStream().forEach(chunk -> {
-        			Bukkit.getRegionScheduler().run(instance.getPlugin(), chunk.getWorld(), chunk.getX(), chunk.getZ(), task -> {
-                        for (Entity e : chunk.getEntities()) {
-                            if (e instanceof Player) {
-                                Player p = (Player) e;
-                                CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getName());
-                                if (cPlayer.getClaimFly()) {
-                                    instance.getPlayerMain().removePlayerFly(p);
-                                }
-                            }
-                        }
-        			});
-        		});
-            }
+    	if(result) {
+        	Bukkit.getOnlinePlayers().parallelStream().forEach(p -> {
+    			Chunk c = p.getLocation().getChunk();
+    			if(chunks.contains(c)) {
+                    CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getName());
+                    if (cPlayer.getClaimAutofly()) {
+                        instance.getPlayerMain().activePlayerFly(p);
+                    }
+    			}
+        	});
     	} else {
-            if (result) {
-        		chunks.parallelStream().forEach(chunk -> {
-                    for (Entity e : chunk.getEntities()) {
-                        if (e instanceof Player) {
-                            Player p = (Player) e;
-                            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getName());
-                            if (cPlayer.getClaimAutofly()) {
-                                instance.getPlayerMain().activePlayerFly(p);
-                            }
-                        }
+        	Bukkit.getOnlinePlayers().parallelStream().forEach(p -> {
+    			Chunk c = p.getLocation().getChunk();
+    			if(chunks.contains(c)) {
+                    CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getName());
+                    if (cPlayer.getClaimFly()) {
+                        instance.getPlayerMain().removePlayerFly(p);
                     }
-        		});
-            } else {
-        		chunks.parallelStream().forEach(chunk -> {
-                    for (Entity e : chunk.getEntities()) {
-                        if (e instanceof Player) {
-                            Player p = (Player) e;
-                            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getName());
-                            if (cPlayer.getClaimFly()) {
-                                instance.getPlayerMain().removePlayerFly(p);
-                            }
-                        }
-                    }
-        		});
-            }
+    			}
+        	});
     	}
     }
     

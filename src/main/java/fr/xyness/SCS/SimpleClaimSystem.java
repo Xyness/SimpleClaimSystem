@@ -105,7 +105,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private JavaPlugin plugin;
     
     /** The version of the plugin */
-    private String Version = "1.10";
+    private String Version = "1.10.0.1";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -363,7 +363,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             configH.setMaxLifetime(600000);
             dataSource = new HikariDataSource(configH);
             try (Connection connection = dataSource.getConnection()) {
-                info("Database connection successful");
+                info("Database connection successful.");
                 try (Statement stmt = connection.createStatement()) {
                     String sql = "CREATE TABLE IF NOT EXISTS scs_claims " +
                             "(id_pk INT AUTO_INCREMENT PRIMARY KEY, " +
@@ -372,8 +372,8 @@ public class SimpleClaimSystem extends JavaPlugin {
                             "name VARCHAR(36), " +
                             "claim_name VARCHAR(255), " +
                             "claim_description VARCHAR(255), " +
-                            "X INT, " +
-                            "Z INT, " +
+                            "X VARCHAR(1020), " +
+                            "Z VARCHAR(1020), " +
                             "World VARCHAR(255), " +
                             "Location VARCHAR(255), " +
                             "Members VARCHAR(1020), " +
@@ -383,6 +383,8 @@ public class SimpleClaimSystem extends JavaPlugin {
                             "Bans VARCHAR(1020) DEFAULT '')";
                     stmt.executeUpdate(sql);
                     sql = "ALTER TABLE scs_claims MODIFY COLUMN SalePrice DOUBLE;";
+                    stmt.executeUpdate(sql);
+                    sql = "ALTER TABLE scs_claims MODIFY COLUMN X VARCHAR(1020), MODIFY COLUMN Z VARCHAR(1020);";
                     stmt.executeUpdate(sql);
                     String checkColumnSQL = String.format(
                             "SELECT COUNT(*) AS column_count FROM information_schema.columns " +
@@ -423,8 +425,8 @@ public class SimpleClaimSystem extends JavaPlugin {
                             "name VARCHAR(36), " +
                             "claim_name VARCHAR(255), " +
                             "claim_description VARCHAR(255), " +
-                            "X INT, " +
-                            "Z INT, " +
+                            "X VARCHAR(1020), " +
+                            "Z VARCHAR(1020), " +
                             "World VARCHAR(255), " +
                             "Location VARCHAR(255), " +
                             "Members VARCHAR(1020), " +

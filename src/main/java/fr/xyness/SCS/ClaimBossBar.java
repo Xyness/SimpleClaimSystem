@@ -178,23 +178,12 @@ public class ClaimBossBar {
      */
     public void activateBossBar(Set<Chunk> chunks) {
     	if (!instance.getSettings().getBooleanSetting("bossbar")) return;
-        if (instance.isFolia()) {
-        	chunks.parallelStream().forEach(chunk -> Bukkit.getRegionScheduler().run(instance.getPlugin(), chunk.getWorld(), chunk.getX(), chunk.getZ(), task -> {
-                for (Entity entity : chunk.getEntities()) {
-                    if (entity instanceof Player) {
-                        instance.getBossBars().activeBossBar((Player) entity, chunk);
-                    }
-                }
-        	}));
-        } else {
-        	chunks.parallelStream().forEach(chunk -> {
-                for (Entity entity : chunk.getEntities()) {
-                    if (entity instanceof Player) {
-                        instance.getBossBars().activeBossBar((Player) entity, chunk);
-                    }
-                }
-        	});
-        }
+        Bukkit.getOnlinePlayers().parallelStream().forEach(p -> {
+        	Chunk c = p.getLocation().getChunk();
+        	if(chunks.contains(c)) {
+        		activeBossBar(p,c);
+        	}
+        });
     }
     
     /**
@@ -204,22 +193,11 @@ public class ClaimBossBar {
      */
     public void deactivateBossBar(Set<Chunk> chunks) {
     	if (!instance.getSettings().getBooleanSetting("bossbar")) return;
-        if (instance.isFolia()) {
-        	chunks.parallelStream().forEach(chunk -> Bukkit.getRegionScheduler().run(instance.getPlugin(), chunk.getWorld(), chunk.getX(), chunk.getZ(), task -> {
-                for (Entity entity : chunk.getEntities()) {
-                    if (entity instanceof Player) {
-                        instance.getBossBars().disableBossBar((Player) entity);
-                    }
-                }
-        	}));
-        } else {
-        	chunks.parallelStream().forEach(chunk -> {
-                for (Entity entity : chunk.getEntities()) {
-                    if (entity instanceof Player) {
-                        instance.getBossBars().disableBossBar((Player) entity);
-                    }
-                }
-        	});
-        }
+        Bukkit.getOnlinePlayers().parallelStream().forEach(p -> {
+        	Chunk c = p.getLocation().getChunk();
+        	if(chunks.contains(c)) {
+        		disableBossBar(p);
+        	}
+        });
     }
 }
