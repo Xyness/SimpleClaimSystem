@@ -1,0 +1,24 @@
+name: SimpleClaimSystem
+version: 1.10
+main: fr.xyness.SCS.SimpleClaimSystem
+authors: [Xyness]
+softdepend: [PlaceholderAPI, ItemsAdder, WorldGuard, Vault, dynmap, bluemap, pl3xmap]
+api-version: 1.18
+folia-supported: true
+commands:
+  claim:
+    description: Basic claim command
+    permission: scs.command.claim
+  claims:
+    description: All claims
+    permission: scs.command.claims
+  unclaim:
+    description: Unclaim your territory
+    permission: scs.command.unclaim
+  scs:
+    description: Admin commands
+    permission: scs.admin
+  protectedarea:
+    aliases: [parea,pa]
+    description: Protected areas commands
+    permission: scs.admin

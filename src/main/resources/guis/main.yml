@@ -1,0 +1,75 @@
+# ****************************
+# *  GUI settings : members  *
+# ****************************
+
+# PlaceholderAPI support for gui title and custom items titles/lores
+# ItemsAdder support for material and custom_model_data
+# Make sure the slot is between 0 and (rows-count * 9)
+# Materials : https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+# Don't forget to enable custom_model_data if you're using it
+
+gui-title: "%name%"
+rows: 6
+
+# This is the interval of slots in which the members of a claim will be displayed
+# list-end-slot must be > list-start-slot
+list-start-slot: 0
+list-end-slot: 44
+
+custom_items: {}
+  # example_item:
+    # title: "§aThis is an example item!"
+    # lore: "§fline 1\n§byou can put differents lines!\n§dline 3\n§cDisable this item in guis/members.yml"
+    # slot: 45
+    # material: DIAMOND_SWORD
+    # custom_model_data: false
+    # custom_model_data_value: 0
+    # action: "RIGHT:CMD:CONSOLE:say i clicked on the example item!"
+
+items:
+
+  # /!\ DON'T CHANGE NAME OF ITEMS (like "player-info")
+
+  claim-info:
+    slot: 13
+    material: PAINTING
+    custom_model_data: false
+    custom_model_data_value: 0
+    
+  manage-bans:
+    slot: 20
+    material: LECTERN
+    custom_model_data: false
+    custom_model_data_value: 0
+    
+  manage-settings:
+    slot: 29
+    material: REPEATER
+    custom_model_data: false
+    custom_model_data_value: 0
+
+  manage-members:
+    slot: 30
+    material: TOTEM_OF_UNDYING
+    custom_model_data: false
+    custom_model_data_value: 0
+
+  manage-chunks:
+    slot: 32
+    material: RED_MUSHROOM_BLOCK
+    custom_model_data: false
+    custom_model_data_value: 0
+    
+  teleport-claim:
+    slot: 33
+    material: ENDER_PEARL
+    custom_model_data: false
+    custom_model_data_value: 0
+    
+  unclaim:
+    slot: 24
+    material: RED_CONCRETE
+    custom_model_data: false
+    custom_model_data_value: 0
+    
+  
