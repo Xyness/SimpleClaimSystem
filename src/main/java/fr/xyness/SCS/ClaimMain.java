@@ -1297,7 +1297,7 @@ public class ClaimMain {
     private boolean insertClaimIntoDatabase(int id, String uuid, String playerName, String claimName, String description, Chunk chunk, String locationString) {
         try (Connection connection = instance.getDataSource().getConnection();
              PreparedStatement stmt = connection.prepareStatement(
-                     "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                     "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions, Bans) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
             stmt.setInt(1, id);
         	stmt.setString(2, uuid);
             stmt.setString(3, playerName);
@@ -1309,6 +1309,7 @@ public class ClaimMain {
             stmt.setString(9, locationString);
             stmt.setString(10, playerName.equals("admin") ? "" : playerName);
             stmt.setString(11, instance.getSettings().getDefaultValuesCode());
+            stmt.setString(12, "");
             stmt.executeUpdate();
             return true;
         } catch (SQLException e) {
@@ -1413,7 +1414,7 @@ public class ClaimMain {
 	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection();
 	                 PreparedStatement stmt = connection.prepareStatement(
-	                         "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+	                         "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions, Bans) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 	                stmt.setInt(1, id);
 	                stmt.setString(2, uuid);
 	                stmt.setString(3, playerName);
@@ -1425,6 +1426,7 @@ public class ClaimMain {
 	                stmt.setString(9, locationString);
 	                stmt.setString(10, playerName.equals("admin") ? "" : playerName);
 	                stmt.setString(11, instance.getSettings().getDefaultValuesCode());
+	                stmt.setString(12, "");
 	                stmt.executeUpdate();
 	                return true;
 	            } catch (SQLException e) {
@@ -1522,7 +1524,7 @@ public class ClaimMain {
 		        // Update database
 	            try (Connection connection = instance.getDataSource().getConnection();
 	                    PreparedStatement stmt = connection.prepareStatement(
-	                            "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+	                            "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions, Bans) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 	                   stmt.setInt(1, id);
 	            	   stmt.setString(2, "aucun");
 	                   stmt.setString(3, "admin");
@@ -1534,6 +1536,7 @@ public class ClaimMain {
 	                   stmt.setString(9, locationString);
 	                   stmt.setString(10, playerName.equals("admin") ? "" : playerName);
 	                   stmt.setString(11, instance.getSettings().getDefaultValuesCode());
+	                   stmt.setString(12, "");
 	                   stmt.executeUpdate();
 	                   return true;
 	               } catch (SQLException e) {
@@ -1939,10 +1942,10 @@ public class ClaimMain {
 	                String updateQuery = "UPDATE scs_claims SET Bans = ?, Members = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                    preparedStatement.setString(1, banString);
-	                    preparedStatement.setString(1, memberString);
-	                    preparedStatement.setString(2, player.getUniqueId().toString());
-	                    preparedStatement.setString(3, playerName);
-	                    preparedStatement.setString(4, claimName);
+	                    preparedStatement.setString(2, memberString);
+	                    preparedStatement.setString(3, player.getUniqueId().toString());
+	                    preparedStatement.setString(4, playerName);
+	                    preparedStatement.setString(5, claimName);
 	                    preparedStatement.executeUpdate();
 	                }
 	                return true;
