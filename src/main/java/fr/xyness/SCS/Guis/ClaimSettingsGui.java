@@ -152,7 +152,7 @@ public class ClaimSettingsGui implements InventoryHolder {
      * @return True if the player has the permission, otherwise false.
      */
     public boolean checkPermPerm(Player player, String perm) {
-    	return instance.getPlayerMain().checkPermPlayer(player, "scs.setting."+perm);
+    	return instance.getPlayerMain().checkPermPlayer(player, "scs.setting."+perm) || player.hasPermission("scs.setting.*");
     }
     
     /**
