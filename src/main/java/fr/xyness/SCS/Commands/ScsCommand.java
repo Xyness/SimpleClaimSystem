@@ -165,6 +165,14 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     		}
     		return;
     	}
+    	if(args[0].equalsIgnoreCase("import-griefprevention")) {
+    		if(!instance.getSettings().getBooleanSetting("griefprevention")) {
+    			sender.sendMessage(instance.getLanguage().getMessage("griefprevention-needed"));
+    			return;
+    		}
+    		instance.getMain().importFromGriefPrevention(sender);
+    		return;
+    	}
     	if(args[0].equalsIgnoreCase("transfer")) {
     		if(!instance.getSettings().getBooleanSetting("database")) {
     			sender.sendMessage(instance.getLanguage().getMessage("not-using-database"));
@@ -1650,7 +1658,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 "remove-blocked-interact-block", "remove-blocked-item", "remove-blocked-entity", "add-disabled-world", "remove-disabled-world", "set-status-setting", 
                 "set-default-value", "set-max-length-claim-description", "set-max-length-claim-name", "set-claims-visitors-off-visible", "set-claim-cost", 
                 "set-claim-cost-multiplier", "set-chat", "set-protection-message", "set-claim-fly-message-auto-fly", "set-claim-fly-disabled-on-damage",
-                "reset-all-player-claims-settings", "reset-all-admin-claims-settings","admin", "set-keep-chunks-loaded", "set-preload-chunks");
+                "reset-all-player-claims-settings", "reset-all-admin-claims-settings","admin", "set-keep-chunks-loaded", "set-preload-chunks","import-griefprevention");
     }
 
     /**

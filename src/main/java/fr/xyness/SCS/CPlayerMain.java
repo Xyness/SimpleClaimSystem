@@ -1,35 +1,26 @@
 package fr.xyness.SCS;
 
 import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
-import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
-
-import fr.xyness.SCS.Config.ClaimSettings;
-import fr.xyness.SCS.Guis.AdminGestion.AdminGestionMainGui;
 
 /**
  * This class handles CPlayer management and methods
@@ -49,10 +40,10 @@ public class CPlayerMain {
     private Map<String, Map<String, Double>> playersConfigSettings = new HashMap<>();
     
     /** Set of offline players */
-    private Map<String,OfflinePlayer> offlinePlayers = new HashMap<>();
+    private ConcurrentHashMap<String,OfflinePlayer> offlinePlayers = new ConcurrentHashMap<>();
     
     /** Set of ItemStacks for players head */
-    private Map<OfflinePlayer,ItemStack> playersHead = new HashMap<>();
+    private ConcurrentHashMap<OfflinePlayer,ItemStack> playersHead = new ConcurrentHashMap<>();
     
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
@@ -100,60 +91,45 @@ public class CPlayerMain {
      * @return The OfflinePlayer object.
      */
     public OfflinePlayer getOfflinePlayer(String playerName) {
-    	return offlinePlayers.get(playerName);
+        return offlinePlayers.computeIfAbsent(playerName, Bukkit::getOfflinePlayer);
     }
-    
+
     /**
-     * Load all offline players.
+     * Load owner player.
      */
-    public void loadOfflinePlayers() {
-    	instance.executeAsync(() -> {
-	        Arrays.asList(Bukkit.getOfflinePlayers()).forEach(p -> {
-	            offlinePlayers.put(p.getName(), p);
-	            String uuid = getUUIDFromMojang(p.getName());
-	            if (uuid != null) {
-	                String texture = getTextureFromMineskin(uuid);
-	                if (texture != null) {
-	                    ItemStack head = createPlayerHeadWithTexture(texture,p);
-	                    playersHead.put(p, head);
-	                } else {
-	    	        	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-	    	        	playersHead.put(p, head);
-	                }
-	            } else {
-		        	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-		        	playersHead.put(p, head);
-	            }
-	        });
-    	});
+    public void loadOwner(String owner) {
+        instance.executeAsync(() -> {
+            if (!offlinePlayers.containsKey(owner)) {
+                OfflinePlayer p = Bukkit.getOfflinePlayer(owner);
+                offlinePlayers.put(owner, p);
+                String uuid = getUUIDFromMojang(owner);
+                if (uuid != null) {
+                    ItemStack head = createPlayerHeadWithTexture(uuid);
+                    playersHead.put(p, head);
+                } else {
+                    playersHead.put(p, new ItemStack(Material.PLAYER_HEAD));
+                }
+            }
+        });
     }
-    
+
     /**
-     * Refresh the player head
-     * 
-     * @param player The target player
+     * Refresh the player head.
+     *
+     * @param player The target player.
      */
     public void refreshPlayerHead(Player player) {
-    	instance.executeAsync(() -> {
-        	String playerName = player.getName();
-        	if(!offlinePlayers.containsKey(playerName)) {
-        		offlinePlayers.put(playerName, (OfflinePlayer) player);
-        	}
-        	String uuid = getUUIDFromMojang(playerName);
+        instance.executeAsync(() -> {
+            String playerName = player.getName();
+            OfflinePlayer offlinePlayer = getOfflinePlayer(playerName);
+            String uuid = getUUIDFromMojang(playerName);
             if (uuid != null) {
-                String texture = getTextureFromMineskin(uuid);
-                if (texture != null) {
-                    ItemStack head = createPlayerHeadWithTexture(texture,player);
-                    playersHead.put(player, head);
-                } else {
-    	        	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-    	        	playersHead.put(player, head);
-                }
+                ItemStack head = createPlayerHeadWithTexture(uuid);
+                playersHead.put(offlinePlayer, head);
             } else {
-            	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-            	playersHead.put(player, head);
+                playersHead.put(offlinePlayer, new ItemStack(Material.PLAYER_HEAD));
             }
-    	});
+        });
     }
 
     /**
@@ -163,87 +139,87 @@ public class CPlayerMain {
      * @return The ItemStack representing the player's head.
      */
     public ItemStack getPlayerHead(OfflinePlayer player) {
-        if (playersHead.containsKey(player)) {
-            return playersHead.get(player);
-        }
-        String uuid = getUUIDFromMojang(player.getName());
-        if (uuid != null) {
-	        String texture = getTextureFromMineskin(uuid);
-	        if (texture != null) {
-	            ItemStack head = createPlayerHeadWithTexture(texture,player);
-	            playersHead.put(player, head);
-	            return head;
-	        } else {
-	        	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-	        	playersHead.put(player, head);
-	            return head;
-	        }
-        } else {
-        	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
-        	playersHead.put(player, head);
-            return head;
-        }
-    }
-
-    /**
-     * Retrieves the texture value from Mineskin using the player's UUID.
-     *
-     * @param uuid The UUID of the player.
-     * @return The texture value as a string, or null if an error occurs.
-     */
-    private String getTextureFromMineskin(String uuid) {
-        try {
-            URL url = new URL(MINESKIN_API_URL + uuid);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("GET");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setDoOutput(true);
-
-            if (connection.getResponseCode() == 200) {
-                try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
-                    JsonObject responseJson = JsonParser.parseReader(reader).getAsJsonObject();
-                    JsonObject data = responseJson.getAsJsonObject("data");
-                    if (data != null) {
-                        JsonObject texture = data.getAsJsonObject("texture");
-                        if (texture != null) {
-                            return texture.get("value").getAsString();
-                        }
-                    }
-                }
+        return playersHead.computeIfAbsent(player, p -> {
+            String uuid = getUUIDFromMojang(player.getName());
+            if (uuid != null) {
+            	return createPlayerHeadWithTexture(uuid);
             }
-        } catch (Exception e) {
-            return null;
+            return new ItemStack(Material.PLAYER_HEAD);
+        });
+    }
+    
+    /**
+     * Adds dashes to a UUID string if they are missing.
+     *
+     * @param uuid The UUID string without dashes.
+     * @return The UUID string with dashes.
+     */
+    private String addDashesToUUID(String uuid) {
+        if (uuid.length() == 32) {
+            return uuid.replaceFirst(
+                    "([0-9a-fA-F]{8})([0-9a-fA-F]{4})([0-9a-fA-F]{4})([0-9a-fA-F]{4})([0-9a-fA-F]{12})",
+                    "$1-$2-$3-$4-$5"
+            );
         }
-        return null;
+        return uuid;
     }
 
     /**
      * Creates an ItemStack of a player head with the specified texture.
      *
-     * @param texture The texture value to apply to the player head.
-     * @param player The OfflinePlayer for whom the head is being created.
+     * @param uuid The UUID of the player.
      * @return An ItemStack representing the player's head with the applied texture.
      */
-    private ItemStack createPlayerHeadWithTexture(String texture, OfflinePlayer player) {
+    public ItemStack createPlayerHeadWithTexture(String uuid) {
         ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1);
         SkullMeta meta = (SkullMeta) head.getItemMeta();
 
-        if (meta != null && texture != null) {
-            GameProfile profile = new GameProfile(UUID.randomUUID(), player.getName());
-            profile.getProperties().put("textures", new Property("textures", texture));
-
-            try {
-                Field profileField = meta.getClass().getDeclaredField("profile");
-                profileField.setAccessible(true);
-                profileField.set(meta, profile);
-            } catch (NoSuchFieldException | IllegalAccessException e) {
-                e.printStackTrace();
+        if (meta != null && uuid != null && !uuid.isBlank()) {
+            PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString(uuid));
+            String skinUrl = getSkinUrl(uuid);
+            if(skinUrl != null) {
+                try {
+                    URL url = new URL(skinUrl);
+                    PlayerTextures textures = profile.getTextures();
+                    textures.setSkin(url);
+                    profile.setTextures(textures);
+                    meta.setOwnerProfile(profile);
+                    head.setItemMeta(meta);
+                } catch (MalformedURLException e) {
+                    return head;
+                }
             }
-
-            head.setItemMeta(meta);
         }
-
         return head;
+    }
+    
+    /**
+     * Retrieves the URL of a Minecraft player's skin texture from Mineskin using the player's UUID.
+     *
+     * @param uuid The UUID of the player whose skin texture URL is to be retrieved.
+     * @return A string representing the URL of the player's skin texture, or null if an error occurs or the texture is not found.
+     */
+    public String getSkinUrl(String uuid) {
+        try {
+            URL url = new URL(MINESKIN_API_URL + uuid);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            if (connection.getResponseCode() == 200) {
+                InputStreamReader reader = new InputStreamReader(connection.getInputStream());
+                JsonObject responseJson = JsonParser.parseReader(reader).getAsJsonObject();
+                JsonObject data = responseJson.getAsJsonObject("data");
+                if (data != null) {
+                    JsonObject texture = data.getAsJsonObject("texture");
+                    if (texture != null) {
+                        return texture.get("url").getAsString();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     /**
@@ -261,7 +237,7 @@ public class CPlayerMain {
             if (connection.getResponseCode() == 200) {
                 try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
                     JsonObject responseJson = JsonParser.parseReader(reader).getAsJsonObject();
-                    return responseJson.get("id").getAsString();
+                    return addDashesToUUID(responseJson.get("id").getAsString());
                 }
             }
         } catch (Exception e) {
@@ -269,7 +245,6 @@ public class CPlayerMain {
         }
         return null;
     }
-
     
     /**
      * Removes the CPlayer instance associated with the given player name.

@@ -246,6 +246,7 @@ player-does-not-exist: "§cThe player '%player%' does not exist."
 you-can-not-delete-default-group: "§cYou can not delete the default group."
 chunk-are-loading: "§fCalculation and loading of §b%chunks-count% chunks§f.."
 chunk-while-loading: "§fChunks loaded: §a%loaded-chunks%§2/%chunks-count%§f."
+griefprevention-needed: "§cYou need GriefPrevention to import claims from this plugin."
 
 
 # > Deny messages

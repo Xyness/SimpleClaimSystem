@@ -105,7 +105,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private JavaPlugin plugin;
     
     /** The version of the plugin */
-    private String Version = "1.10-BETA";
+    private String Version = "1.10";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -222,6 +222,13 @@ public class SimpleClaimSystem extends JavaPlugin {
         updateConfigWithDefaults();
         // Check Folia
         checkFolia();
+        
+        // Check GriefPrevention
+        if (Bukkit.getPluginManager().getPlugin("GriefPrevention") != null) {
+            claimSettingsInstance.addSetting("griefprevention", "true");
+        } else {
+            claimSettingsInstance.addSetting("griefprevention", "false");
+        }
         
         // Check PlaceholderAPI
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
@@ -477,9 +484,9 @@ public class SimpleClaimSystem extends JavaPlugin {
         } else {
         	claimSettingsInstance.addSetting("dynmap", "false");
         }
-        claimSettingsInstance.addSetting("dynmap-settings.claim-border-color", plugin.getConfig().getString("dynmap-claim-border-color"));
-        claimSettingsInstance.addSetting("dynmap-settings.claim-fill-color", plugin.getConfig().getString("dynmap-claim-fill-color"));
-        claimSettingsInstance.addSetting("dynmap-settings.claim-hover-text", plugin.getConfig().getString("dynmap-claim-hover-text"));
+        claimSettingsInstance.addSetting("dynmap-claim-border-color", plugin.getConfig().getString("dynmap-settings.claim-border-color"));
+        claimSettingsInstance.addSetting("dynmap-claim-fill-color", plugin.getConfig().getString("dynmap-settings.claim-fill-color"));
+        claimSettingsInstance.addSetting("dynmap-claim-hover-text", plugin.getConfig().getString("dynmap-settings.claim-hover-text"));
         
         // Add Bluemap settings
         configC = plugin.getConfig().getString("bluemap");
@@ -491,9 +498,9 @@ public class SimpleClaimSystem extends JavaPlugin {
         } else {
         	claimSettingsInstance.addSetting("bluemap", "false");
         }
-        claimSettingsInstance.addSetting("bluemap-settings.claim-border-color", plugin.getConfig().getString("bluemap-claim-border-color"));
-        claimSettingsInstance.addSetting("bluemap-settings.claim-fill-color", plugin.getConfig().getString("bluemap-claim-fill-color"));
-        claimSettingsInstance.addSetting("bluemap-settings.claim-hover-text", plugin.getConfig().getString("bluemap-claim-hover-text"));
+        claimSettingsInstance.addSetting("bluemap-claim-border-color", plugin.getConfig().getString("bluemap-settings.claim-border-color"));
+        claimSettingsInstance.addSetting("bluemap-claim-fill-color", plugin.getConfig().getString("bluemap-settings.claim-fill-color"));
+        claimSettingsInstance.addSetting("bluemap-claim-hover-text", plugin.getConfig().getString("bluemap-settings.claim-hover-text"));
         
         // Add Pl3xmap settings
         configC = plugin.getConfig().getString("pl3xmap");
@@ -502,9 +509,9 @@ public class SimpleClaimSystem extends JavaPlugin {
         } else {
         	claimSettingsInstance.addSetting("pl3xmap", "false");
         }
-        claimSettingsInstance.addSetting("pl3xmap-settings.claim-border-color", plugin.getConfig().getString("pl3xmap-claim-border-color"));
-        claimSettingsInstance.addSetting("pl3xmap-settings.claim-fill-color", plugin.getConfig().getString("pl3xmap-claim-fill-color"));
-        claimSettingsInstance.addSetting("pl3xmap-settings.claim-hover-text", plugin.getConfig().getString("pl3xmap-claim-hover-text"));
+        claimSettingsInstance.addSetting("pl3xmap-claim-border-color", plugin.getConfig().getString("pl3xmap-settings.claim-border-color"));
+        claimSettingsInstance.addSetting("pl3xmap-claim-fill-color", plugin.getConfig().getString("pl3xmap-settings.claim-fill-color"));
+        claimSettingsInstance.addSetting("pl3xmap-claim-hover-text", plugin.getConfig().getString("pl3xmap-settings.claim-hover-text"));
         
         // Add the message type for protection
         configC = plugin.getConfig().getString("protection-message");
@@ -672,9 +679,6 @@ public class SimpleClaimSystem extends JavaPlugin {
 
         // Load claims system
         claimInstance.loadClaims();
-        
-        // Load offline players
-        cPlayerMainInstance.loadOfflinePlayers();
         
         // Add players setting and active their bossbar (/reload prevention)
         Bukkit.getOnlinePlayers().forEach(p -> {
@@ -932,7 +936,6 @@ public class SimpleClaimSystem extends JavaPlugin {
                     isUpdateAvailable = true;
                     return "Update available : "+response;
                 } else {
-                    info("You are using the latest version : " + response);
                     isUpdateAvailable = false;
                     return "You are using the latest version";
                 }

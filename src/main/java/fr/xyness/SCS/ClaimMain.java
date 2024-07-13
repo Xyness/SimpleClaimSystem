@@ -32,6 +32,7 @@ import com.zaxxer.hikari.HikariDataSource;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionMainGui;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
@@ -728,6 +729,107 @@ public class ClaimMain {
                 .max()
                 .orElse(-1) + 1;
     }
+    
+    /**
+     * Gets the location of the center of the chunk with the Y-coordinate at the maximum height.
+     *
+     * @param chunk The chunk for which the center location is to be calculated.
+     * @return The location at the center of the chunk with the Y-coordinate at the maximum height.
+     */
+    public static Location getCenterLocationOfChunk(Chunk chunk) {
+        World world = chunk.getWorld();
+        int centerX = (chunk.getX() << 4) + 8;
+        int centerZ = (chunk.getZ() << 4) + 8;
+        int maxY = world.getHighestBlockYAt(centerX, centerZ);
+        return new Location(world, centerX, maxY, centerZ);
+    }
+    
+    /**
+     * Imports the claims from GriefPrevention
+     */
+    public void importFromGriefPrevention(CommandSender sender) {
+    	instance.executeAsync(() -> {
+    		int[] i = {0};
+    		for (me.ryanhamshire.GriefPrevention.Claim claim : GriefPrevention.instance.dataStore.getClaims()) {
+        		// Get data of the claim
+        		Set<Chunk> chunks = new HashSet<>(claim.getChunks());
+        		String owner = claim.getOwnerName();
+        		String uuid = claim.getOwnerID().toString();
+        		int id = findFreeId(owner);
+        		String claim_name = "claim-"+ String.valueOf(id);
+        		
+        		// Check if the chunks are in the same world, even skip
+        		if(!instance.getMain().areChunksInSameWorld(chunks)) continue;
+
+        		// Check if one of the chunk is not already taken by an other claim, even skip
+        		boolean check = false;
+        		Chunk last_chunk = null;
+        		for(Chunk c : chunks) {
+        			last_chunk = c;
+        			if(listClaims.containsKey(c)) {
+        				check = true;
+        			}
+        		}
+        		if(check) continue;
+        		
+        		// Check if the selected chunk is not null, even get chunk data
+        		if(last_chunk == null);
+        		Location loc = getCenterLocationOfChunk(last_chunk);
+        		String world = last_chunk.getWorld().getName();
+        		
+        		// Create X and Z list for chunks
+                List<Integer> X = new ArrayList<>();
+                List<Integer> Z = new ArrayList<>();
+                
+                chunks.forEach(c -> {
+                    X.add(c.getX());
+                    Z.add(c.getZ());
+                });
+
+                // Build X and Z strings
+                StringBuilder sbX = new StringBuilder();
+                for (Integer x : X) {
+                    sbX.append(x).append(";");
+                }
+                if (sbX.length() > 0) {
+                    sbX.setLength(sbX.length() - 1);
+                }
+                
+                StringBuilder sbZ = new StringBuilder();
+                for (Integer z : Z) {
+                    sbZ.append(z).append(";");
+                }
+                if (sbZ.length() > 0) {
+                    sbZ.setLength(sbZ.length() - 1);
+                }
+                
+                // Update database
+                try (Connection connection = instance.getDataSource().getConnection();
+                        PreparedStatement stmt = connection.prepareStatement(
+                                "INSERT INTO scs_claims (id, uuid, name, claim_name, claim_description, X, Z, World, Location, Members, Permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                       stmt.setInt(1, id);
+                   	stmt.setString(2, uuid);
+                       stmt.setString(3, owner);
+                       stmt.setString(4, claim_name);
+                       stmt.setString(5, instance.getLanguage().getMessage("default-description"));
+                       stmt.setString(6, sbX.toString());
+                       stmt.setString(7, sbZ.toString());
+                       stmt.setString(8, world);
+                       stmt.setString(9, getLocationString(loc));
+                       stmt.setString(10, owner);
+                       stmt.setString(11, instance.getSettings().getDefaultValuesCode());
+                       stmt.executeUpdate();
+                       i[0]++;
+                   } catch (SQLException e) {
+                       e.printStackTrace();
+                   }
+        	}
+    		instance.executeSync(() -> {
+    			sender.sendMessage(AdminGestionMainGui.getNumberSeparate(String.valueOf(i[0]))+" imported claims, reloading..");
+    			Bukkit.dispatchCommand(sender, "scs reload");
+    		});
+    	});
+    }
 
     /**
      * Transfers local claims database to a distant database.
@@ -919,6 +1021,8 @@ public class ClaimMain {
                         i[0]++;
                         chunks_count[0] += X.size();
                         Set<Chunk> chunks = ConcurrentHashMap.newKeySet();
+                        
+                        instance.getPlayerMain().loadOwner(owner);
                         
                         Runnable task = () -> {
                             Claim claim = new Claim(chunks, owner, members, location, name, description, perms, sale, price, bans, id);
