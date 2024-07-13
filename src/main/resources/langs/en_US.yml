@@ -35,6 +35,7 @@ create-protected-area-radius-success: "§aYou have created protected area §b(%n
 create-claim-success: "§aYou are now the owner of this territory.\n§fUse §e/claim settings§f to configure your territory."
 create-claim-radius-success: "§aYou are now the owner of this territory §b(%number% chunks)§a.\n§fUse §e/claim settings %claim-name%§f to configure your territory."
 cant-radius-claim-already-claim: "§cSome claims in this radius belong to someone."
+delete-all-claims-success: "§fAll your claims have been successfully deleted."
 territory-delete-success: "§aClaim deleted successfully."
 territory-delete-error: "§cSome of the claims could not be deleted (%number%/%number-max%), this may be because it does not belong to you."
 cant-claim-anymore: "§cYou have reached the maximum number of claims per player."

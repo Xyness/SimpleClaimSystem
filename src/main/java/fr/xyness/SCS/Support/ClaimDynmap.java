@@ -1,5 +1,7 @@
 package fr.xyness.SCS.Support;
 
+import java.util.Set;
+
 import org.bukkit.Chunk;
 import org.bukkit.World;
 import org.dynmap.DynmapAPI;
@@ -62,65 +64,67 @@ public class ClaimDynmap {
     
     
     /**
-     * Creates an area marker on the Dynmap for a given chunk.
+     * Creates an area marker on the Dynmap for given chunks.
      *
-     * @param chunk the chunk to be marked.
+     * @param chunks the chunks to be marked.
      * @param name  the name of the claim.
      * @param owner the owner of the claim.
      */
-	public void createChunkZone(Chunk chunk, String name, String owner) {
-		instance.executeAsync(() -> {
-			String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
-		    AreaMarker existingMarker = markerSet.findAreaMarker(markerId);
-		    if (existingMarker != null) return;
-		    World world = chunk.getWorld();
-		    int x = chunk.getX() * 16;
-		    int z = chunk.getZ() * 16;
-		    double[] xCorners = {x, x + 16, x + 16, x};
-		    double[] zCorners = {z, z, z + 16, z + 16};
-	    	String t = instance.getSettings().getSetting("dynmap-claim-hover-text");
-	    	t = t.replaceAll("%claim-name%", name);
-	    	t = t.replaceAll("%owner%", owner);
-		    AreaMarker marker = markerSet.createAreaMarker(
-		        markerId,
-		        t,
-		        false,
-		        world.getName(),
-		        xCorners,
-		        zCorners,
-		        false
-		    );
-		    marker.setLineStyle(3, 1.0, Integer.parseInt(instance.getSettings().getSetting("dynmap-claim-border-color"), 16));
-		    marker.setFillStyle(0.5, Integer.parseInt(instance.getSettings().getSetting("dynmap-claim-fill-color"), 16));
-		});
+	public void createChunkZone(Set<Chunk> chunks, String name, String owner) {
+    	String t = instance.getSettings().getSetting("dynmap-claim-hover-text")
+    			.replaceAll("%claim-name%", name)
+    			.replaceAll("%owner%", owner);
+    	int linestyle = Integer.parseInt(instance.getSettings().getSetting("dynmap-claim-border-color"), 16);
+    	int fillstyle = Integer.parseInt(instance.getSettings().getSetting("dynmap-claim-fill-color"), 16);
+    	chunks.parallelStream().forEach(chunk -> {
+    		String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
+    	    AreaMarker existingMarker = markerSet.findAreaMarker(markerId);
+    	    if (existingMarker != null) return;
+    	    World world = chunk.getWorld();
+    	    int x = chunk.getX() * 16;
+    	    int z = chunk.getZ() * 16;
+    	    double[] xCorners = {x, x + 16, x + 16, x};
+    	    double[] zCorners = {z, z, z + 16, z + 16};
+    	    AreaMarker marker = markerSet.createAreaMarker(
+    	        markerId,
+    	        t,
+    	        false,
+    	        world.getName(),
+    	        xCorners,
+    	        zCorners,
+    	        false
+    	    );
+    	    marker.setLineStyle(3, 1.0, linestyle);
+    	    marker.setFillStyle(0.5, fillstyle);
+    	});
 	}
 	
 	/**
-     * Updates the tooltip name of the given chunk on the Dynmap.
+     * Updates the tooltip name of given chunks on the Dynmap.
      *
-     * @param chunk the chunk whose tooltip needs updating.
+     * @param chunks the chunks whose tooltip needs updating.
+     * @param claim the claim of chunks
      */
-	public void updateName(Chunk chunk) {
-		instance.executeAsync(() -> {
+	public void updateName(Set<Chunk> chunks, Claim claim) {
+    	String t = instance.getSettings().getSetting("dynmap-hover-text")
+    			.replaceAll("%claim-name%", claim.getName())
+    			.replaceAll("%owner%", claim.getOwner());
+		chunks.parallelStream().forEach(chunk -> {
 			String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 			AreaMarker marker = markerSet.findAreaMarker(markerId);
 		    if (marker != null) {
-		    	String t = instance.getSettings().getSetting("dynmap-hover-text");
-	        	Claim claim = instance.getMain().getClaim(chunk);
-	        	t = t.replaceAll("%claim-name%", claim.getName());
-	        	t = t.replaceAll("%owner%", claim.getOwner());
 		        marker.setLabel(t);
 		    }
 		});
 	}
 	
 	/**
-     * Deletes an area marker for a given chunk from the Dynmap.
+     * Deletes an area marker for given chunks from the Dynmap.
      *
-     * @param chunk the chunk whose marker needs deletion.
+     * @param chunk the chunks whose marker needs deletion.
      */
-	public void deleteMarker(Chunk chunk) {
-		instance.executeAsync(() -> {
+	public void deleteMarker(Set<Chunk> chunks) {
+		chunks.parallelStream().forEach(chunk -> {
 			String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 		    AreaMarker marker = markerSet.findAreaMarker(markerId);
 		    if (marker != null) {

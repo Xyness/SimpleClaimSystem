@@ -92,7 +92,7 @@ public class ClaimPl3xMap implements EventListener {
                         Claim claim = instance.getMain().getClaimFromChunk(c);
                         if (claim == null) continue;
                         if (!claim.getLocation().getWorld().equals(world)) continue;
-                        createChunkZone(c, claim.getName(), claim.getOwner());
+                        createChunkZone(Set.of(c), claim.getName(), claim.getOwner());
                     }
                 }
             }
@@ -107,27 +107,26 @@ public class ClaimPl3xMap implements EventListener {
 
     
     /**
-     * Creates a marker on the Pl3xMap for the specified chunk.
+     * Creates a marker on the Pl3xMap for the specified chunks.
      *
-     * @param chunk the chunk to create the marker for.
+     * @param chunks the chunks to create the marker for.
      * @param name  the name of the claim.
      * @param owner the owner of the claim.
      */
-    public void createChunkZone(Chunk chunk, String name, String owner) {
-        instance.executeAsync(() -> {
+    public void createChunkZone(Set<Chunk> chunks, String name, String owner) {
+        String hoverText = instance.getSettings().getSetting("pl3xmap-claim-hover-text")
+                .replace("%claim-name%", name)
+                .replace("%owner%", owner);
+
+        String fillColor = instance.getSettings().getSetting("pl3xmap-claim-fill-color");
+        String strokeColor = instance.getSettings().getSetting("pl3xmap-claim-border-color");
+        chunks.parallelStream().forEach(chunk -> {
             String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 
             Point point1 = Point.of(chunk.getX() * 16, chunk.getZ() * 16);
             Point point2 = Point.of((chunk.getX() * 16) + 16, (chunk.getZ() * 16) + 16);
 
             Rectangle rectangle = new Rectangle(markerId, point1, point2);
-
-            String hoverText = instance.getSettings().getSetting("pl3xmap-claim-hover-text")
-                    .replace("%claim-name%", name)
-                    .replace("%owner%", owner);
-
-            String fillColor = instance.getSettings().getSetting("pl3xmap-claim-fill-color");
-            String strokeColor = instance.getSettings().getSetting("pl3xmap-claim-border-color");
 
             Options options = Options.builder()
                     .tooltipContent(hoverText)
@@ -146,20 +145,20 @@ public class ClaimPl3xMap implements EventListener {
     /**
      * Updates the tooltip name of the specified chunk on the Pl3xMap.
      *
-     * @param chunk the chunk to update the name for.
+     * @param chunks the chunks to update the name for.
+     * @param claim the claim of the chunks
      */
-    public void updateName(Chunk chunk) {
-        instance.executeAsync(() -> {
+    public void updateName(Set<Chunk> chunks, Claim claim) {
+        String hoverText = instance.getSettings().getSetting("pl3xmap-hover-text")
+                .replace("%claim-name%", claim.getName())
+                .replace("%owner%", claim.getOwner());
+        String fillColor = instance.getSettings().getSetting("pl3xmap-claim-fill-color");
+        String strokeColor = instance.getSettings().getSetting("pl3xmap-claim-border-color");
+        chunks.parallelStream().forEach(chunk -> {
             String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
             Collection<Marker<?>> markers = layers.get(chunk.getWorld()).getMarkers();
             for (Marker<?> marker : markers) {
                 if (marker.getKey().equals(markerId)) {
-    	        	Claim claim = instance.getMain().getClaim(chunk);
-                    String hoverText = instance.getSettings().getSetting("pl3xmap-hover-text")
-                            .replace("%claim-name%", claim.getName())
-                            .replace("%owner%", claim.getOwner());
-                    String fillColor = instance.getSettings().getSetting("pl3xmap-claim-fill-color");
-                    String strokeColor = instance.getSettings().getSetting("pl3xmap-claim-border-color");
                     Options newOptions = Options.builder()
                             .tooltipContent(hoverText)
                             .fillColor(Colors.setAlpha(0xFF, Integer.parseInt(fillColor, 16)))
@@ -180,8 +179,8 @@ public class ClaimPl3xMap implements EventListener {
      *
      * @param chunk the chunk to delete the marker for.
      */
-    public void deleteMarker(Chunk chunk) {
-        instance.executeAsync(() -> {
+    public void deleteMarker(Set<Chunk> chunks) {
+        chunks.parallelStream().forEach(chunk -> {
             String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
             layers.get(chunk.getWorld()).getMarkers().removeIf(marker -> marker.getKey().equals(markerId));
         });
