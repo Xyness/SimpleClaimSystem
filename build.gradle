@@ -1,5 +1,6 @@
 plugins {
     id 'java'
+    id 'maven-publish'
 }
 
 group = 'fr.xyness'
@@ -8,14 +9,56 @@ version = '1.10.0.1'
 repositories {
     mavenCentral()
     maven {
-        name = 'spigotmc-repo'
-        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+        id 'papermc-repo'
+        url 'https://papermc.io/repo/repository/maven-public/'
+    }
+    maven {
+        id 'ender-zone'
+        url 'https://ci.ender.zone/plugin/repository/everything/'
+    }
+    maven {
+        id 'placeholderapi'
+        url 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
+    maven {
+        id 'jitpack-repo'
+        url 'https://jitpack.io'
+    }
+    maven {
+        id 'sk89q-repo'
+        url 'https://maven.enginehub.org/repo/'
+    }
+    maven {
+        id 'MikeRepo'
+        url 'https://repo.mikeprimm.com/'
+    }
+    maven {
+        id 'bluecolored'
+        url 'https://repo.bluecolored.de/releases'
+    }
+    maven {
+        id 'modrinth-repo'
+        url 'https://api.modrinth.com/maven/'
     }
 }
 
 dependencies {
-    compileOnly 'org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT'
-    testImplementation 'junit:junit:4.13'
+    compileOnly 'io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT'
+    compileOnly 'dev.folia:folia-api:1.20.4-R0.1-SNAPSHOT'
+    implementation 'com.zaxxer:HikariCP:4.0.3'
+    compileOnly 'me.clip:placeholderapi:2.10.9'
+    compileOnly 'com.github.LoneDev6:api-itemsadder:3.6.1'
+    compileOnly ('com.sk89q.worldguard:worldguard-bukkit:7.0.4') {
+        exclude group: 'org.bstats', module: 'bstats-bukkit'
+    }
+    compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
+    compileOnly 'us.dynmap:dynmap-api:3.4-beta-3'
+    compileOnly 'de.bluecolored.bluemap:BlueMapAPI:2.7.2'
+    compileOnly 'maven.modrinth:pl3xmap:1.21-500'
+    implementation 'com.mojang:authlib:1.5.21'
+    compileOnly 'com.github.GriefPrevention:GriefPrevention:16.18.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.7.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.1'
 }
 
 tasks.withType(JavaCompile) {
@@ -27,5 +70,23 @@ jar {
         attributes(
             'Main-Class': 'fr.xyness.SCS.SimpleClaimSystem'
         )
+    }
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/xyness/SimpleClaimSystem")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+                password = project.findProperty("gpr.token") ?: System.getenv("TOKEN")
+            }
+        }
     }
 }
