@@ -1,0 +1,31 @@
+plugins {
+    id 'java'
+}
+
+group = 'fr.xyness'
+version = '1.10.0.1'
+
+repositories {
+    mavenCentral()
+    maven {
+        name = 'spigotmc-repo'
+        url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/'
+    }
+}
+
+dependencies {
+    compileOnly 'org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT'
+    testImplementation 'junit:junit:4.13'
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+jar {
+    manifest {
+        attributes(
+            'Main-Class': 'fr.xyness.SCS.SimpleClaimSystem'
+        )
+    }
+}
