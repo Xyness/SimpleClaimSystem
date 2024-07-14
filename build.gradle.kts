@@ -39,7 +39,7 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
         isTransitive = false
     }
-    compileOnly("us.dynmap:dynmap-api:3.2") {
+    compileOnly("us.dynmap:dynmap-api:3.4") {
         isTransitive = false
     }
     compileOnly("de.bluecolored.bluemap:BlueMapAPI:2.7.2") {
