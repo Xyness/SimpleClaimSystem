@@ -18,6 +18,7 @@ repositories {
     maven("https://repo.mikeprimm.com/")
     maven("https://repo.bluecolored.de/releases/")
     maven("https://api.modrinth.com/maven/")
+    maven("https://repo.codemc.io/repository/maven-public/") // Ajout d'un nouveau dépôt
 }
 
 dependencies {
@@ -35,15 +36,13 @@ dependencies {
     compileOnly("maven.modrinth:pl3xmap:1.21-500")
     implementation("com.mojang:authlib:1.5.21")
     compileOnly("com.github.GriefPrevention:GriefPrevention:16.18.2")
-    compileOnly("net.md_5.bungee:bungeecord-chat:1.16-R0.4")
+    compileOnly("net.md-5:bungeecord-chat:1.16-R0.4") // Mise à jour du format du groupe pour BungeeCord
     implementation("com.flowpowered:flow-math:1.0.3")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
 }
 
 tasks.withType<JavaCompile> {
-    sourceCompatibility = "22"
-    targetCompatibility = "22"
     options.encoding = "UTF-8"
 }
 
