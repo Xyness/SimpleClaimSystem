@@ -21,46 +21,29 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT") {
-        isTransitive = false
-    }
-    compileOnly("dev.folia:folia-api:1.20.4-R0.1-SNAPSHOT") {
-        isTransitive = false
-    }
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("dev.folia:folia-api:1.20.4-R0.1-SNAPSHOT")
     implementation("com.zaxxer:HikariCP:4.0.3")
-    compileOnly("me.clip:placeholderapi:2.10.9") {
-        isTransitive = false
-    }
-    compileOnly("com.github.LoneDev6:api-itemsadder:3.6.1") {
-        isTransitive = false
-    }
+    compileOnly("me.clip:placeholderapi:2.10.9")
+    compileOnly("com.github.LoneDev6:api-itemsadder:3.6.1")
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.4") {
-        isTransitive = false
         exclude(group = "org.bstats", module = "bstats-bukkit")
     }
-    compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
-        isTransitive = false
-    }
-    compileOnly("us.dynmap:dynmap-api:3.4") {
-        isTransitive = false
-    }
-    compileOnly("de.bluecolored.bluemap:BlueMapAPI:2.7.2") {
-        isTransitive = false
-    }
-    compileOnly("maven.modrinth:pl3xmap:1.21-500") {
-        isTransitive = false
-    }
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
+    compileOnly("us.dynmap:dynmap-api:3.4")
+    compileOnly("de.bluecolored.bluemap:BlueMapAPI:2.7.2")
+    compileOnly("maven.modrinth:pl3xmap:1.21-500")
     implementation("com.mojang:authlib:1.5.21")
-    compileOnly("com.github.GriefPrevention:GriefPrevention:16.18.2") {
-        isTransitive = false
-    }
+    compileOnly("com.github.GriefPrevention:GriefPrevention:16.18.2")
+    compileOnly("net.md_5.bungee:bungeecord-chat:1.16-R0.4")
+    implementation("com.flowpowered:flow-math:1.0.3")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
 }
 
 tasks.withType<JavaCompile> {
-    sourceCompatibility = "22"
-    targetCompatibility = "22"
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
     options.encoding = "UTF-8"
 }
 
