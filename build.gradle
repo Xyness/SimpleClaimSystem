@@ -9,35 +9,27 @@ version = '1.10.0.1'
 repositories {
     mavenCentral()
     maven {
-        id 'papermc-repo'
         url 'https://papermc.io/repo/repository/maven-public/'
     }
     maven {
-        id 'ender-zone'
         url 'https://ci.ender.zone/plugin/repository/everything/'
     }
     maven {
-        id 'placeholderapi'
         url 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
     }
     maven {
-        id 'jitpack-repo'
         url 'https://jitpack.io'
     }
     maven {
-        id 'sk89q-repo'
         url 'https://maven.enginehub.org/repo/'
     }
     maven {
-        id 'MikeRepo'
         url 'https://repo.mikeprimm.com/'
     }
     maven {
-        id 'bluecolored'
         url 'https://repo.bluecolored.de/releases'
     }
     maven {
-        id 'modrinth-repo'
         url 'https://api.modrinth.com/maven/'
     }
 }
