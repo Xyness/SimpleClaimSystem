@@ -19,20 +19,39 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
-    compileOnly("dev.folia:folia-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT") {
+        isTransitive = false
+    }
+    compileOnly("dev.folia:folia-api:1.20.4-R0.1-SNAPSHOT") {
+        isTransitive = false
+    }
     implementation("com.zaxxer:HikariCP:4.0.3")
-    compileOnly("me.clip:placeholderapi:2.10.9")
-    compileOnly("com.github.LoneDev6:api-itemsadder:3.6.1")
+    compileOnly("me.clip:placeholderapi:2.10.9") {
+        isTransitive = false
+    }
+    compileOnly("com.github.LoneDev6:api-itemsadder:3.6.1") {
+        isTransitive = false
+    }
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.4") {
+        isTransitive = false
         exclude(group = "org.bstats", module = "bstats-bukkit")
     }
-    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
-    compileOnly("us.dynmap:dynmap-api:3.2")
-    compileOnly("de.bluecolored.bluemap:BlueMapAPI:2.7.2")
-    compileOnly("maven.modrinth:pl3xmap:1.21-500")
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
+        isTransitive = false
+    }
+    compileOnly("us.dynmap:dynmap-api:3.2") {
+        isTransitive = false
+    }
+    compileOnly("de.bluecolored.bluemap:BlueMapAPI:2.7.2") {
+        isTransitive = false
+    }
+    compileOnly("maven.modrinth:pl3xmap:1.21-500") {
+        isTransitive = false
+    }
     implementation("com.mojang:authlib:1.5.21")
-    compileOnly("com.github.GriefPrevention:GriefPrevention:16.18.2")
+    compileOnly("com.github.GriefPrevention:GriefPrevention:16.18.2") {
+        isTransitive = false
+    }
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
 }
