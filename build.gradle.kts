@@ -42,8 +42,8 @@ dependencies {
 }
 
 tasks.withType<JavaCompile> {
-    sourceCompatibility = "1.8"
-    targetCompatibility = "1.8"
+    sourceCompatibility = "22"
+    targetCompatibility = "22"
     options.encoding = "UTF-8"
 }
 
