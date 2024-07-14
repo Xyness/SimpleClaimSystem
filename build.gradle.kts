@@ -15,10 +15,15 @@ repositories {
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     maven("https://jitpack.io")
     maven("https://maven.enginehub.org/repo/")
-    maven("https://repo.mikeprimm.com/")
+    maven {
+        url = uri("https://repo.mikeprimm.com/")
+        content {
+            includeGroup("us.dynmap")
+        }
+    }
     maven("https://repo.bluecolored.de/releases/")
     maven("https://api.modrinth.com/maven/")
-    maven("https://repo.codemc.io/repository/maven-public/") // Ajout d'un nouveau dépôt
+    maven("https://repo.codemc.io/repository/maven-public/")
 }
 
 dependencies {
@@ -31,12 +36,12 @@ dependencies {
         exclude(group = "org.bstats", module = "bstats-bukkit")
     }
     compileOnly("com.github.MilkBowl:VaultAPI:1.7")
-    compileOnly("us.dynmap:dynmap-api:3.4")
+    compileOnly(files("libs/Dynmap-3.7-beta-6-spigot.jar"))
     compileOnly("de.bluecolored.bluemap:BlueMapAPI:2.7.2")
     compileOnly("maven.modrinth:pl3xmap:1.21-500")
     implementation("com.mojang:authlib:1.5.21")
     compileOnly("com.github.GriefPrevention:GriefPrevention:16.18.2")
-    compileOnly("net.md-5:bungeecord-chat:1.16-R0.4") // Mise à jour du format du groupe pour BungeeCord
+    compileOnly("net.md-5:bungeecord-chat:1.16-R0.4")
     implementation("com.flowpowered:flow-math:1.0.3")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
