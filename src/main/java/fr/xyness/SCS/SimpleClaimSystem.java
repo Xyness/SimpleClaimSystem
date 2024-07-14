@@ -37,7 +37,8 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import de.bluecolored.bluemap.api.BlueMapAPI;
-
+import fr.xyness.SCS.API.SCS_API_Impl;
+import fr.xyness.SCS.API.SimpleClaimSystemAPI;
 import fr.xyness.SCS.Commands.*;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
@@ -122,6 +123,9 @@ public class SimpleClaimSystem extends JavaPlugin {
     /** Console sender */
     private ConsoleCommandSender logger = Bukkit.getConsoleSender();
     
+    /** Instance of SimpleClaimSystem API */
+    private SimpleClaimSystemAPI api;
+    
     
     // ******************
     // *  Main Methods  *
@@ -133,13 +137,19 @@ public class SimpleClaimSystem extends JavaPlugin {
      */
     @Override
     public void onEnable() {
+    	// Message for console
     	info("==========================================================================");
         info(ChatColor.AQUA + "  ___    ___   ___ ");
         info(ChatColor.AQUA + " / __|  / __| / __|  " + ChatColor.DARK_GREEN + "SimpleClaimSystem " + ChatColor.AQUA + "v" + Version);
         info(ChatColor.AQUA + " \\__ \\ | (__  \\__ \\  " + ChatColor.GRAY + checkForUpdates());
         info(ChatColor.AQUA + " |___/  \\___| |___/  " + ChatColor.DARK_GRAY + "Running on " + Bukkit.getVersion());
         info(" ");
-        plugin = this;
+        
+        // Register plugin instance and api instance
+        this.plugin = this;
+        this.api = new SCS_API_Impl(this);
+        
+        // Load config and send finale message
         if (loadConfig( false)) {
             info(" ");
             info("SimpleClaimSystem is enabled !");
@@ -183,14 +193,13 @@ public class SimpleClaimSystem extends JavaPlugin {
     
     
     // ********************
-    // *  Other Methods  *
+    // *  Other Methods   *
     // ********************
     
     
     /**
      * Loads or reloads the plugin configuration.
      * 
-     * @param plugin The plugin instance
      * @param reload Whether to reload the configuration
      * @return True if the configuration was loaded successfully, false otherwise
      */
