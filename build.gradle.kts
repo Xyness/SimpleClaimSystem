@@ -8,6 +8,12 @@ plugins {
 group = "fr.xyness"
 version = "1.10.0.1"
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(22))
+    }
+}
+
 repositories {
     mavenCentral()
     maven("https://papermc.io/repo/repository/maven-public/")
