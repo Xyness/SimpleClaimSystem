@@ -1,6 +1,8 @@
 plugins {
-    java
-    `maven-publish`
+    id("java-library")
+    id("java")
+    id("maven-publish")
+    id("io.papermc.paperweight.userdev") version "1.7.1" apply false
 }
 
 group = "fr.xyness"
@@ -39,7 +41,7 @@ dependencies {
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
         isTransitive = false
     }
-    compileOnly("us.dynmap:dynmap-api:3.4") {
+    compileOnly("us.dynmap:dynmap-api:3.2") {
         isTransitive = false
     }
     compileOnly("de.bluecolored.bluemap:BlueMapAPI:2.7.2") {
@@ -57,8 +59,8 @@ dependencies {
 }
 
 tasks.withType<JavaCompile> {
-    sourceCompatibility = "22"
-    targetCompatibility = "22"
+    sourceCompatibility = "1.8"
+    targetCompatibility = "1.8"
     options.encoding = "UTF-8"
 }
 
