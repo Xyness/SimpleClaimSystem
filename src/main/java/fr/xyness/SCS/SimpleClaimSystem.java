@@ -37,8 +37,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import de.bluecolored.bluemap.api.BlueMapAPI;
-import fr.xyness.SCS.API.SCS_API_Impl;
-import fr.xyness.SCS.API.SimpleClaimSystemAPI;
+import fr.xyness.SCS.API.SimpleClaimSystemAPI_Provider;
 import fr.xyness.SCS.Commands.*;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
@@ -123,9 +122,6 @@ public class SimpleClaimSystem extends JavaPlugin {
     /** Console sender */
     private ConsoleCommandSender logger = Bukkit.getConsoleSender();
     
-    /** Instance of SimpleClaimSystem API */
-    private SimpleClaimSystemAPI api;
-    
     
     // ******************
     // *  Main Methods  *
@@ -147,7 +143,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         
         // Register plugin instance and api instance
         this.plugin = this;
-        this.api = new SCS_API_Impl(this);
+        SimpleClaimSystemAPI_Provider.initialize(this);
         
         // Load config and send finale message
         if (loadConfig( false)) {

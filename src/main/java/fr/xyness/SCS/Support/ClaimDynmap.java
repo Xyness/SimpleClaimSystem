@@ -10,9 +10,7 @@ import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
 import fr.xyness.SCS.Claim;
-import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
-import fr.xyness.SCS.Config.ClaimSettings;
 
 /**
  * This class handles the integration with Dynmap for visualizing claims on the map.

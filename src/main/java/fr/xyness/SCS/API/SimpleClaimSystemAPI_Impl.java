@@ -3,11 +3,11 @@ package fr.xyness.SCS.API;
 import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.SimpleClaimSystem;
 
-public class SCS_API_Impl implements SimpleClaimSystemAPI {
+public class SimpleClaimSystemAPI_Impl implements SimpleClaimSystemAPI {
 	
 	private SimpleClaimSystem instance;
 	
-	public SCS_API_Impl(SimpleClaimSystem instance) {
+	public SimpleClaimSystemAPI_Impl(SimpleClaimSystem instance) {
 		this.instance = instance;
 	}
 
