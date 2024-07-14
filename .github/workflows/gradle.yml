@@ -17,8 +17,6 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
 
     steps:
     - uses: actions/checkout@v4
@@ -27,6 +25,9 @@ jobs:
       with:
         java-version: '22'
         distribution: 'temurin'
+
+    - name: Grant execute permission for Gradle Wrapper
+      run: chmod +x gradlew
 
     # Configure Gradle for optimal use in GitHub Actions, including caching of downloaded dependencies.
     # See: https://github.com/gradle/actions/blob/main/setup-gradle/README.md
@@ -65,3 +66,9 @@ jobs:
     # See: https://github.com/gradle/actions/blob/main/dependency-submission/README.md
     - name: Generate and submit dependency graph
       uses: gradle/actions/dependency-submission@417ae3ccd767c252f5661f1ace9f835f9654f2b5 # v3.1.0
+
+    - name: Publish JAR
+      uses: actions/upload-artifact@v2
+      with:
+        name: SimpleClaimSystem
+        path: build/libs/*.jar
