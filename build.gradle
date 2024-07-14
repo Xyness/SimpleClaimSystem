@@ -27,7 +27,7 @@ repositories {
         url 'https://repo.mikeprimm.com/'
     }
     maven {
-        url 'https://repo.bluecolored.de/releases'
+        url 'https://repo.bluecolored.de/releases/'
     }
     maven {
         url 'https://api.modrinth.com/maven/'
@@ -44,7 +44,7 @@ dependencies {
         exclude group: 'org.bstats', module: 'bstats-bukkit'
     }
     compileOnly 'com.github.MilkBowl:VaultAPI:1.7'
-    compileOnly 'us.dynmap:dynmap-api:3.4'
+    compileOnly 'us.dynmap:dynmap-api:3.2'
     compileOnly 'de.bluecolored.bluemap:BlueMapAPI:2.7.2'
     compileOnly 'maven.modrinth:pl3xmap:1.21-500'
     implementation 'com.mojang:authlib:1.5.21'
