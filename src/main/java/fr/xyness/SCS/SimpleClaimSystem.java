@@ -143,6 +143,8 @@ public class SimpleClaimSystem extends JavaPlugin {
         
         // Register plugin instance and api instance
         this.plugin = this;
+        
+        // Initialize the API
         SimpleClaimSystemAPI_Provider.initialize(this);
         
         // Load config and send finale message
