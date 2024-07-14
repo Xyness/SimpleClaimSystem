@@ -67,11 +67,6 @@ publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-
-            artifact(sourceSets.main.get().output) {
-                builtBy(tasks.named("classes"))
-                classifier = "api"
-            }
         }
     }
     repositories {
