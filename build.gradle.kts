@@ -1,8 +1,6 @@
 plugins {
-    id("java-library")
-    id("java")
-    id("maven-publish")
-    id("io.papermc.paperweight.userdev") version "1.7.1" apply false
+    java
+    `maven-publish`
 }
 
 group = "fr.xyness"
