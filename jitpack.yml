@@ -1,0 +1,6 @@
+jdk:
+  - openjdk22
+
+build:
+  useDocker: true
+  file: Dockerfile
