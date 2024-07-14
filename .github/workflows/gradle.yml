@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: ubuntu-latest
 
     steps:
@@ -23,7 +22,7 @@ jobs:
       run: chmod +x gradlew
 
     - name: Setup Gradle
-      uses: gradle/actions/setup-gradle@v1
+      uses: gradle/gradle-build-action@v1
 
     - name: Build with Gradle Wrapper
       run: ./gradlew clean build --info --refresh-dependencies
@@ -35,7 +34,6 @@ jobs:
         path: build/libs/*.jar
 
   dependency-submission:
-
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -48,11 +46,7 @@ jobs:
         java-version: '22'
         distribution: 'temurin'
 
+    # This step generates and submits a dependency graph to GitHub Dependency Graph service
+    # Replace it with the correct action if you find one
     - name: Generate and submit dependency graph
-      uses: gradle/actions/dependency-submission@v1
-
-    - name: Publish JAR
-      uses: actions/upload-artifact@v2
-      with:
-        name: SimpleClaimSystem
-        path: build/libs/*.jar
+      run: ./gradlew dependencies
