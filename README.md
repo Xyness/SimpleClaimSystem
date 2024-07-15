@@ -9,6 +9,7 @@ SimpleClaimSystem is a plugin allowing you to protect your constructions, it wor
 |     [Folia](https://papermc.io/software/folia)      |     1.18+     |
 |         [Spigot](https://www.spigotmc.org)          |     1.18+     |
 
+
 ## Support
 |        Plugin        |     Link     |
 |:--------------------:|:------------:|
@@ -20,9 +21,11 @@ SimpleClaimSystem is a plugin allowing you to protect your constructions, it wor
 | Bluemap              | [Download](https://bluemap.bluecolored.de/)    |
 | Pl3xmap              | [Download](https://modrinth.com/mod/pl3xmap)    |
 
+
 ## Useful links
-### Wiki ([here](https://xyness.gitbook.io/simpleclaimsystem))
-### Discord ([here](https://discord.gg/xyness))
+### - Wiki ([here](https://xyness.gitbook.io/simpleclaimsystem))
+### - Discord ([here](https://discord.gg/xyness))
+
 
 ## bStats
 [![](https://bstats.org/signatures/bukkit/SimpleCLaimSystem.svg)]([https://bstats.org/plugin/bukkit/SimpleClaimSystem/21435](https://bstats.org/plugin/bukkit/SimpleClaimSystem/21435))
