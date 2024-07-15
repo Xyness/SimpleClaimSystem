@@ -1,6 +1,14 @@
 # SimpleClaimSystem
 SimpleClaimSystem is a plugin allowing you to protect your constructions, it works with chunks. The claims are fully configurable (settings, members, bans, name, description, chunks, sales..).
 
+## Compatibility
+|                      Software                       |    Version    |
+|:---------------------------------------------------:|:-------------:|
+|    [PaperMC](https://papermc.io/downloads/paper)    |     1.18+     |
+|           [Purpur](https://purpurmc.org)            |     1.18+     |
+|     [Folia](https://papermc.io/software/folia)      |     1.18+     |
+|         [Spigot](https://www.spigotmc.org)          |     1.18+     |
+
 ## Support
 |        Plugin        |     Link     |
 |:--------------------:|:------------:|
@@ -20,11 +28,3 @@ https://xyness.gitbook.io/simpleclaimsystem
 
 ## bStats
 [![](https://bstats.org/signatures/bukkit/SimpleCLaimSystem.svg)]([https://bstats.org/plugin/bukkit/SimpleClaimSystem/21435](https://bstats.org/plugin/bukkit/SimpleClaimSystem/21435))
-
-## Compatibility
-|                      Software                       |    Version    |
-|:---------------------------------------------------:|:-------------:|
-|    [PaperMC](https://papermc.io/downloads/paper)    |     1.18+     |
-|           [Purpur](https://purpurmc.org)            |     1.18+     |
-|     [Folia](https://papermc.io/software/folia)      |     1.18+     |
-|         [Spigot](https://www.spigotmc.org)          |     1.18+     |
