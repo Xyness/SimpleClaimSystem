@@ -3,7 +3,6 @@ plugins {
     id("java")
     id("maven-publish")
     id("io.papermc.paperweight.userdev") version "1.7.1" apply false
-    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "fr.xyness"
@@ -64,23 +63,10 @@ tasks.jar {
     }
 }
 
-tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-    archiveClassifier.set("all")
-    from(sourceSets.main.get().output)
-    configurations = listOf(project.configurations.runtimeClasspath.get())
-    dependencies {
-        include(dependency("com.zaxxer:HikariCP"))
-    }
-    manifest {
-        attributes["Main-Class"] = "fr.xyness.SCS.SimpleClaimSystem"
-    }
-}
-
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
             from(components["java"])
-            artifact(tasks.named("shadowJar").get())
         }
     }
     repositories {
@@ -93,8 +79,4 @@ publishing {
             }
         }
     }
-}
-
-tasks.build {
-    dependsOn(tasks.named("shadowJar"))
 }
