@@ -337,6 +337,15 @@ public class ClaimMain {
     }
     
     /**
+     * Gets all claims.
+     *
+     * @return a set of all claims
+     */
+    public Set<Claim> getAllClaims() {
+        return new HashSet<>(listClaims.values());
+    }
+    
+    /**
      * Gets the claims count (total)
      * 
      * @return an integer of the total claims count
@@ -686,7 +695,7 @@ public class ClaimMain {
      */
     public boolean checkName(String owner, String name) {
         return playerClaims.getOrDefault(owner, new HashSet<>()).parallelStream()
-                .noneMatch(claim -> claim.getName().equals(name) && claim.getOwner().equals(owner));
+                .noneMatch(claim -> claim.getName().equals(name));
     }
 
     /**
@@ -735,7 +744,7 @@ public class ClaimMain {
      * @param chunk The chunk for which the center location is to be calculated.
      * @return The location at the center of the chunk with the Y-coordinate at the maximum height.
      */
-    public static Location getCenterLocationOfChunk(Chunk chunk) {
+    public Location getCenterLocationOfChunk(Chunk chunk) {
         World world = chunk.getWorld();
         int centerX = (chunk.getX() << 4) + 8;
         int centerZ = (chunk.getZ() << 4) + 8;
@@ -1026,7 +1035,7 @@ public class ClaimMain {
                         Runnable task = () -> {
                             Claim claim = new Claim(chunks, owner, members, location, name, description, perms, sale, price, bans, id);
                             chunks.parallelStream().forEach(c -> listClaims.put(c, claim));
-                            if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(chunks, name, owner);
+                            if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(claim);
                             if (instance.getSettings().getBooleanSetting("preload-chunks")) {
                                 if (instance.isFolia()) {
                                     chunks.parallelStream().forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), world, c.getX(), c.getZ(), () -> c.load(true)));
@@ -1174,9 +1183,9 @@ public class ClaimMain {
 		        playerClaims.computeIfAbsent(playerName, k -> new HashSet<>()).add(newClaim);
 		        
 		        // Create bossbars and maps
-		        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(Set.of(chunk), claimName, playerName);
-		        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createChunkZone(Set.of(chunk), claimName, playerName);
-		        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createChunkZone(Set.of(chunk), claimName, playerName);
+		        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(newClaim);
+		        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createClaimZone(newClaim);
+		        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
 		        if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
 	            		Bukkit.getRegionScheduler().execute(instance.getPlugin(), chunk.getWorld(), chunk.getX(), chunk.getZ(), () -> chunk.setForceLoaded(true));
@@ -1259,9 +1268,9 @@ public class ClaimMain {
 		        playerClaims.computeIfAbsent("admin", k -> new HashSet<>()).add(newClaim);
 		
 		        // Create bossbars and maps
-		        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(Set.of(chunk), claimName, "admin");
-		        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createChunkZone(Set.of(chunk), claimName, "admin");
-		        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createChunkZone(Set.of(chunk), claimName, "admin");
+		        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(newClaim);
+		        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createClaimZone(newClaim);
+		        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
 		        if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
 	            		Bukkit.getRegionScheduler().execute(instance.getPlugin(), chunk.getWorld(), chunk.getX(), chunk.getZ(), () -> chunk.setForceLoaded(true));
@@ -1393,9 +1402,9 @@ public class ClaimMain {
 	                X.add(c.getX());
 	                Z.add(c.getZ());
 	            });
-	            if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(chunksToClaim, claimName, playerName);
-	            if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createChunkZone(chunksToClaim, claimName, playerName);
-	            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createChunkZone(chunksToClaim, claimName, playerName);
+	            if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(newClaim);
+	            if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createClaimZone(newClaim);
+	            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
 	            if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
 	            		chunksToClaim.parallelStream().forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
@@ -1489,9 +1498,9 @@ public class ClaimMain {
 		            X.add(c.getX());
 		            Z.add(c.getZ());
 		        });
-	            if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(chunksToClaim, claimName, "admin");
-	            if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createChunkZone(chunksToClaim, claimName, "admin");
-	            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createChunkZone(chunksToClaim, claimName, "admin");
+	            if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(newClaim);
+	            if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createClaimZone(newClaim);
+	            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
 	            if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
 	            		chunksToClaim.parallelStream().forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
@@ -1696,30 +1705,50 @@ public class ClaimMain {
     /**
      * Updates a claim's permission.
      *
-     * @param player the player updating the permission
-     * @param claim  the claim to update the permission for
-     * @param perm   the permission to update
-     * @param result the new value of the permission
+     * @param claim        the claim to update the permission for
+     * @param permission   the permission to update
+     * @param value 	   the new value of the permission
      * @return true if the permission was updated successfully, false otherwise
      */
-    public CompletableFuture<Boolean> updatePerm(Player player, Claim claim, String perm, boolean result) {
+    public CompletableFuture<Boolean> updatePerm(Claim claim, String permission, boolean value) {
     	return CompletableFuture.supplyAsync(() -> {
             try {
-		        claim.getPermissions().put(perm, result);
+            	// Get data
+            	String owner = claim.getOwner();
+            	
+            	// Update permission
+		        claim.getPermissions().put(permission, value);
 		
-		        if (perm.equals("Weather")) updateWeatherChunk(claim.getChunks(), result);
-		        if (perm.equals("Fly")) updateFlyChunk(claim.getChunks(), result);
+		        // Check if permission is Weather, then update weather for players in the chunks
+		        if (permission.equals("Weather")) updateWeatherChunk(claim.getChunks(), value);
+		        // Check if permission is Fly, then update fly for players in the chunks
+		        if (permission.equals("Fly")) updateFlyChunk(claim.getChunks(), value);
+		        
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
 		
+	            // Build the perms string
 		        String permissions = claim.getPermissions().entrySet().stream()
 		                .map(entry -> entry.getValue() ? "1" : "0")
 		                .collect(Collectors.joining());
-		
+		        
+		        // Updata database
 		        String updateQuery = "UPDATE scs_claims SET Permissions = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 		        try (Connection connection = instance.getDataSource().getConnection();
 		             PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 		            preparedStatement.setString(1, permissions);
-		            preparedStatement.setString(2, player.getUniqueId().toString());
-		            preparedStatement.setString(3, player.getName());
+		            preparedStatement.setString(2, uuid);
+		            preparedStatement.setString(3, owner);
 		            preparedStatement.setString(4, claim.getName());
 		            preparedStatement.executeUpdate();
 		            return true;
@@ -1735,152 +1764,39 @@ public class ClaimMain {
     }
     
     /**
-     * Updates a protected area's permission.
+     * Method to apply current settings to all owner's claims.
      *
-     * @param player the player updating the permission
-     * @param claim  the claim to update the permission for
-     * @param perm   the permission to update
-     * @param result the new value of the permission
-     * @return true if the permission was updated successfully, false otherwise
-     */
-    public CompletableFuture<Boolean> updateAdminPerm(Claim claim, String perm, boolean result) {
-    	return CompletableFuture.supplyAsync(() -> {
-            try {
-		        claim.getPermissions().put(perm, result);
-		
-		        if (perm.equals("Weather")) updateWeatherChunk(claim.getChunks(), result);
-		        if (perm.equals("Fly")) updateFlyChunk(claim.getChunks(), result);
-		
-		        String permissions = claim.getPermissions().entrySet().stream()
-		                .map(entry -> entry.getValue() ? "1" : "0")
-		                .collect(Collectors.joining());
-		
-		        String updateQuery = "UPDATE scs_claims SET Permissions = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
-		        try (Connection connection = instance.getDataSource().getConnection();
-		             PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-		            preparedStatement.setString(1, permissions);
-		            preparedStatement.setString(2, "aucun");
-		            preparedStatement.setString(3, "admin");
-		            preparedStatement.setString(4, claim.getName());
-		            preparedStatement.executeUpdate();
-		            return true;
-		        } catch (SQLException e) {
-		            e.printStackTrace();
-		            return false;
-		        }
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	            return false;
-	        }
-    	});
-    }
-
-    /**
-     * Method to apply current settings to all admin claims.
-     *
-     * @param claim the claim from which to apply settings to all admin claims
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> applyAllSettingsAdmin(Claim c) {
-    	return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	// Update perms
-	            LinkedHashMap<String, Boolean> perms = new LinkedHashMap<>(c.getPermissions());
-	            playerClaims.getOrDefault("admin", new HashSet<>()).parallelStream().forEach(claim -> claim.setPermissions(perms));
-	            
-	            // Build the perms string
-	            StringBuilder sb = new StringBuilder();
-	            for (String key : perms.keySet()) {
-	                sb.append(perms.get(key) ? "1" : "0");
-	            }
-	            
-	            // Update database
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET Permissions = ? WHERE uuid = ? AND name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                    preparedStatement.setString(1, sb.toString());
-	                    preparedStatement.setString(2, "aucun");
-	                    preparedStatement.setString(3, "admin");
-	                    preparedStatement.executeUpdate();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Method to apply current settings to all player's claims.
-     *
-     * @param claim the claim from which to apply settings to all player's claims
-     * @param player the player whose claims will be updated
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> applyAllSettings(Claim c, Player player) {
-    	return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	// Get data
-	        	String playerName = player.getName();
-	        	
-	        	// Update perms
-	            LinkedHashMap<String, Boolean> perms = new LinkedHashMap<>(c.getPermissions());
-	            playerClaims.getOrDefault(playerName, new HashSet<>()).parallelStream().forEach(claim -> claim.setPermissions(perms));
-	            
-	            // Build the perms string
-	            StringBuilder sb = new StringBuilder();
-	            for (String key : perms.keySet()) {
-	                sb.append(perms.get(key) ? "1" : "0");
-	            }
-	            
-	            // Update database
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET Permissions = ? WHERE uuid = ? AND name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                    preparedStatement.setString(1, sb.toString());
-	                    preparedStatement.setString(2, player.getUniqueId().toString());
-	                    preparedStatement.setString(3, playerName);
-	                    preparedStatement.executeUpdate();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-    
-    /**
-     * Method to apply current settings to all player's claims.
-     *
-     * @param claim the claim from which to apply settings to all player's claims
      * @param owner the owner whose claims will be updated
+     * @param claim the claim from which to apply settings to all player's claims
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> applyAllSettings(Claim c, String owner) {
+    public CompletableFuture<Boolean> applyAllSettings(Claim claim) {
     	return CompletableFuture.supplyAsync(() -> {
             try {
+            	// Get data
+            	String owner = claim.getOwner();
+            	
 	        	// Update perms
-	            LinkedHashMap<String, Boolean> perms = new LinkedHashMap<>(c.getPermissions());
-	            playerClaims.getOrDefault(owner, new HashSet<>()).parallelStream().forEach(claim -> claim.setPermissions(perms));
+	            LinkedHashMap<String, Boolean> perms = new LinkedHashMap<>(claim.getPermissions());
+	            playerClaims.getOrDefault(owner, new HashSet<>()).parallelStream().forEach(c -> {
+	            	c.setPermissions(perms);
+	            	Set<Chunk> chunks = c.getChunks();
+	                updateWeatherChunk(chunks,claim.getPermission("Weather"));
+	                updateFlyChunk(chunks,claim.getPermission("Fly"));
+	            });
 	            
 	            // Get uuid of the owner
-	        	String uuid = "";
-	        	Player target = Bukkit.getPlayer(owner);
-	        	if(target == null) {
-	        		uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
-	        	} else {
-	        		uuid = target.getUniqueId().toString();
-	        	}
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
 	        	
 	        	// Build the perms string
 	            StringBuilder sb = new StringBuilder();
@@ -1910,30 +1826,35 @@ public class ClaimMain {
     }
 
     /**
-     * Method to ban a player from a player's claim.
+     * Method to ban a player from a claim.
      *
-     * @param player the player who owns the claim
      * @param claim the claim representing the claim
      * @param name the name of the player to be banned
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> addClaimBan(Player player, Claim claim, String name) {
+    public CompletableFuture<Boolean> addClaimBan(Claim claim, String name) {
     	return CompletableFuture.supplyAsync(() -> {
             try {
 	        	// Get data
-	        	String playerName = player.getName();
+	        	String owner = claim.getOwner();
 	        	String claimName = claim.getName();
 	        	
 	        	// Add banned and remove member
 	        	claim.addBan(name);
 	        	claim.removeMember(name);
-	        	
-	        	// Notify him if online
-		        Player target = Bukkit.getPlayer(name);
-		        if (target != null && target.isOnline()) instance.executeEntitySync(target, () -> {
-		        	target.sendMessage(instance.getLanguage().getMessage("banned-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claimName));
-		        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claimName));
-		        });
+		        
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
 		        
 		        // Update database
 		        String banString = String.join(";", claim.getBans());
@@ -1943,8 +1864,8 @@ public class ClaimMain {
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                    preparedStatement.setString(1, banString);
 	                    preparedStatement.setString(2, memberString);
-	                    preparedStatement.setString(3, player.getUniqueId().toString());
-	                    preparedStatement.setString(4, playerName);
+	                    preparedStatement.setString(3, uuid);
+	                    preparedStatement.setString(4, owner);
 	                    preparedStatement.setString(5, claimName);
 	                    preparedStatement.executeUpdate();
 	                }
@@ -1961,119 +1882,34 @@ public class ClaimMain {
     }
 
     /**
-     * Method to ban a member from an admin claim.
+     * Method to unban a player from a claim
      *
-     * @param claim the claim representing the admin claim
-     * @param name the name of the member to be banned
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> addAdminClaimBan(Claim claim, String name) {
-    	return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	// Get data
-	        	String claimName = claim.getName();
-	        	
-	        	// Add banned and remove member
-	        	claim.addBan(name);
-	        	claim.removeMember(name);
-	        	
-	        	// Notify him if online
-		        Player target = Bukkit.getPlayer(name);
-		        if (target != null && target.isOnline()) instance.executeEntitySync(target, () -> {
-		        	target.sendMessage(instance.getLanguage().getMessage("banned-claim-protected-area-player").replaceAll("%claim-name%", claimName));
-		        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-protected-area-player").replaceAll("%claim-name%", claimName));
-		        });
-		        
-		        // Update database
-		        String banString = String.join(";", claim.getBans());
-		        String memberString = String.join(";", claim.getMembers());
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET Bans = ?, Members = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                    preparedStatement.setString(1, banString);
-	                    preparedStatement.setString(2, memberString);
-	                    preparedStatement.setString(3, "aucun");
-	                    preparedStatement.setString(4, "admin");
-	                    preparedStatement.setString(5, claimName);
-	                    preparedStatement.executeUpdate();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Method to unban a player from a player's claim.
-     *
-     * @param player the player who owns the claim
      * @param claim the claim representing the claim
      * @param name the name of the player to be unbanned
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> removeClaimBan(Player player, Claim claim, String name) {
+    public CompletableFuture<Boolean> removeClaimBan(Claim claim, String name) {
     	return CompletableFuture.supplyAsync(() -> {
             try {
 	        	// Get data
-	        	String playerName = player.getName();
+	        	String owner = claim.getOwner();
 	        	String claimName = claim.getName();
 	        	
 	        	// Remove banned
 	            claim.removeBan(name);
 	            
-	        	// Notify him if online
-		        Player target = Bukkit.getPlayer(name);
-		        if (target != null && target.isOnline()) instance.executeEntitySync(target, () -> {
-		        	target.sendMessage(instance.getLanguage().getMessage("unbanned-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claimName));
-		        });
-	            
-	            // Update database
-	            String banString = String.join(";", claim.getBans());
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                    preparedStatement.setString(1, banString);
-	                    preparedStatement.setString(2, player.getUniqueId().toString());
-	                    preparedStatement.setString(3, playerName);
-	                    preparedStatement.setString(4, claimName);
-	                    preparedStatement.executeUpdate();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
 	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Method to unban a member from an admin claim.
-     *
-     * @param claim the claim representing the admin claim
-     * @param name the name of the member to be unbanned
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> removeAdminClaimBan(Claim claim, String name) {
-    	return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	// Remove banned
-	            claim.removeBan(name);
-	            
-	        	// Notify him if online
-		        Player target = Bukkit.getPlayer(name);
-		        if (target != null && target.isOnline()) instance.executeEntitySync(target, () -> {
-		        	target.sendMessage(instance.getLanguage().getMessage("unbanned-all-claim-protected-area-player"));
-		        });
 	            
 	            // Update database
 	            String banString = String.join(";", claim.getBans());
@@ -2081,9 +1917,9 @@ public class ClaimMain {
 	                String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                    preparedStatement.setString(1, banString);
-	                    preparedStatement.setString(2, "aucun");
-	                    preparedStatement.setString(3, "admin");
-	                    preparedStatement.setString(4, claim.getName());
+	                    preparedStatement.setString(2, uuid);
+	                    preparedStatement.setString(3, owner);
+	                    preparedStatement.setString(4, claimName);
 	                    preparedStatement.executeUpdate();
 	                }
 	                return true;
@@ -2101,39 +1937,41 @@ public class ClaimMain {
     /**
      * Method to ban a member from all player's claims.
      *
-     * @param player the player who owns the claims
+     * @param owner the owner of the claims
      * @param name the name of the member to be banned
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> addAllClaimBan(Player player, String name) {
+    public CompletableFuture<Boolean> addAllClaimBan(String owner, String name) {
     	return CompletableFuture.supplyAsync(() -> {
             try {
-	        	// Get data
-	            String playerName = player.getName();
-	            
 	            // Add banned and remove member
-	            playerClaims.getOrDefault(playerName, new HashSet<>()).parallelStream().forEach(claim -> {
+	            playerClaims.getOrDefault(owner, new HashSet<>()).parallelStream().forEach(claim -> {
 	            	claim.addBan(name);
 	            	claim.removeMember(name);
 	            });
 	            
-	        	// Notify him if online
-		        Player target = Bukkit.getPlayer(name);
-		        if (target != null && target.isOnline()) instance.executeEntitySync(target, () -> {
-		        	target.sendMessage(instance.getLanguage().getMessage("banned-all-claim-player").replaceAll("%owner%", playerName));
-		        	target.sendMessage(instance.getLanguage().getMessage("remove-all-claim-player").replaceAll("%owner%", playerName));
-		        });
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
 	
 		        // Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims SET Bans = ?, Members = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                	String uuid = player.getUniqueId().toString();
-	                    for (Claim claim : playerClaims.getOrDefault(playerName, new HashSet<>())) {
+	                    for (Claim claim : playerClaims.getOrDefault(owner, new HashSet<>())) {
 	                        preparedStatement.setString(1, String.join(";", claim.getBans()));
 	                        preparedStatement.setString(2, String.join(";", claim.getMembers()));
 	                        preparedStatement.setString(3, uuid);
-	                        preparedStatement.setString(4, playerName);
+	                        preparedStatement.setString(4, owner);
 	                        preparedStatement.setString(5, claim.getName());
 	                        preparedStatement.addBatch();
 	                    }
@@ -2152,127 +1990,39 @@ public class ClaimMain {
     }
 
     /**
-     * Method to unban a player from all player's claims.
+     * Method to unban a player from all owner's claims.
      *
-     * @param player the player who owns the claims
+     * @param owner the owner of the claims
      * @param name the name of the player to be unbanned
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> removeAllClaimBan(Player player, String name) {
+    public CompletableFuture<Boolean> removeAllClaimBan(String owner, String name) {
     	return CompletableFuture.supplyAsync(() -> {
             try {
-	        	// Get data
-	            String playerName = player.getName();
-	            
 	            // Remove banned
-	            playerClaims.getOrDefault(playerName, new HashSet<>()).parallelStream().forEach(claim -> claim.removeBan(name));
+	            playerClaims.getOrDefault(owner, new HashSet<>()).parallelStream().forEach(claim -> claim.removeBan(name));
 	            
-	        	// Notify him if online
-		        Player target = Bukkit.getPlayer(name);
-		        if (target != null && target.isOnline()) instance.executeEntitySync(target, () -> {
-		        	target.sendMessage(instance.getLanguage().getMessage("unbanned-all-claim-player").replaceAll("%owner%", playerName));
-		        });
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
 	            
 	            // Updata database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                	String uuid = player.getUniqueId().toString();
-	                	for (Claim claim : playerClaims.getOrDefault(playerName, new HashSet<>())) {
+	                	for (Claim claim : playerClaims.getOrDefault(owner, new HashSet<>())) {
 	                        preparedStatement.setString(1, String.join(";", claim.getBans()));
 	                        preparedStatement.setString(2, uuid);
-	                        preparedStatement.setString(3, playerName);
-	                        preparedStatement.setString(4, claim.getName());
-	                        preparedStatement.addBatch();
-	                    }
-	                    preparedStatement.executeBatch();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Method to ban a player to all admin claims.
-     *
-     * @param name the name of the player to be banned
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> addAllAdminClaimBan(String name) {
-    	return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	// Add ban and remove member
-	        	playerClaims.getOrDefault("admin", new HashSet<>()).parallelStream().forEach(claim -> {
-	        		claim.addBan(name);
-	        		claim.removeMember(name);
-	        	});
-	        	
-	        	// Notify him if online
-		        Player target = Bukkit.getPlayer(name);
-		        if (target != null && target.isOnline()) instance.executeEntitySync(target, () -> {
-		        	target.sendMessage(instance.getLanguage().getMessage("banned-all-claim-protected-area-player"));
-		        	target.sendMessage(instance.getLanguage().getMessage("remove-all-claim-protected-area-player"));
-		        });
-	        	
-	        	// Update database
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET Bans = ?, Members = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                	for (Claim claim : playerClaims.getOrDefault("admin", new HashSet<>())) {
-	                        preparedStatement.setString(1, String.join(";", claim.getBans()));
-	                        preparedStatement.setString(2, String.join(";", claim.getMembers()));
-	                        preparedStatement.setString(3, "aucun");
-	                        preparedStatement.setString(4, "admin");
-	                        preparedStatement.setString(5, claim.getName());
-	                        preparedStatement.addBatch();
-	                    }
-	                    preparedStatement.executeBatch();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Method to unban a member from all admin claims.
-     *
-     * @param name the name of the member to be unbanned
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> removeAllAdminClaimBan(String name) {
-    	return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	// Remove banned player
-	        	playerClaims.getOrDefault("admin", new HashSet<>()).parallelStream().forEach(claim -> claim.removeBan(name));
-	        	
-	        	// Notify him if online
-		        Player target = Bukkit.getPlayer(name);
-		        if (target != null && target.isOnline()) instance.executeEntitySync(target, () -> {
-		        	target.sendMessage(instance.getLanguage().getMessage("unbanned-all-claim-protected-area-player"));
-		        });
-	
-	        	// Update database
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET Bans = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                	for (Claim claim : playerClaims.getOrDefault("admin", new HashSet<>())) {
-	                        preparedStatement.setString(1, String.join(";", claim.getBans()));
-	                        preparedStatement.setString(2, "aucun");
-	                        preparedStatement.setString(3, "admin");
+	                        preparedStatement.setString(3, owner);
 	                        preparedStatement.setString(4, claim.getName());
 	                        preparedStatement.addBatch();
 	                    }
@@ -2291,22 +2041,33 @@ public class ClaimMain {
     }
     
     /**
-     * Method to add a member to a player's claim.
+     * Method to add a member to a claim.
      *
-     * @param player the player who owns the claim
      * @param claim the claim
      * @param name the name of the member to be added
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> addClaimMembers(Player player, Claim claim, String name) {
+    public CompletableFuture<Boolean> addClaimMember(Claim claim, String name) {
     	return CompletableFuture.supplyAsync(() -> {
             try {
+            	// Get data
+            	String owner = claim.getOwner();
+            	
 	        	// Add member
 	            claim.addMember(name);
 	            
-	            // Notify him if online
-	            Player target = Bukkit.getPlayer(name);
-	            if (target != null) instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("add-claim-player").replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", player.getName())));
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
 	            
 	            // Update database
 	            String membersString = String.join(";", claim.getMembers());
@@ -2314,8 +2075,8 @@ public class ClaimMain {
 	                String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                    preparedStatement.setString(1, membersString);
-	                    preparedStatement.setString(2, player.getUniqueId().toString());
-	                    preparedStatement.setString(3, player.getName());
+	                    preparedStatement.setString(2, uuid);
+	                    preparedStatement.setString(3, owner);
 	                    preparedStatement.setString(4, claim.getName());
 	                    preparedStatement.executeUpdate();
 	                }
@@ -2332,115 +2093,39 @@ public class ClaimMain {
     }
     
     /**
-     * Method to add a member to all player's claims.
+     * Method to add a member to all owner's claims.
      *
-     * @param player the player who owns the claims
+     * @param owner the owner of the claims
      * @param name the name of the member to be added
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> addAllClaimMembers(Player player, String name) {
+    public CompletableFuture<Boolean> addAllClaimsMember(String owner, String name) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-	        	// Get data
-	            String playerName = player.getName();
-	            
 	            // Add member
-	            playerClaims.getOrDefault(playerName, new HashSet<>()).parallelStream().forEach(claim -> claim.addMember(name));
-	
-	            // Notify the new member
-	            Player target = Bukkit.getPlayer(name);
-	            if (target != null && target.isOnline()) instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("add-all-claim-player").replaceAll("%owner%", playerName)));
+	            playerClaims.getOrDefault(owner, new HashSet<>()).parallelStream().forEach(claim -> claim.addMember(name));
+	            
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
 	
 	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                	String uuid = player.getUniqueId().toString();
-	                	for (Claim claim : playerClaims.getOrDefault(playerName, new HashSet<>())) {
+	                	for (Claim claim : playerClaims.getOrDefault(owner, new HashSet<>())) {
 	                        preparedStatement.setString(1, String.join(";", claim.getMembers()));
 	                        preparedStatement.setString(2, uuid);
-	                        preparedStatement.setString(3, playerName);
-	                        preparedStatement.setString(4, claim.getName());
-	                        preparedStatement.addBatch();
-	                    }
-	                    preparedStatement.executeBatch();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Method to add a member to an admin claim.
-     *
-     * @param claim the claim representing the admin claim
-     * @param name the name of the member to be added
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> addAdminClaimMembers(Claim claim, String name) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	// Add member
-	            claim.addMember(name);
-	            
-	            // Notify him if online
-	            Player target = Bukkit.getPlayer(name);
-	            if (target != null && target.isOnline()) instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("add-claim-protected-area-player").replaceAll("%claim-name%", claim.getName())));
-	            
-	            // Update database
-	            String membersString = String.join(";", claim.getMembers());
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                    preparedStatement.setString(1, membersString);
-	                    preparedStatement.setString(2, "aucun");
-	                    preparedStatement.setString(3, "admin");
-	                    preparedStatement.setString(4, claim.getName());
-	                    preparedStatement.executeUpdate();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Method to add a member to all admin claims.
-     *
-     * @param name the name of the member to be added
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> addAllAdminClaimMembers(String name) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	// Remove member
-	        	playerClaims.getOrDefault("admin", new HashSet<>()).parallelStream().forEach(claim -> claim.addMember(name));
-	
-	        	// Notify him if online
-		        Player target = Bukkit.getPlayer(name);
-		        if (target != null && target.isOnline()) instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("add-all-claim-protected-area-player")));
-		            
-		        // Update database
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                    for (Claim claim : playerClaims.getOrDefault("admin", new HashSet<>())) {
-	                        preparedStatement.setString(1, String.join(";", claim.getMembers()));
-	                        preparedStatement.setString(2, "aucun");
-	                        preparedStatement.setString(3, "admin");
+	                        preparedStatement.setString(3, owner);
 	                        preparedStatement.setString(4, claim.getName());
 	                        preparedStatement.addBatch();
 	                    }
@@ -2459,63 +2144,33 @@ public class ClaimMain {
     }
     
     /**
-     * Method to remove a member from a player's claim.
+     * Method to remove a member from a claim.
      *
-     * @param player the player who owns the claim
      * @param claim the claim
      * @param name the name of the member to be removed
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> removeClaimMembers(Player player, Claim claim, String name) {
+    public CompletableFuture<Boolean> removeClaimMember(Claim claim, String name) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+            	// Get data
+            	String owner = claim.getOwner();
+            	
 	        	// Add member
 	            claim.removeMember(name);
 	            
-	            // Notify him if online
-	            Player target = Bukkit.getPlayer(name);
-	            if (target != null) instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", player.getName())));
-	            
-	            // Update database
-	            String membersString = String.join(";", claim.getMembers());
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                    preparedStatement.setString(1, membersString);
-	                    preparedStatement.setString(2, player.getUniqueId().toString());
-	                    preparedStatement.setString(3, player.getName());
-	                    preparedStatement.setString(4, claim.getName());
-	                    preparedStatement.executeUpdate();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
 	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-    
-    /**
-     * Method to remove a member from a protected area.
-     *
-     * @param player the player who owns the claim
-     * @param claim the claim
-     * @param name the name of the member to be removed
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> removeAdminClaimMembers(Claim claim, String name) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	// Add member
-	            claim.removeMember(name);
-	            
-	            // Notify him if online
-	            Player target = Bukkit.getPlayer(name);
-	            if (target != null) instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("remove-claim-protected-area-player").replaceAll("%claim-name%", claim.getName())));
 	            
 	            // Update database
 	            String membersString = String.join(";", claim.getMembers());
@@ -2523,8 +2178,8 @@ public class ClaimMain {
 	                String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                    preparedStatement.setString(1, membersString);
-	                    preparedStatement.setString(2, "");
-	                    preparedStatement.setString(3, "admin");
+	                    preparedStatement.setString(2, uuid);
+	                    preparedStatement.setString(3, owner);
 	                    preparedStatement.setString(4, claim.getName());
 	                    preparedStatement.executeUpdate();
 	                }
@@ -2541,75 +2196,39 @@ public class ClaimMain {
     }
 
     /**
-     * Method to remove a member from all admin claims.
+     * Method to remove a member from all owner's claims.
      *
+     * @param owner the owner of the claims
      * @param name the name of the member to be removed
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> removeAllAdminClaimMembers(String name) {
+    public CompletableFuture<Boolean> removeAllClaimsMember(String owner, String name) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-	        	// Remove member
-	        	playerClaims.getOrDefault("admin", new HashSet<>()).parallelStream().forEach(claim -> claim.removeMember(name));
-	        	
-	        	// Notify him if online
-		        Player target = Bukkit.getPlayer(name);
-		        if (target != null && target.isOnline()) instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("remove-all-claim-protected-area-player")));
-	            
-		        // Updata database
-		        try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                	for (Claim claim : playerClaims.getOrDefault("admin", new HashSet<>())) {
-	                        preparedStatement.setString(1, String.join(";", claim.getMembers()));
-	                        preparedStatement.setString(2, "aucun");
-	                        preparedStatement.setString(3, "admin");
-	                        preparedStatement.setString(4, claim.getName());
-	                        preparedStatement.addBatch();
-	                    }
-	                    preparedStatement.executeBatch();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Method to remove a member from all player's claims.
-     *
-     * @param player the player who owns the claims
-     * @param name the name of the member to be removed
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> removeAllClaimMembers(Player player, String name) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	// Get data
-	            String playerName = player.getName();
-	            
 	            // Remove the member
-	            playerClaims.getOrDefault(playerName, new HashSet<>()).parallelStream().forEach(claim -> claim.removeMember(name));
-	
-	            // Notify him if online
-	            Player target = Bukkit.getPlayer(name);
-	            if (target != null && target.isOnline()) instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("remove-all-claim-player").replaceAll("%owner%", playerName)));
+	            playerClaims.getOrDefault(owner, new HashSet<>()).parallelStream().forEach(claim -> claim.removeMember(name));
+	            
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
 	            
 	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims SET Members = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                	String uuid = player.getUniqueId().toString();
-	                	for (Claim claim : playerClaims.getOrDefault(playerName, new HashSet<>())) {
+	                	for (Claim claim : playerClaims.getOrDefault(owner, new HashSet<>())) {
 	                        preparedStatement.setString(1, String.join(";", claim.getMembers()));
 	                        preparedStatement.setString(2, uuid);
-	                        preparedStatement.setString(3, playerName);
+	                        preparedStatement.setString(3, owner);
 	                        preparedStatement.setString(4, claim.getName());
 	                        preparedStatement.addBatch();
 	                    }
@@ -2628,77 +2247,47 @@ public class ClaimMain {
     }
 
     /**
-     * Method to change a player's claim's name.
+     * Method to change a claim's name.
      *
-     * @param player the player who owns the claim
      * @param claim the claim
      * @param name the new name for the claim
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> setClaimName(Player player, Claim claim, String name) {
+    public CompletableFuture<Boolean> setClaimName(Claim claim, String name) {
         return CompletableFuture.supplyAsync(() -> {
             try {
 	        	// Get data and update name
+            	String owner = claim.getOwner();
 	            String old_name = claim.getName();
 	            claim.setName(name);
 	            
-	            // Update name on bossbars and maps
-	        	Set<Chunk> chunks = claim.getChunks();
-	            instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
-	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(chunks,claim);
-	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(chunks,claim);
-	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(chunks,claim);
-	        	
-	        	// Update database
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET claim_name = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                    preparedStatement.setString(1, name);
-	                    preparedStatement.setString(2, player.getUniqueId().toString());
-	                    preparedStatement.setString(3, player.getName());
-	                    preparedStatement.setString(4, old_name);
-	                    preparedStatement.executeUpdate();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
 	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Method to change an admin's claim's name.
-     *
-     * @param claim the claim representing the admin claim
-     * @param name the new name for the claim
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> setAdminClaimName(Claim claim, String name) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	// Get data and update name
-	            String old_name = claim.getName();
-	            claim.setName(name);
 	            
 	            // Update name on bossbars and maps
 	        	Set<Chunk> chunks = claim.getChunks();
 	            instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
-	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(chunks,claim);
-	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(chunks,claim);
-	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(chunks,claim);
+	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(claim);
+	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(claim);
+	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(claim);
 	        	
 	        	// Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims SET claim_name = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                    preparedStatement.setString(1, name);
-	                    preparedStatement.setString(2, "aucun");
-	                    preparedStatement.setString(3, "admin");
+	                    preparedStatement.setString(2, uuid);
+	                    preparedStatement.setString(3, owner);
 	                    preparedStatement.setString(4, old_name);
 	                    preparedStatement.executeUpdate();
 	                }
@@ -2717,22 +2306,38 @@ public class ClaimMain {
     /**
      * Method to change the claim's spawn location.
      *
-     * @param player the player who owns the claim
      * @param claim the claim representing the claim
      * @param loc the new location for the claim's spawn
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> setClaimLocation(Player player, Claim claim, Location loc) {
+    public CompletableFuture<Boolean> setClaimLocation(Claim claim, Location loc) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+	        	// Get data and update loc
+            	String owner = claim.getOwner();
 	        	claim.setLocation(loc);
+	        	
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
+	        	
+	        	// Update database
 	            String loc_string = String.valueOf(loc.getX()) + ";" + String.valueOf(loc.getY()) + ";" + String.valueOf(loc.getZ()) + ";" + String.valueOf(loc.getYaw()) + ";" + String.valueOf(loc.getPitch());
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims SET Location = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                    preparedStatement.setString(1, loc_string);
-	                    preparedStatement.setString(2, player.getUniqueId().toString());
-	                    preparedStatement.setString(3, player.getName());
+	                    preparedStatement.setString(2, uuid);
+	                    preparedStatement.setString(3, owner);
 	                    preparedStatement.setString(4, claim.getName());
 	                    preparedStatement.executeUpdate();
 	                }
@@ -2751,11 +2356,10 @@ public class ClaimMain {
     /**
      * Method to delete a claim.
      *
-     * @param player the player who owns the claim
      * @param claim the claim representing the claim to be deleted
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> deleteClaim(Player player, Claim claim) {
+    public CompletableFuture<Boolean> deleteClaim(Claim claim) {
         return CompletableFuture.supplyAsync(() -> {
             try {
 	        	// Get data
@@ -2768,16 +2372,27 @@ public class ClaimMain {
 	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
 	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
 	        	chunks.parallelStream().forEach(c -> listClaims.remove(c));
-	        	
-	        	// Update owner claims count and remove the claim from his claims
-	            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(owner);
-	            if (cPlayer != null) cPlayer.setClaimsCount(cPlayer.getClaimsCount() - 1);
+                updateWeatherChunk(chunks,true);
+                updateFlyChunk(chunks,false);
+	            
+	        	// Remove claim from owner's claims list
 	            playerClaims.get(owner).remove(claim);
 	            if (playerClaims.get(owner).isEmpty()) playerClaims.remove(owner);
 	            
-	            // Get the uuid of the owner
-	            String uuid = player.getUniqueId().toString();
-	            if (owner.equals("admin")) uuid = "aucun";
+	            // Get uuid of the owner and update owner claims count
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+			            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(owner);
+			            cPlayer.setClaimsCount(cPlayer.getClaimsCount() - 1);
+		            }
+	            }
 	            
 	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
@@ -2801,89 +2416,41 @@ public class ClaimMain {
     }
 
     /**
-     * Method to delete all player's claims.
+     * Method to delete all owner's claims.
      *
-     * @param player the player whose claims will be deleted
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> deleteAllClaim(Player player) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	// Get data
-	            String playerName = player.getName();
-	            String uuid = player.getUniqueId().toString();
-	            
-	        	// Delete all claims of target player, and remove him from data
-	        	int[] i = {0};
-	        	playerClaims.getOrDefault(playerName, new HashSet<>()).parallelStream().forEach(claim -> {
-	            	Set<Chunk> chunks = claim.getChunks();
-	                instance.executeSync(() -> instance.getBossBars().deactivateBossBar(chunks));
-	            	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
-	            	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
-	            	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
-	            	chunks.parallelStream().forEach(c -> listClaims.remove(c));
-	            	i[0]++;
-	        	});
-	            playerClaims.remove(playerName);
-	            
-	            // Send the delete message
-	            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("delete-all-claims-success").replaceAll("%number%", AdminGestionMainGui.getNumberSeparate(String.valueOf(i[0])))));
-	            
-	            // Update the claims count of target player
-	            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
-	            if(cPlayer != null) cPlayer.setClaimsCount(0);
-	            
-	            // Updata database
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String deleteQuery = "DELETE FROM scs_claims WHERE uuid = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
-	                    preparedStatement.setString(1, uuid);
-	                    preparedStatement.executeUpdate();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Method to delete all player's claims.
-     *
-     * @param playerName the name of the player whose claims will be deleted
+     * @param owner the owner whose claims will be deleted
      * @return CompletableFuture<Boolean> indicating success or failure
      */
-    public CompletableFuture<Boolean> deleteAllClaim(String playerName) {
+    public CompletableFuture<Boolean> deleteAllClaims(String owner) {
         return CompletableFuture.supplyAsync(() -> {
             try {
                 // Delete all claims of target player, and remove him from data
-                playerClaims.getOrDefault(playerName, new HashSet<>()).parallelStream().forEach(claim -> {
+                playerClaims.getOrDefault(owner, new HashSet<>()).parallelStream().forEach(claim -> {
                     Set<Chunk> chunks = claim.getChunks();
                     instance.executeSync(() -> instance.getBossBars().deactivateBossBar(chunks));
                     if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
                     if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
                     if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
                     chunks.parallelStream().forEach(c -> listClaims.remove(c));
+                    updateWeatherChunk(chunks,true);
+                    updateFlyChunk(chunks,false);
                 });
-                playerClaims.remove(playerName);
-
-                // Get the uuid of target player
-                Player player = Bukkit.getPlayer(playerName);
-                String uuid = "";
-                if (player == null) {
-                    uuid = Bukkit.getOfflinePlayer(playerName).getUniqueId().toString();
-                } else {
-                    uuid = player.getUniqueId().toString();
-                }
-
-                // Update the claims count of target player
-                CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
-                if (cPlayer != null) cPlayer.setClaimsCount(0);
+                playerClaims.remove(owner);
+                
+	            // Get uuid of the owner and update owner claims count
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+			            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(owner);
+			            cPlayer.setClaimsCount(0);
+		            }
+	            }
 
                 // Update database
                 try (Connection connection = instance.getDataSource().getConnection()) {
@@ -2904,70 +2471,23 @@ public class ClaimMain {
             }
         });
     }
-    
-    /**
-     * Method to delete all protected areas.
-     *
-     * @return CompletableFuture<Boolean> indicating success or failure
-     */
-    public CompletableFuture<Boolean> deleteAllAdminClaim() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-                // Delete all claims of target player, and remove him from data
-                playerClaims.getOrDefault("admin", new HashSet<>()).parallelStream().forEach(claim -> {
-                    Set<Chunk> chunks = claim.getChunks();
-                    instance.executeSync(() -> instance.getBossBars().deactivateBossBar(chunks));
-                    if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
-                    if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
-                    if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
-                    chunks.parallelStream().forEach(c -> listClaims.remove(c));
-                });
-                playerClaims.remove("admin");
-
-                // Update database
-                try (Connection connection = instance.getDataSource().getConnection()) {
-                    String deleteQuery = "DELETE FROM scs_claims WHERE uuid = ?";
-                    try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
-                        preparedStatement.setString(1, "aucun");
-                        preparedStatement.executeUpdate();
-                    }
-                } catch (SQLException e) {
-                    e.printStackTrace();
-                    return false;
-                }
-
-                return true;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
 
     /**
-     * Method to force the deletion of a claim.
+     * Method to change claim's description.
      *
-     * @param claim the claim to be deleted
+     * @param claim the claim
+     * @param description the new description for the claim
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> forceDeleteClaim(Claim claim) {
-
-    	Set<Chunk> chunks = claim.getChunks();
-        instance.getBossBars().deactivateBossBar(chunks);
-
+    public CompletableFuture<Boolean> setClaimDescription(Claim claim, String description) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-	    		// Update claims list and maps
-	    		chunks.parallelStream().forEach(c -> listClaims.remove(c));
-	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
-	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
-	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
+            	// Get data
+            	String owner = claim.getOwner();
+            	
+            	// Update description
+	        	claim.setDescription(description);
 	        	
-	        	// Update owner claims count and remove the claim from his claims
-	            String owner = claim.getOwner();
-	            playerClaims.get(owner).remove(claim);
-	            if (playerClaims.get(owner).isEmpty()) playerClaims.remove(owner);
-	            
 	            // Get uuid of the owner
 	            String uuid = "";
 	            if(owner.equals("admin")) {
@@ -2979,81 +2499,15 @@ public class ClaimMain {
 		            } else {
 		                uuid = player.getUniqueId().toString();
 		            }
-		            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(owner);
-		            if (cPlayer != null) cPlayer.setClaimsCount(cPlayer.getClaimsCount() - 1);
 	            }
-	
-	            // Update database
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String deleteQuery = "DELETE FROM scs_claims WHERE uuid = ? AND name = ? AND claim_name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
-	                    preparedStatement.setString(1, uuid);
-	                    preparedStatement.setString(2, owner);
-	                    preparedStatement.setString(3, claim.getName());
-	                    preparedStatement.executeUpdate();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Method to change player's claim's description.
-     *
-     * @param player the player who owns the claim
-     * @param claim the claim
-     * @param description the new description for the claim
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> setChunkDescription(Player player, Claim claim, String description) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	claim.setDescription(description);
+	        	
+	        	// Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims SET claim_description = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                    preparedStatement.setString(1, description);
-	                    preparedStatement.setString(2, player.getUniqueId().toString());
-	                    preparedStatement.setString(3, player.getName());
-	                    preparedStatement.setString(4, claim.getName());
-	                    preparedStatement.executeUpdate();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-
-    /**
-     * Method to change admin claim's description.
-     *
-     * @param claim the claim representing the admin claim
-     * @param description the new description for the claim
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> setAdminChunkDescription(Claim claim, String description) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	claim.setDescription(description);
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET claim_description = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                    preparedStatement.setString(1, description);
-	                    preparedStatement.setString(2, "aucun");
-	                    preparedStatement.setString(3, "admin");
+	                    preparedStatement.setString(2, uuid);
+	                    preparedStatement.setString(3, owner);
 	                    preparedStatement.setString(4, claim.getName());
 	                    preparedStatement.executeUpdate();
 	                }
@@ -3072,22 +2526,40 @@ public class ClaimMain {
     /**
      * Method to put a claim on sale.
      *
-     * @param player the player who owns the claim
      * @param claim the claim
      * @param price the sale price of the claim
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> setChunkSale(Player player, Claim claim, double price) {
+    public CompletableFuture<Boolean> setChunkSale(Claim claim, double price) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+            	// Get data
+            	String owner = claim.getOwner();
+            	
+            	// Update sale and price
 	            claim.setSale(true);
 	            claim.setPrice(price);
+	            
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
+	            
+	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims SET isSale = true, SalePrice = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                    preparedStatement.setString(1, String.valueOf(price));
-	                    preparedStatement.setString(2, player.getUniqueId().toString());
-	                    preparedStatement.setString(3, player.getName());
+	                    preparedStatement.setString(2, uuid);
+	                    preparedStatement.setString(3, owner);
 	                    preparedStatement.setString(4, claim.getName());
 	                    preparedStatement.executeUpdate();
 	                }
@@ -3106,21 +2578,144 @@ public class ClaimMain {
     /**
      * Method to remove a claim from sales.
      *
-     * @param player the player who owns the claim
      * @param claim the claim
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> delChunkSale(Player player, Claim claim) {
+    public CompletableFuture<Boolean> delChunkSale(Claim claim) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+            	// Get data
+            	String owner = claim.getOwner();
+            	
+            	// Update sale and price
 	            claim.setSale(false);
 	            claim.setPrice(0.0);
+	            
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
+	            
+	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims SET isSale = false, SalePrice = 0 WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                    preparedStatement.setString(1, player.getUniqueId().toString());
-	                    preparedStatement.setString(2, player.getName());
+	                    preparedStatement.setString(1, uuid);
+	                    preparedStatement.setString(2, owner);
 	                    preparedStatement.setString(3, claim.getName());
+	                    preparedStatement.executeUpdate();
+	                }
+	                return true;
+	            } catch (SQLException e) {
+	                e.printStackTrace();
+	                return false;
+	            }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        });
+    }
+    
+    /**
+     * Method to reset settings of player's claims
+     * 
+     * @param owner The target owner
+     * @return true if the operation was successful, false otherwise
+     */
+    public CompletableFuture<Boolean> resetAllOwnerClaimsSettings(String owner) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+            	// Get data
+	        	String defaultValue = instance.getSettings().getDefaultValuesCode();
+	        	LinkedHashMap<String,Boolean> perm = new LinkedHashMap<>(instance.getSettings().getDefaultValues());
+	        	
+	        	// Update perms
+	            playerClaims.getOrDefault(owner, new HashSet<>()).parallelStream().forEach(c -> c.setPermissions(perm));
+	            
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
+	            
+	            try (Connection connection = instance.getDataSource().getConnection()) {
+	                String updateQuery = "UPDATE scs_claims SET Permissions = ? WHERE uuid <> ?";
+	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+	                    preparedStatement.setString(1, defaultValue);
+	                    preparedStatement.setString(2, uuid);
+	                    preparedStatement.executeUpdate();
+	                }
+	                return true;
+	            } catch (SQLException e) {
+	                e.printStackTrace();
+	                return false;
+	            }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        });
+    }
+    
+    /**
+     * Method to reset settings of claim
+     * 
+     * @param claim The target claim
+     * @param owner The target owner
+     * @return true if the operation was successful, false otherwise
+     */
+    public CompletableFuture<Boolean> resetClaimSettings(Claim claim) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+            	// Get data
+	        	String defaultValue = instance.getSettings().getDefaultValuesCode();
+	        	LinkedHashMap<String,Boolean> perm = new LinkedHashMap<>(instance.getSettings().getDefaultValues());
+	        	String owner = claim.getOwner();
+	        	
+	        	// Update perms
+	            claim.setPermissions(perm);
+	            
+	            // Update weather and fly
+	            Set<Chunk> chunks = claim.getChunks();
+                updateWeatherChunk(chunks,claim.getPermission("Weather"));
+                updateFlyChunk(chunks,claim.getPermission("Fly"));
+	            
+	            // Get uuid of the owner
+	            String uuid = "";
+	            if(owner.equals("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
+	            
+	            try (Connection connection = instance.getDataSource().getConnection()) {
+	                String updateQuery = "UPDATE scs_claims SET Permissions = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
+	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+	                    preparedStatement.setString(1, defaultValue);
+	                    preparedStatement.setString(2, uuid);
+	                    preparedStatement.setString(3, owner);
+	                    preparedStatement.setString(4, claim.getName());
 	                    preparedStatement.executeUpdate();
 	                }
 	                return true;
@@ -3148,6 +2743,10 @@ public class ClaimMain {
 	            listClaims.values().parallelStream().forEach(c -> {
 	                if (!"admin".equals(c.getOwner())) {
 	                    c.setPermissions(perm);
+	    	            // Update weather and fly
+	    	            Set<Chunk> chunks = c.getChunks();
+	                    updateWeatherChunk(chunks,c.getPermission("Weather"));
+	                    updateFlyChunk(chunks,c.getPermission("Fly"));
 	                }
 	            });
 	            try (Connection connection = instance.getDataSource().getConnection()) {
@@ -3168,88 +2767,54 @@ public class ClaimMain {
             }
         });
     }
-    
-    /**
-     * Method to reset all admin claims settings
-     * 
-     * @return true if the operation was successful, false otherwise
-     */
-    public CompletableFuture<Boolean> resetAllAdminClaimsSettings() {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-	        	String defaultValue = instance.getSettings().getDefaultValuesCode();
-	        	LinkedHashMap<String,Boolean> perm = new LinkedHashMap<>(instance.getSettings().getDefaultValues());
-	            listClaims.values().parallelStream().forEach(c -> {
-	                if ("admin".equals(c.getOwner())) {
-	                    c.setPermissions(perm);
-	                }
-	            });
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET Permissions = ? WHERE uuid = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                    preparedStatement.setString(1, defaultValue);
-	                    preparedStatement.setString(2, "aucun");
-	                    preparedStatement.executeUpdate();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
 
     /**
      * Method when a claim is sold.
      *
-     * @param player the player buying the claim
+     * @param playerName the name of the player buying the claim
      * @param chunk the chunk representing the claim
      */
-    public CompletableFuture<Boolean> sellChunk(Player player, Claim claim) {
+    public CompletableFuture<Boolean> sellChunk(String playerName, Claim claim) {
         return CompletableFuture.supplyAsync(() -> {
             try {
 	        	// Get data
 	        	String old_name = claim.getName();
-	            String playerName = player.getName();
 	            String owner = claim.getOwner();
-	            String claimName = claim.getName();
 	            double price = claim.getPrice();
-	            double balance = instance.getVault().getPlayerBalance(playerName);
 	            
-	            // Money checking and transfer
-	            if (balance < price) {
-	            	instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money")));
-	                return false;
+	            // Money transfer
+	            if(owner.equalsIgnoreCase("admin")) {
+	            	instance.getVault().addPlayerBalance(owner, price);
 	            }
-	            instance.getVault().addPlayerBalance(owner, price);
 	            instance.getVault().removePlayerBalance(playerName, price);
-	            
-	            // Send the buy message
-	        	instance.executeEntitySync(player, () -> {
-	                player.sendMessage(instance.getLanguage().getMessage("buy-claim-success").replaceAll("%name%", claimName).replaceAll("%price%", String.valueOf(price)).replaceAll("%owner%", owner).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
-	                player.closeInventory();
-	            });
 	
-	            // Set uuid of the old owner, and update his claims count and send the buy message if online
+	            // Set uuid of the old owner, and update his claims count
 	            String uuid = "";
-	            Player ownerP = Bukkit.getPlayer(owner);
-	            if (ownerP == null) {
-	                OfflinePlayer ownerOP = Bukkit.getOfflinePlayer(owner);
-	                uuid = ownerOP.getUniqueId().toString();
+	            if(owner.equalsIgnoreCase("admin")) {
+	            	uuid = "aucun";
 	            } else {
-	                CPlayer cOwner = instance.getPlayerMain().getCPlayer(owner);
-	                cOwner.setClaimsCount(cOwner.getClaimsCount() - 1);
-	                uuid = ownerP.getUniqueId().toString();
-	            	instance.executeEntitySync(ownerP, () -> ownerP.sendMessage(instance.getLanguage().getMessage("claim-was-sold").replaceAll("%name%", claimName).replaceAll("%buyer%", playerName).replaceAll("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
+		            Player ownerP = Bukkit.getPlayer(owner);
+		            if (ownerP == null) {
+		                OfflinePlayer ownerOP = Bukkit.getOfflinePlayer(owner);
+		                uuid = ownerOP.getUniqueId().toString();
+		            } else {
+		                CPlayer cOwner = instance.getPlayerMain().getCPlayer(owner);
+		                cOwner.setClaimsCount(cOwner.getClaimsCount() - 1);
+		                uuid = ownerP.getUniqueId().toString();
+		            }
 	            }
 	            
-	            // Update new owner claims count, and set the new owner to him
-	            CPlayer cTarget = instance.getPlayerMain().getCPlayer(playerName);
-	            cTarget.setClaimsCount(cTarget.getClaimsCount() + 1);
+	            // Set uuid of the new owner and update his claims count
+	            String uuid_new_owner = "";
+	            Player target = Bukkit.getPlayer(playerName);
+	            if(target == null) {
+	            	uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+	            } else {
+		            CPlayer cTarget = instance.getPlayerMain().getCPlayer(playerName);
+		            cTarget.setClaimsCount(cTarget.getClaimsCount() + 1);
+	            }
+	            
+	            // Set the new owner to him
 	            claim.setOwner(playerName);
 	            
 	            // Delete old owner claim
@@ -3280,16 +2845,16 @@ public class ClaimMain {
 	            // Update the bossbars, and maps
 	        	Set<Chunk> chunks = claim.getChunks();
 	            instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
-	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(chunks,claim);
-	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(chunks,claim);
-	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(chunks,claim);
+	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(claim);
+	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(claim);
+	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(claim);
 	            
 	        	// Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims SET id = ?, uuid = ?, name = ?, Members = ?, claim_name = ?, isSale = false, SalePrice = 0 WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                	preparedStatement.setInt(1, id);
-	                    preparedStatement.setString(2, player.getUniqueId().toString());
+	                    preparedStatement.setString(2, uuid_new_owner);
 	                    preparedStatement.setString(3, playerName);
 	                    preparedStatement.setString(4, members_string);
 	                    preparedStatement.setString(5, new_name);
@@ -3318,7 +2883,7 @@ public class ClaimMain {
      * @param claim the claim
      * @param msg whether to send a message to the sender
      */
-    public CompletableFuture<Boolean> setOwner(Player sender, String playerName, Claim claim, boolean msg) {
+    public CompletableFuture<Boolean> setOwner(String playerName, Claim claim) {
         return CompletableFuture.supplyAsync(() -> {
             try {
 	        	// Get data
@@ -3327,25 +2892,31 @@ public class ClaimMain {
 	            
 	            // Set uuid of the old owner, and update his claims count if online
 	            String uuid = "";
-	            Player ownerP = Bukkit.getPlayer(owner);
-	            if (ownerP == null) {
-	                OfflinePlayer ownerOP = Bukkit.getOfflinePlayer(owner);
-	                uuid = ownerOP.getUniqueId().toString();
+	            if(owner.equalsIgnoreCase("admin")) {
+	            	uuid = "aucun";
 	            } else {
-	                CPlayer cOwner = instance.getPlayerMain().getCPlayer(owner);
-	                cOwner.setClaimsCount(cOwner.getClaimsCount() - 1);
-	                uuid = ownerP.getUniqueId().toString();
+		            Player ownerP = Bukkit.getPlayer(owner);
+		            if (ownerP == null) {
+		                OfflinePlayer ownerOP = Bukkit.getOfflinePlayer(owner);
+		                uuid = ownerOP.getUniqueId().toString();
+		            } else {
+		                CPlayer cOwner = instance.getPlayerMain().getCPlayer(owner);
+		                cOwner.setClaimsCount(cOwner.getClaimsCount() - 1);
+		                uuid = ownerP.getUniqueId().toString();
+		            }
 	            }
 	            
-	        	// Send new owner message to sender
-	            if (msg) instance.executeEntitySync(sender, () -> sender.sendMessage(instance.getLanguage().getMessage("setowner-success").replaceAll("%owner%", playerName)));
-	            
 	            // Update the claims count of new owner if online, and set the new owner to him
+	            String uuid_new_owner = "";
 	            Player player = Bukkit.getPlayer(playerName);
-	            if (player != null && player.isOnline()) {
+	            if (player == null) {
+	            	uuid = Bukkit.getOfflinePlayer(playerName).getUniqueId().toString();
+	            } else {
 	                CPlayer cTarget = instance.getPlayerMain().getCPlayer(playerName);
 	                cTarget.setClaimsCount(cTarget.getClaimsCount() + 1);
 	            }
+	            
+	            // Set the new owner to him
 	            claim.setOwner(playerName);
 	            
 	            // Set the new name of the bought claim
@@ -3372,16 +2943,16 @@ public class ClaimMain {
 	            // Update the bossbars, and maps
 	        	Set<Chunk> chunks = claim.getChunks();
 	        	instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
-	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(chunks,claim);
-	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(chunks,claim);
-	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(chunks,claim);
+	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(claim);
+	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(claim);
+	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(claim);
 	            
 	            // Updata database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims SET id = ?, uuid = ?, name = ?, Members = ?, claim_name = ?, isSale = false, SalePrice = 0 WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                	preparedStatement.setInt(1, id);
-	                    preparedStatement.setString(2, player.getUniqueId().toString());
+	                    preparedStatement.setString(2, uuid_new_owner);
 	                    preparedStatement.setString(3, playerName);
 	                    preparedStatement.setString(4, members_string);
 	                    preparedStatement.setString(5, new_name);
@@ -3409,7 +2980,7 @@ public class ClaimMain {
      * @param chunk_default The target chunk in string format (world;x;z)
      * @return true if the merge process was initiated successfully
      */
-    public CompletableFuture<Boolean> removeChunk(Claim claim, String chunk_default){
+    public CompletableFuture<Boolean> removeClaimChunk(Claim claim, String chunk_default){
         return CompletableFuture.supplyAsync(() -> {
             try {
             	String[] parts = chunk_default.split(";");
@@ -3436,13 +3007,13 @@ public class ClaimMain {
                     	claim.setChunks(chunks);
                     	listClaims.remove(chunk);
                     	
-                    	instance.info("oui "+String.valueOf(chunk.getX())+" " + String.valueOf(chunk.getZ()));
-                    	
                     	// Remove bossbar and maps
                         if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(Set.of(chunk));
                         if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(Set.of(chunk));
                         if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(Set.of(chunk));
                     	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(Set.of(chunk)));
+                        updateWeatherChunk(Set.of(chunk),true);
+                        updateFlyChunk(Set.of(chunk),false);
                     	
         	            List<Integer> X = new ArrayList<>();
         	            List<Integer> Z = new ArrayList<>();
@@ -3515,6 +3086,8 @@ public class ClaimMain {
                     if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(Set.of(chunk));
                     if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(Set.of(chunk));
                 	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(Set.of(chunk)));
+                    updateWeatherChunk(Set.of(chunk),true);
+                    updateFlyChunk(Set.of(chunk),false);
                 	
     	            List<Integer> X = new ArrayList<>();
     	            List<Integer> Z = new ArrayList<>();
@@ -3587,7 +3160,7 @@ public class ClaimMain {
      * @param chunk The target chunk
      * @return true if the merge process was initiated successfully
      */
-    public CompletableFuture<Boolean> addChunk(Claim claim, Chunk chunk){
+    public CompletableFuture<Boolean> addClaimChunk(Claim claim, Chunk chunk){
         return CompletableFuture.supplyAsync(() -> {
             try {
     			// Add chunk
@@ -3598,10 +3171,12 @@ public class ClaimMain {
             	listClaims.put(chunk,claim);
             	
             	// Add bossbar and maps
-                if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createChunkZone(Set.of(chunk), claim.getName(), claim.getOwner());
-                if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createChunkZone(Set.of(chunk), claim.getName(), claim.getOwner());
-                if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createChunkZone(Set.of(chunk), claim.getName(), claim.getOwner());
+                if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(claim);
+                if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createClaimZone(claim);
+                if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(claim);
             	instance.executeSync(() -> instance.getBossBars().activateBossBar(Set.of(chunk)));
+                updateWeatherChunk(Set.of(chunk),claim.getPermission("Weather"));
+                updateFlyChunk(Set.of(chunk),claim.getPermission("Fly"));
             	
 	            List<Integer> X = new ArrayList<>();
 	            List<Integer> Z = new ArrayList<>();
@@ -3667,21 +3242,15 @@ public class ClaimMain {
     }
     
     /**
-     * Merges two claims into one.
+     * Merges claims into one.
      *
-     * This method combines the chunks of `claim2` into `claim1` and updates the database accordingly.
-     * The merged claim will have all chunks from both claims, and `claim2` will be removed.
-     * This method runs asynchronously.
-     *
-     * @param player the player initiating the merge
      * @param claim1 the primary claim to merge into
-     * @param claim2 the secondary claim to be merged
+     * @param claims the set of claims to merge with claim1
      * @return true if the merge process was initiated successfully
      */
-    public CompletableFuture<Boolean> mergeClaims(Player player, Claim claim1, Set<Claim> claims) {
+    public CompletableFuture<Boolean> mergeClaims(Claim claim1, Set<Claim> claims) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-	            String playerName = player.getName();
 	            List<Integer> X = new ArrayList<>();
 	            List<Integer> Z = new ArrayList<>();
 	            
@@ -3701,17 +3270,33 @@ public class ClaimMain {
 	                    Z.add(c.getZ());
 	                    listClaims.put(c, claim1);
 	                });
-	                if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(chunks,claim1);
-	                if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(chunks,claim1);
-	                if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(chunks,claim1);
+	                if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(claim1);
+	                if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(claim1);
+	                if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(claim1);
+	                updateWeatherChunk(chunks,claim1.getPermission("Weather"));
+	                updateFlyChunk(chunks,claim1.getPermission("Fly"));
 	            });
 	            
-	            // Remove 1 claim from player claims count
-	            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
-	            cPlayer.setClaimsCount(cPlayer.getClaimsCount()-claims.size());
+	            // Get uuid of the owner
+	            String uuid = "";
+	            String owner = claim1.getOwner();
+	            if(owner.equalsIgnoreCase("admin")) {
+	            	uuid = "aucun";
+	            } else {
+		            Player player = Bukkit.getPlayer(owner);
+		            if (player == null) {
+		                uuid = Bukkit.getOfflinePlayer(owner).getUniqueId().toString();
+		            } else {
+		            	// Update claims count of player
+			            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(owner);
+			            cPlayer.setClaimsCount(cPlayer.getClaimsCount()-claims.size());
+			            // Set uuid
+		                uuid = player.getUniqueId().toString();
+		            }
+	            }
 	            
-	            // Remove claim2 from player's claims
-	            playerClaims.getOrDefault(playerName, new HashSet<>()).removeAll(claims);
+	            // Remove claims from player's claims
+	            playerClaims.getOrDefault(owner, new HashSet<>()).removeAll(claims);
 	            
 	            // Build X and Z strings
 	            StringBuilder sbX = new StringBuilder();
@@ -3730,18 +3315,14 @@ public class ClaimMain {
 	                sbZ.setLength(sbZ.length() - 1);
 	            }
 	            
-	            // Display new chunks borders
-	            if (instance.getSettings().getBooleanSetting("claim-particles")) instance.executeSync(() -> displayChunks(player, claim1.getChunks(), true, false));
-	            
 	            // Update database
-	            String uuid = player.getUniqueId().toString();
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims SET X = ?, Z = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                    preparedStatement.setString(1, sbX.toString());
 	                    preparedStatement.setString(2, sbZ.toString());
 	                    preparedStatement.setString(3, uuid);
-	                    preparedStatement.setString(4, playerName);
+	                    preparedStatement.setString(4, owner);
 	                    preparedStatement.setString(5, claim1.getName());
 	                    preparedStatement.executeUpdate();
 	                }
@@ -3749,102 +3330,7 @@ public class ClaimMain {
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
 	                	for(Claim claim : claims) {
 	                        preparedStatement.setString(1, uuid);
-	                        preparedStatement.setString(2, playerName);
-	                        preparedStatement.setString(3, claim.getName());
-	                        preparedStatement.addBatch();
-	                	};
-	                	preparedStatement.executeBatch();
-	                }
-	                return true;
-	            } catch (SQLException e) {
-	                e.printStackTrace();
-	                return false;
-	            }
-            } catch (Exception e) {
-                e.printStackTrace();
-                return false;
-            }
-        });
-    }
-    
-    /**
-     * Merges two claims into one (protected areas).
-     *
-     * This method combines the chunks of `claim2` into `claim1` and updates the database accordingly.
-     * The merged claim will have all chunks from both claims, and `claim2` will be removed.
-     * This method runs asynchronously.
-     *
-     * @param player the player initiating the merge
-     * @param claim1 the primary claim to merge into
-     * @param claim2 the secondary claim to be merged
-     * @return true if the merge process was initiated successfully
-     */
-    public CompletableFuture<Boolean> mergeClaimsProtectedArea(Player player, Claim claim1, Set<Claim> claims) {
-        return CompletableFuture.supplyAsync(() -> {
-            try {
-	            List<Integer> X = new ArrayList<>();
-	            List<Integer> Z = new ArrayList<>();
-	            
-	            // Collect chunks from claim1
-	            claim1.getChunks().parallelStream().forEach(c -> {
-	                X.add(c.getX());
-	                Z.add(c.getZ());
-	            });
-	            
-	            // Collect chunks from claims and update listClaims map and add new chunks
-	            claims.parallelStream().forEach(claim -> {
-	            	claim1.addChunks(claim.getChunks());
-	            	instance.executeSync(() -> instance.getBossBars().activateBossBar(claim.getChunks()));
-	            	Set<Chunk> chunks = claim.getChunks();
-	            	chunks.parallelStream().forEach(c -> {
-	                    X.add(c.getX());
-	                    Z.add(c.getZ());
-	                    listClaims.put(c, claim1);
-	                });
-	                if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(chunks,claim1);
-	                if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(chunks,claim1);
-	                if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(chunks,claim1);
-	            });
-	            
-	            // Remove claim2 from player's claims
-	            playerClaims.getOrDefault("admin", new HashSet<>()).removeAll(claims);
-	            
-	            // Build X and Z strings
-	            StringBuilder sbX = new StringBuilder();
-	            for (Integer x : X) {
-	                sbX.append(x).append(";");
-	            }
-	            if (sbX.length() > 0) {
-	                sbX.setLength(sbX.length() - 1);
-	            }
-	            
-	            StringBuilder sbZ = new StringBuilder();
-	            for (Integer z : Z) {
-	                sbZ.append(z).append(";");
-	            }
-	            if (sbZ.length() > 0) {
-	                sbZ.setLength(sbZ.length() - 1);
-	            }
-	            
-	            // Display new chunks borders
-	            if (instance.getSettings().getBooleanSetting("claim-particles")) instance.executeSync(() -> displayChunks(player, claim1.getChunks(), true, false));
-	            
-	            // Update database
-	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims SET X = ?, Z = ? WHERE uuid = ? AND name = ? AND claim_name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                    preparedStatement.setString(1, sbX.toString());
-	                    preparedStatement.setString(2, sbZ.toString());
-	                    preparedStatement.setString(3, "aucun");
-	                    preparedStatement.setString(4, "admin");
-	                    preparedStatement.setString(5, claim1.getName());
-	                    preparedStatement.executeUpdate();
-	                }
-	                String deleteQuery = "DELETE FROM scs_claims WHERE uuid = ? AND name = ? AND claim_name = ?";
-	                try (PreparedStatement preparedStatement = connection.prepareStatement(deleteQuery)) {
-	                	for(Claim claim : claims) {
-	                        preparedStatement.setString(1, "aucun");
-	                        preparedStatement.setString(2, "admin");
+	                        preparedStatement.setString(2, owner);
 	                        preparedStatement.setString(3, claim.getName());
 	                        preparedStatement.addBatch();
 	                	};

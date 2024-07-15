@@ -228,7 +228,7 @@ public class ClaimGuiEvents implements Listener {
         
         if(clickedSlot == instance.getGuis().getItemSlot("settings", "apply-all-claims")) {
         	player.closeInventory();
-        	instance.getMain().applyAllSettings(claim, player)
+        	instance.getMain().applyAllSettings(claim)
         		.thenAccept(success -> {
         			if (success) {
         				player.sendMessage(instance.getLanguage().getMessage("apply-all-settings-success"));
@@ -258,7 +258,7 @@ public class ClaimGuiEvents implements Listener {
                 String action = instance.getGuis().getSlotPerm(clickedSlot);
                 if(!instance.getPlayerMain().checkPermPlayer(player, "scs.setting."+action)) return;
                 if(title.contains(instance.getLanguage().getMessage("status-enabled"))){
-                	instance.getMain().updatePerm(player, claim, action, false)
+                	instance.getMain().updatePerm(claim, action, false)
                 		.thenAccept(success -> {
                 			if (success) {
                             	meta.setDisplayName(title.replace(instance.getLanguage().getMessage("status-enabled"), instance.getLanguage().getMessage("status-disabled")));
@@ -277,7 +277,7 @@ public class ClaimGuiEvents implements Listener {
                         });
                     return;
                 }
-                instance.getMain().updatePerm(player, claim, action, true)
+                instance.getMain().updatePerm(claim, action, true)
                 	.thenAccept(success -> {
                 		if (success) {
                         	meta.setDisplayName(title.replace(instance.getLanguage().getMessage("status-disabled"), instance.getLanguage().getMessage("status-enabled")));
@@ -337,17 +337,22 @@ public class ClaimGuiEvents implements Listener {
         }
         
         if(clickedSlot >= instance.getGuis().getGuiMinSlot("members") && clickedSlot <= instance.getGuis().getGuiMaxSlot("members")) {
-        	String owner = cPlayer.getMapString(clickedSlot);
+        	String targetName = cPlayer.getMapString(clickedSlot);
         	String owner_claim = claim.getOwner();
-        	if(owner.equals(player.getName()) && !owner_claim.equals("admin")) return;
+        	String playerName = player.getName();
+        	if(targetName.equals(playerName) && !owner_claim.equals("admin")) return;
         	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.remove")) return;
-        	String message = instance.getLanguage().getMessage("remove-member-success").replaceAll("%player%", owner).replaceAll("%claim-name%", claim.getName());
-        	instance.getMain().removeClaimMembers(player, claim, owner)
+        	String message = instance.getLanguage().getMessage("remove-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", claim.getName());
+        	instance.getMain().removeClaimMember(claim, targetName)
         		.thenAccept(success -> {
         			if (success) {
         				player.sendMessage(message);
         	            int page = cPlayer.getGuiPage();
         	        	new ClaimMembersGui(player,claim,page,instance);
+                        Player target = Bukkit.getPlayer(targetName);
+                        if(target != null && target.isOnline()) {
+                        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", playerName));
+                        }
         			} else {
         				player.closeInventory();
         				player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -402,7 +407,7 @@ public class ClaimGuiEvents implements Listener {
         	String chunk = cPlayer.getMapString(clickedSlot);
         	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.delchunk")) return;
         	if (claim.getChunks().size() == 1) return;
-        	instance.getMain().removeChunk(claim, chunk)
+        	instance.getMain().removeClaimChunk(claim, chunk)
     		.thenAccept(success -> {
     			if (success) {
     				player.sendMessage(instance.getLanguage().getMessage("delete-chunk-success").replaceAll("%chunk%", "["+chunk+"]").replaceAll("%claim-name%", claim.getName()));
@@ -458,16 +463,21 @@ public class ClaimGuiEvents implements Listener {
         }
         
         if(clickedSlot >= instance.getGuis().getGuiMinSlot("bans") && clickedSlot <= instance.getGuis().getGuiMaxSlot("bans")) {
-        	String owner = cPlayer.getMapString(clickedSlot);
-        	if(owner.equals(player.getName())) return;
+        	String targetName = cPlayer.getMapString(clickedSlot);
+        	String playerName = player.getName();
+        	if(targetName.equals(playerName)) return;
         	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.unban")) return;
-        	String message = instance.getLanguage().getMessage("remove-ban-success").replaceAll("%player%", owner).replaceAll("%claim-name%", claim.getName());
-        	instance.getMain().removeClaimBan(player, claim, owner)
+        	String message = instance.getLanguage().getMessage("remove-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", claim.getName());
+        	instance.getMain().removeClaimBan(claim, targetName)
         		.thenAccept(success -> {
         			if (success) {
         				player.sendMessage(message);
         	            int page = cPlayer.getGuiPage();
         	        	new ClaimBansGui(player,claim,page,instance);
+                        Player target = Bukkit.getPlayer(targetName);
+        		        if (target != null && target.isOnline()) {
+        		        	target.sendMessage(instance.getLanguage().getMessage("unbanned-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claim.getName()));
+        		        }
         			} else {
         				player.closeInventory();
         				player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -550,7 +560,7 @@ public class ClaimGuiEvents implements Listener {
             if(event.getClick() == ClickType.SHIFT_LEFT) {
             	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.unclaim")) return;
             	Claim claim = cPlayer.getMapClaim(clickedSlot);
-            	instance.getMain().deleteClaim(player, claim)
+            	instance.getMain().deleteClaim(claim)
             		.thenAccept(success -> {
             			if (success) {
             				player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
@@ -691,7 +701,35 @@ public class ClaimGuiEvents implements Listener {
         				return;
         			}
             		if(claim.getSale()) {
-            			instance.getMain().sellChunk(player, claim);
+            			String playerName = player.getName();
+            			String old_owner = claim.getOwner();
+            			String old_name = claim.getName();
+        	            double price = claim.getPrice();
+        	            double balance = instance.getVault().getPlayerBalance(playerName);
+        	            // Money checking
+        	            if (balance < price) {
+        	            	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money"));
+        	                return;
+        	            }
+            			instance.getMain().sellChunk(playerName, claim)
+            				.thenAccept(success -> {
+            					if (success) {
+	            	                player.sendMessage(instance.getLanguage().getMessage("buy-claim-success").replaceAll("%name%", old_name).replaceAll("%price%", String.valueOf(price)).replaceAll("%owner%", old_owner.equalsIgnoreCase("admin") ? "protected areas" : old_owner).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+	            	                player.closeInventory();
+	            	                if(!old_owner.equalsIgnoreCase("admin")) {
+	                	                Player target = Bukkit.getPlayer(old_owner);
+	                	                if(target != null && target.isOnline()) {
+	                	                	target.sendMessage(instance.getLanguage().getMessage("claim-was-sold").replaceAll("%name%", old_name).replaceAll("%buyer%", playerName).replaceAll("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+	                	                }
+	            	                }
+            					} else {
+            						player.sendMessage(instance.getLanguage().getMessage("error"));
+            					}
+            				})
+                            .exceptionally(ex -> {
+                                ex.printStackTrace();
+                                return null;
+                            });
             			return;
             		}
             		player.sendMessage(instance.getLanguage().getMessage("claim-is-not-in-sale"));
@@ -1477,7 +1515,7 @@ public class ClaimGuiEvents implements Listener {
         	cPlayer.setGuiPage(1);
     		if(event.getClick() == ClickType.SHIFT_LEFT) {
     			String target = cPlayer.getMapString(clickedSlot);
-    			instance.getMain().deleteAllClaim(target)
+    			instance.getMain().deleteAllClaims(target)
 	    			.thenAccept(success -> {
 	    				if(success) {
 	        				new AdminGestionClaimsGui(player,1,filter,instance);
@@ -1556,7 +1594,7 @@ public class ClaimGuiEvents implements Listener {
         	if(event.getClick() == ClickType.SHIFT_LEFT) {
         		String owner = claim.getOwner();
         		String claim_name = claim.getName();
-        		instance.getMain().deleteClaim(player, claim)
+        		instance.getMain().deleteClaim(claim)
 				.thenAccept(success -> {
 					if (success) {
         				player.sendMessage(instance.getLanguage().getMessage("player-unclaim-other-claim-aclaim").replaceAll("%name%", claim_name).replaceAll("%player%", owner));
@@ -1600,7 +1638,7 @@ public class ClaimGuiEvents implements Listener {
         }
         
         if(clickedSlot == 50) {
-        	instance.getMain().applyAllSettings(claim, claim.getOwner())
+        	instance.getMain().applyAllSettings(claim)
         		.thenAccept(success -> {
         			if (success) {
                 		player.sendMessage(instance.getLanguage().getMessage("apply-all-settings-success-aclaim").replaceAll("%player%", claim.getOwner()));
@@ -1632,7 +1670,7 @@ public class ClaimGuiEvents implements Listener {
                 String action = instance.getGuis().getSlotPerm(clickedSlot);
                 if(!instance.getPlayerMain().checkPermPlayer(player, "scs.setting."+action)) return;
                 if(title.contains(instance.getLanguage().getMessage("status-enabled"))){
-                	instance.getMain().updatePerm(player, claim, action, false)
+                	instance.getMain().updatePerm(claim, action, false)
                 		.thenAccept(success -> {
                 			if (success) {
                             	meta.setDisplayName(title.replace(instance.getLanguage().getMessage("status-enabled"), instance.getLanguage().getMessage("status-disabled")));
@@ -1651,7 +1689,7 @@ public class ClaimGuiEvents implements Listener {
                         });
                     return;
                 }
-                instance.getMain().updatePerm(player, claim, action, true)
+                instance.getMain().updatePerm(claim, action, true)
                 	.thenAccept(success -> {
                 		if (success) {
                         	meta.setDisplayName(title.replace(instance.getLanguage().getMessage("status-disabled"), instance.getLanguage().getMessage("status-enabled")));
@@ -1781,44 +1819,33 @@ public class ClaimGuiEvents implements Listener {
         }
         
         if(clickedSlot >= 0 && clickedSlot <= 44) {
-        	String owner = cPlayer.getMapString(clickedSlot);
+        	String targetName = cPlayer.getMapString(clickedSlot);
         	String owner_claim = claim.getOwner();
-        	if(owner.equals(player.getName()) && !owner_claim.equals("admin")) return;
-        	if(owner_claim.equals("admin")) {
-        		String message = instance.getLanguage().getMessage("remove-member-success-aclaim").replaceAll("%player%", owner).replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", instance.getLanguage().getMessage("protected-area-title"));
-        		instance.getMain().removeAdminClaimMembers(claim, owner)
-        			.thenAccept(success -> {
-        				if (success) {
-                			player.sendMessage(message);
-                            int page = cPlayer.getGuiPage();
-                        	new AdminGestionClaimMembersGui(player,claim,page,instance);
-        				} else {
-        					player.closeInventory();
-        					player.sendMessage(instance.getLanguage().getMessage("error"));
-        				}
-        			})
-                    .exceptionally(ex -> {
-                        ex.printStackTrace();
-                        return null;
-                    });
-        	} else {
-        		String message = instance.getLanguage().getMessage("remove-member-success-aclaim").replaceAll("%player%", owner).replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", owner_claim);
-        		instance.getMain().removeClaimMembers(player, claim, owner)
-        			.thenAccept(success -> {
-        				if (success) {
-        					player.sendMessage(message);
-                            int page = cPlayer.getGuiPage();
-                        	new AdminGestionClaimMembersGui(player,claim,page,instance);
-        				} else {
-        					player.closeInventory();
-        					player.sendMessage(instance.getLanguage().getMessage("error"));
-        				}
-        			})
-                    .exceptionally(ex -> {
-                        ex.printStackTrace();
-                        return null;
-                    });
-        	}
+        	String claimName = claim.getName();
+        	if(targetName.equals(player.getName()) && !owner_claim.equals("admin")) return;
+    		String message = instance.getLanguage().getMessage("remove-member-success-aclaim").replaceAll("%player%", targetName).replaceAll("%claim-name%", claimName).replaceAll("%owner%", owner_claim);
+    		String targetMessage = owner_claim.equalsIgnoreCase("admin") ?
+    				instance.getLanguage().getMessage("remove-claim-protected-area-player").replaceAll("%claim-name%", claimName) :
+    				instance.getLanguage().getMessage("remove-claim-player").replaceAll("%claim-name%", claimName).replaceAll("%owner%", owner_claim);
+    		instance.getMain().removeClaimMember(claim, targetName)
+    			.thenAccept(success -> {
+    				if (success) {
+    					player.sendMessage(message);
+                        int page = cPlayer.getGuiPage();
+                    	new AdminGestionClaimMembersGui(player,claim,page,instance);
+            			Player target = Bukkit.getPlayer(targetName);
+            			if(target != null && target.isOnline()) {
+            				target.sendMessage(targetMessage);
+            			}
+    				} else {
+    					player.closeInventory();
+    					player.sendMessage(instance.getLanguage().getMessage("error"));
+    				}
+    			})
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
             return;
         }
         return;
@@ -1859,43 +1886,33 @@ public class ClaimGuiEvents implements Listener {
         }
         
         if(clickedSlot >= 0 && clickedSlot <= 44) {
-        	String owner = cPlayer.getMapString(clickedSlot);
-        	if(owner.equals(player.getName())) return;
-        	if(claim.getOwner().equals("admin")) {
-        		String message = instance.getLanguage().getMessage("remove-ban-success-aclaim").replaceAll("%player%", owner).replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", instance.getLanguage().getMessage("protected-area-title"));
-        		instance.getMain().removeAdminClaimBan(claim, owner)
-        			.thenAccept(success -> {
-        				if (success) {
-                			player.sendMessage(message);
-                            int page = cPlayer.getGuiPage();
-                        	new AdminGestionClaimBansGui(player,claim,page,instance);
-        				} else {
-        					player.closeInventory();
-        					player.sendMessage(instance.getLanguage().getMessage("error"));
-        				}
-        			})
-                    .exceptionally(ex -> {
-                        ex.printStackTrace();
-                        return null;
-                    });
-        	} else {
-        		String message = instance.getLanguage().getMessage("remove-ban-success-aclaim").replaceAll("%player%", owner).replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", claim.getOwner());
-        		instance.getMain().removeClaimBan(player, claim, owner)
-        			.thenAccept(success -> {
-        				if (success) {
-        					player.sendMessage(message);
-                            int page = cPlayer.getGuiPage();
-                        	new AdminGestionClaimBansGui(player,claim,page,instance);
-        				} else {
-        					player.closeInventory();
-        					player.sendMessage(instance.getLanguage().getMessage("error"));
-        				}
-        			})
-                    .exceptionally(ex -> {
-                        ex.printStackTrace();
-                        return null;
-                    });
-        	}
+        	String targetName = cPlayer.getMapString(clickedSlot);
+        	String owner_claim = claim.getOwner();
+        	String claimName = claim.getName();
+        	if(targetName.equals(player.getName())) return;
+    		String message = instance.getLanguage().getMessage("remove-ban-success-aclaim").replaceAll("%player%", targetName).replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", owner_claim);
+    		String targetMessage = owner_claim.equalsIgnoreCase("admin") ?
+    				instance.getLanguage().getMessage("unbanned-claim-protected-area-player").replaceAll("%claim-name%", claimName) :
+    				instance.getLanguage().getMessage("unbanned-claim-player").replaceAll("%claim-name%", claimName).replaceAll("%owner%", owner_claim);
+    		instance.getMain().removeClaimBan(claim, targetName)
+    			.thenAccept(success -> {
+    				if (success) {
+    					player.sendMessage(message);
+                        int page = cPlayer.getGuiPage();
+                    	new AdminGestionClaimBansGui(player,claim,page,instance);
+            			Player target = Bukkit.getPlayer(targetName);
+            			if(target != null && target.isOnline()) {
+            				target.sendMessage(targetMessage);
+            			}
+    				} else {
+    					player.closeInventory();
+    					player.sendMessage(instance.getLanguage().getMessage("error"));
+    				}
+    			})
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
             return;
         }
         return;
@@ -1950,7 +1967,7 @@ public class ClaimGuiEvents implements Listener {
 	        	return;
         	}
         	if(event.getClick() == ClickType.SHIFT_LEFT) {
-        		instance.getMain().forceDeleteClaim(claim)
+        		instance.getMain().deleteClaim(claim)
         			.thenAccept(success -> {
         				if (success) {
         					player.sendMessage(instance.getLanguage().getMessage("delete-claim-protected-area"));
@@ -2075,7 +2092,7 @@ public class ClaimGuiEvents implements Listener {
         	String chunk = cPlayer.getMapString(clickedSlot);
         	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.delchunk")) return;
         	if (claim.getChunks().size() == 1) return;
-        	instance.getMain().removeChunk(claim, chunk)
+        	instance.getMain().removeClaimChunk(claim, chunk)
         		.thenAccept(success -> {
         			if (success) {
         				player.sendMessage(instance.getLanguage().getMessage("delete-chunk-success").replaceAll("%chunk%", "["+chunk+"]").replaceAll("%claim-name%", claim.getName()));

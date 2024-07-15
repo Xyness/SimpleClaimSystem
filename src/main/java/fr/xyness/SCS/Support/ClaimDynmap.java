@@ -62,19 +62,17 @@ public class ClaimDynmap {
     
     
     /**
-     * Creates an area marker on the Dynmap for given chunks.
+     * Creates an area marker on the Dynmap for given claim.
      *
-     * @param chunks the chunks to be marked.
-     * @param name  the name of the claim.
-     * @param owner the owner of the claim.
+     * @param claim The claim to be marked
      */
-	public void createChunkZone(Set<Chunk> chunks, String name, String owner) {
+	public void createClaimZone(Claim claim) {
     	String t = instance.getSettings().getSetting("dynmap-claim-hover-text")
-    			.replaceAll("%claim-name%", name)
-    			.replaceAll("%owner%", owner);
+    			.replaceAll("%claim-name%", claim.getName())
+    			.replaceAll("%owner%", claim.getOwner());
     	int linestyle = Integer.parseInt(instance.getSettings().getSetting("dynmap-claim-border-color"), 16);
     	int fillstyle = Integer.parseInt(instance.getSettings().getSetting("dynmap-claim-fill-color"), 16);
-    	chunks.parallelStream().forEach(chunk -> {
+    	claim.getChunks().parallelStream().forEach(chunk -> {
     		String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
     	    AreaMarker existingMarker = markerSet.findAreaMarker(markerId);
     	    if (existingMarker != null) return;
@@ -98,16 +96,15 @@ public class ClaimDynmap {
 	}
 	
 	/**
-     * Updates the tooltip name of given chunks on the Dynmap.
+     * Updates the tooltip name of given claim on the Dynmap.
      *
-     * @param chunks the chunks whose tooltip needs updating.
-     * @param claim the claim of chunks
+     * @param claim The claim to update the name for
      */
-	public void updateName(Set<Chunk> chunks, Claim claim) {
-    	String t = instance.getSettings().getSetting("dynmap-hover-text")
+	public void updateName(Claim claim) {
+    	String t = instance.getSettings().getSetting("dynmap-claim-hover-text")
     			.replaceAll("%claim-name%", claim.getName())
     			.replaceAll("%owner%", claim.getOwner());
-		chunks.parallelStream().forEach(chunk -> {
+		claim.getChunks().parallelStream().forEach(chunk -> {
 			String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 			AreaMarker marker = markerSet.findAreaMarker(markerId);
 		    if (marker != null) {
@@ -119,7 +116,7 @@ public class ClaimDynmap {
 	/**
      * Deletes an area marker for given chunks from the Dynmap.
      *
-     * @param chunk the chunks whose marker needs deletion.
+     * @param chunks The chunks whose marker needs deletion.
      */
 	public void deleteMarker(Set<Chunk> chunks) {
 		chunks.parallelStream().forEach(chunk -> {

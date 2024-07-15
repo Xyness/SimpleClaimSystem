@@ -145,9 +145,11 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
                 	player.sendMessage(instance.getLanguage().getMessage("player-has-no-claim"));
                     return false;
                 }
-                instance.getMain().deleteAllClaim(player)
+                instance.getMain().deleteAllClaims(playerName)
                 	.thenAccept(success -> {
-                		if (!success) {
+                		if (success) {
+                			player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
+                		} else {
                 			player.sendMessage(instance.getLanguage().getMessage("error"));
                 		}
                 	})
@@ -162,7 +164,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("help-command.unclaim-unclaim").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")));
                 return false;
             }
-            instance.getMain().deleteClaim(player, claim)
+            instance.getMain().deleteClaim(claim)
             	.thenAccept(success -> {
             		if (success) {
             			player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
@@ -188,7 +190,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
         String owner = claim.getOwner();
         
         if (owner.equals("admin") && player.hasPermission("scs.admin")) {
-        	instance.getMain().forceDeleteClaim(claim)
+        	instance.getMain().deleteClaim(claim)
         		.thenAccept(success -> {
         			if (success) {
         				player.sendMessage(instance.getLanguage().getMessage("delete-claim-protected-area"));
@@ -208,7 +210,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
             return false;
         }
         
-        instance.getMain().deleteClaim(player, claim)
+        instance.getMain().deleteClaim(claim)
         	.thenAccept(success -> {
         		if (success) {
         			player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
