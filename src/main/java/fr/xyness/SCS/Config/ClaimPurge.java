@@ -125,7 +125,7 @@ public class ClaimPurge {
             if (hasBeenOfflineFor(owner)) {
                 int nb = instance.getMain().getPlayerClaimsCount(owner);
                 players.put(owner, String.valueOf(nb));
-                instance.getMain().deleteAllClaim(owner);
+                instance.getMain().deleteAllClaims(owner);
             }
         }
         StringBuilder sb = new StringBuilder();
@@ -151,7 +151,7 @@ public class ClaimPurge {
      * @param time the time string to convert.
      * @return the equivalent time in seconds.
      */
-    public static int convertTimeToSeconds(String time) {
+    public int convertTimeToSeconds(String time) {
         int totalSeconds = 0;
         Pattern pattern = Pattern.compile("(\\d+)([smhdwMy])");
         Matcher matcher = pattern.matcher(time);

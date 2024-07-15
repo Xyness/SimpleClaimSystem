@@ -197,7 +197,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     		return;
     	}
     	if(args[0].equalsIgnoreCase("reset-all-admin-claims-settings")) {
-    		instance.getMain().resetAllAdminClaimsSettings()
+    		instance.getMain().resetAllOwnerClaimsSettings("admin")
     			.thenAccept(success ->{
     				if (success) {
     					sender.sendMessage(instance.getLanguage().getMessage("reset-of-admin-claims-settings-successful"));
@@ -225,7 +225,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         		}
         		Claim claim = instance.getMain().getClaim(chunk);
         		String owner = claim.getOwner();
-        		instance.getMain().forceDeleteClaim(claim)
+        		instance.getMain().deleteClaim(claim)
         			.thenAccept(success -> {
         				if (success) {
         					player.sendMessage(instance.getLanguage().getMessage("forceunclaim-success").replaceAll("%owner%", owner));
@@ -283,7 +283,15 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         		}
         		Claim claim = instance.getMain().getClaim(chunk);
         		final String tName = targetName;
-        		instance.getMain().setOwner(player, tName, claim, true);
+        		instance.getMain().setOwner(tName, claim)
+        			.thenAccept(success -> {
+        				if (success) {
+        					sender.sendMessage(instance.getLanguage().getMessage("setowner-success").replaceAll("%owner%", tName));
+        				}
+        			})
+                    .exceptionally(ex -> {
+                        return null;
+                    });
         		return;
         	}
     	}
@@ -1026,7 +1034,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         				return;
         			}
         			if(args[3].equalsIgnoreCase("*")) {
-        				instance.getMain().deleteAllClaim(args[2])
+        				instance.getMain().deleteAllClaims(args[2])
         					.thenAccept(success -> {
         						if(success) {
                 					player.sendMessage(instance.getLanguage().getMessage("player-unclaim-other-all-claim-aclaim").replaceAll("%player%", args[2]));
@@ -1049,7 +1057,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         				return;
         			}
         			Claim claim = instance.getMain().getClaimByName(args[3], args[2]);
-        			instance.getMain().deleteClaim(player, claim)
+        			instance.getMain().deleteClaim(claim)
         				.thenAccept(success -> {
         					if (success) {
                 				player.sendMessage(instance.getLanguage().getMessage("player-unclaim-other-claim-aclaim").replaceAll("%name%", args[3]).replaceAll("%player%", args[2]));

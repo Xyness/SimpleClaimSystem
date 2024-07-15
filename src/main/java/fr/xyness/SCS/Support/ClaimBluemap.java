@@ -9,22 +9,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.plugin.java.JavaPlugin;
 
 import com.flowpowered.math.vector.Vector2d;
 
 import de.bluecolored.bluemap.api.BlueMapAPI;
 import de.bluecolored.bluemap.api.BlueMapMap;
 import de.bluecolored.bluemap.api.markers.ExtrudeMarker;
-import de.bluecolored.bluemap.api.markers.Marker;
 import de.bluecolored.bluemap.api.markers.MarkerSet;
 import de.bluecolored.bluemap.api.math.Color;
 import de.bluecolored.bluemap.api.math.Shape;
 import fr.xyness.SCS.Claim;
-import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
-import fr.xyness.SCS.Config.ClaimSettings;
-import net.pl3x.map.core.util.Colors;
 
 /**
  * This class integrates claims with the BlueMap plugin, allowing claims to be displayed as markers on the BlueMap.
@@ -62,18 +57,17 @@ public class ClaimBluemap {
 	public ClaimBluemap(BlueMapAPI api, SimpleClaimSystem instance) {
 		this.api = api;
 		this.instance = instance;
-		Set<Chunk> claims = instance.getMain().getAllClaimsChunk();
+		Set<Claim> claims = instance.getMain().getAllClaims();
 		instance.executeAsync(() -> {
 			for (World w : Bukkit.getWorlds()) {
 				MarkerSet markerSet = MarkerSet.builder()
 		                .label("Claims")
 		                .build();
 				markerSets.put(w, markerSet);
-	   			for (Chunk c : claims) {
-					Claim claim = instance.getMain().getClaimFromChunk(c);
-					if (claim == null) continue;
-					if (!claim.getLocation().getWorld().equals(w)) continue;
-					createChunkZone(Set.of(c), claim.getName(), claim.getOwner());
+				for(Claim claim : claims) {
+					if (claim.getLocation().getWorld().equals(w)) {
+						createClaimZone(claim);
+					}
 				}
 				api.getWorld(w).ifPresent(world -> {
 				    for (BlueMapMap map : world.getMaps()) {
@@ -94,19 +88,21 @@ public class ClaimBluemap {
 	/**
 	 * Creates a marker on the BlueMap for the specified chunks.
 	 *
-	 * @param chunks the chunks to create the marker for.
-	 * @param name  the name of the claim.
-	 * @param owner the owner of the claim.
+	 * @param claim The claim to create the marker for.
 	 */
-	public void createChunkZone(Set<Chunk> chunks, String name, String owner) {
+	public void createClaimZone(Claim claim) {
+	    // Get data
+	    String name = claim.getName();
+	    String owner = claim.getOwner();
+	    Set<Chunk> chunks = claim.getChunks();
 	    String hoverText = instance.getSettings().getSetting("bluemap-claim-hover-text")
 	            .replaceAll("%claim-name%", name)
 	            .replaceAll("%owner%", owner);
-	    
-	    String fcolor = "80"+instance.getSettings().getSetting("bluemap-claim-fill-color");
-	    String lcolor = "80"+instance.getSettings().getSetting("bluemap-claim-border-color");
+	    String fcolor = "80" + instance.getSettings().getSetting("bluemap-claim-fill-color");
+	    String lcolor = "80" + instance.getSettings().getSetting("bluemap-claim-border-color");
 	    Color fillColor = new Color((int) Long.parseLong(fcolor, 16));
 	    Color strokeColor = new Color((int) Long.parseLong(lcolor, 16));
+
 	    chunks.parallelStream().forEach(chunk -> {
 	    	String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 		    MarkerSet markerSet = markerSets.get(chunk.getWorld());
@@ -142,14 +138,13 @@ public class ClaimBluemap {
 	/**
 	 * Updates the tooltip name of the specified chunks on the BlueMap.
 	 *
-	 * @param chunks the chunks to update the name for.
-	 * @param claim the claim for chunks
+	 * @param claim The claim to update the name for
 	 */
-	public void updateName(Set<Chunk> chunks, Claim claim) {
-    	String t = instance.getSettings().getSetting("bluemap-hover-text")
+	public void updateName(Claim claim) {
+    	String t = instance.getSettings().getSetting("bluemap-claim-hover-text")
     			.replaceAll("%claim-name%", claim.getName())
     			.replaceAll("%owner%", claim.getOwner());
-		chunks.parallelStream().forEach(chunk -> {
+		claim.getChunks().forEach(chunk -> {
 			String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 			MarkerSet markerSet = markerSets.get(chunk.getWorld());
 			if (markerSet == null) return;
@@ -162,9 +157,9 @@ public class ClaimBluemap {
 	}
 	
 	/**
-	 * Deletes the marker for the specified chunk from the BlueMap.
+	 * Deletes the marker for the specified chunks from the BlueMap.
 	 *
-	 * @param chunks the chunks to delete the marker for.
+	 * @param chunks The chunks to delete the marker for.
 	 */
 	public void deleteMarker(Set<Chunk> chunks) {
 		chunks.parallelStream().forEach(chunk -> {
@@ -174,4 +169,5 @@ public class ClaimBluemap {
 			markerSet.remove(markerId);
 		});
 	}
+	
 }

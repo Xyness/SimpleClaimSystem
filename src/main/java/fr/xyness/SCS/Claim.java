@@ -18,10 +18,11 @@ public class Claim {
     // *  Variables  *
     // ***************
     
+	
 	/** The id associated with this claim */
 	private int id;
 	
-    /** The chunk associated with this claim */
+    /** The chunks associated with this claim */
     private Set<Chunk> chunks;
     
     /** The owner of the claim */
@@ -329,4 +330,39 @@ public class Claim {
         }
     	this.chunks.addAll(chunks); 
     }
+    
+    /**
+     * Checks if a player is banned.
+     *
+     * @param playerName the name of the player to check
+     * @return True if the player is banned, False otherwise
+     */
+    public boolean isBanned(String playerName) {
+        Iterator<String> iterator = this.bans.iterator();
+        while (iterator.hasNext()) {
+            String currentString = iterator.next();
+            if (currentString.equalsIgnoreCase(playerName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Checks if a player is a member.
+     *
+     * @param playerName the name of the player to check
+     * @return True if the player is a member, False otherwise
+     */
+    public boolean isMember(String playerName) {
+        Iterator<String> iterator = this.members.iterator();
+        while (iterator.hasNext()) {
+            String currentString = iterator.next();
+            if (currentString.equalsIgnoreCase(playerName)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }

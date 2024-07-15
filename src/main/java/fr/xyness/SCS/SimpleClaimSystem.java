@@ -105,7 +105,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private JavaPlugin plugin;
     
     /** The version of the plugin */
-    private String Version = "1.10.0.1";
+    private String Version = "1.10.0.2";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -135,10 +135,10 @@ public class SimpleClaimSystem extends JavaPlugin {
     public void onEnable() {
     	// Message for console
     	info("==========================================================================");
-        info(ChatColor.AQUA + "  ___    ___   ___ ");
-        info(ChatColor.AQUA + " / __|  / __| / __|  " + ChatColor.DARK_GREEN + "SimpleClaimSystem " + ChatColor.AQUA + "v" + Version);
-        info(ChatColor.AQUA + " \\__ \\ | (__  \\__ \\  " + ChatColor.GRAY + checkForUpdates());
-        info(ChatColor.AQUA + " |___/  \\___| |___/  " + ChatColor.DARK_GRAY + "Running on " + Bukkit.getVersion());
+        info(ChatColor.AQUA + "  ___   ___   ___ ");
+        info(ChatColor.AQUA + " / __| / __| / __|  " + ChatColor.DARK_GREEN + "SimpleClaimSystem " + ChatColor.AQUA + "v" + Version);
+        info(ChatColor.AQUA + " \\__ \\ ∣(__  \\__ \\  " + ChatColor.GRAY + checkForUpdates());
+        info(ChatColor.AQUA + " |___/ \\___| |___/  " + ChatColor.DARK_GRAY + "Running on " + Bukkit.getVersion());
         info(" ");
         
         // Register plugin instance and api instance

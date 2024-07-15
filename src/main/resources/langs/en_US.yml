@@ -201,6 +201,7 @@ unbanned-all-claim-player: "§a%owner%§f unbanned you from §aall his claims§f
 unbanned-claim-player: "§a%owner%§f unbanned you from his claim §a%claim-name%§f."
 banned-claim-protected-area-player: "§fYou have been banned from the protected area §c%claim-name%§f."
 banned-claim-player: "§c%owner%§f banned you from his claim §c%claim-name%§f."
+unbanned-claim-protected-area-player: "§fYou have been unbanned from the protected area §a%claim-name%§f."
 chunks-must-be-from-same-world: "§cThe claims must be from the same world."
 database-must-be-five-settings: "§cThe database requires 5 parameters:\n§c<HOSTNAME>;<PORT>;<DATABASE>;<USERNAME>;<PASSWORD>"
 database-connection-error: "§cError when trying to connect to database.\n§cCheck the login information, they should be in this order:\n§c<HOSTNAME>;<PORT>;<DATABASE>;<USERNAME>;<PASSWORD>"
