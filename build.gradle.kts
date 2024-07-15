@@ -65,7 +65,7 @@ tasks.jar {
 }
 
 tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-    archiveClassifier.set("")
+    archiveClassifier.set("all")
     from(sourceSets.main.get().output)
     configurations = listOf(project.configurations.runtimeClasspath.get())
     dependencies {
@@ -86,7 +86,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/xyness/SimpleClaimSystem")
+            url = uri("https://maven.pkg.github.com/USERNAME/SimpleClaimSystem")
             credentials {
                 username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
                 password = project.findProperty("gpr.token") as String? ?: System.getenv("TOKEN")
