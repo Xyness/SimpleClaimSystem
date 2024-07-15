@@ -72,7 +72,7 @@ publishing {
     repositories {
         maven {
             name = "GitHubPackages"
-            url = uri("https://maven.pkg.github.com/USERNAME/SimpleClaimSystem")
+            url = uri("https://maven.pkg.github.com/Xyness/SimpleClaimSystem")
             credentials {
                 username = project.findProperty("gpr.user") as String? ?: System.getenv("USERNAME")
                 password = project.findProperty("gpr.token") as String? ?: System.getenv("TOKEN")
