@@ -21,8 +21,8 @@ SimpleClaimSystem is a plugin allowing you to protect your constructions, it wor
 | Pl3xmap              | [Download](https://modrinth.com/mod/pl3xmap)    |
 
 ## Useful links
-# Wiki ([here](https://xyness.gitbook.io/simpleclaimsystem))
-# Discord ([here](https://discord.gg/xyness))
+### Wiki ([here](https://xyness.gitbook.io/simpleclaimsystem))
+### Discord ([here](https://discord.gg/xyness))
 
 ## bStats
 [![](https://bstats.org/signatures/bukkit/SimpleCLaimSystem.svg)]([https://bstats.org/plugin/bukkit/SimpleClaimSystem/21435](https://bstats.org/plugin/bukkit/SimpleClaimSystem/21435))
