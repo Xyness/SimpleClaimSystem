@@ -1,0 +1,791 @@
+# **************************
+# *  Paramètres de langue  *
+# **************************
+
+
+# > Messages de console
+
+command-only-by-players: "§cCette commande ne peut être utilisée que par les joueurs."
+reload-complete: "§aRechargement terminé"
+
+
+# > Messages de barre de boss
+
+bossbar-protected-area-message: "§fVous êtes dans une §ezone protégée§f !"
+bossbar-owner-message: "§fVous êtes dans votre territoire §e%owner% §b(%name%)"
+bossbar-member-message: "§fVous êtes dans le territoire de §e%owner% §b(%name%)"
+bossbar-visitor-message: "§fVous visitez le territoire de §e%owner% §b(%name%)"
+
+
+# > Messages des joueurs
+
+free-territory: "§cCe territoire n'appartient à personne."
+territory-not-yours: "§cCe territoire ne vous appartient pas."
+already-member: "§c%player% a déjà accès à votre territoire."
+add-member-success: "§e%player%§f ajouté avec succès à §e%claim-name%§f."
+error: "§cUne erreur est survenue, veuillez contacter un administrateur."
+not-member: "§c%player% n'est pas membre de cette revendication."
+cant-remove-owner: "§cVous ne pouvez pas supprimer le propriétaire de ce territoire (vous-même)."
+remove-member-success: "§e%player%§f retiré avec succès de §e%claim-name%§f."
+create-error-protected-area: "§cVous êtes dans une zone protégée du serveur."
+create-already-yours: "§cVous êtes déjà dans votre propriété."
+create-already-claim: "§cVous êtes dans la propriété de %player%."
+create-protected-area-success: "§aVous avez créé une zone protégée.\n§fUtilisez §e/parea settings§f pour configurer cette zone."
+create-protected-area-radius-success: "§aVous avez créé une zone protégée §b(%number% chunks)§a.\n§fUtilisez §e/parea settings %claim-name%§f pour configurer cette zone."
+create-claim-success: "§aVous êtes maintenant le propriétaire de ce territoire.\n§fUtilisez §e/claim settings§f pour configurer votre territoire."
+create-claim-radius-success: "§aVous êtes maintenant le propriétaire de ce territoire §b(%number% chunks)§a.\n§fUtilisez §e/claim settings %claim-name%§f pour configurer votre territoire."
+cant-radius-claim-already-claim: "§cCertaines revendications dans ce rayon appartiennent à quelqu'un."
+delete-all-claims-success: "§fToutes vos revendications ont été supprimées avec succès."
+territory-delete-success: "§aRevendication supprimée avec succès."
+territory-delete-error: "§cCertaines revendications n'ont pas pu être supprimées (%number%/%number-max%), cela peut être dû au fait qu'elles ne vous appartiennent pas."
+cant-claim-anymore: "§cVous avez atteint le nombre maximum de revendications par joueur."
+cant-radius-claim: "§cVous ne pouvez pas utiliser ce rayon pour vos revendications."
+world-disabled: "§cLes revendications sont désactivées dans le monde '%world%'."
+name-change-ask: "§fUtilisez §e/claim setname <claim-name> <new-name>§f pour changer."
+name-change-success: "§fLe nouveau nom de la revendication : §e%name%§f."
+loc-change-success: "§fLe nouveau point de spawn de la revendication : §e%coords%§f."
+claim-confirmation-ask: "§fCliquez pour confirmer votre revendication "
+claim-confirmation-button: "§a[Confirmer]"
+error-name-exists: "§cLa revendication '%name%' existe déjà."
+error-name-space: "§cLe nouveau nom ne doit pas contenir d'espaces."
+teleportation-in-progress: "§fTéléportation dans §e%delay% secondes§f, veuillez ne pas bouger."
+teleportation-canceled-moving: "§cTéléportation annulée car vous avez bougé."
+apply-all-settings-success: "§eLes paramètres§f ont été appliqués à§e toutes vos revendications§f."
+apply-all-admin-settings-success: "§eLes paramètres§f ont été appliqués à§e toutes les zones protégées§f."
+error-claim-visitors-deny: "§cCette revendication n'autorise pas les visiteurs."
+error-not-right-claim: "§cVous devez être dans la revendication correspondante."
+claim-player-not-found: "§cCette revendication n'existe pas."
+cmd-no-permission: "§cVous n'avez pas accès à cette commande."
+max-chunks-per-claim-must-be-positive: "§cLa limite de chunks doit être positive."
+max-chunks-per-claim-must-be-number: "§cLa limite de chunks doit être un nombre."
+claim-limit-must-be-positive: "§cLa limite de revendications doit être positive."
+claim-limit-must-be-number: "§cLa limite de revendications doit être un nombre."
+claim-limit-radius-must-be-positive: "§cLa limite de rayon de revendication doit être positive."
+claim-limit-radius-must-be-number: "§cLa limite de rayon de revendication doit être un nombre."
+teleportation-delay-must-be-positive: "§cLe délai de téléportation doit être positif."
+teleportation-delay-must-be-number: "§cLe délai de téléportation doit être un nombre."
+set-player-teleportation-delay-success: "§eLe délai de téléportation de %player%§f est maintenant de §e%amount%s§f."
+set-player-max-claim-success: "§e%player%§f peut avoir un maximum de §e%amount% revendications§f."
+set-player-max-radius-claim-success: "§e%player%§f peut revendiquer dans un rayon de §e%amount%§f."
+worldguard-cannot-claim-in-region: "§cVous ne pouvez pas revendiquer dans cette zone."
+claim-set-description-success: "§fDescription de §e%name%§f définie à :\n§7%description%"
+claim-price-must-be-number: "§cLe prix de votre vente doit être un nombre correct."
+claim-for-sale-success: "§fVotre revendication §e%name%§f est maintenant en vente pour §e%price%%money-symbol%§f."
+claim-in-sale-cancel: "§fVotre revendication §e%name%§f n'est plus en vente."
+claim-is-not-in-sale: "§cCette revendication n'est pas à vendre."
+buy-but-not-enough-money: "§cVous n'avez pas assez d'argent."
+buy-claim-success: "§fVous avez acheté la revendication §e%name%§f de §e%owner%§f pour §e%price%%money-symbol%§f."
+economy-disabled: "§cL'économie pour les revendications est désactivée."
+sell-claim-price-syntax: "§cLe prix doit être compris entre 0%money-symbol% et %max-price%%money-symbol%."
+the-claim-does-not-exists-anymore: "§cLa revendication que vous essayez d'accéder n'existe plus."
+claim-has-been-sold: "§fVotre revendication §e%name%§f a été vendue à §e%buyer%§f."
+autoclaim-off: "§fRevendication automatique désactivée."
+autoclaim-on: "§fRevendication automatique activée."
+group-does-not-exists: "§cCe groupe n'existe pas."
+set-group-teleportation-delay-success: "§fLe délai de téléportation du groupe §e%group%§f est maintenant de §e%amount%s§f."
+set-group-max-claim-success: "§fLe groupe §e%group%§f peut avoir un maximum de §e%amount% revendications§f."
+set-group-max-radius-claim-success: "§fLe groupe §e%group%§f peut revendiquer dans un rayon de §e%amount%§f."
+forceunclaim-success: "§fLa revendication de §e%owner%§f a été annulée."
+setowner-success: "§e%owner%§f est maintenant le nouveau propriétaire de la revendication sur laquelle vous vous trouvez."
+setowner-all-success: "§e%owner%§f est maintenant le nouveau propriétaire de §etoutes vos revendications§f."
+setowner-claim-success: "§e%owner%§f est maintenant le nouveau propriétaire de votre revendication §e%claim-name%§f."
+setting-changed-via-command: "§fParamètre §e%setting%§f défini à §e%value%§f."
+setting-must-be-boolean: "§cLa valeur de ce paramètre doit être vraie ou fausse."
+setting-must-be-protection-message: "§cLa valeur de ce paramètre doit être : ACTION_BAR, TITLE, SUBTITLE ou CHAT."
+max-sell-price-must-be-positive: "§cLe prix de vente maximum doit être > 0."
+max-sell-price-must-be-number: "§cLe prix de vente maximum doit être un nombre."
+bossbar-color-incorrect: "§cCette couleur de barre n'existe pas."
+bossbar-style-incorrect: "§cCe style de barre n'existe pas."
+mat-incorrect: "§cCe matériau n'existe pas."
+entity-incorrect: "§cCe type d'entité n'existe pas."
+setting-list-changed-via-command: "§fMatériau §e%material%§f ajouté à §e%setting%§f."
+setting-list-changeda-via-command: "§fMatériau §e%material%§f retiré de §e%setting%§f."
+setting-incorrect: "§cCe paramètre n'existe pas."
+material-already-in-list: "§cCe matériau est déjà sur la liste."
+material-not-in-list: "§cCe matériau n'est pas sur la liste."
+entity-already-in-list: "§cCe matériau est déjà sur la liste."
+entity-not-in-list: "§cCe matériau n'est pas sur la liste."
+setting-list-changed-via-command-entity: "§fEntité §e%entity%§f ajoutée à §e%setting%§f."
+setting-list-changeda-via-command-entity: "§fEntité §e%entity%§f retirée de §e%setting%§f."
+world-already-in-list: "§cCe monde est déjà sur la liste."
+world-not-in-list: "§cCe monde n'est pas sur la liste."
+world-list-changed-via-command: "§fMonde §e%name%§f ajouté aux §emonde désactivés§f."
+world-list-changeda-via-command: "§fMonde §e%name%§f retiré des §emonde désactivés§f."
+cant-add-member-anymore: "§cVous avez atteint le nombre maximum de membres par revendication."
+you-cannot-use-this-name: "§cVous ne pouvez pas utiliser 'claim-' dans votre nouveau nom de revendication."
+incorrect-characters-name: "§cVous devez utiliser un nom contenant uniquement des lettres et des chiffres."
+incorrect-characters-description: "§cVous devez utiliser une description contenant uniquement des lettres et des chiffres."
+claim-not-an-admin-claim: "§cCette revendication n'est pas une zone protégée."
+not-using-database: "§cLa base de données est désactivée dans config.yml."
+member-limit-must-be-positive: "§cLa limite de membres doit être positive."
+member-limit-must-be-number: "§cLa limite de membres doit être un nombre."
+set-player-member-limit-success: "§e%player%§f peut avoir un maximum de §e%amount% membres par revendication§f."
+set-group-member-limit-success: "§fLe groupe §e%group%§f peut avoir un maximum de §e%amount% membres par revendication§f."
+claim-was-sold: "§fVotre revendication §e%name%§f a été achetée par §e%buyer%§f pour §e%price%%money-symbol%§f."
+target-does-not-have-claim: "§cLe joueur '%name%' n'a pas de revendications."
+you-paid-claim: "§fVous avez payé §e%price%%money-symbol%§f pour revendiquer."
+buy-but-not-enough-money-claim: "§cVous n'avez pas assez d'argent. Il vous manque %missing-price%%money-symbol%."
+claim-cost-must-be-positive: "§cLe coût de la revendication doit être positif."
+claim-cost-must-be-number: "§cLe coût de la revendication doit être un nombre."
+set-player-claim-cost-success: "§e%player%§f paiera §e%amount%§f pour revendiquer."
+set-player-max-chunks-per-claim-success: "§e%player%§f peut avoir §e%amount%§f chunks par revendication."
+set-group-claim-cost-success: "§fLe groupe §e%group%§f paiera §e%amount%§f pour revendiquer."
+set-group-max-chunks-per-claim-success: "§fLe groupe §e%group%§f peut avoir §e%amount%§f chunks par revendication."
+claim-cost-multiplier-must-be-positive: "§cLe multiplicateur de coût de revendication doit être positif."
+claim-cost-multiplier-must-be-number: "§cLe multiplicateur de coût de revendication doit être un nombre."
+set-player-claim-cost-multiplier-success: "§fLe multiplicateur §e%amount%§f sera utilisé pour le coût de revendication de §e%player%§f."
+set-group-claim-cost-multiplier-success: "§fLe multiplicateur §e%amount%§f sera utilisé pour le coût de revendication pour le groupe §e%group%§f."
+automap-on: "§fAuto-carte activée."
+automap-off: "§fAuto-carte désactivée."
+player-has-no-claim: "§cVous n'avez aucune revendication."
+player-never-played: "§cLe joueur '%player%' n'a jamais joué sur ce serveur."
+cant-add-yourself: "§cVous ne pouvez pas vous ajouter vous-même."
+claim-for-sale-success-broadcast: "§e%player%§f a mis en vente sa revendication §e%name%§f pour §e%price%%money-symbol%§f."
+claim-name-too-long: "§cCe nom est trop long."
+claim-description-too-long: "§cCette description est trop longue."
+player-not-online: "§cLe joueur '%player%' n'est pas en ligne."
+cant-buy-your-own-claim: "§cVous ne pouvez pas acheter votre propre revendication."
+claim-name-length-must-be-positive: "§cLa longueur du nom de la revendication doit être positive."
+claim-name-length-must-be-number: "§cLa longueur du nom de la revendication doit être un nombre."
+claim-description-length-must-be-positive: "§cLa longueur de la description de la revendication doit être positive."
+claim-description-length-must-be-number: "§cLa longueur de la description de la revendication doit être un nombre."
+set-max-length-claim-name-success: "§fLa longueur du nom de la revendication est maintenant de §e%amount% caractères§f."
+set-max-length-claim-description-success: "§fLa longueur de la description de la revendication est maintenant de §e%amount% caractères§f."
+player-does-not-have-claim: "§cCe joueur n'a pas de revendication."
+player-teleport-to-other-claim-aclaim: "§fVous avez été téléporté à la revendication §e%name%§f de §e%player%§f."
+player-unclaim-other-claim-aclaim: "§fVous avez supprimé la revendication §e%name%§f de §e%player%§f."
+player-claim-unclaimed-by-admin: "§fVotre revendication §e%name%§f a été supprimée par §c%player%§f."
+player-unclaim-other-all-claim-aclaim: "§fVous avez supprimé §etoutes les revendications§f de §e%player%§f."
+player-all-claim-unclaimed-by-admin: "§eToutes vos revendications§f ont été supprimées par §c%player%§f."
+player-banned: "§cVous êtes banni de cette revendication."
+cant-ban-yourself: "§cVous ne pouvez pas vous bannir vous-même."
+add-ban-success: "§e%player%§f est maintenant banni de la revendication §e%claim-name%§f."
+add-ban-all-success: "§e%player%§f est maintenant banni de toutes vos revendications."
+remove-ban-success: "§e%player%§f n'est plus banni de la revendication §e%claim-name%§f."
+remove-ban-all-success: "§e%player%§f n'est plus banni de toutes vos revendications."
+not-banned: "§c%player% n'est pas banni de cette revendication."
+automap-world-disabled: "§cLa carte automatique est désactivée dans le monde '%world%'. Carte automatique désactivée."
+autoclaim-world-disabled: "§cLa revendication automatique est désactivée dans le monde '%world%'. Revendication automatique désactivée."
+no-admin-claim: "§cIl n'y a pas de zones protégées."
+remove-all-claim-player: "§c%owner%§f vous a retiré de §ctoutes ses revendications§f."
+remove-claim-player: "§c%owner%§f vous a retiré de sa revendication §c%claim-name%§f."
+add-all-claim-player: "§a%owner%§f vous a ajouté à §atoutes ses revendications§f."
+add-claim-player: "§a%owner%§f vous a ajouté à sa revendication §a%claim-name%§f."
+remove-all-claim-protected-area-player: "§fVous avez été retiré de §ctoutes les zones protégées§f."
+remove-claim-protected-area-player: "§fVous avez été retiré de la zone protégée §c%claim-name%§f."
+add-all-claim-protected-area-player: "§fVous avez été ajouté à §atoutes les zones protégées§f."
+add-claim-protected-area-player: "§fVous avez été ajouté à la zone protégée §a%claim-name%§f."
+cant-transfer-ownership-yourself: "§cVous ne pouvez pas transférer la propriété à vous-même."
+fly-disabled-on-this-server: "§cLe vol dans les revendications est désactivé sur ce serveur."
+fly-enabled: "§fVol activé."
+fly-disabled: "§fVol désactivé."
+autofly-enabled: "§fVol automatique activé."
+autofly-disabled: "§fVol automatique désactivé."
+cant-fly-in-this-claim: "§cVous ne pouvez pas voler dans ce territoire."
+reset-of-player-claims-settings-successful: "§eTous les paramètres de toutes les revendications des joueurs§f ont été réinitialisés."
+reset-of-admin-claims-settings-successful: "§eTous les paramètres de toutes les zones protégées§f ont été réinitialisés."
+claims-are-now-merged: "§fLes deux revendications sont maintenant §dfusionnées§f en une seule §e%claim-name%§f."
+cant-merge-same-claim: "§cVous ne pouvez pas fusionner la même revendication."
+cant-claim-with-so-many-chunks: "§cVous ne pouvez pas revendiquer avec autant de chunks."
+apply-all-settings-success-aclaim: "§eLes paramètres§f ont été appliqués à§e toutes les revendications§f de §e%player%§f."
+remove-member-success-aclaim: "§e%player%§f retiré avec succès de la revendication §e%claim-name%§f de §e%owner%§f."
+remove-ban-success-aclaim: "§e%player%§f n'est plus banni de la revendication §e%claim-name%§f de §e%owner%§f."
+claim-in-sale-cancel-aclaim: "§fLa revendication §e%name%§f de §e%player%§f n'est plus en vente."
+protected-area-title: "zones protégées"
+all-your-claims-title: "toutes vos revendications"
+purge-started-manualy: "§fPurge commencée! Consultez les résultats dans la console."
+banned-all-claim-protected-area-player: "§fVous avez été banni de §ctoutes les zones protégées§f."
+banned-all-claim-player: "§c%owner%§f vous a banni de §ctoutes ses revendications§f."
+unbanned-all-claim-protected-area-player: "§fVous avez été débanni de §atoutes les zones protégées§f."
+unbanned-all-claim-player: "§a%owner%§f vous a débanni de §atoutes ses revendications§f."
+unbanned-claim-player: "§a%owner%§f vous a débanni de sa revendication §a%claim-name%§f."
+banned-claim-protected-area-player: "§fVous avez été banni de la zone protégée §c%claim-name%§f."
+banned-claim-player: "§c%owner%§f vous a banni de sa revendication §c%claim-name%§f."
+unbanned-claim-protected-area-player: "§fVous avez été débanni de la zone protégée §a%claim-name%§f."
+chunks-must-be-from-same-world: "§cLes revendications doivent être dans le même monde."
+database-must-be-five-settings: "§cLa base de données nécessite 5 paramètres:\n§c<HOSTNAME>;<PORT>;<DATABASE>;<USERNAME>;<PASSWORD>"
+database-connection-error: "§cErreur lors de la tentative de connexion à la base de données.\n§cVérifiez les informations de connexion, elles doivent être dans cet ordre:\n§c<HOSTNAME>;<PORT>;<DATABASE>;<USERNAME>;<PASSWORD>"
+database-connection-successful: "§aConnexion à la base de données réussie. Vous devez maintenant recharger."
+database-connection-successful-button: "§b[Cliquez ici pour recharger et utiliser la nouvelle base de données]"
+database-setup-how-to: "§fEnvoyez dans le chat les informations de connexion comme ceci :\n§b<HOSTNAME>§f;§b<PORT>§f;§b<DATABASE>§f;§b<USERNAME>§f;§b<PASSWORD>"
+auto-purge-setup-how-to: "§fEnvoyez dans le chat les paramètres de l'auto-purge comme ceci :\n§b<FREQUENCY>§f;§b<TIME-WITHOUT-LOGIN>"
+auto-purge-must-be-two-settings: "§cL'auto-purge nécessite 2 paramètres:\n§c<FREQUENCY>;<TIME-WITHOUT-LOGIN>"
+vault-required: "§cVous avez besoin du plugin Vault pour configurer l'économie."
+economy-setup-how-to: "§fEnvoyez dans le chat le nouveau prix de vente maximum comme ceci :\n§b<MAX-SELL-PRICE>"
+map-setup-how-to: "§fEnvoyez dans le chat les paramètres comme ceci :\n§b<CLAIM-BORDER-COLOR>§f;§b<CLAIM-FILL-COLOR>§f;§b<CLAIM-HOVER-TEXT>"
+map-must-be-three-settings: "§cLa carte nécessite 3 paramètres:\n§c<CLAIM-BORDER-COLOR>;<CLAIM-FILL-COLOR>;<CLAIM-HOVER-TEXT>"
+map-new-settings: "§fNouveaux paramètres de la carte:\n%settings%"
+money-symbol: "\\$" # keep the \\
+delete-claim-protected-area: "§aZone protégée supprimée avec succès."
+delete-claim-all-protected-areas: "§aToutes les zones protégées supprimées avec succès."
+delete-chunk-success: "§aChunk §f%chunk% §asupprimé avec succès de §f%claim-name%§a."
+cannot-remove-only-remaining-chunk-gui: "§cVous ne pouvez pas supprimer le seul chunk restant."
+cannot-remove-only-remaining-chunk: "§cVous ne pouvez pas supprimer le seul chunk restant."
+world-does-not-exist: "§cCe monde n'existe pas."
+error-delete-chunk: "§cUne erreur est survenue, vérifiez le monde et les coordonnées du chunk. Sinon, contactez un administrateur."
+one-chunk-must-be-adjacent: "§cAu moins un chunk doit être adjacent au nouveau."
+one-chunk-of-claim-must-be-adjacent: "§cAu moins un chunk de la nouvelle revendication doit être adjacent à un chunk de la revendication cible."
+add-chunk-already-owner: |
+  §fC'est déjà une de vos revendications.
+  §fUtilisez §d/claim merge %claim-name% %claim-name-1%§f pour les fusionner.
+add-chunk-not-owner: "§cCe chunk appartient déjà à une revendication."
+add-chunk-already-in-claim: "§cCe chunk appartient déjà à votre revendication '%claim-name%'."
+add-chunk-successful: "§fLe chunk §a%chunk%§f a été ajouté à §e%claim-name%§f."
+add-chunk-already-owner-protected-area: |
+  §fC'est déjà une zone protégée.
+  §fUtilisez §d/parea merge %claim-name% %claim-name-1%§f pour les fusionner.
+add-chunk-already-in-claim-protected-area: "§cCe chunk appartient déjà à la zone protégée '%claim-name%'."
+group-must-be-nine-settings: "§cLe groupe nécessite 9 paramètres:\n§c<GROUP-NAME>;<PERMISSION>;<MAX-CLAIMS>;<MAX-RADIUS-CLAIMS>;<TELEPORTATION-DELAY>;<MAX-MEMBERS>;<CLAIM-COST>;<CLAIM-COST-MULTIPLIER>;<MAX-CHUNKS-PER-CLAIM>"
+group-values-must-be-number: "§cLes valeurs du groupe doivent être des nombres pour chacune d'elles."
+player-must-be-eight-settings: "§cLe joueur nécessite 8 paramètres:\n§c<PLAYER-NAME>;<MAX-CLAIMS>;<MAX-RADIUS-CLAIMS>;<TELEPORTATION-DELAY>;<MAX-MEMBERS>;<CLAIM-COST>;<CLAIM-COST-MULTIPLIER>;<MAX-CHUNKS-PER-CLAIM>"
+player-values-must-be-number: "§cLes valeurs du joueur doivent être des nombres pour chacune d'elles."
+group-setup-how-to: "§fEnvoyez dans le chat les valeurs du groupe comme ceci :\n§b<GROUP-NAME>§f;§b<PERMISSION>§f;§b<MAX-CLAIMS>§f;§b<MAX-RADIUS-CLAIMS>§f;§b<TELEPORTATION-DELAY>§f;§b<MAX-MEMBERS>§f;§b<CLAIM-COST>§f;§b<CLAIM-COST-MULTIPLIER>§f;§b<MAX-CHUNKS-PER-CLAIM>"
+player-setup-how-to: "§fEnvoyez dans le chat les valeurs du joueur comme ceci :\n§b<PLAYER-NAME>§f;§b<MAX-CLAIMS>§f;§b<MAX-RADIUS-CLAIMS>§f;§b<TELEPORTATION-DELAY>§f;§b<MAX-MEMBERS>§f;§b<CLAIM-COST>§f;§b<CLAIM-COST-MULTIPLIER>§f;§b<MAX-CHUNKS-PER-CLAIM>"
+group2-setup-how-to: "§fEnvoyez dans le chat le groupe que vous voulez supprimer."
+player2-setup-how-to: "§fEnvoyez dans le chat le joueur que vous voulez supprimer."
+group-does-not-exist: "§cLe groupe '%group%' n'existe pas."
+player-does-not-exist: "§cLe joueur '%player%' n'existe pas."
+you-can-not-delete-default-group: "§cVous ne pouvez pas supprimer le groupe par défaut."
+chunk-are-loading: "§fCalcul et chargement de §b%chunks-count% chunks§f.."
+chunk-while-loading: "§fChunks chargés: §a%loaded-chunks%§2/%chunks-count%§f."
+griefprevention-needed: "§cVous avez besoin de GriefPrevention pour importer les revendications de ce plugin."
+
+
+# > Messages de refus
+
+destroy: "§cVous ne pouvez pas détruire dans ce territoire"
+build: "§cVous ne pouvez pas construire dans ce territoire"
+buttons: "§cVous ne pouvez pas utiliser les boutons dans ce territoire"
+trapdoors: "§cVous ne pouvez pas utiliser les trappes dans ce territoire"
+doors: "§cVous ne pouvez pas utiliser les portes dans ce territoire"
+fencegates: "§cVous ne pouvez pas utiliser les portillons dans ce territoire"
+levers: "§cVous ne pouvez pas utiliser les leviers dans ce territoire"
+repeaters: "§cVous ne pouvez pas utiliser les répéteurs dans ce territoire"
+comparators: "§cVous ne pouvez pas utiliser les comparateurs dans ce territoire"
+bells: "§cVous ne pouvez pas utiliser les cloches dans ce territoire"
+interactblocks: "§cVous ne pouvez pas interagir avec ceci dans ce territoire"
+items: "§cVous ne pouvez pas utiliser cet objet dans ce territoire"
+plates: "§cVous ne pouvez pas utiliser les plaques de pression dans ce territoire"
+tripwires: "§cVous ne pouvez pas déclencher les fils-pièges dans ce territoire"
+entities: "§cVous ne pouvez pas interagir avec cette entité"
+damages: "§cVous ne pouvez pas infliger de dégâts dans ce territoire"
+teleportations: "§cVous ne pouvez pas vous téléporter dans ce territoire"
+visitors: "§cVous ne pouvez pas visiter ce territoire"
+pvp: "§cVous ne pouvez pas faire de PvP dans ce territoire"
+claim-fly-disabled-on-damage: "§cVol de revendication désactivé car vous avez reçu des dégâts"
+
+
+# > Messages d'entrée/sortie
+# Utilisez %owner% pour le nom du propriétaire
+# Utilisez %player% pour le nom du joueur
+# Utilisez %name% pour le nom de la revendication
+
+enter-protected-area: "§fVous entrez dans une §ezone protégée"
+leave-protected-area: "§fVous quittez une §ezone protégée"
+enter-territory: "§fVous entrez dans le territoire de §e%owner%"
+leave-territory: "§fVous quittez le territoire de §e%owner%"
+enter-protected-area-title: ""
+enter-protected-area-subtitle: "§fVous entrez dans une §ezone protégée"
+leave-protected-area-title: ""
+leave-protected-area-subtitle: "§fVous quittez une §ezone protégée"
+enter-territory-title: "§e%owner%"
+enter-territory-subtitle: "§fVous entrez dans le territoire de"
+leave-territory-title: "§e%owner%"
+leave-territory-subtitle: "§fVous quittez le territoire de"
+enter-protected-area-chat: "§fVous entrez dans une §ezone protégée"
+leave-protected-area-chat: "§fVous quittez une §ezone protégée"
+enter-territory-chat: "§fVous entrez dans le territoire de §e%owner%"
+leave-territory-chat: "§fVous quittez le territoire de §e%owner%"
+
+
+# > Messages de l'interface graphique
+# Utilisez \n pour un retour à la ligne uniquement pour les messages de description
+
+gui-button-no-permission: "§cVous n'avez pas la permission"
+
+owner-claim-title: "§e%owner%"
+owner-claim-lore: "§7Revendications: §b%claim-amount%"
+owner-claim-access: "§7▸ §fAfficher ses revendications"
+
+access-all-claim-title: "§e%name% §b(Territoire de %owner%)"
+access-all-claim-lore: "§7%description%\n \n§7Membres:\n%members%\n \n"
+access-all-claim-lore-deny-visitors: "§cCette revendication n'autorise pas les visiteurs"
+access-all-claim-lore-allow-visitors: "§7▸ §fClic gauche pour se téléporter"
+all-claim-buyable-price: "§7La revendication est à vendre!\n§7Prix: §6%price%%money-symbol%\n \n" # Visible uniquement si en vente
+all-claim-is-buyable: "§7▸ §fMaj-clic gauche pour acheter" # Visible uniquement si en vente
+
+access-claim-title: "§e%name% §b(%coords%)"
+access-claim-lore: "§7%description%\n \n§7Membres:\n%members%\n \n§7Joueurs bannis:\n%bans%\n \n"
+access-claim-not-owner-lore: "§7Propriétaire: §4%owner%\n§7%description%\n \n§7Membres:\n%members%\n \n§7Joueurs bannis:\n%bans%\n \n"
+
+access-claim-clickable-tp: "§7▸ §fClic gauche pour se téléporter"
+access-claim-clickable-remove: "§7▸ §fMaj-clic gauche pour supprimer"
+access-claim-clickable-manage: "§7▸ §fClic droit pour gérer"
+access-claim-clickable-removemember: "§7▸ §fSupprimer ce membre"
+access-claim-clickable-removechunk: "§7▸ §fSupprimer ce chunk"
+
+teleportation-success: "§fVous avez été téléporté au point de spawn de la revendication."
+claim-list-no-member: "§8aucun membre"
+claim-list-no-ban: "§8aucun joueur banni"
+my-claims-buyable-price: "§7Votre revendication est à vendre!\n§7Prix: §6%price%%money-symbol%\n \n" # Visible uniquement si en vente
+
+territory-access-lore-new: "§7A accès à votre territoire"
+player-banned-lore: "§7Est banni de votre territoire"
+unban-this-player-button: "§7▸§f Débannir ce joueur"
+player-member-title: "§e%player%"
+player-ban-title: "§4%player%"
+owner-territory-lore: "§dPropriétaire du territoire"
+
+previous-page-title: "§ePage précédente"
+previous-page-lore: "§7Aller à la page %page%\n§7▸ §fClic pour accéder"
+
+next-page-title: "§ePage suivante"
+next-page-lore: "§7Aller à la page %page%\n§7▸ §fClic pour accéder"
+
+previous-page-claims-lore: "§7Revenir à la liste des revendications"
+
+back-page-main-title: "§6Principal"
+back-page-main-lore: "§7Revenir au menu principal de %claim-name%\n§7▸ §fClic pour accéder"
+
+status-disabled: "§cDésactivé ✘"
+status-enabled: "§aActivé ✔"
+choice-disabled: "§7▸ §fClic pour §nactiver"
+choice-enabled: "§7▸ §fClic pour §ndésactiver"
+choice-setting-disabled: "§cCe paramètre ne peut pas être modifié"
+
+apply-all-claims-title: "§eAppliquer les paramètres à toutes les revendications"
+apply-all-claims-lore: "§7Appliquer ces paramètres à toutes mes revendications\n§7▸ §fClic pour exécuter"
+
+visitors-title: "§eVisiteurs §7(%status%§7)"
+visitors-lore: "§7Les joueurs peuvent-ils se téléporter à votre revendication avec /claims"
+
+build-title: "§eConstruire §7(%status%§7)"
+build-lore: "§7Autoriser les visiteurs à construire"
+
+destroy-title: "§eDétruire §7(%status%§7)"
+destroy-lore: "§7Autoriser les visiteurs à détruire"
+
+buttons-title: "§eUtiliser les boutons §7(%status%§7)"
+buttons-lore: "§7Autoriser les visiteurs à utiliser les boutons"
+
+items-title: "§eUtiliser les objets §7(%status%§7)"
+items-lore: "§7Autoriser les visiteurs à utiliser les objets"
+
+interactblocks-title: "§eInteragir avec les blocs §7(%status%§7)"
+interactblocks-lore: "§7Autoriser les visiteurs à interagir avec les blocs (coffres..)"
+
+levers-title: "§eUtiliser les leviers §7(%status%§7)"
+levers-lore: "§7Autoriser les visiteurs à utiliser les leviers"
+
+plates-title: "§eUtiliser les plaques de pression §7(%status%§7)"
+plates-lore: "§7Autoriser les visiteurs à utiliser les plaques de pression"
+
+doors-title: "§eOuvrir les portes §7(%status%§7)"
+doors-lore: "§7Autoriser les visiteurs à ouvrir les portes"
+
+trapdoors-title: "§eOuvrir les trappes §7(%status%§7)"
+trapdoors-lore: "§7Autoriser les visiteurs à ouvrir les trappes"
+
+fencegates-title: "§eOuvrir les portillons §7(%status%§7)"
+fencegates-lore: "§7Autoriser les visiteurs à ouvrir les portillons"
+
+tripwires-title: "§eDéclencher les fils-pièges §7(%status%§7)"
+tripwires-lore: "§7Autoriser les visiteurs à déclencher les fils-pièges"
+
+repeaterscomparators-title: "§eUtiliser les répéteurs/comparateurs §7(%status%§7)"
+repeaterscomparators-lore: "§7Autoriser les visiteurs à utiliser les répéteurs/comparateurs"
+
+bells-title: "§eUtiliser les cloches §7(%status%§7)"
+bells-lore: "§7Autoriser les visiteurs à utiliser les cloches"
+
+entities-title: "§eInteragir avec les entités §7(%status%§7)"
+entities-lore: "§7Autoriser les visiteurs à interagir avec les entités"
+
+explosions-title: "§eExplosions §7(%status%§7)"
+explosions-lore: "§7Autoriser les explosions de tout type"
+
+liquids-title: "§eLiquides §7(%status%§7)"
+liquids-lore: "§7Les liquides externes peuvent-ils s'écouler dans le territoire"
+
+redstone-title: "§eRedstone §7(%status%§7)"
+redstone-lore: "§7La redstone externe peut-elle influencer le territoire\n§7(pistons, distributeurs, etc)."
+
+frostwalker-title: "§eFrost walker §7(%status%§7)"
+frostwalker-lore: "§7Les visiteurs peuvent-ils geler l'eau avec un enchantement"
+
+firespread-title: "§ePropagation du feu §7(%status%§7)"
+firespread-lore: "§7Le feu peut-il se propager dans le territoire"
+
+teleportations-title: "§eTéléportations naturelles §7(%status%§7)"
+teleportations-lore: "§7Autoriser les visiteurs à se téléporter naturellement (perle de l'Ender,\n§7fruit de chorus, etc)"
+
+damages-title: "§eDégâts des entités §7(%status%§7)"
+damages-lore: "§7Autoriser les visiteurs à infliger des dégâts aux entités"
+
+pvp-title: "§ePvP §7(%status%§7)"
+pvp-lore: "§7Autoriser les joueurs à faire du PvP"
+
+monsters-title: "§eMonstres §7(%status%§7)"
+monsters-lore: "§7Autoriser l'apparition de monstres"
+
+weather-title: "§eMétéo §7(%status%§7)"
+weather-lore: "§7Autoriser la pluie/neige/orage"
+
+fly-title: "§eVol §7(%status%§7)"
+fly-lore: "§7Autoriser les visiteurs à voler"
+
+manage-members-title: "§aMembres"
+manage-members-lore: "§7Gérer les membres"
+
+manage-bans-title: "§cBannissements"
+manage-bans-lore: "§7Gérer les joueurs bannis"
+
+manage-chunks-title: "§6Chunks"
+manage-chunks-lore: "§7Gérer les chunks"
+
+manage-settings-title: "§3Paramètres"
+manage-settings-lore: "§7Gérer les paramètres"
+
+unclaim-title: "§4Annuler"
+unclaim-lore: "§7Supprimer cette revendication?"
+
+teleport-claim-title: "§5Téléporter"
+teleport-claim-lore: "§7Téléportez-vous au point de spawn de la revendication"
+
+claim-info-title: "§6%claim-name% §7(%description%)"
+claim-info-lore: |
+  §7Chunks: §b%chunks-count%
+  §7
+  §7Membres: §a%members-count%
+  §7Joueurs bannis: §c%bans-count%
+  §7
+  §7%sale-status%
+  §7
+  §7Voulez-vous voir vos autres revendications?
+  
+claim-info-lore-sale-status-true: "§a✔ Revendication en vente §7(%price%%money-symbol%)"
+claim-info-lore-sale-status-false: "§c✘ Revendication non en vente"
+  
+chunk-title: "§6Chunk-%number% §7(%coords%)"
+chunk-lore: "§7Le chunk fait partie de la revendication"
+
+access-button: "§7▸ §fClic pour exécuter"
+
+filter-title: "§eFiltre"
+filter-new-lore: "§7Changer le filtre\n%status_color_1%➲ Tous les propriétaires\n%status_color_2%➲ Propriétaires avec des revendications en vente\n%status_color_3%➲ Propriétaires en ligne\n%status_color_4%➲ Propriétaires hors ligne\n§7▸ §fClic pour changer"
+filter-owner-lore: "§7Changer le filtre\n%status_color_1%➲ Toutes les revendications\n%status_color_2%➲ Revendications en vente\n§7▸ §fClic pour changer"
+filter-list-lore: "§7Changer le filtre\n%status_color_1%➲ Mes revendications\n%status_color_2%➲ Revendications des membres\n§7▸ §fClic pour changer"
+status_color_active_filter: "§a"
+status_color_inactive_filter: "§8"
+
+
+# > Messages des espaces réservés
+
+claim_name-if-no-claim: "§cAucune revendication"
+claim_owner-if-no-claim: "§cAucun"
+claim_description-if-no-claim: "§cAucune"
+claim_sale_price-if-no-claim: "§cAucune"
+claim_is_in_sale-if-no-claim: "§cAucune"
+claim_sale_price-if-not-in-sale: "§cNon en vente"
+claim_members_count-if-no-claim: "0"
+claim_members_online-if-no-claim: "0"
+claim_spawn-if-no-claim: "§cAucun"
+claim_setting-if-no-claim: "§cAucun"
+
+
+# > Messages de la carte
+
+map-coords-message: "§7Coordonnées: %coords% (%direction%)"
+map-actual-claim-name-message: "§b%name%"
+map-actual-claim-name-message-owner: "§7(§4%owner%§7)"
+map-no-claim-name-message: "§cAucune revendication"
+map-claim-relation-member: "§a"
+map-claim-relation-visitor: "§7"
+map-no-claim-color: "§f"
+map-cursor: "⬛"
+map-cursor-color: "§6"
+map-symbol-no-claim: "⬛"
+map-symbol-claim: "⬛"
+map-direction-south: "Sud"
+map-direction-north: "Nord"
+map-direction-east: "Est"
+map-direction-west: "Ouest"
+map-legend-you: "%cursor-color%⬛ Vous"
+map-legend-free: "%no-claim-color%⬛ Revendication libre"
+map-legend-yours: "%claim-relation-member%⬛ Vos revendications"
+map-legend-other: "%claim-relation-visitor%⬛ Autres revendications"
+
+
+# > Messages des revendications
+
+default-description: "§7Aucune description"
+
+
+# > Messages d'aide
+
+help-separator: "§e§m                                                                      "
+  
+help-command:
+  claim-claim: |
+    §bSyntaxe : §f/claim [<radius>]
+    §bDescription : §fRevendiquer quelques chunks
+  claim-see: |
+    §bSyntaxe : §f/claim see [<player>]
+    §bDescription : §fFaire apparaître des particules autour du chunk dans lequel vous vous trouvez/revendications du joueur
+  claim-list: |
+    §bSyntaxe : §f/claim list
+    §bDescription : §fOuvrir l'interface avec la liste de vos revendications
+  claim-members: |
+    §bSyntaxe : §f/claim members [<claim-name>]
+    §bDescription : §fOuvrir l'interface avec les membres de la revendication dans laquelle vous vous trouvez/revendication donnée
+  claim-settings: |
+    §bSyntaxe : §f/claim settings [<claim-name>]
+    §bDescription : §fOuvrir l'interface avec les paramètres de la revendication dans laquelle vous vous trouvez/revendication donnée
+  claim-setspawn: |
+    §bSyntaxe : §f/claim setspawn
+    §bDescription : §fDéfinir le nouveau point de spawn de la revendication dans laquelle vous vous trouvez
+  claim-autoclaim: |
+    §bSyntaxe : §f/claim autoclaim
+    §bDescription : §fActiver ou désactiver la revendication automatique lorsque vous changez de chunk
+  claim-automap: |
+    §bSyntaxe : §f/claim map/automap
+    §bDescription : §fVoir la carte des revendications / automatiquement lorsque vous changez de chunk
+  claim-autofly: |
+    §bSyntaxe : §f/claim fly/autofly
+    §bDescription : §fActiver le vol dans les revendications / automatiquement lorsque vous changez de chunk
+  claim-tp: |
+    §bSyntaxe : §f/claim tp <claim-name>
+    §bDescription : §fTéléporter à l'une de vos revendications
+  claim-setname: |
+    §bSyntaxe : §f/claim setname <old-claim-name> <new-claim-name>
+    §bDescription : §fChanger le nom de la revendication donnée
+  claim-add: |
+    §bSyntaxe : §f/claim add [<*|claim-name>] <player>
+    §bDescription : §fAjouter un joueur à une revendication/toutes vos revendications
+  claim-remove: |
+    §bSyntaxe : §f/claim remove [<*|claim-name>] <player>
+    §bDescription : §fSupprimer un joueur d'une revendication/toutes vos revendications
+  claim-setdesc: |
+    §bSyntaxe : §f/claim setdesc <claim-name> <description>
+    §bDescription : §fChanger la description de la revendication donnée
+  claim-chat: |
+    §bSyntaxe : §f/claim chat <claim-name>
+    §bDescription : §fChanger votre mode de chat
+  claim-ban: |
+    §bSyntaxe : §f/claim ban [<*|claim-name>] <player>
+    §bDescription : §fBannir un joueur de votre revendication
+  claim-unban: |
+    §bSyntaxe : §f/claim unban [<*|claim-name>] <player>
+    §bDescription : §fDébannir un joueur de votre revendication
+  claim-bans: |
+    §bSyntaxe : §f/claim bans [<claim-name>]
+    §bDescription : §fOuvrir l'interface des bannissements d'une revendication
+  claim-owner: |
+    §bSyntaxe : §f/claim owner [<*|claim-name>] <player>
+    §bDescription : §fTransférer la propriété de la/les revendication(s) à un joueur
+  claim-merge: |
+    §bSyntaxe : §f/claim merge <claim-name-1> <claim-name-2>
+    §bDescription : §fFusionner deux revendications en une seule
+  claim-sell: |
+    §bSyntaxe : §f/claim sell <claim-name> <price>
+    §bDescription : §fMettre une revendication en vente
+  claim-cancel: |
+    §bSyntaxe : §f/claim cancel <claim-name>
+    §bDescription : §fAnnuler la vente de la revendication donnée
+  unclaim-unclaim: |
+    %help-separator%
+    §bSyntaxe : §f/unclaim [<claim-name|*>]
+    §bDescription :§f Annuler quelques chunks
+    %help-separator%
+  claims-claims: |
+    §bSyntaxe : §f/claims
+    §bDescription : §fOuvrir l'interface avec toutes les revendications
+  parea-setdesc: |
+    §bSyntaxe : §f/parea setdesc <claim_name> <description>
+    §bDescription : §fDéfinir la description d'une zone protégée
+  parea-settings: |
+    §bSyntaxe : §f/parea settings <claim_name>
+    §bDescription : §fOuvrir l'interface des paramètres d'une zone protégée
+  parea-setname: |
+    §bSyntaxe : §f/parea setname <claim_name> <new_name>
+    §bDescription : §fDéfinir le nom d'une zone protégée
+  parea-members: |
+    §bSyntaxe : §f/parea members <claim_name>
+    §bDescription : §fGérer les membres d'une zone protégée
+  parea-tp: |
+    §bSyntaxe : §f/parea tp <claim_name>
+    §bDescription : §fSe téléporter à une zone protégée
+  parea-list: |
+    §bSyntaxe : §f/parea list
+    §bDescription : §fLister toutes les zones protégées
+  parea-ban: |
+    §bSyntaxe : §f/parea ban <claim_name> <player>
+    §bDescription : §fBannir un joueur d'une zone protégée
+  parea-unban: |
+    §bSyntaxe : §f/parea unban <claim_name> <player>
+    §bDescription : §fDébannir un joueur d'une zone protégée
+  parea-bans: |
+    §bSyntaxe : §f/parea bans <claim_name>
+    §bDescription : §fLister tous les joueurs bannis d'une zone protégée
+  parea-add: |
+    §bSyntaxe : §f/parea add <claim_name> <player>
+    §bDescription : §fAjouter un joueur à une zone protégée
+  parea-remove: |
+    §bSyntaxe : §f/parea remove <claim_name> <player>
+    §bDescription : §fSupprimer un joueur d'une zone protégée
+  parea-unclaim: |
+    §bSyntaxe : §f/parea unclaim <claim_name>
+    §bDescription : §fAnnuler une zone protégée
+  parea-main: |
+    §bSyntaxe : §f/parea main
+    §bDescription : §fOuvrir l'interface principale
+  parea-merge: |
+    §bSyntaxe : §f/parea merge <claim1> <claim2>
+    §bDescription : §fFusionner deux zones protégées
+  parea-addchunk: |
+    §bSyntaxe : §f/parea addchunk <claim_name> <chunk>
+    §bDescription : §fAjouter un chunk à une zone protégée
+  parea-delchunk: |
+    §bSyntaxe : §f/parea delchunk <claim_name> <chunk>
+    §bDescription : §fSupprimer un chunk d'une zone protégée
+  scs-transfer: |
+    §bSyntaxe : §f/scs transfer
+    §bDescription : §fTransférer la base de données locale vers la base de données distante
+  scs-player: |
+    §bSyntaxe : §f/scs player <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|tp|unclaim|main|list> <args>
+    §bDescription : §fGérer les paramètres et les revendications des joueurs
+  scs-group: |
+    §bSyntaxe : §f/scs group <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|tp|unclaim|main|list> <args>
+    §bDescription : §fGérer les paramètres et les revendications des groupes
+  scs-forceunclaim: |
+    §bSyntaxe : §f/scs forceunclaim <claim>
+    §bDescription : §fForcer l'annulation d'une revendication
+  scs-setowner: |
+    §bSyntaxe : §f/scs setowner <claim> <player>
+    §bDescription : §fDéfinir le propriétaire d'une revendication
+  scs-set-lang: |
+    §bSyntaxe : §f/scs set-lang <language>
+    §bDescription : §fDéfinir la langue pour le plugin
+  scs-set-actionbar: |
+    §bSyntaxe : §f/scs set-actionbar <true|false>
+    §bDescription : §fActiver ou désactiver les notifications de barre d'action
+  scs-set-auto-claim: |
+    §bSyntaxe : §f/scs set-auto-claim <true|false>
+    §bDescription : §fActiver ou désactiver la revendication automatique
+  scs-set-title-subtitle: |
+    §bSyntaxe : §f/scs set-title-subtitle <true|false>
+    §bDescription : §fActiver ou désactiver les notifications de titre et sous-titre
+  scs-set-economy: |
+    §bSyntaxe : §f/scs set-economy <true|false>
+    §bDescription : §fActiver ou désactiver l'intégration de l'économie
+  scs-set-claim-confirmation: |
+    §bSyntaxe : §f/scs set-claim-confirmation <true|false>
+    §bDescription : §fActiver ou désactiver la confirmation de revendication
+  scs-set-claim-particles: |
+    §bSyntaxe : §f/scs set-claim-particles <true|false>
+    §bDescription : §fActiver ou désactiver les particules de revendication
+  scs-set-max-sell-price: |
+    §bSyntaxe : §f/scs set-max-sell-price <amount>
+    §bDescription : §fDéfinir le prix de vente maximum pour les revendications
+  scs-set-bossbar: |
+    §bSyntaxe : §f/scs set-bossbar <true|false>
+    §bDescription : §fActiver ou désactiver les notifications de barre de boss
+  scs-set-bossbar-color: |
+    §bSyntaxe : §f/scs set-bossbar-color <color>
+    §bDescription : §fDéfinir la couleur de la barre de boss
+  scs-set-bossbar-style: |
+    §bSyntaxe : §f/scs set-bossbar-style <style>
+    §bDescription : §fDéfinir le style de la barre de boss
+  scs-set-teleportation: |
+    §bSyntaxe : §f/scs set-teleportation <true|false>
+    §bDescription : §fActiver ou désactiver la téléportation
+  scs-set-teleportation-moving: |
+    §bSyntaxe : §f/scs set-teleportation-moving <true|false>
+    §bDescription : §fActiver ou désactiver la téléportation en mouvement
+  scs-add-blocked-interact-block: |
+    §bSyntaxe : §f/scs add-blocked-interact-block <material>
+    §bDescription : §fAjouter un bloc d'interaction bloqué
+  scs-add-blocked-entity: |
+    §bSyntaxe : §f/scs add-blocked-entity <entity>
+    §bDescription : §fAjouter une entité bloquée
+  scs-add-blocked-item: |
+    §bSyntaxe : §f/scs add-blocked-item <material>
+    §bDescription : §fAjouter un objet bloqué
+  scs-remove-blocked-interact-block: |
+    §bSyntaxe : §f/scs remove-blocked-interact-block <material>
+    §bDescription : §fSupprimer un bloc d'interaction bloqué
+  scs-remove-blocked-entity: |
+    §bSyntaxe : §f/scs remove-blocked-entity <entity>
+    §bDescription : §fSupprimer une entité bloquée
+  scs-remove-blocked-item: |
+    §bSyntaxe : §f/scs remove-blocked-item <material>
+    §bDescription : §fSupprimer un objet bloqué
+  scs-add-disabled-world: |
+    §bSyntaxe : §f/scs add-disabled-world <world>
+    §bDescription : §fAjouter un monde désactivé
+  scs-remove-disabled-world: |
+    §bSyntaxe : §f/scs remove-disabled-world <world>
+    §bDescription : §fSupprimer un monde désactivé
+  scs-set-status-setting: |
+    §bSyntaxe : §f/scs set-status-setting <setting> <true|false>
+    §bDescription : §fDéfinir un paramètre de statut
+  scs-set-default-value: |
+    §bSyntaxe : §f/scs set-default-value <setting> <true|false>
+    §bDescription : §fDéfinir une valeur par défaut
+  scs-set-max-length-claim-description: |
+    §bSyntaxe : §f/scs set-max-length-claim-description <length>
+    §bDescription : §fDéfinir la longueur maximale des descriptions de revendications
+  scs-set-max-length-claim-name: |
+    §bSyntaxe : §f/scs set-max-length-claim-name <length>
+    §bDescription : §fDéfinir la longueur maximale des noms de revendications
+  scs-set-claims-visitors-off-visible: |
+    §bSyntaxe : §f/scs set-claims-visitors-off-visible <true|false>
+    §bDescription : §fDéfinir la visibilité des revendications avec les visiteurs désactivés
+  scs-set-claim-cost: |
+    §bSyntaxe : §f/scs set-claim-cost <amount>
+    §bDescription : §fDéfinir le coût de revendication
+  scs-set-claim-cost-multiplier: |
+    §bSyntaxe : §f/scs set-claim-cost-multiplier <amount>
+    §bDescription : §fDéfinir le multiplicateur de coût de revendication
+  scs-set-chat: |
+    §bSyntaxe : §f/scs set-chat <true|false>
+    §bDescription : §fActiver ou désactiver les notifications de chat
+  scs-set-protection-message: |
+    §bSyntaxe : §f/scs set-protection-message <ACTION_BAR|BOSSBAR|TITLE|SUBTITLE|CHAT>
+    §bDescription : §fDéfinir le type de message de protection
+  scs-set-claim-fly-message-auto-fly: |
+    §bSyntaxe : §f/scs set-claim-fly-message-auto-fly <true|false>
+    §bDescription : §fActiver ou désactiver les messages de vol automatique dans les revendications
+  scs-set-claim-fly-disabled-on-damage: |
+    §bSyntaxe : §f/scs set-claim-fly-disabled-on-damage <true|false>
+    §bDescription : §fActiver ou désactiver la désactivation du vol lors de dégâts dans les revendications
+  scs-reset-all-player-claims-settings: |
+    §bSyntaxe : §f/scs reset-all-player-claims-settings
+    §bDescription : §fRéinitialiser tous les paramètres des revendications des joueurs par défaut
+  scs-reset-all-admin-claims-settings: |
+    §bSyntaxe : §f/scs reset-all-admin-claims-settings
+    §bDescription : §fRéinitialiser tous les paramètres des revendications administratives par défaut
+  scs-admin: |
+    §bSyntaxe : §f/scs admin
+    §bDescription : §fOuvrir l'interface administrateur
+  next-page: §7Page %page% - cliquez pour accéder à la page suivante
+  previous-page: §7Page %page% - cliquez pour accéder à la page précédente
+  
+sub-arg-not-found: |
+  %help-separator%
+  §fSous-argument '§c%arg%§f' non trouvé, arguments disponibles:
+  §7%args%§f.
+  %help-separator%
+  
+available-args: |
+  %help-separator%
+  §fArguments disponibles:
+  §7%args%§f.
+  %help-separator%
+
+
+# > Messages de chat privé
+
+chat-format: "§b[ClaimChat]§e %player%§7: §f%message%"
+talking-now-in-claim: "§fVous parlez maintenant dans le §echat des revendications§f."
+talking-now-in-public: "§fVous parlez maintenant dans le §achat public§f."
