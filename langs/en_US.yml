@@ -201,6 +201,7 @@ unbanned-all-claim-player: "§a%owner%§f unbanned you from §aall his claims§f
 unbanned-claim-player: "§a%owner%§f unbanned you from his claim §a%claim-name%§f."
 banned-claim-protected-area-player: "§fYou have been banned from the protected area §c%claim-name%§f."
 banned-claim-player: "§c%owner%§f banned you from his claim §c%claim-name%§f."
+unbanned-claim-protected-area-player: "§fYou have been unbanned from the protected area §a%claim-name%§f."
 chunks-must-be-from-same-world: "§cThe claims must be from the same world."
 database-must-be-five-settings: "§cThe database requires 5 parameters:\n§c<HOSTNAME>;<PORT>;<DATABASE>;<USERNAME>;<PASSWORD>"
 database-connection-error: "§cError when trying to connect to database.\n§cCheck the login information, they should be in this order:\n§c<HOSTNAME>;<PORT>;<DATABASE>;<USERNAME>;<PASSWORD>"
@@ -234,12 +235,12 @@ add-chunk-already-owner-protected-area: |
   §fThis is already a protected area.
   §fUse §d/parea merge %claim-name% %claim-name-1%§f to merge them.
 add-chunk-already-in-claim-protected-area: "§cThis chunk already belongs to the protected area '%claim-name%'."
-group-must-be-nine-settings: "§cThe group requires 9 parameters:\n§c<GROUP-NAME>;<PERMISSION>;<MAX-CLAIMS>;<MAX-RADIUS-CLAIMS>;<TELEPORTATION-DELAY>;<MAX-MEMBERS>;<CLAIM-COST>;<CLAIM-COST-MULTIPLIER>;<MAX-CHUNKS-PER-CLAIM>"
+group-must-be-nine-settings: "§cThe group requires 9 parameters:\n§c<GROUP-NAME>;<PERMISSION>;<MAX-CLAIMS>;<MAX-RADIUS-CLAIMS>;<TELEPORTATION-DELAY>;<MAX-MEMBERS>;<CLAIM-COST>;<CLAIM-COST-MULTIPLIER>;<MAX-CHUNKS-PER-CLAIM>;<CLAIM-DISTANCE>;<MAX-CHUNKS-TOTAL>"
 group-values-must-be-number: "§cThe group values must be a number for all of them."
-player-must-be-eight-settings: "§cThe player requires 8 parameters:\n§c<PLAYER-NAME>;<MAX-CLAIMS>;<MAX-RADIUS-CLAIMS>;<TELEPORTATION-DELAY>;<MAX-MEMBERS>;<CLAIM-COST>;<CLAIM-COST-MULTIPLIER>;<MAX-CHUNKS-PER-CLAIM>"
+player-must-be-eight-settings: "§cThe player requires 8 parameters:\n§c<PLAYER-NAME>;<MAX-CLAIMS>;<MAX-RADIUS-CLAIMS>;<TELEPORTATION-DELAY>;<MAX-MEMBERS>;<CLAIM-COST>;<CLAIM-COST-MULTIPLIER>;<MAX-CHUNKS-PER-CLAIM>;<CLAIM-DISTANCE>;<MAX-CHUNKS-TOTAL>"
 player-values-must-be-number: "§cThe player values must be a number for all of them."
-group-setup-how-to: "§fSend in the chat the group values like this :\n§b<GROUP-NAME>§f;§b<PERMISSION>§f;§b<MAX-CLAIMS>§f;§b<MAX-RADIUS-CLAIMS>§f;§b<TELEPORTATION-DELAY>§f;§b<MAX-MEMBERS>§f;§b<CLAIM-COST>§f;§b<CLAIM-COST-MULTIPLIER>§f;§b<MAX-CHUNKS-PER-CLAIM>"
-player-setup-how-to: "§fSend in the chat the player values like this :\n§b<PLAYER-NAME>§f;§b<MAX-CLAIMS>§f;§b<MAX-RADIUS-CLAIMS>§f;§b<TELEPORTATION-DELAY>§f;§b<MAX-MEMBERS>§f;§b<CLAIM-COST>§f;§b<CLAIM-COST-MULTIPLIER>§f;§b<MAX-CHUNKS-PER-CLAIM>"
+group-setup-how-to: "§fSend in the chat the group values like this :\n§b<GROUP-NAME>§f;§b<PERMISSION>§f;§b<MAX-CLAIMS>§f;§b<MAX-RADIUS-CLAIMS>§f;§b<TELEPORTATION-DELAY>§f;§b<MAX-MEMBERS>§f;§b<CLAIM-COST>§f;§b<CLAIM-COST-MULTIPLIER>§f;§b<MAX-CHUNKS-PER-CLAIM>§f;§b<CLAIM-DISTANCE>§f;§b<MAX-CHUNKS-TOTAL>"
+player-setup-how-to: "§fSend in the chat the player values like this :\n§b<PLAYER-NAME>§f;§b<MAX-CLAIMS>§f;§b<MAX-RADIUS-CLAIMS>§f;§b<TELEPORTATION-DELAY>§f;§b<MAX-MEMBERS>§f;§b<CLAIM-COST>§f;§b<CLAIM-COST-MULTIPLIER>§f;§b<MAX-CHUNKS-PER-CLAIM>§f;§b<CLAIM-DISTANCE>§f;§b<MAX-CHUNKS-TOTAL>"
 group2-setup-how-to: "§fSend in the chat the group you want to delete."
 player2-setup-how-to: "§fSend in the chat the player you want to delete."
 group-does-not-exist: "§cThe group '%group%' does not exist."
@@ -248,6 +249,27 @@ you-can-not-delete-default-group: "§cYou can not delete the default group."
 chunk-are-loading: "§fCalculation and loading of §b%chunks-count% chunks§f.."
 chunk-while-loading: "§fChunks loaded: §a%loaded-chunks%§2/%chunks-count%§f."
 griefprevention-needed: "§cYou need GriefPrevention to import claims from this plugin."
+player-not-in-the-claim: "§cThe player '%player%' is not in your claim %claim-name%."
+player-not-in-the-protected-area: "§cThe player '%player%' is not in the protected area %claim-name%."
+kicked-from-claim: "§fYou have been kicked from the claim §c%claim-name%§f of §c%player%§f."
+kicked-from-protected-area: "§fYou have been kicked from the protected area §c%claim-name%§f."
+kick-success: "§fYou kicked §e%player%§f from your claim §e%claim-name%§f."
+kick-success-protected-area: "§fYou kicked §e%player%§f from the protected area §e%claim-name%§f"
+player-not-in-any-claim: "§cThe player '%player%' is not in any of your claims."
+player-not-in-any-protected-areas: "§cThe player '%player%' is not in any of protected areas."
+kick-success-all-claims: "§fYou kicked §e%player%§f from §eall your claims§f."
+kicked-from-all-claims: "§fYou have been kicked from §call the claims§f of §c%player%§f."
+kick-success-all-protected-areas: "§fYou kicked §e%player%§f from §eall protected areas§f."
+kicked-from-all-protected-areas: "§fYou have been kicked from §call protected areas§f."
+cannot-claim-because-claim-near: "§cYou can not claim because there is a claim near."
+set-player-max-chunks-total-success: "§e%player%§f can have a total of §e%amount%§f chunks."
+max-chunks-total-must-be-positive: "§cThe total chunks limit must be positive."
+max-chunks-total-must-be-number: "§cThe total chunks limit must be a number."
+set-player-claim-distance-success: "§e%player%§f can claim with a distance of §e%amount%§f chunks."
+claim-distance-must-be-positive: "§cThe claim distance must be positive."
+claim-distance-must-be-number: "§cThe claim distance must be a number."
+set-group-max-chunks-total-success: "§e%group%§f can have a total of §e%amount%§f chunks."
+set-group-claim-distance-success: "§e%group%§f can claim with a distance of §e%amount%§f chunks."
 
 
 # > Deny messages
@@ -490,6 +512,7 @@ claim_members_count-if-no-claim: "0"
 claim_members_online-if-no-claim: "0"
 claim_spawn-if-no-claim: "§cNone"
 claim_setting-if-no-claim: "§cNone"
+claim_distance-if-zero: "§cNone"
 
 
 # > Map messages
@@ -591,6 +614,9 @@ help-command:
   claim-cancel: |
     §bSyntax : §f/claim cancel <claim-name>
     §bDescription : §fCancel a sale of the given claim
+  claim-kick: |
+    §bSyntax : §f/claim kick [<*|claim-name>] <player>
+    §bDescription : §fKick a player physically from a claim
   unclaim-unclaim: |
     %help-separator%
     §bSyntax : §f/unclaim [<claim-name|*>]
@@ -647,14 +673,17 @@ help-command:
   parea-delchunk: |
     §bSyntax : §f/parea delchunk <claim_name> <chunk>
     §bDescription : §fRemove a chunk from a protected area
+  parea-kick: |
+    §bSyntax : §f/parea kick <*|claim-name> <player>
+    §bDescription : §fKick a player physically from a protected area
   scs-transfer: |
     §bSyntax : §f/scs transfer
     §bDescription : §fTransfer local db to distant db
   scs-player: |
-    §bSyntax : §f/scs player <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|tp|unclaim|main|list> <args>
+    §bSyntax : §f/scs player <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|set-claim-distance|set-max-chunks-total|tp|unclaim|main|list> <args>
     §bDescription : §fManage player settings and claims
   scs-group: |
-    §bSyntax : §f/scs group <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|tp|unclaim|main|list> <args>
+    §bSyntax : §f/scs group <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|set-claim-distance|set-max-chunks-total|tp|unclaim|main|list> <args>
     §bDescription : §fManage group settings and claims
   scs-forceunclaim: |
     §bSyntax : §f/scs forceunclaim <claim>
