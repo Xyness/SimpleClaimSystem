@@ -53,6 +53,12 @@ public class CPlayer {
     /** The max chunks per claim */
     private Integer max_chunks_per_claim;
     
+    /** The distance for claim */
+    private Integer claim_distance;
+    
+    /** The max chunks total */
+    private Integer max_chunks_total;
+    
     /** Whether the player has claim chat enabled */
     private Boolean claim_chat;
     
@@ -110,6 +116,12 @@ public class CPlayer {
     /** Pattern for matching chunks permissions */
     private static final Pattern CHUNKS_PATTERN = Pattern.compile("scs\\.chunks\\.(\\d+)");
     
+    /** Pattern for matching distance permissions */
+    private static final Pattern DISTANCE_PATTERN = Pattern.compile("scs\\.distance\\.(\\d+)");
+    
+    /** Pattern for matching chunks total permissions */
+    private static final Pattern CHUNKS_TOTAL_PATTERN = Pattern.compile("scs\\.chunks-total\\.(\\d+)");
+    
     
     // ******************
     // *  Constructors  *
@@ -128,7 +140,7 @@ public class CPlayer {
      * @param claim_cost The cost of a claim
      * @param claim_cost_multiplier The multiplier for the claim cost
      */
-    public CPlayer(Player player, Integer claims_count, Integer max_claims, Integer max_radius_claims, Integer teleportation_delay, Integer max_members, Double claim_cost, Double claim_cost_multiplier, Integer max_chunks_per_claim) {
+    public CPlayer(Player player, Integer claims_count, Integer max_claims, Integer max_radius_claims, Integer teleportation_delay, Integer max_members, Double claim_cost, Double claim_cost_multiplier, Integer max_chunks_per_claim, Integer claim_distance, Integer max_chunks_total) {
         this.player = player;
         this.playerName = player.getName();
         this.claims_count = claims_count;
@@ -145,6 +157,8 @@ public class CPlayer {
         this.claim_autofly = false;
         this.claim_fly = false;
         this.max_chunks_per_claim = max_chunks_per_claim;
+        this.claim_distance = claim_distance;
+        this.max_chunks_total = max_chunks_total;
     }
     
     
@@ -224,6 +238,20 @@ public class CPlayer {
      * @param max_chunks_per_claim The new max chunks per claim
      */
     public void setMaxChunksPerClaim(Integer max_chunks_per_claim) { this.max_chunks_per_claim = max_chunks_per_claim; }
+    
+    /**
+     * Sets the player's claim distance.
+     * 
+     * @param claim_distance The new claim distance
+     */
+    public void setClaimDistance(Integer claim_distance) { this.claim_distance = claim_distance; }
+    
+    /**
+     * Sets the player's max chunks total.
+     * 
+     * @param max_chunks_total The new max chunks total
+     */
+    public void setMaxChunksTotal(Integer max_chunks_total) { this.max_chunks_total = max_chunks_total; }
     
     /**
      * Sets the player's GUI page.
@@ -516,6 +544,32 @@ public class CPlayer {
     }
     
     /**
+     * Checks if the player can claim more chunks with a given amount of new chunks.
+     * 
+     * @param n The number of new chunks
+     * @return True if the player can claim the specified number of chunks, false otherwise
+     */
+    public boolean canClaimTotalWithNumber(int n) {
+        if (player.hasPermission("scs.admin")) return true;
+
+        Set<String> permissions = player.getEffectivePermissions().parallelStream()
+            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
+            .collect(Collectors.toSet());
+
+        int maxChunks = permissions.parallelStream()
+            .map(CHUNKS_TOTAL_PATTERN::matcher)
+            .filter(Matcher::find)
+            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
+            .max().orElse(-1);
+        
+        int value = n+claims_count;
+        if (maxChunks >= value) return true;
+        if (maxChunks == -1) maxChunks = max_chunks_total;
+
+        return maxChunks >= value || maxChunks == 0;
+    }
+    
+    /**
      * Checks if the player can use the given radius for a radius claim.
      * 
      * @param r The radius
@@ -647,6 +701,50 @@ public class CPlayer {
             .max().orElse(-1);
         
         if (chunks == -1) return max_chunks_per_claim;
+        return chunks;
+    }
+    
+    /**
+     * Gets the claim distance
+     * 
+     * @return The claim distance
+     */
+    public int getClaimDistance() {
+        if (player.hasPermission("scs.admin")) return 0;
+
+        Set<String> permissions = player.getEffectivePermissions().parallelStream()
+            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
+            .collect(Collectors.toSet());
+
+        int distance = permissions.parallelStream()
+            .map(DISTANCE_PATTERN::matcher)
+            .filter(Matcher::find)
+            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
+            .max().orElse(-1);
+        
+        if (distance == -1) return claim_distance;
+        return distance;
+    }
+    
+    /**
+     * Gets the max chunks total
+     * 
+     * @return The max chunks total
+     */
+    public int getMaxChunksTotal() {
+        if (player.hasPermission("scs.admin")) return 0;
+
+        Set<String> permissions = player.getEffectivePermissions().parallelStream()
+            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
+            .collect(Collectors.toSet());
+
+        int chunks = permissions.parallelStream()
+            .map(CHUNKS_TOTAL_PATTERN::matcher)
+            .filter(Matcher::find)
+            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
+            .max().orElse(-1);
+        
+        if (chunks == -1) return claim_distance;
         return chunks;
     }
     

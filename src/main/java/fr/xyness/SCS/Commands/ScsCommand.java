@@ -1078,6 +1078,90 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
 			}
     	}
     	if(args[0].equalsIgnoreCase("player")) {
+    		if(args[1].equalsIgnoreCase("set-claim-distance")) {
+    			Player target = Bukkit.getPlayer(args[2]);
+                String targetName = "";
+                if (target == null) {
+                    OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
+                    if (otarget == null || !otarget.hasPlayedBefore()) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[2]));
+                        return;
+                    }
+                    targetName = otarget.getName();
+                } else {
+                    targetName = target.getName();
+                }
+                Double amount;
+                try {
+                    amount = Double.parseDouble(args[3]);
+                    if(amount < 0) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("claim-distance-must-be-positive")); // Same message
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                	sender.sendMessage(instance.getLanguage().getMessage("claim-distance-must-be-number"));
+                    return;
+                }
+                
+                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                config.set("players."+targetName+".claim-distance", amount);
+                if(target != null && target.isOnline()) {
+	                CPlayer cTarget = instance.getPlayerMain().getCPlayer(targetName);
+	                int nb = (int) Math.round(amount);
+	                cTarget.setClaimDistance(nb);
+                }
+                try {
+                	config.save(configFile);
+                	final String tName = targetName;
+                	sender.sendMessage(instance.getLanguage().getMessage("set-player-claim-distance-success").replaceAll("%player%", tName).replaceAll("%amount%", String.valueOf(args[3])));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+                return;
+        	}
+    		if(args[1].equalsIgnoreCase("set-max-chunks-total")) {
+    			Player target = Bukkit.getPlayer(args[2]);
+                String targetName = "";
+                if (target == null) {
+                    OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
+                    if (otarget == null || !otarget.hasPlayedBefore()) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[2]));
+                        return;
+                    }
+                    targetName = otarget.getName();
+                } else {
+                    targetName = target.getName();
+                }
+                Double amount;
+                try {
+                    amount = Double.parseDouble(args[3]);
+                    if(amount < 0) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-total-must-be-positive")); // Same message
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-total-must-be-number"));
+                    return;
+                }
+                
+                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                config.set("players."+targetName+".max-chunks-total", amount);
+                if(target != null && target.isOnline()) {
+	                CPlayer cTarget = instance.getPlayerMain().getCPlayer(targetName);
+	                int nb = (int) Math.round(amount);
+	                cTarget.setMaxChunksTotal(nb);
+                }
+                try {
+                	config.save(configFile);
+                	final String tName = targetName;
+                	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-chunks-total-success").replaceAll("%player%", tName).replaceAll("%amount%", String.valueOf(args[3])));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+                return;
+        	}
     		if(args[1].equalsIgnoreCase("set-max-chunks-per-claim")) {
     			Player target = Bukkit.getPlayer(args[2]);
                 String targetName = "";
@@ -1108,7 +1192,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 config.set("players."+targetName+".max-chunks-per-claim", amount);
                 if(target != null && target.isOnline()) {
 	                CPlayer cTarget = instance.getPlayerMain().getCPlayer(targetName);
-	                cTarget.setClaimCost(amount);
+	                int nb = (int) Math.round(amount);
+	                cTarget.setMaxChunksPerClaim(nb);
                 }
                 try {
                 	config.save(configFile);
@@ -1475,6 +1560,56 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     			return;
     		}
     		
+    		if(args[1].equalsIgnoreCase("set-claim-distance")) {
+                Double amount;
+                try {
+                    amount = Double.parseDouble(args[3]);
+                    if(amount < 0) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("claim-distance-be-positive"));
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                	sender.sendMessage(instance.getLanguage().getMessage("claim-distance-be-number"));
+                    return;
+                }
+                
+                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                config.set("groups."+args[2]+".claim-distance", amount);
+                instance.getSettings().getGroupsSettings().get(args[2]).put("claim-distance", amount);
+                try {
+                	config.save(configFile);
+                	sender.sendMessage(instance.getLanguage().getMessage("set-group-claim-distance-success").replaceAll("%group%", args[2]).replaceAll("%amount%", String.valueOf(args[3])));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+                return;
+        	}
+    		if(args[1].equalsIgnoreCase("set-max-chunks-total")) {
+                Double amount;
+                try {
+                    amount = Double.parseDouble(args[3]);
+                    if(amount < 0) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-total-be-positive"));
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-total-be-number"));
+                    return;
+                }
+                
+                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                config.set("groups."+args[2]+".max-chunks-total", amount);
+                instance.getSettings().getGroupsSettings().get(args[2]).put("max-chunks-total", amount);
+                try {
+                	config.save(configFile);
+                	sender.sendMessage(instance.getLanguage().getMessage("set-group-max-chunks-total-success").replaceAll("%group%", args[2]).replaceAll("%amount%", String.valueOf(args[3])));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+                return;
+        	}
     		if(args[1].equalsIgnoreCase("set-max-chunks-per-claim")) {
                 Double amount;
                 try {
@@ -1736,7 +1871,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
             case "group":
             case "player":
                 completions.addAll(List.of("add-limit", "add-radius", "add-members", "set-limit", "set-radius", "set-delay",
-                        "set-members", "set-claim-cost", "set-claim-cost-multiplier", "set-max-chunks-per-claim", "tp", "unclaim", "main", "list"));
+                        "set-members", "set-claim-cost", "set-claim-cost-multiplier", "set-max-chunks-per-claim", "tp", "unclaim", "main", "list",
+                        "set-claim-distance", "set-max-chunks-total"));
                 break;
             default:
                 break;

@@ -288,6 +288,46 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                 });
             return;
     	}
+    	if (args[0].equalsIgnoreCase("kick")) {
+            if (args[1].equalsIgnoreCase("*")) {
+        		if(instance.getMain().getPlayerClaimsCount("admin") == 0) {
+        			player.sendMessage(instance.getLanguage().getMessage("no-admin-claim"));
+        			return;
+        		}
+                Player target = Bukkit.getPlayer(args[2]);
+                if(target == null) {
+                	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replaceAll("%player%", args[2]));
+                	return;
+                }
+	        	if(!instance.getMain().getAllChunksFromAllClaims("admin").contains(target.getLocation().getChunk())) {
+	            	player.sendMessage(instance.getLanguage().getMessage("player-not-in-any-claim").replace("%player%", target.getName()));
+	            	return;
+	        	}
+	            player.sendMessage(instance.getLanguage().getMessage("kick-success-all-protected-areas").replace("%player%", target.getName()));
+	            target.sendMessage(instance.getLanguage().getMessage("kicked-from-all-protected-areas").replace("%player%", playerName));
+	        	instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+	        	return;
+            }
+            Claim claim = instance.getMain().getClaimByName(args[1], "admin");
+            if (claim == null) {
+            	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
+                return;
+            }
+            Player target = Bukkit.getPlayer(args[2]);
+            if(target == null) {
+            	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replaceAll("%player%", args[2]));
+            	return;
+            }
+            if(!claim.getChunks().contains(target.getLocation().getChunk())) {
+            	player.sendMessage(instance.getLanguage().getMessage("player-not-in-the-protected-area").replace("%player%", target.getName()).replace("%claim-name%", claim.getName()));
+            	return;
+            }
+            String claimName = claim.getName();
+            player.sendMessage(instance.getLanguage().getMessage("kick-success-protected-area").replace("%player%", target.getName()).replace("%claim-name%", claimName));
+            target.sendMessage(instance.getLanguage().getMessage("kicked-from-protected-area").replace("%player%", playerName).replace("%claim-name%", claimName));
+            instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+            return;
+    	}
     	if(args[0].equalsIgnoreCase("ban")) {
 			if(args[1].equalsIgnoreCase("*")) {
         		if(instance.getMain().getPlayerClaimsCount("admin") == 0) {
@@ -690,7 +730,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                     instance.getMain().deleteAllClaims("admin")
 	                	.thenAccept(success -> {
 	                		if (success) {
-	                			player.sendMessage(instance.getLanguage().getMessage("delete-claim-all-protected-area"));
+	                			player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
 	                		} else {
 	                			player.sendMessage(instance.getLanguage().getMessage("error"));
 	                		}
@@ -854,7 +894,32 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
         }
     	try {
 			int radius = Integer.parseInt(args[0]);
-            ClaimCommand.getChunksInRadius(player, player.getLocation(), radius, instance).thenAccept(chunks -> instance.getMain().createAdminClaimRadius(player, chunks, radius));
+            ClaimCommand.getChunksInRadius(player, player.getLocation(), radius, instance).thenAccept(chunks -> {
+		        // Check if all claims are free to claim
+		        Set<Chunk> chunksToClaim = chunks.stream()
+		                .filter(c -> !instance.getMain().checkIfClaimExists(c))
+		                .collect(Collectors.toSet());
+		        
+		        if (chunks.size() != chunksToClaim.size()) {
+		            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("cant-radius-claim-already-claim")));
+		            return;
+		        }
+		        
+		        instance.getMain().createAdminClaimRadius(player, chunks, radius)
+		        	.thenAccept(success -> {
+		        		if (success) {
+		    		        if (instance.getSettings().getBooleanSetting("claim-particles")) instance.executeSync(() -> instance.getMain().displayChunkBorderWithRadius(player, player.getLocation().getChunk(), radius));
+		    		        Claim claim = instance.getMain().getClaim(player.getLocation().getChunk());
+		    		        player.sendMessage(instance.getLanguage().getMessage("create-protected-area-radius-success").replace("%number%", String.valueOf(chunks.size())).replace("%claim-name%", claim.getName()));
+		        		} else {
+		        			player.sendMessage(instance.getLanguage().getMessage("error"));
+		        		}
+		        	})
+		            .exceptionally(ex -> {
+		                ex.printStackTrace();
+		                return null;
+		            });
+            });
 		} catch(NumberFormatException e){
 			instance.getMain().getHelp(player, args[0], "parea");
 		}
@@ -882,7 +947,26 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
         	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName()));
         	return;
         }
-        instance.getMain().createAdminClaim(player, chunk);
+        
+        // Check if the chunk is already claimed
+        if (instance.getMain().checkIfClaimExists(chunk)) {
+        	instance.getMain().handleClaimConflict(player, chunk);
+        	return;
+        }
+        
+        instance.getMain().createAdminClaim(player, chunk)
+        	.thenAccept(success -> {
+        		if (success) {
+        			player.sendMessage(instance.getLanguage().getMessage("create-protected-area-success"));
+    		        if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, Set.of(chunk), true, false);
+        		} else {
+        			player.sendMessage(instance.getLanguage().getMessage("error"));
+        		}
+        	})
+            .exceptionally(ex -> {
+                ex.printStackTrace();
+                return null;
+            });
     }
     
     /**
@@ -892,7 +976,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
      */
     private List<String> getPrimaryCompletions() {
         return List.of("setdesc", "settings", "setname", "members", "tp", "list", "ban", "unban", "bans", "add", "remove", "unclaim", "main",
-        		"merge", "addchunk", "delchunk", "chunks");
+        		"merge", "addchunk", "delchunk", "chunks", "kick");
     }
 
     /**
@@ -911,7 +995,6 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             case "unban":
             case "add":
                 completions.add("*");
-                // Fall through to next case
             case "bans":
             case "setdesc":
             case "settings":
@@ -926,6 +1009,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                 break;
             case "remove":
             case "unclaim":
+            case "kick":
                 completions.add("*");
                 completions.addAll(instance.getMain().getClaimsNameFromOwner("admin"));
                 break;
@@ -953,6 +1037,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                 break;
             case "ban":
             case "add":
+            case "kick":
                 completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
                 break;
             case "remove":

@@ -137,6 +137,7 @@ pl3xmap-settings:
 # Be careful of max-radius-claims and max-chunks-per-claim, one depends of the other, for example :
 # if you put 4 to max-chuns-per-claim and 1 to max-radius-claims, players cannot use radius claim because the max chunks is set to 4
 # it must be 9 for radius 1
+# same for max-chunks-total
 groups:
   admin:
     permission: scs.group.admin
@@ -147,6 +148,8 @@ groups:
     claim-cost: 0
     claim-cost-multiplier: 0
     max-chunks-per-claim: 0
+    claim-distance: 0
+    max-chunks-total: 0
   vip: # Example
     permission: scs.group.vip
     max-claims: 15
@@ -156,6 +159,8 @@ groups:
     claim-cost: 50
     claim-cost-multiplier: 2
     max-chunks-per-claim: 10
+    claim-distance: 0
+    max-chunks-total: 50
   default:
     max-claims: 1
     max-radius-claims: 1
@@ -164,6 +169,8 @@ groups:
     claim-cost: 100
     claim-cost-multiplier: 2
     max-chunks-per-claim: 4
+    claim-distance: 0
+    max-chunks-total: 20
     
 # Players settings
 # 0 for infinite claims
@@ -173,6 +180,7 @@ groups:
 # Be careful of max-radius-claims and max-chunks-per-claim, one depends of the other, for example :
 # if you put 4 to max-chuns-per-claim and 1 to max-radius-claims, players cannot use radius claim because the max chunks is set to 4
 # it must be 9 for radius 1
+# same for max-chunks-total
 players: {}
   # Xyness:
   # max-claims: 0
@@ -182,6 +190,8 @@ players: {}
   # claim-cost: 0
   # claim-cost-multiplier: 0
   # max-chunks-per-claim: 0
+  # claim-distance: 0
+  # max-chunks-total: 20
 
 
 # *************************
@@ -241,7 +251,7 @@ default-values-settings:
   Firespread: false
   Teleportations: false
   Damages: false
-  Visitors: false
+  Visitors: true
   Pvp: true
   Monsters: true
   Weather: true

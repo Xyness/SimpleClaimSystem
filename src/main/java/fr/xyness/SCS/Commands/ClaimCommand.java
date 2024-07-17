@@ -160,7 +160,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         // Switch for args
         switch(args.length) {
         	case 0:
-        		handleArgZero(player);
+        		handleArgZero(player,playerName,cPlayer);
         		break;
         	case 1:
         		handleArgOne(player,playerName,cPlayer,args);
@@ -367,6 +367,50 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
             return;
         }
+    	if (args[0].equalsIgnoreCase("kick")) {
+        	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.kick")) {
+        		player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
+                return;
+            }
+            if (args[1].equalsIgnoreCase("*")) {
+                if (cPlayer.getClaimsCount() == 0) {
+                	player.sendMessage(instance.getLanguage().getMessage("player-has-no-claim"));
+                    return;
+                }
+                Player target = Bukkit.getPlayer(args[2]);
+                if(target == null) {
+                	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replaceAll("%player%", args[2]));
+                	return;
+                }
+	        	if(!instance.getMain().getAllChunksFromAllClaims(playerName).contains(target.getLocation().getChunk())) {
+	            	player.sendMessage(instance.getLanguage().getMessage("player-not-in-any-claim").replace("%player%", target.getName()));
+	            	return;
+	        	}
+	            player.sendMessage(instance.getLanguage().getMessage("kick-success-all-claims").replace("%player%", target.getName()));
+	            target.sendMessage(instance.getLanguage().getMessage("kicked-from-all-claims").replace("%player%", playerName));
+	        	instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+	        	return;
+            }
+            Claim claim = instance.getMain().getClaimByName(args[1], playerName);
+            if (claim == null) {
+            	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
+                return;
+            }
+            Player target = Bukkit.getPlayer(args[2]);
+            if(target == null) {
+            	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replaceAll("%player%", args[2]));
+            	return;
+            }
+            if(!claim.getChunks().contains(target.getLocation().getChunk())) {
+            	player.sendMessage(instance.getLanguage().getMessage("player-not-in-the-claim").replace("%player%", target.getName()).replace("%claim-name%", claim.getName()));
+            	return;
+            }
+            String claimName = claim.getName();
+            player.sendMessage(instance.getLanguage().getMessage("kick-success").replace("%player%", target.getName()).replace("%claim-name%", claimName));
+            target.sendMessage(instance.getLanguage().getMessage("kicked-from-claim").replace("%player%", playerName).replace("%claim-name%", claimName));
+            instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+            return;
+    	}
         if (args[0].equalsIgnoreCase("ban")) {
         	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.ban")) {
         		player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
@@ -399,6 +443,9 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 		if (success) {
                             player.sendMessage(message);
             		        if (target != null && target.isOnline()) {
+            		        	if(instance.getMain().getAllChunksFromAllClaims(playerName).contains(target.getLocation().getChunk())) {
+            		        		instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+            		        	}
             		        	target.sendMessage(instance.getLanguage().getMessage("banned-all-claim-player").replaceAll("%owner%", playerName));
             		        	target.sendMessage(instance.getLanguage().getMessage("remove-all-claim-player").replaceAll("%owner%", playerName));
             		        }
@@ -438,9 +485,11 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	.thenAccept(success -> {
             		if (success) {
                         player.sendMessage(message);
-        	        	// Notify him if online
         		        if (target != null && target.isOnline()) {
         		        	String claimName = claim.getName();
+        		        	if(claim.getChunks().contains(target.getLocation().getChunk())) {
+        		        		instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+        		        	}
         		        	target.sendMessage(instance.getLanguage().getMessage("banned-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claimName));
         		        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claimName));
         		        }
@@ -843,6 +892,10 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	}
             }
             Set<Chunk> chunks = new HashSet<>(claim.getChunks());
+            if(!cPlayer.canClaimTotalWithNumber(chunks.size()+1)) {
+            	player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks"));
+            	return;
+            }
             if(!cPlayer.canClaimWithNumber(chunks.size()+1)) {
             	player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks"));
             	return;
@@ -873,6 +926,37 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     ex.printStackTrace();
                     return null;
                 });
+            return;
+    	}
+    	if (args[0].equalsIgnoreCase("kick")) {
+        	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.kick")) {
+        		player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
+                return;
+            }
+            Chunk chunk = player.getLocation().getChunk();
+            if (!instance.getMain().checkIfClaimExists(chunk)) {
+            	player.sendMessage(instance.getLanguage().getMessage("free-territory"));
+                return;
+            }
+            Claim claim = instance.getMain().getClaim(chunk);
+            String owner = claim.getOwner();
+            if (!owner.equals(playerName)) {
+            	player.sendMessage(instance.getLanguage().getMessage("territory-not-yours"));
+                return;
+            }
+            Player target = Bukkit.getPlayer(args[1]);
+            if(target == null) {
+            	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replaceAll("%player%", args[1]));
+            	return;
+            }
+            if(!claim.getChunks().contains(target.getLocation().getChunk())) {
+            	player.sendMessage(instance.getLanguage().getMessage("player-not-in-the-claim").replace("%player%", target.getName()).replace("%claim-name%", claim.getName()));
+            	return;
+            }
+            String claimName = claim.getName();
+            player.sendMessage(instance.getLanguage().getMessage("kick-success").replace("%player%", target.getName()).replace("%claim-name%", claimName));
+            target.sendMessage(instance.getLanguage().getMessage("kicked-from-claim").replace("%player%", playerName).replace("%claim-name%", claimName));
+            instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
             return;
     	}
         if (args[0].equalsIgnoreCase("ban")) {
@@ -912,9 +996,11 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	.thenAccept(success -> {
             		if (success) {
                         player.sendMessage(message);
-        	        	// Notify him if online
         		        if (target != null && target.isOnline()) {
         		        	String claimName = claim.getName();
+        		        	if(claim.getChunks().contains(target.getLocation().getChunk())) {
+        		        		instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+        		        	}
         		        	target.sendMessage(instance.getLanguage().getMessage("banned-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claimName));
         		        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claimName));
         		        }
@@ -1521,23 +1607,122 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             getChunksInRadius(player, player.getLocation(), radius, instance).thenAccept(chunks -> {
-                if (instance.getSettings().getBooleanSetting("claim-confirmation")) {
-                    if (isOnCreate.contains(player)) {
-                        isOnCreate.remove(player);
-                        instance.getMain().createClaimRadius(player, chunks, radius);
-                        return;
-                    }
-                    isOnCreate.add(player);
-                    String AnswerA = instance.getLanguage().getMessage("claim-confirmation-button");
-                    TextComponent AnswerA_C = new TextComponent(AnswerA);
-                    AnswerA_C.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(instance.getLanguage().getMessage("claim-confirmation-button")).create()));
-                    AnswerA_C.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim " + String.valueOf(radius)));
-                    TextComponent finale = new TextComponent(instance.getLanguage().getMessage("claim-confirmation-ask"));
-                    finale.addExtra(AnswerA_C);
-                    player.sendMessage(finale);
-                    return;
-                }
-                instance.getMain().createClaimRadius(player, chunks, radius);
+            	
+	            // Check if all claims are free to claim
+	            Set<Chunk> chunksToClaim = chunks.stream()
+	                    .filter(c -> !instance.getMain().checkIfClaimExists(c))
+	                    .collect(Collectors.toSet());
+	            if (chunks.size() != chunksToClaim.size()) {
+	                player.sendMessage(instance.getLanguage().getMessage("cant-radius-claim-already-claim"));
+	                return;
+	            }
+	            
+	            // Check if there is chunk near
+	            instance.getMain().isAreaClaimFree(player.getLocation().getChunk(), cPlayer.getClaimDistance()+radius, playerName)
+	            	.thenAccept(successs -> {
+	            		if (successs) {
+	            			// Check if player can claim
+	        	            if (!cPlayer.canClaim()) {
+	        	                player.sendMessage(instance.getLanguage().getMessage("cant-claim-anymore"));
+	        	                return;
+	        	            }
+	        	            
+	        	            // Check if player can claim with all these chunks (total)
+	        	            if (!cPlayer.canClaimTotalWithNumber(chunksToClaim.size())) {
+	        	                player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks"));
+	        	                return;
+	        	            }
+	        	
+	        	            // Check if player can claim with all these chunks
+	        	            if (!cPlayer.canClaimWithNumber(chunksToClaim.size())) {
+	        	                player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks"));
+	        	                return;
+	        	            }
+	        	
+	        	            // Check if player can pay
+	        	            double price = 0;
+	        	            if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
+		        	            price = instance.getMain().calculateClaimPrice(cPlayer, chunksToClaim.size());
+		        	            double balance = instance.getVault().getPlayerBalance(playerName);
+		        	            if (balance < price) {
+		        	                player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replace("%missing-price%", String.valueOf(price - balance)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+		        	                return;
+		        	            }
+	        	            }
+	        	            
+	                        if (instance.getSettings().getBooleanSetting("claim-confirmation")) {
+	                            if (isOnCreate.contains(player)) {
+	                                isOnCreate.remove(player);
+	                                
+	                                // Make player pay
+	                                if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
+		                	            instance.getVault().removePlayerBalance(playerName, price);
+		                	            player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+	                                }
+		                	            
+	                	            // Create claim
+	                	            instance.getMain().createClaimRadius(player, chunks, radius)
+	        	                    	.thenAccept(success -> {
+	        	                    		if (success) {
+	        	                	            if (instance.getSettings().getBooleanSetting("claim-particles")) {
+	        	                	                instance.getMain().displayChunkBorderWithRadius(player, player.getLocation().getChunk(), radius);
+	        	                	            }
+	        	                	            Claim claim = instance.getMain().getClaim(player.getLocation().getChunk());
+	        	                	            int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
+	        	                	            player.sendMessage(instance.getLanguage().getMessage("create-claim-radius-success").replace("%number%", AdminGestionMainGui.getNumberSeparate(String.valueOf(chunks.size()))).replace("%remaining-claims%", AdminGestionMainGui.getNumberSeparate(String.valueOf(remainingClaims))).replace("%claim-name%", claim.getName()));
+	        	                    		} else {
+	        	                    			player.sendMessage(instance.getLanguage().getMessage("error"));
+	        	                    		}
+	        	                    	})
+	                	                .exceptionally(ex -> {
+	                	                    ex.printStackTrace();
+	                	                    return null;
+	                	                });
+	                                return;
+	                            }
+	                            isOnCreate.add(player);
+	                            String AnswerA = instance.getLanguage().getMessage("claim-confirmation-button");
+	                            TextComponent AnswerA_C = new TextComponent(AnswerA);
+	                            AnswerA_C.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(instance.getLanguage().getMessage("claim-confirmation-button")).create()));
+	                            AnswerA_C.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim " + String.valueOf(radius)));
+	                            TextComponent finale = new TextComponent(instance.getLanguage().getMessage("claim-confirmation-ask"));
+	                            finale.addExtra(AnswerA_C);
+	                            player.sendMessage(finale);
+	                            return;
+	                        }
+	                        // Make player pay
+	                        if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
+		        	            instance.getVault().removePlayerBalance(playerName, price);
+		        	            player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+	                        }
+		        	            
+	        	            // Create claim
+	        	            instance.getMain().createClaimRadius(player, chunks, radius)
+	                        	.thenAccept(success -> {
+	                        		if (success) {
+	                    	            if (instance.getSettings().getBooleanSetting("claim-particles")) {
+	                    	                instance.getMain().displayChunkBorderWithRadius(player, player.getLocation().getChunk(), radius);
+	                    	            }
+	                    	            Claim claim = instance.getMain().getClaim(player.getLocation().getChunk());
+	                    	            int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
+	                    	            player.sendMessage(instance.getLanguage().getMessage("create-claim-radius-success").replace("%number%", AdminGestionMainGui.getNumberSeparate(String.valueOf(chunks.size()))).replace("%remaining-claims%", AdminGestionMainGui.getNumberSeparate(String.valueOf(remainingClaims))).replace("%claim-name%", claim.getName()));
+	                        		} else {
+	                        			player.sendMessage(instance.getLanguage().getMessage("error"));
+	                        		}
+	                        	})
+	        	                .exceptionally(ex -> {
+	        	                    ex.printStackTrace();
+	        	                    return null;
+	        	                });
+	            		} else {
+	    	            	player.sendMessage(instance.getLanguage().getMessage("cannot-claim-because-claim-near"));
+	    	            	return;
+	            		}
+	            	})
+	                .exceptionally(ex -> {
+	                    ex.printStackTrace();
+	                    return null;
+	                });
             });
             return;
         } catch (NumberFormatException e) {
@@ -1550,7 +1735,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
      *
      * @param player the player executing the command
      */
-    private void handleArgZero(Player player) {
+    private void handleArgZero(Player player, String playerName, CPlayer cPlayer) {
     	Chunk chunk = player.getLocation().getChunk();
     	if(instance.getMain().checkIfClaimExists(chunk)) {
     		Claim claim = instance.getMain().getClaim(chunk);
@@ -1579,26 +1764,145 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         }
 
         if (instance.getSettings().getBooleanSetting("claim-confirmation")) {
-            if (isOnCreate.contains(player)) {
-                isOnCreate.remove(player);
-                instance.getMain().createClaim(player, chunk);
-            } else {
-                isOnCreate.add(player);
-                if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, Set.of(player.getLocation().getChunk()), false, false);
-                String confirmationMessage = instance.getLanguage().getMessage("claim-confirmation-ask");
-                TextComponent confirmationComponent = new TextComponent(confirmationMessage);
-
-                String buttonText = instance.getLanguage().getMessage("claim-confirmation-button");
-                TextComponent buttonComponent = new TextComponent(buttonText);
-                buttonComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(buttonText).create()));
-                buttonComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim"));
-
-                confirmationComponent.addExtra(buttonComponent);
-                player.sendMessage(confirmationComponent);
+        	
+            // Check if the chunk is already claimed
+            if (instance.getMain().checkIfClaimExists(chunk)) {
+            	instance.getMain().handleClaimConflict(player, chunk);
+            	return;
             }
+            
+            // Check if there is chunk near
+            instance.getMain().isAreaClaimFree(chunk, cPlayer.getClaimDistance(), playerName)
+            	.thenAccept(successs -> {
+            		if (successs) {
+            			// Check if the player can claim
+                        if (!cPlayer.canClaim()) {
+                        	player.sendMessage(instance.getLanguage().getMessage("cant-claim-anymore"));
+                            return;
+                        }
+                        
+                        // Check if player can claim with all these chunks (total)
+                        if (!cPlayer.canClaimTotalWithNumber(1)) {
+                            player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks"));
+                            return;
+                        }
+                        
+                        // Check if the player can pay
+                        double price = 0;
+                        if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
+                            price = instance.getSettings().getBooleanSetting("claim-cost-multiplier") ? cPlayer.getMultipliedCost() : cPlayer.getCost();
+                            double balance = instance.getVault().getPlayerBalance(playerName);
+
+                            if (balance < price) {
+                            	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replaceAll("%missing-price%", String.valueOf(price - balance)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+                                return;
+                            }
+                        }
+                        
+                        if (isOnCreate.contains(player)) {
+                            isOnCreate.remove(player);
+                            
+                            // Make the player pay
+                            if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
+                                instance.getVault().removePlayerBalance(playerName, price);
+                                if (price > 0) player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replaceAll("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+                            }
+                            
+                            // Create claim
+                            instance.getMain().createClaim(player, chunk)
+            	            	.thenAccept(success -> {
+            	            		if (success) {
+            	            			int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
+            	            			player.sendMessage(instance.getLanguage().getMessage("create-claim-success").replaceAll("%remaining-claims%", String.valueOf(remainingClaims)));
+            	            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, Set.of(chunk), true, false);
+            	            		} else {
+            	            			player.sendMessage(instance.getLanguage().getMessage("error"));
+            	            		}
+            	            	})
+            	                .exceptionally(ex -> {
+            	                    ex.printStackTrace();
+            	                    return null;
+            	                });
+                        } else {
+                            isOnCreate.add(player);
+                            if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, Set.of(player.getLocation().getChunk()), false, false);
+                            String confirmationMessage = instance.getLanguage().getMessage("claim-confirmation-ask");
+                            TextComponent confirmationComponent = new TextComponent(confirmationMessage);
+
+                            String buttonText = instance.getLanguage().getMessage("claim-confirmation-button");
+                            TextComponent buttonComponent = new TextComponent(buttonText);
+                            buttonComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(buttonText).create()));
+                            buttonComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim"));
+
+                            confirmationComponent.addExtra(buttonComponent);
+                            player.sendMessage(confirmationComponent);
+                        }
+            		} else {
+                    	player.sendMessage(instance.getLanguage().getMessage("cannot-claim-because-claim-near"));
+                    	return;
+            		}
+            	})
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
             return;
         }
-        instance.getMain().createClaim(player, chunk);
+        
+        // Check if the chunk is already claimed
+        if (instance.getMain().checkIfClaimExists(chunk)) {
+        	instance.getMain().handleClaimConflict(player, chunk);
+        	return;
+        }
+        
+        // Check if there is chunk near
+        instance.getMain().isAreaClaimFree(chunk, cPlayer.getClaimDistance(), playerName)
+        		.thenAccept(successs -> {
+        			if (successs) {
+        		        // Check if the player can claim
+        		        if (!cPlayer.canClaim()) {
+        		        	player.sendMessage(instance.getLanguage().getMessage("cant-claim-anymore"));
+        		            return;
+        		        }
+        		        
+        		        // Check if the player can pay
+        		        if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
+        		            double price = instance.getSettings().getBooleanSetting("claim-cost-multiplier") ? cPlayer.getMultipliedCost() : cPlayer.getCost();
+        		            double balance = instance.getVault().getPlayerBalance(playerName);
+
+        		            if (balance < price) {
+        		            	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replaceAll("%missing-price%", String.valueOf(price - balance)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+        		                return;
+        		            }
+
+        		            instance.getVault().removePlayerBalance(playerName, price);
+        		            if (price > 0) player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replaceAll("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+        		        }
+        		        
+        		        // Create claim
+        		        instance.getMain().createClaim(player, chunk)
+        		        	.thenAccept(success -> {
+        		        		if (success) {
+        		        			int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
+        		        			player.sendMessage(instance.getLanguage().getMessage("create-claim-success").replaceAll("%remaining-claims%", String.valueOf(remainingClaims)));
+        		        			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, Set.of(chunk), true, false);
+        		        		} else {
+        		        			player.sendMessage(instance.getLanguage().getMessage("error"));
+        		        		}
+        		        	})
+        		            .exceptionally(ex -> {
+        		                ex.printStackTrace();
+        		                return null;
+        		            });
+        			} else {
+        	        	player.sendMessage(instance.getLanguage().getMessage("cannot-claim-because-claim-near"));
+        	        	return;
+        			}
+        		})
+				.exceptionally(ex -> {
+				    ex.printStackTrace();
+				    return null;
+				});
     }
     
     /**
@@ -1611,7 +1915,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
         String[] commands = {"settings", "add", "remove", "list", "setspawn", "setname", "members", "setdesc",
                 "chat", "map", "autoclaim", "automap", "see", "tp", "ban", "unban", "bans", "fly", "autofly", "owner", "merge", "sell", "cancel",
-                "main", "delchunk", "addchunk", "chunks"};
+                "main", "delchunk", "addchunk", "chunks", "kick"};
 
         for (String command : commands) {
             if (instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim." + command)) {
@@ -1652,6 +1956,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             case "addchunk":
             case "delchunk":
             case "chunks":
+            case "members":
+            case "bans":
                 completions.addAll(main.getClaimsNameFromOwner(playerName));
                 break;
             case "cancel":
@@ -1694,13 +2000,15 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 completions.add("*");
                 completions.addAll(main.getClaimsNameFromOwner(playerName));
                 break;
-            case "members":
-            case "bans":
             case "owner":
-                completions.addAll(main.getClaimsNameFromOwner(playerName));
-                completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
-                completions.remove(playerName);
-                break;
+            case "kick":
+            	if (main.checkIfClaimExists(chunk) && main.getClaim(chunk).getOwner().equals(playerName)) {
+            		completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
+            		completions.remove(playerName);
+            	}
+            	completions.addAll(main.getClaimsNameFromOwner(playerName));
+            	completions.add("*");
+            	break;
             default:
                 break;
         }
@@ -1741,6 +2049,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             case "add":
             case "ban":
             case "owner":
+            case "kick":
                 completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
                 completions.remove(playerName);
                 break;
