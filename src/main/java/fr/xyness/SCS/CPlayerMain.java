@@ -346,6 +346,8 @@ public class CPlayerMain {
             groupPlayerSettings.put("claim-cost", groupsSettings.get("default").get("claim-cost"));
             groupPlayerSettings.put("claim-cost-multiplier", groupsSettings.get("default").get("claim-cost-multiplier"));
             groupPlayerSettings.put("max-chunks-per-claim", groupsSettings.get("default").get("max-chunks-per-claim"));
+            groupPlayerSettings.put("claim-distance", groupsSettings.get("default").get("claim-distance"));
+            groupPlayerSettings.put("max-chunks-total", groupsSettings.get("default").get("max-chunks-total"));
             for (String group : groups.keySet()) {
                 if (checkPermPlayer(player, groups.get(group))) {
                     groupPlayerSettings.put("max-claims", groupsSettings.get(group).get("max-claims"));
@@ -355,6 +357,8 @@ public class CPlayerMain {
                     groupPlayerSettings.put("claim-cost", groupsSettings.get(group).get("claim-cost"));
                     groupPlayerSettings.put("claim-cost-multiplier", groupsSettings.get(group).get("claim-cost-multiplier"));
                     groupPlayerSettings.put("max-chunks-per-claim", groupsSettings.get("default").get("max-chunks-per-claim"));
+                    groupPlayerSettings.put("claim-distance", groupsSettings.get("default").get("claim-distance"));
+                    groupPlayerSettings.put("max-chunks-total", groupsSettings.get("default").get("max-chunks-total"));
                     break;
                 }
             }
@@ -367,7 +371,9 @@ public class CPlayerMain {
                     (int) Math.round(groupPlayerSettings.get("max-members")),
                     groupPlayerSettings.get("claim-cost"),
                     groupPlayerSettings.get("claim-cost-multiplier"),
-                    (int) Math.round(groupPlayerSettings.get("max-chunks-per-claim"))));
+                    (int) Math.round(groupPlayerSettings.get("max-chunks-per-claim")),
+                    (int) Math.round(groupPlayerSettings.get("claim-distance")),
+                    (int) Math.round(groupPlayerSettings.get("max-chunks-total"))));
             } else {
                 players.put(playerName, new CPlayer(player, instance.getMain().getPlayerClaimsCount(playerName),
                     (int) Math.round(playersConfigSettings.get(playerName).getOrDefault("max-claims", groupPlayerSettings.get("max-claims"))),
@@ -376,7 +382,9 @@ public class CPlayerMain {
                     (int) Math.round(playersConfigSettings.get(playerName).getOrDefault("max-members", groupPlayerSettings.get("max-members"))),
                     playersConfigSettings.get(playerName).getOrDefault("claim-cost", groupPlayerSettings.get("claim-cost")),
                     playersConfigSettings.get(playerName).getOrDefault("claim-cost-multiplier", groupPlayerSettings.get("claim-cost-multiplier")),
-                    (int) Math.round(playersConfigSettings.get(playerName).getOrDefault("max-chunks-per-claim", groupPlayerSettings.get("max-chunks-per-claim")))));
+                    (int) Math.round(playersConfigSettings.get(playerName).getOrDefault("max-chunks-per-claim", groupPlayerSettings.get("max-chunks-per-claim"))),
+                    (int) Math.round(playersConfigSettings.get(playerName).getOrDefault("claim-distance", groupPlayerSettings.get("claim-distance"))),
+                    (int) Math.round(playersConfigSettings.get(playerName).getOrDefault("max-chunks-total", groupPlayerSettings.get("max-chunks-total")))));
             }
         });
     }

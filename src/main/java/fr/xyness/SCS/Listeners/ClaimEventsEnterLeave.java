@@ -2,6 +2,7 @@ package fr.xyness.SCS.Listeners;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -84,6 +85,21 @@ public class ClaimEventsEnterLeave implements Listener {
         }
         Chunk chunk = player.getLocation().getChunk();
         handleWeatherSettings(player, chunk, chunk);
+        
+        if (!instance.getMain().checkIfClaimExists(chunk)) return;
+
+        String playerName = player.getName();
+        Claim claim = instance.getMain().getClaim(chunk);
+        if (instance.getMain().checkBan(claim, playerName) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
+            instance.getMain().teleportPlayer(player, Bukkit.getWorlds().get(0).getSpawnLocation());
+            return;
+        }
+        
+        if (!claim.isMember(playerName) && !claim.getPermission("Visitors") && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
+        	instance.getMain().teleportPlayer(player, Bukkit.getWorlds().get(0).getSpawnLocation());
+            return;
+        }
+        
         instance.getBossBars().activeBossBar(player,chunk);
     }
 
@@ -143,6 +159,11 @@ public class ClaimEventsEnterLeave implements Listener {
             cancelTeleport(event, player, "player-banned");
             return;
         }
+        
+        if (!claim.isMember(playerName) && !claim.getPermission("Visitors") && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
+            cancelTeleport(event, player, "visitors");
+            return;
+        }
 
         if (isTeleportBlocked(event, player, claim)) {
             cancelTeleport(event, player, "teleportations");
@@ -158,11 +179,14 @@ public class ClaimEventsEnterLeave implements Listener {
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
+        String playerName = player.getName();
+        
         Chunk to = event.getRespawnLocation().getChunk();
         String ownerTO = instance.getMain().getOwnerInClaim(to);
-        String playerName = player.getName();
+        
         CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
         if(cPlayer == null) return;
+        
         String world = player.getWorld().getName();
         
         handleWeatherSettings(player, to, null);
@@ -199,8 +223,13 @@ public class ClaimEventsEnterLeave implements Listener {
         Claim claim = instance.getMain().getClaim(to);
         if(claim != null) {
 	        if (instance.getMain().checkBan(claim, playerName) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
-	            player.teleport(event.getFrom());
-	            instance.getMain().sendMessage(player, instance.getLanguage().getMessage("player-banned"), "ACTION_BAR");
+	        	instance.getMain().teleportPlayer(player, event.getFrom());
+	            instance.getMain().sendMessage(player, instance.getLanguage().getMessage("player-banned"), instance.getSettings().getSetting("protection-message"));
+	            return;
+	        }
+	        if (!claim.isMember(playerName) && !claim.getPermission("Visitors") && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
+	        	instance.getMain().teleportPlayer(player, event.getFrom());
+	        	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("visitors"), instance.getSettings().getSetting("protection-message"));
 	            return;
 	        }
         }
@@ -324,7 +353,54 @@ public class ClaimEventsEnterLeave implements Listener {
             player.sendMessage(instance.getLanguage().getMessage("autoclaim-world-disabled").replaceAll("%world%", world));
             cPlayer.setClaimAutoclaim(false);
         } else {
-            instance.getMain().createClaim(player, chunk);
+        	String playerName = player.getName();
+        	// Check if the chunk is already claimed
+            if (instance.getMain().checkIfClaimExists(chunk)) {
+            	instance.getMain().handleClaimConflict(player, chunk);
+            	return;
+            }
+            
+            // Check if there is chunk near
+            if(!instance.getMain().isAreaClaimFree(chunk, cPlayer.getClaimDistance(), playerName).join()) {
+            	player.sendMessage(instance.getLanguage().getMessage("cannot-claim-because-claim-near"));
+            	return;
+            }
+            
+            // Check if the player can claim
+            if (!cPlayer.canClaim()) {
+            	player.sendMessage(instance.getLanguage().getMessage("cant-claim-anymore"));
+                return;
+            }
+            
+            // Check if the player can pay
+            if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
+                double price = instance.getSettings().getBooleanSetting("claim-cost-multiplier") ? cPlayer.getMultipliedCost() : cPlayer.getCost();
+                double balance = instance.getVault().getPlayerBalance(playerName);
+
+                if (balance < price) {
+                	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replaceAll("%missing-price%", String.valueOf(price - balance)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+                    return;
+                }
+
+                instance.getVault().removePlayerBalance(playerName, price);
+                if (price > 0) player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replaceAll("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+            }
+            
+            // Create claim
+            instance.getMain().createClaim(player, chunk)
+            	.thenAccept(success -> {
+            		if (success) {
+            			int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
+            			player.sendMessage(instance.getLanguage().getMessage("create-claim-success").replaceAll("%remaining-claims%", String.valueOf(remainingClaims)));
+            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, Set.of(chunk), true, false);
+            		} else {
+            			player.sendMessage(instance.getLanguage().getMessage("error"));
+            		}
+            	})
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
         }
     }
 
@@ -376,7 +452,7 @@ public class ClaimEventsEnterLeave implements Listener {
      * @param ownerFROM the owner of the chunk the player is leaving.
      */
     private void enterleaveChatMessages(Player player, Chunk to, Chunk from, String ownerTO, String ownerFROM) {
-    	Runnable task = () -> {
+    	instance.executeAsync(() -> {
             String playerName = player.getName();
             String toName = instance.getMain().getClaimNameByChunk(to);
             String fromName = instance.getMain().getClaimNameByChunk(from);
@@ -388,8 +464,7 @@ public class ClaimEventsEnterLeave implements Listener {
                           .replace("%owner%", ownerTO)
                           .replace("%player%", playerName)
                           .replace("%name%", toName);
-                Runnable subtask = () -> player.sendMessage(message);
-                instance.executeEntitySync(player, subtask);
+                instance.executeEntitySync(player, () -> player.sendMessage(message));
                 return;
             }
 
@@ -400,11 +475,9 @@ public class ClaimEventsEnterLeave implements Listener {
                           .replace("%owner%", ownerFROM)
                           .replace("%player%", playerName)
                           .replace("%name%", fromName);
-                Runnable subtask = () -> player.sendMessage(message);
-                instance.executeEntitySync(player, subtask);
+                instance.executeEntitySync(player, () -> player.sendMessage(message));
             }
-    	};
-    	instance.executeAsync(task);
+    	});
     }
 
 
@@ -418,7 +491,7 @@ public class ClaimEventsEnterLeave implements Listener {
      * @param ownerFROM the owner of the chunk the player is leaving.
      */
     private void enterleaveMessages(Player player, Chunk to, Chunk from, String ownerTO, String ownerFROM) {
-    	Runnable task = () -> {
+    	instance.executeAsync(() -> {
             String playerName = player.getName();
             String toName = instance.getMain().getClaimNameByChunk(to);
             String fromName = instance.getMain().getClaimNameByChunk(from);
@@ -430,8 +503,7 @@ public class ClaimEventsEnterLeave implements Listener {
                           .replace("%owner%", ownerTO)
                           .replace("%player%", playerName)
                           .replace("%name%", toName);
-                Runnable subtask = () -> instance.getMain().sendMessage(player, message, "ACTION_BAR");
-                instance.executeEntitySync(player, subtask);
+                instance.executeEntitySync(player, () -> instance.getMain().sendMessage(player, message, "ACTION_BAR"));
                 return;
             }
 
@@ -442,11 +514,9 @@ public class ClaimEventsEnterLeave implements Listener {
                           .replace("%owner%", ownerFROM)
                           .replace("%player%", playerName)
                           .replace("%name%", fromName);
-                Runnable subtask = () -> instance.getMain().sendMessage(player, message, "ACTION_BAR");
-                instance.executeEntitySync(player, subtask);
+                instance.executeEntitySync(player, () -> instance.getMain().sendMessage(player, message, "ACTION_BAR"));
             }
-    	};
-    	instance.executeAsync(task);
+    	});
     }
 
     /**
@@ -459,7 +529,7 @@ public class ClaimEventsEnterLeave implements Listener {
      * @param ownerFROM the owner of the chunk the player is leaving.
      */
     private void enterleavetitleMessages(Player player, Chunk to, Chunk from, String ownerTO, String ownerFROM) {
-    	Runnable task = () -> {
+    	instance.executeAsync(() -> {
             String toName = instance.getMain().getClaimNameByChunk(to);
             String fromName = instance.getMain().getClaimNameByChunk(from);
             String playerName = player.getName();
@@ -476,9 +546,7 @@ public class ClaimEventsEnterLeave implements Listener {
             	        .replace("%name%", toName)
             	        .replace("%owner%", ownerTO)
             	        .replace("%player%", playerName);
-
-            	Runnable subtask = () -> player.sendTitle(title, subtitle, 5, 25, 5);
-            	instance.executeEntitySync(player, subtask);
+            	instance.executeEntitySync(player, () -> player.sendTitle(title, subtitle, 5, 25, 5));
                 return;
             }
             
@@ -494,12 +562,9 @@ public class ClaimEventsEnterLeave implements Listener {
             	        .replace("%name%", fromName)
             	        .replace("%owner%", ownerFROM)
             	        .replace("%player%", playerName);
-
-            	Runnable subtask = () -> player.sendTitle(title, subtitle, 5, 25, 5);
-            	instance.executeEntitySync(player, subtask);
+            	instance.executeEntitySync(player, () -> player.sendTitle(title, subtitle, 5, 25, 5));
             }
-    	};
-    	instance.executeAsync(task);
+    	});
     }
 
 

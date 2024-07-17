@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -65,7 +66,7 @@ public class ClaimMain {
     private Set<String> commandArgsClaim = Set.of("add", "autoclaim", "automap", "list",
             "map", "members", "remove", "see", "setdesc", "setname", "setspawn", "settings", 
             "tp", "chat", "ban", "unban", "bans", "owner", "autofly", "fly", "merge", "sell",
-            "cancel", "addchunk", "removechunk", "chunks", "main");
+            "cancel", "addchunk", "removechunk", "chunks", "main", "kick");
     
     /** Set of command arguments for /scs. */
     private Set<String> commandArgsScs = Set.of("transfer", "list", "player", "group", "forceunclaim", "setowner", "set-lang", "set-actionbar", "set-auto-claim", 
@@ -78,7 +79,7 @@ public class ClaimMain {
     
     /** Set of command arguments for /parea. */
     private Set<String> commandArgsParea = Set.of("setdesc", "settings", "setname", "members", "tp",
-    		"list", "ban", "unban", "bans", "add", "remove", "unclaim", "main");
+    		"list", "ban", "unban", "bans", "add", "remove", "unclaim", "main", "kick");
     
     /** Instance of instance. */
     private SimpleClaimSystem instance;
@@ -247,6 +248,19 @@ public class ClaimMain {
                 .filter(claim -> claim.getName().equalsIgnoreCase(name))
                 .findFirst()
                 .orElse(null);
+    }
+    
+    /**
+     * Gets all chunks of all claims of a player
+     * 
+     * @param owner The name of the owner of claims
+     * @return A set of chunks
+     */
+    public Set<Chunk> getAllChunksFromAllClaims(String owner) {
+        return playerClaims.getOrDefault(owner, new HashSet<>())
+                           .parallelStream()
+                           .flatMap(claim -> claim.getChunks().stream())
+                           .collect(Collectors.toSet());
     }
     
     /**
@@ -638,7 +652,7 @@ public class ClaimMain {
      * @param player the player to teleport
      * @param loc    the location to teleport to
      */
-    private void teleportPlayer(Player player, Location loc) {
+    public void teleportPlayer(Player player, Location loc) {
         if (instance.isFolia()) {
             player.teleportAsync(loc).thenAccept(success -> instance.getBossBars().activeBossBar(player, loc.getChunk()));
         } else {
@@ -906,29 +920,34 @@ public class ClaimMain {
                         String perms = resultSet.getString("Permissions");
                         int id = resultSet.getInt("id_pk");
                         String perm = perms;
-                        if (perm.length() != instance.getSettings().getDefaultValuesCode().length()) {
-                            int diff = instance.getSettings().getDefaultValuesCode().length() - perm.length();
+                        int defaultLength = instance.getSettings().getDefaultValuesCode().length();
+                        
+                        if (perm.length() != defaultLength) {
+                            int diff = defaultLength - perm.length();
+                            StringBuilder permCompleted = new StringBuilder(perm);
+                            
                             if (diff < 0) {
-                                StringBuilder permCompleted = new StringBuilder(perm);
                                 for (int i = 0; i < perm.length() - diff; i++) {
-                                    permCompleted.append(instance.getSettings().getDefaultValuesCode().charAt(perm.length() + i));
+                                    if (perm.length() + i < defaultLength) {
+                                        permCompleted.append(instance.getSettings().getDefaultValuesCode().charAt(perm.length() + i));
+                                    } else {
+                                        break;
+                                    }
                                 }
-                                String permFinal = permCompleted.toString();
-                                preparedStatement.setString(1, permFinal);
-                                preparedStatement.setInt(2, id);
-                                preparedStatement.addBatch();
-                                batchCount++;
                             } else {
-                                StringBuilder permCompleted = new StringBuilder(perm);
                                 for (int i = 0; i < diff; i++) {
-                                    permCompleted.append(instance.getSettings().getDefaultValuesCode().charAt(perm.length() + i));
+                                    if (perm.length() + i < defaultLength) {
+                                        permCompleted.append(instance.getSettings().getDefaultValuesCode().charAt(perm.length() + i));
+                                    } else {
+                                        break;
+                                    }
                                 }
-                                String permFinal = permCompleted.toString();
-                                preparedStatement.setString(1, permFinal);
-                                preparedStatement.setInt(2, id);
-                                preparedStatement.addBatch();
-                                batchCount++;
                             }
+                            String permFinal = permCompleted.toString();
+                            preparedStatement.setString(1, permFinal);
+                            preparedStatement.setInt(2, id);
+                            preparedStatement.addBatch();
+                            batchCount++;
                         }
                     }
 
@@ -1137,37 +1156,8 @@ public class ClaimMain {
 		        String playerName = player.getName();
 		        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
 		
-		        // Check if the chunk is already claimed
-		        if (listClaims.containsKey(chunk)) {
-		        	instance.executeEntitySync(player, () -> handleClaimConflict(player, chunk));
-		            return false;
-		        }
-		
-		        // Check if the player can claim
-		        if (!cPlayer.canClaim()) {
-		        	instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("cant-claim-anymore")));
-		            return false;
-		        }
-		
-		        // Check if the player can pay
-		        if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
-		            double price = instance.getSettings().getBooleanSetting("claim-cost-multiplier") ? cPlayer.getMultipliedCost() : cPlayer.getCost();
-		            double balance = instance.getVault().getPlayerBalance(playerName);
-		
-		            if (balance < price) {
-		            	instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replaceAll("%missing-price%", String.valueOf(price - balance)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
-		                return false;
-		            }
-		
-		            instance.getVault().removePlayerBalance(playerName, price);
-		            if (price > 0) instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replaceAll("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
-		        }
-		
-		        // Display particles, update player claims count and send message to player (success)
-		        if (instance.getSettings().getBooleanSetting("claim-particles")) instance.executeSync(() -> displayChunks(player, Set.of(chunk), true, false));
+		        // Update player claims count
 		        cPlayer.setClaimsCount(cPlayer.getClaimsCount() + 1);
-		        int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
-		        instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("create-claim-success").replaceAll("%remaining-claims%", String.valueOf(remainingClaims))));
 		
 		        // Create default values, name, loc, perms and Claim
 		        int id = findFreeId(playerName);
@@ -1197,6 +1187,8 @@ public class ClaimMain {
 	            	}
 		        }
 		        instance.executeSync(() -> instance.getBossBars().activateBossBar(chunk));
+                updateWeatherChunk(Set.of(chunk),instance.getSettings().getDefaultValues().get("Weather"));
+                updateFlyChunk(Set.of(chunk),instance.getSettings().getDefaultValues().get("Fly"));
 		        
 		        // Update database
 		        return insertClaimIntoDatabase(id, uuid, playerName, claimName, description, chunk, locationString);
@@ -1213,7 +1205,7 @@ public class ClaimMain {
      * @param player the player attempting to create the claim
      * @param chunk  the chunk to claim
      */
-    private void handleClaimConflict(Player player, Chunk chunk) {
+    public void handleClaimConflict(Player player, Chunk chunk) {
         Claim claim = listClaims.get(chunk);
         String owner = claim.getOwner();
         if (owner.equals("admin")) {
@@ -1244,16 +1236,6 @@ public class ClaimMain {
     public CompletableFuture<Boolean> createAdminClaim(Player player, Chunk chunk) {
     	return CompletableFuture.supplyAsync(() -> {
             try {
-	    		// Check if the chunk is already claimed
-		        if (listClaims.containsKey(chunk)) {
-		            instance.executeEntitySync(player, () -> handleClaimConflict(player, chunk));
-		            return false;
-		        }
-		
-		        // Display particles and send message to player (success)
-		        if (instance.getSettings().getBooleanSetting("claim-particles")) instance.executeSync(() -> displayChunks(player, Set.of(chunk), true, false));
-		        instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("create-protected-area-success")));
-		
 		        // Create default values, name, loc, perms and Claim
 		        String uuid = "aucun";
 		        int id = findFreeId("admin");
@@ -1282,6 +1264,8 @@ public class ClaimMain {
 	            	}
 		        }
 		        instance.executeSync(() -> instance.getBossBars().activateBossBar(chunk));
+                updateWeatherChunk(Set.of(chunk),instance.getSettings().getDefaultValues().get("Weather"));
+                updateFlyChunk(Set.of(chunk),instance.getSettings().getDefaultValues().get("Fly"));
 		
 		        // Updata database
 		        return insertClaimIntoDatabase(id, uuid, "admin", claimName, description, chunk, locationString);
@@ -1343,34 +1327,6 @@ public class ClaimMain {
 	            Chunk chunk = player.getLocation().getChunk();
 	            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
 	
-	            // Check if all claims are free to claim
-	            Set<Chunk> chunksToClaim = chunks.stream()
-	                    .filter(c -> !checkIfClaimExists(c))
-	                    .collect(Collectors.toSet());
-	
-	            if (chunks.size() != chunksToClaim.size()) {
-	                instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("cant-radius-claim-already-claim")));
-	                return false;
-	            }
-	
-	            // Check if player can claim
-	            if (!cPlayer.canClaim()) {
-	                instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("cant-claim-anymore")));
-	                return false;
-	            }
-	
-	            // Check if player can claim with all these chunks
-	            if (!cPlayer.canClaimWithNumber(chunksToClaim.size())) {
-	                instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks")));
-	                return false;
-	            }
-	
-	            // Check if player can pay
-	            double price = calculateClaimPrice(cPlayer, chunksToClaim.size());
-	            if (price > 0 && !processPayment(player, playerName, price)) {
-	                return false;
-	            }
-	
 	            // Get uuid of the player
 	            String uuid = player.getUniqueId().toString();
 	
@@ -1380,24 +1336,19 @@ public class ClaimMain {
 	            String description = instance.getLanguage().getMessage("default-description");
 	            String locationString = getLocationString(player.getLocation());
 	            LinkedHashMap<String, Boolean> perms = new LinkedHashMap<>(instance.getSettings().getDefaultValues());
-	            Claim newClaim = new Claim(chunksToClaim, playerName, Set.of(playerName), player.getLocation(), claimName, description, perms, false, 0.0, new HashSet<>(), id);
+	            Claim newClaim = new Claim(chunks, playerName, Set.of(playerName), player.getLocation(), claimName, description, perms, false, 0.0, new HashSet<>(), id);
 	
 	            // Add the claim to claims list of the player
 	            playerClaims.computeIfAbsent(playerName, k -> ConcurrentHashMap.newKeySet()).add(newClaim);
 	
-	            // Display particles if enabled, send message to player (success) and update his claims count
-	            if (instance.getSettings().getBooleanSetting("claim-particles")) {
-	                instance.executeSync(() -> displayChunkBorderWithRadius(player, player.getLocation().getChunk(), radius));
-	            }
+	            // Update his claims count
 	            cPlayer.setClaimsCount(cPlayer.getClaimsCount() + 1);
-	            int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
-	            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("create-claim-radius-success").replace("%number%", AdminGestionMainGui.getNumberSeparate(String.valueOf(chunksToClaim.size()))).replace("%remaining-claims%", AdminGestionMainGui.getNumberSeparate(String.valueOf(remainingClaims))).replace("%claim-name%", claimName)));
 	
 	            // Create bossbars, maps
 	            List<Integer> X = Collections.synchronizedList(new ArrayList<>());
 	            List<Integer> Z = Collections.synchronizedList(new ArrayList<>());
-	            instance.executeSync(() -> instance.getBossBars().activateBossBar(chunksToClaim));
-	            chunksToClaim.forEach(c -> {
+	            instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
+	            chunks.forEach(c -> {
 	                listClaims.put(c, newClaim);
 	                X.add(c.getX());
 	                Z.add(c.getZ());
@@ -1407,14 +1358,16 @@ public class ClaimMain {
 	            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
 	            if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
-	            		chunksToClaim.parallelStream().forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
+	            		chunks.parallelStream().forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
 	            	} else {
 	            		Bukkit.getScheduler().callSyncMethod(instance.getPlugin(), (Callable<Void>) () -> {
-	            			instance.executeSync(() -> chunksToClaim.parallelStream().forEach(c -> c.setForceLoaded(true)));
+	            			instance.executeSync(() -> chunks.parallelStream().forEach(c -> c.setForceLoaded(true)));
 	            			return null;
 	            		});
 	            	}
 	            }
+                updateWeatherChunk(chunks,instance.getSettings().getDefaultValues().get("Weather"));
+                updateFlyChunk(chunks,instance.getSettings().getDefaultValues().get("Fly"));
 	
 	            // Create X and Z strings
 	            String xString = String.join(";", X.stream().map(String::valueOf).collect(Collectors.toList()));
@@ -1463,16 +1416,6 @@ public class ClaimMain {
 	    		// Get data
 		        String playerName = "admin";
 		        Chunk chunk = player.getLocation().getChunk();
-		
-		        // Check if all claims are free to claim
-		        Set<Chunk> chunksToClaim = chunks.stream()
-		                .filter(c -> !checkIfClaimExists(c))
-		                .collect(Collectors.toSet());
-		        
-		        if (chunks.size() != chunksToClaim.size()) {
-		            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("cant-radius-claim-already-claim")));
-		            return false;
-		        }
 		        
 		        // Create default values, name, loc, perms and Claim
 		        int id = findFreeId("admin");
@@ -1480,20 +1423,16 @@ public class ClaimMain {
 		        String description = instance.getLanguage().getMessage("default-description");
 		        String locationString = getLocationString(player.getLocation());
 		        LinkedHashMap<String, Boolean> perms = new LinkedHashMap<>(instance.getSettings().getDefaultValues());
-		        Claim newClaim = new Claim(chunksToClaim, playerName, new HashSet<>(), player.getLocation(), claimName, description, perms, false, 0.0, new HashSet<>(),id);
+		        Claim newClaim = new Claim(chunks, playerName, new HashSet<>(), player.getLocation(), claimName, description, perms, false, 0.0, new HashSet<>(),id);
 		
 		        // Add the claim to protected areas list ("admin" in playerClaims)
 		        playerClaims.computeIfAbsent("admin", k -> new HashSet<>()).add(newClaim);
-		
-		        // Display particles if enabled and send message to player (success)
-		        if (instance.getSettings().getBooleanSetting("claim-particles")) instance.executeSync(() -> displayChunkBorderWithRadius(player, player.getLocation().getChunk(), radius));
-		        instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("create-protected-area-radius-success").replace("%number%", String.valueOf(chunksToClaim.size())).replace("%claim-name%", claimName)));
 		        
 		        // Create bossbars, maps
 		        List<Integer> X = Collections.synchronizedList(new ArrayList<>());
 		        List<Integer> Z = Collections.synchronizedList(new ArrayList<>());
-		        instance.executeSync(() -> instance.getBossBars().activateBossBar(chunksToClaim));
-		        chunksToClaim.parallelStream().forEach(c -> {
+		        instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
+		        chunks.parallelStream().forEach(c -> {
 		            listClaims.put(c, newClaim);
 		            X.add(c.getX());
 		            Z.add(c.getZ());
@@ -1503,14 +1442,16 @@ public class ClaimMain {
 	            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
 	            if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
-	            		chunksToClaim.parallelStream().forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
+	            		chunks.parallelStream().forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
 	            	} else {
 	            		Bukkit.getScheduler().callSyncMethod(instance.getPlugin(), (Callable<Void>) () -> {
-	            			instance.executeSync(() -> chunksToClaim.parallelStream().forEach(c -> c.setForceLoaded(true)));
+	            			instance.executeSync(() -> chunks.parallelStream().forEach(c -> c.setForceLoaded(true)));
 	            			return null;
 	            		});
 	            	}
 	            }
+                updateWeatherChunk(chunks,instance.getSettings().getDefaultValues().get("Weather"));
+                updateFlyChunk(chunks,instance.getSettings().getDefaultValues().get("Fly"));
 	            
 	            // Create X string
 		        StringBuilder sb = new StringBuilder();
@@ -1566,30 +1507,11 @@ public class ClaimMain {
      * @param numClaims the number of claims being created
      * @return the total price for creating the claims
      */
-    private double calculateClaimPrice(CPlayer cPlayer, int numClaims) {
+    public double calculateClaimPrice(CPlayer cPlayer, int numClaims) {
         if (!instance.getSettings().getBooleanSetting("economy") || !instance.getSettings().getBooleanSetting("claim-cost")) {
             return 0;
         }
         return instance.getSettings().getBooleanSetting("claim-cost-multiplier") ? cPlayer.getRadiusMultipliedCost(numClaims) : cPlayer.getCost() * numClaims;
-    }
-
-    /**
-     * Processes the payment for creating claims.
-     *
-     * @param player    the player creating the claims
-     * @param playerName the name of the player creating the claims
-     * @param price     the total price for creating the claims
-     * @return true if the payment was successful, false otherwise
-     */
-    private boolean processPayment(Player player, String playerName, double price) {
-        double balance = instance.getVault().getPlayerBalance(playerName);
-        if (balance < price) {
-            player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replace("%missing-price%", String.valueOf(price - balance)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
-            return false;
-        }
-        instance.getVault().removePlayerBalance(playerName, price);
-        player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
-        return true;
     }
 
     /**
@@ -3666,6 +3588,48 @@ public class ClaimMain {
         	sender.sendMessage(instance.getLanguage().getMessage("sub-arg-not-found").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")).replaceAll("%arg%", help).replaceAll("%args%", String.join(", ", commandArgsScs)));
         }
     }
+    
+    /**
+     * Checks if there are no claims within a specified radius around a given chunk,
+     * excluding claims that belong to the player.
+     *
+     * @param centerChunk The central chunk from which to check.
+     * @param distance    The radius, in chunks, within which to check for claims.
+     * @param playerName  The name of the player to exclude their claims.
+     * @return true if there are no conflicting claims within the specified radius, false otherwise.
+     */
+    public CompletableFuture<Boolean> isAreaClaimFree(Chunk centerChunk, int distance, String playerName) {
+        return CompletableFuture.supplyAsync(() -> {
+            if (distance == 0) {
+                return true;
+            }
+
+            World world = centerChunk.getWorld();
+            int centerX = centerChunk.getX();
+            int centerZ = centerChunk.getZ();
+
+            // Iterate through the listClaims to find claims within the distance
+            for (Map.Entry<Chunk, Claim> entry : listClaims.entrySet()) {
+                Chunk chunk = entry.getKey();
+                Claim claim = entry.getValue();
+
+                if (chunk.getWorld().equals(world)) {
+                    int chunkX = chunk.getX();
+                    int chunkZ = chunk.getZ();
+
+                    int deltaX = Math.abs(chunkX - centerX);
+                    int deltaZ = Math.abs(chunkZ - centerZ);
+
+                    // Check if the chunk is within the specified distance and does not belong to the player
+                    if (deltaX <= distance && deltaZ <= distance && !claim.getOwner().equals(playerName)) {
+                        return false; // A conflicting claim is found
+                    }
+                }
+            }
+
+            return true; // No conflicting claims found
+        });
+    }
 
     /**
      * Method to get the direction (north, south, east or west).
@@ -3894,7 +3858,7 @@ public class ClaimMain {
             	break;
 			case "group":
 				data = value.split(";");
-    			if(!(data.length == 9)) {
+    			if(!(data.length == 11)) {
     				player.sendMessage(instance.getLanguage().getMessage("group-must-be-nine-settings"));
     				return;
     			}
@@ -3914,6 +3878,8 @@ public class ClaimMain {
 				int claim_cost = Integer.parseInt(data[6]);
 				int claim_cost_multiplier = Integer.parseInt(data[7]);
 				int max_chunks_per_claim = Integer.parseInt(data[8]);
+				int claim_distance = Integer.parseInt(data[9]);
+				int max_chunks_total = Integer.parseInt(data[10]);
                 config.set("groups."+data[0]+".permission", permission);
                 config.set("groups."+data[0]+".max-claims", max_claims);
                 config.set("groups."+data[0]+".max-radius-claims", max_radius_claim);
@@ -3922,6 +3888,8 @@ public class ClaimMain {
                 config.set("groups."+data[0]+".claim-cost", claim_cost);
                 config.set("groups."+data[0]+".claim-cost-multiplier", claim_cost_multiplier);
                 config.set("groups."+data[0]+".max-chunks-per-claim", max_chunks_per_claim);
+                config.set("groups."+data[0]+".claim-distance", claim_distance);
+                config.set("groups."+data[0]+".max-chunks-total", max_chunks_total);
             	try {
 					config.save(configFile);
 					player.sendMessage(instance.getLanguage().getMessage("setting-changed-via-command").replaceAll("%setting%", "Group").replaceAll("%value%", data[0]));
@@ -3954,7 +3922,7 @@ public class ClaimMain {
             	break;
 			case "player":
 				data = value.split(";");
-    			if(!(data.length == 8)) {
+    			if(!(data.length == 10)) {
     				player.sendMessage(instance.getLanguage().getMessage("player-must-be-eight-settings"));
     				return;
     			}
@@ -3973,6 +3941,8 @@ public class ClaimMain {
 				claim_cost = Integer.parseInt(data[5]);
 				claim_cost_multiplier = Integer.parseInt(data[6]);
 				max_chunks_per_claim = Integer.parseInt(data[7]);
+				claim_distance = Integer.parseInt(data[8]);
+				max_chunks_total = Integer.parseInt(data[9]);
                 config.set("players."+data[0]+".max-claims", max_claims);
                 config.set("players."+data[0]+".max-radius-claims", max_radius_claim);
                 config.set("players."+data[0]+".teleportation-delay", teleportation_delay);
@@ -3980,6 +3950,8 @@ public class ClaimMain {
                 config.set("players."+data[0]+".claim-cost", claim_cost);
                 config.set("players."+data[0]+".claim-cost-multiplier", claim_cost_multiplier);
                 config.set("players."+data[0]+".max-chunks-per-claim", max_chunks_per_claim);
+                config.set("players."+data[0]+".claim-distance", claim_distance);
+                config.set("players."+data[0]+".max-chunks-total", max_chunks_total);
             	try {
 					config.save(configFile);
 					player.sendMessage(instance.getLanguage().getMessage("setting-changed-via-command").replaceAll("%setting%", "Player").replaceAll("%value%", data[0]));

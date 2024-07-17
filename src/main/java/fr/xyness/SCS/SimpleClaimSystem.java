@@ -105,7 +105,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private JavaPlugin plugin;
     
     /** The version of the plugin */
-    private String Version = "1.10.0.2";
+    private String Version = "1.10.0.3";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -623,6 +623,8 @@ public class SimpleClaimSystem extends JavaPlugin {
             settings.put("claim-cost", plugin.getConfig().getDouble("groups." + key + ".claim-cost"));
             settings.put("claim-cost-multiplier", plugin.getConfig().getDouble("groups." + key + ".claim-cost-multiplier"));
             settings.put("max-chunks-per-claim", plugin.getConfig().getDouble("groups." + key + ".max-chunks-per-claim"));
+            settings.put("claim-distance", plugin.getConfig().getDouble("groups." + key + ".claim-distance"));
+            settings.put("max-chunks-total", plugin.getConfig().getDouble("groups." + key + ".max-chunks-total"));
             groupsSettings.put(key, settings);
         }
         claimSettingsInstance.setGroups(groups);
@@ -639,6 +641,8 @@ public class SimpleClaimSystem extends JavaPlugin {
             if (plugin.getConfig().isSet("players." + key + ".claim-cost")) settings.put("claim-cost", plugin.getConfig().getDouble("players." + key + ".claim-cost"));
             if (plugin.getConfig().isSet("players." + key + ".claim-cost-multiplier")) settings.put("claim-cost-multiplier", plugin.getConfig().getDouble("players." + key + ".claim-cost-multiplier"));
             if (plugin.getConfig().isSet("players." + key + ".max-chunks-per-claim")) settings.put("max-chunks-per-claim", plugin.getConfig().getDouble("players." + key + ".max-chunks-per-claim"));
+            if (plugin.getConfig().isSet("players." + key + ".claim-distance")) settings.put("claim-distance", plugin.getConfig().getDouble("players." + key + ".claim-distance"));
+            if (plugin.getConfig().isSet("players." + key + ".max-chunks-total")) settings.put("max-chunks-total", plugin.getConfig().getDouble("players." + key + ".max-chunks-total"));
             if (!settings.isEmpty()) playersSettings.put(key, settings);
         }
         cPlayerMainInstance.setPlayersConfigSettings(playersSettings);

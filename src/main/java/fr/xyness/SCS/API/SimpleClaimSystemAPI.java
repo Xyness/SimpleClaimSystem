@@ -136,6 +136,22 @@ public interface SimpleClaimSystemAPI {
      * @return true if the claims were successfully merged, false otherwise
      */
     boolean mergeMultipleClaims(Claim mainClaim, Set<Claim> claimsToMerge);
+    
+    /**
+     * Kicks a player from a specific claim.
+     *
+     * @param claim the claim
+     * @param targetPlayer the target player
+     */
+    void kickPlayerFromClaim(Claim claim, String targetPlayer);
+    
+    /**
+     * Kicks a player from all claims owned by the specified owner.
+     *
+     * @param owner the name of the owner
+     * @param targetPlayer the target player
+     */
+    void kickPlayerFromAllClaims(String owner, String targetPlayer);
 
     /**
      * Bans a player from a specific claim.

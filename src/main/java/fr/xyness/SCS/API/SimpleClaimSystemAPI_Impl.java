@@ -3,6 +3,7 @@ package fr.xyness.SCS.API;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -122,6 +123,27 @@ public class SimpleClaimSystemAPI_Impl implements SimpleClaimSystemAPI {
 	@Override
 	public boolean mergeMultipleClaims(Claim mainClaim, Set<Claim> claimsToMerge) {
 		return instance.getMain().mergeClaims(mainClaim, claimsToMerge).join();
+	}
+	
+	@Override
+	public void kickPlayerFromClaim(Claim claim, String targetPlayerName) {
+		Player target = Bukkit.getPlayer(targetPlayerName);
+		if(target != null && target.isOnline()) {
+			if(claim.getChunks().contains(target.getLocation().getChunk())) {
+				instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+			}
+		}
+	}
+	
+	@Override
+	public void kickPlayerFromAllClaims(String owner, String targetPlayerName) {
+		Player target = Bukkit.getPlayer(targetPlayerName);
+		if(target != null && target.isOnline()) {
+			Set<Chunk> chunks = instance.getMain().getAllChunksFromAllClaims(owner);
+			if(chunks.contains(target.getLocation().getChunk())) {
+				instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+			}
+		}
 	}
 
 	@Override
