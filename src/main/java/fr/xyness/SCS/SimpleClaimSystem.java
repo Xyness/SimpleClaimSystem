@@ -105,7 +105,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private JavaPlugin plugin;
     
     /** The version of the plugin */
-    private String Version = "1.10.0.3";
+    private String Version = "1.10.0.4";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -768,6 +768,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     /**
      * Executes a task synchronously (for entities).
      * 
+     * @param player The target player for who execute the task
      * @param gTask The task to execute
      */
     public void executeEntitySync(Player player, Runnable gTask) {
@@ -945,7 +946,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
                 String response = reader.readLine();
                 if (!Version.equalsIgnoreCase(response)) {
-                    updateMessage = "§b[SCS] §dA new update is available : §b" + response + " §c(You have "+Version+")";
+                    updateMessage = "§4[SCS] §cUpdate available : §l" + response + " §7(You have "+Version+")";
                     isUpdateAvailable = true;
                     return "Update available : "+response;
                 } else {

@@ -61,8 +61,8 @@ public class ClaimMembersGui implements InventoryHolder {
     public ClaimMembersGui(Player player, Claim claim, int page, SimpleClaimSystem instance) {
     	this.instance = instance;
         String title = instance.getGuis().getGuiTitle("members")
-                .replaceAll("%name%", claim.getName())
-                .replaceAll("%page%", String.valueOf(page));
+                .replace("%name%", claim.getName())
+                .replace("%page%", String.valueOf(page));
         if (instance.getSettings().getBooleanSetting("placeholderapi")) {
             title = PlaceholderAPI.setPlaceholders(player, title);
         }
@@ -99,7 +99,7 @@ public class ClaimMembersGui implements InventoryHolder {
         lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessage("territory-access-lore-new")));
         lore.add(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.remove")
                 ? instance.getLanguage().getMessage("access-claim-clickable-removemember")
-                : instance.getLanguage().getMessage("gui-button-no-permission") + " to remove this player");
+                : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-remove-member"));
         int startItem = (page - 1) * items_count;
         int i = min_member_slot;
         int count = 0;
@@ -197,8 +197,8 @@ public class ClaimMembersGui implements InventoryHolder {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("previous-page-title").replaceAll("%page%", String.valueOf(page)));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("previous-page-lore").replaceAll("%page%", String.valueOf(page))));
+            meta.setDisplayName(instance.getLanguage().getMessage("previous-page-title").replace("%page%", String.valueOf(page)));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("previous-page-lore").replace("%page%", String.valueOf(page))));
             meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }
@@ -236,7 +236,7 @@ public class ClaimMembersGui implements InventoryHolder {
 
         if (meta != null) {
             meta.setDisplayName(instance.getLanguage().getMessage("back-page-main-title"));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("back-page-main-lore").replaceAll("%claim-name%", claim.getName())));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("back-page-main-lore").replace("%claim-name%", claim.getName())));
             meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }
@@ -273,8 +273,8 @@ public class ClaimMembersGui implements InventoryHolder {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("next-page-title").replaceAll("%page%", String.valueOf(page)));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("next-page-lore").replaceAll("%page%", String.valueOf(page))));
+            meta.setDisplayName(instance.getLanguage().getMessage("next-page-title").replace("%page%", String.valueOf(page)));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("next-page-lore").replace("%page%", String.valueOf(page))));
             meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }

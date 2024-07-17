@@ -83,12 +83,12 @@ public class AdminGestionClaimMainGui implements InventoryHolder {
         cPlayer.setClaim(claim);
         
         List<String> lore = new ArrayList<>();
-        lore.add("§7Chunks: §b"+AdminGestionMainGui.getNumberSeparate(String.valueOf(claim.getChunks().size())));
+        lore.add("§7Chunks: §b"+instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())));
         lore.add(" ");
-        lore.add("§7Members: §a"+AdminGestionMainGui.getNumberSeparate(String.valueOf(claim.getMembers().size())));
-        lore.add("§7Bans: §c"+AdminGestionMainGui.getNumberSeparate(String.valueOf(claim.getBans().size())));
+        lore.add("§7Members: §a"+instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size())));
+        lore.add("§7Bans: §c"+instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size())));
         lore.add(" ");
-        lore.add(claim.getSale() ? ("§a✔ Claim in sale §7("+AdminGestionMainGui.getNumberSeparate(String.valueOf(claim.getPrice()))+instance.getLanguage().getMessage("money-symbol")+"§7)") : "§c✘ Claim not in sale");
+        lore.add(claim.getSale() ? ("§a✔ Claim in sale §7("+instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice()))+instance.getLanguage().getMessage("money-symbol")+"§7)") : "§c✘ Claim not in sale");
         inv.setItem(13, instance.getGuis().createItem(Material.PAINTING, "§6"+claim.getName(), lore));
         
         lore.clear();

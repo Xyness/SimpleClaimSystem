@@ -61,8 +61,8 @@ public class ClaimBansGui implements InventoryHolder {
     public ClaimBansGui(Player player, Claim claim, int page, SimpleClaimSystem instance) {
     	this.instance = instance;
         String title = instance.getGuis().getGuiTitle("bans")
-                .replaceAll("%name%", claim.getName())
-                .replaceAll("%page%", String.valueOf(page));
+                .replace("%name%", claim.getName())
+                .replace("%page%", String.valueOf(page));
         if (instance.getSettings().getBooleanSetting("placeholderapi")) {
             title = PlaceholderAPI.setPlaceholders(player, title);
         }
@@ -103,7 +103,7 @@ public class ClaimBansGui implements InventoryHolder {
         } else {
             lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessage("player-banned-lore")));
         }
-        lore.add(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.unban") ? instance.getLanguage().getMessage("unban-this-player-button") : (instance.getLanguage().getMessage("gui-button-no-permission") + " to unban"));
+        lore.add(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.unban") ? instance.getLanguage().getMessage("unban-this-player-button") : (instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-unban")));
         int startItem = (page - 1) * items_count;
         int i = min_member_slot;
         int count = 0;
@@ -191,8 +191,8 @@ public class ClaimBansGui implements InventoryHolder {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("previous-page-title").replaceAll("%page%", String.valueOf(page)));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("previous-page-lore").replaceAll("%page%", String.valueOf(page))));
+            meta.setDisplayName(instance.getLanguage().getMessage("previous-page-title").replace("%page%", String.valueOf(page)));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("previous-page-lore").replace("%page%", String.valueOf(page))));
             meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }
@@ -231,7 +231,7 @@ public class ClaimBansGui implements InventoryHolder {
 
         if (meta != null) {
             meta.setDisplayName(instance.getLanguage().getMessage("back-page-main-title"));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("back-page-main-lore").replaceAll("%claim-name%", claim.getName())));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("back-page-main-lore").replace("%claim-name%", claim.getName())));
             meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }
@@ -269,8 +269,8 @@ public class ClaimBansGui implements InventoryHolder {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("next-page-title").replaceAll("%page%", String.valueOf(page)));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("next-page-lore").replaceAll("%page%", String.valueOf(page))));
+            meta.setDisplayName(instance.getLanguage().getMessage("next-page-title").replace("%page%", String.valueOf(page)));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("next-page-lore").replace("%page%", String.valueOf(page))));
             meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }

@@ -77,16 +77,16 @@ public class ClaimBossBar {
             String title;
 
             if (owner.equals("admin")) {
-                title = instance.getLanguage().getMessage("bossbar-protected-area-message").replace("%name%", chunkName);
+                title = instance.getLanguage().getMessageWP("bossbar-protected-area-message",player).replace("%name%", chunkName);
             } else if (owner.equals(player.getName())) {
-                title = instance.getLanguage().getMessage("bossbar-owner-message").replace("%owner%", owner).replace("%name%", chunkName);
+                title = instance.getLanguage().getMessageWP("bossbar-owner-message",player).replace("%owner%", owner).replace("%name%", chunkName);
             } else if (instance.getMain().checkMembre(claim, player)) {
-                title = instance.getLanguage().getMessage("bossbar-member-message")
+                title = instance.getLanguage().getMessageWP("bossbar-member-message",player)
                         .replace("%player%", player.getName())
                         .replace("%owner%", owner)
                         .replace("%name%", chunkName);
             } else {
-                title = instance.getLanguage().getMessage("bossbar-visitor-message")
+                title = instance.getLanguage().getMessageWP("bossbar-visitor-message",player)
                         .replace("%player%", player.getName())
                         .replace("%owner%", owner)
                         .replace("%name%", chunkName);

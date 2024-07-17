@@ -126,12 +126,12 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
         CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
  
         if (instance.getSettings().isWorldDisabled(player.getWorld().getName())) {
-        	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName()));
+        	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", player.getWorld().getName()));
             return false;
         }
         
         if (args.length > 1) {
-        	player.sendMessage(instance.getLanguage().getMessage("help-unclaim").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")));
+        	player.sendMessage(instance.getLanguage().getMessage("help-unclaim").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")));
             return false;
         }
         
@@ -161,7 +161,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
             }
             Claim claim = instance.getMain().getClaimByName(args[0], playerName);
             if (claim == null) {
-            	player.sendMessage(instance.getLanguage().getMessage("help-command.unclaim-unclaim").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")));
+            	player.sendMessage(instance.getLanguage().getMessage("help-command.unclaim-unclaim").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")));
                 return false;
             }
             instance.getMain().deleteClaim(claim)

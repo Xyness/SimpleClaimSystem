@@ -61,8 +61,8 @@ public class ClaimChunksGui implements InventoryHolder {
     public ClaimChunksGui(Player player, Claim claim, int page, SimpleClaimSystem instance) {
     	this.instance = instance;
         String title = instance.getGuis().getGuiTitle("chunks")
-                .replaceAll("%name%", claim.getName())
-                .replaceAll("%page%", String.valueOf(page));
+                .replace("%name%", claim.getName())
+                .replace("%page%", String.valueOf(page));
         if (instance.getSettings().getBooleanSetting("placeholderapi")) {
             title = PlaceholderAPI.setPlaceholders(player, title);
         }
@@ -97,7 +97,7 @@ public class ClaimChunksGui implements InventoryHolder {
         List<String> lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessage("chunk-lore")));
         lore.add(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.delchunk")
                 ? (claim.getChunks().size() == 1 ? instance.getLanguage().getMessage("cannot-remove-only-remaining-chunk-gui") : instance.getLanguage().getMessage("access-claim-clickable-removechunk"))
-                : instance.getLanguage().getMessage("gui-button-no-permission") + " to remove this chunk");
+                : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-remove-chunk"));
         int startItem = (page - 1) * items_count;
         int i = min_member_slot;
         int count = 0;
@@ -112,8 +112,8 @@ public class ClaimChunksGui implements InventoryHolder {
             List<String> lore2 = new ArrayList<>(instance.getGuis().getLoreWP(lore, player.getName(), (OfflinePlayer) player));
             cPlayer.addMapString(i, String.valueOf(chunk.getWorld().getName()+";"+chunk.getX()+";"+chunk.getZ()));
             String title = instance.getLanguage().getMessageWP("chunk-title", (OfflinePlayer) player)
-            		.replaceAll("%number%", String.valueOf(chunk_count))
-            		.replaceAll("%coords%", String.valueOf(chunk.getWorld().getName()+", X:"+chunk.getX()+", Z:"+chunk.getZ()));
+            		.replace("%number%", String.valueOf(chunk_count))
+            		.replace("%coords%", String.valueOf(chunk.getWorld().getName()+", X:"+chunk.getX()+", Z:"+chunk.getZ()));
             if (instance.getGuis().getItemCheckCustomModelData("chunks", "chunk-item")) {
                 inv.setItem(i, instance.getGuis().createItemWMD(title,
                         lore2,
@@ -180,8 +180,8 @@ public class ClaimChunksGui implements InventoryHolder {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("previous-page-title").replaceAll("%page%", String.valueOf(page)));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("previous-page-lore").replaceAll("%page%", String.valueOf(page))));
+            meta.setDisplayName(instance.getLanguage().getMessage("previous-page-title").replace("%page%", String.valueOf(page)));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("previous-page-lore").replace("%page%", String.valueOf(page))));
             meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }
@@ -219,7 +219,7 @@ public class ClaimChunksGui implements InventoryHolder {
 
         if (meta != null) {
             meta.setDisplayName(instance.getLanguage().getMessage("back-page-main-title"));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("back-page-main-lore").replaceAll("%claim-name%", claim.getName())));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("back-page-main-lore").replace("%claim-name%", claim.getName())));
             meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }
@@ -256,8 +256,8 @@ public class ClaimChunksGui implements InventoryHolder {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("next-page-title").replaceAll("%page%", String.valueOf(page)));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("next-page-lore").replaceAll("%page%", String.valueOf(page))));
+            meta.setDisplayName(instance.getLanguage().getMessage("next-page-title").replace("%page%", String.valueOf(page)));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("next-page-lore").replace("%page%", String.valueOf(page))));
             meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }

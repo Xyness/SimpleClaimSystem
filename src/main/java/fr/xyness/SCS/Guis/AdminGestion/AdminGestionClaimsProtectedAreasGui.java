@@ -179,11 +179,11 @@ public class AdminGestionClaimsProtectedAreasGui implements InventoryHolder {
         List<String> lore = new ArrayList<>();
         for (String line : template) {
             line = line.replace("%name%", claim.getName())
-                .replace("%chunks_count%", String.valueOf(claim.getChunks().size()))
+                .replace("%chunks_count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())))
                 .replace("%location%", instance.getMain().getClaimCoords(claim))
-	    		.replaceAll("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
-					.replaceAll("%price%", AdminGestionMainGui.getNumberSeparate(String.valueOf(claim.getPrice())))
-					.replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))) : instance.getLanguage().getMessage("claim-info-lore-sale-status-false"));
+	    		.replace("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
+					.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+					.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))) : instance.getLanguage().getMessage("claim-info-lore-sale-status-false"));
             if (line.contains("%members%")) {
                 lore.addAll(Arrays.asList(getMembers(claim).split("\n")));
             } else if (line.contains("%bans%")) {

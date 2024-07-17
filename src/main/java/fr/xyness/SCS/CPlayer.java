@@ -546,10 +546,10 @@ public class CPlayer {
     /**
      * Checks if the player can claim more chunks with a given amount of new chunks.
      * 
-     * @param n The number of new chunks
+     * @param total The new total to check
      * @return True if the player can claim the specified number of chunks, false otherwise
      */
-    public boolean canClaimTotalWithNumber(int n) {
+    public boolean canClaimTotalWithNumber(int total) {
         if (player.hasPermission("scs.admin")) return true;
 
         Set<String> permissions = player.getEffectivePermissions().parallelStream()
@@ -562,11 +562,9 @@ public class CPlayer {
             .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
             .max().orElse(-1);
         
-        int value = n+claims_count;
-        if (maxChunks >= value) return true;
         if (maxChunks == -1) maxChunks = max_chunks_total;
 
-        return maxChunks >= value || maxChunks == 0;
+        return maxChunks >= total || maxChunks == 0;
     }
     
     /**
@@ -744,7 +742,7 @@ public class CPlayer {
             .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
             .max().orElse(-1);
         
-        if (chunks == -1) return claim_distance;
+        if (chunks == -1) return max_chunks_total;
         return chunks;
     }
     

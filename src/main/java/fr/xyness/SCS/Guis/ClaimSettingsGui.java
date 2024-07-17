@@ -58,7 +58,7 @@ public class ClaimSettingsGui implements InventoryHolder {
      */
     public ClaimSettingsGui(Player player, Claim claim, SimpleClaimSystem instance) {
     	this.instance = instance;
-        String title = instance.getGuis().getGuiTitle("settings").replaceAll("%name%", claim.getName());
+        String title = instance.getGuis().getGuiTitle("settings").replace("%name%", claim.getName());
         if (instance.getSettings().getBooleanSetting("placeholderapi")) {
             title = PlaceholderAPI.setPlaceholders(player, title);
         }
@@ -97,16 +97,16 @@ public class ClaimSettingsGui implements InventoryHolder {
                 boolean permission = claim.getPermission(key);
                 String statut = permission ? default_statut_enabled : default_statut_disabled;
                 choix = permission ? default_choix_enabled : default_choix_disabled;
-                lore.add(instance.getSettings().isEnabled(key) ? checkPermPerm(player,key) ? choix : instance.getLanguage().getMessage("gui-button-no-permission")+" to use this setting" : instance.getLanguage().getMessage("choice-setting-disabled"));
+                lore.add(instance.getSettings().isEnabled(key) ? checkPermPerm(player,key) ? choix : instance.getLanguage().getMessage("gui-button-no-permission")+instance.getLanguage().getMessage("to-use-setting") : instance.getLanguage().getMessage("choice-setting-disabled"));
                 if (instance.getGuis().getItemCheckCustomModelData("settings", key)) {
                     inv.setItem(instance.getGuis().getItemSlot("settings", key),
                     		instance.getGuis().createItemWMD(instance.getLanguage().getMessageWP(lower_name + "-title", (OfflinePlayer) player)
-                                    .replaceAll("%status%", statut), lore, instance.getGuis().getItemMaterialMD("settings", key),
+                                    .replace("%status%", statut), lore, instance.getGuis().getItemMaterialMD("settings", key),
                                     instance.getGuis().getItemCustomModelData("settings", key)));
                 } else {
                     inv.setItem(instance.getGuis().getItemSlot("settings", key), instance.getGuis().createItem(
                             instance.getGuis().getItemMaterial("settings", key),
-                            instance.getLanguage().getMessageWP(lower_name + "-title", (OfflinePlayer) player).replaceAll("%status%", statut),
+                            instance.getLanguage().getMessageWP(lower_name + "-title", (OfflinePlayer) player).replace("%status%", statut),
                             lore));
                 }
             }
@@ -185,7 +185,7 @@ public class ClaimSettingsGui implements InventoryHolder {
 
         if (meta != null) {
             meta.setDisplayName(instance.getLanguage().getMessage("back-page-main-title"));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("back-page-main-lore").replaceAll("%claim-name%", claim.getName())));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("back-page-main-lore").replace("%claim-name%", claim.getName())));
             meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }

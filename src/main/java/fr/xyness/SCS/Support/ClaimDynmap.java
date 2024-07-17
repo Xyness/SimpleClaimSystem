@@ -68,8 +68,8 @@ public class ClaimDynmap {
      */
 	public void createClaimZone(Claim claim) {
     	String t = instance.getSettings().getSetting("dynmap-claim-hover-text")
-    			.replaceAll("%claim-name%", claim.getName())
-    			.replaceAll("%owner%", claim.getOwner());
+    			.replace("%claim-name%", claim.getName())
+    			.replace("%owner%", claim.getOwner());
     	int linestyle = Integer.parseInt(instance.getSettings().getSetting("dynmap-claim-border-color"), 16);
     	int fillstyle = Integer.parseInt(instance.getSettings().getSetting("dynmap-claim-fill-color"), 16);
     	claim.getChunks().parallelStream().forEach(chunk -> {
@@ -102,8 +102,8 @@ public class ClaimDynmap {
      */
 	public void updateName(Claim claim) {
     	String t = instance.getSettings().getSetting("dynmap-claim-hover-text")
-    			.replaceAll("%claim-name%", claim.getName())
-    			.replaceAll("%owner%", claim.getOwner());
+    			.replace("%claim-name%", claim.getName())
+    			.replace("%owner%", claim.getOwner());
 		claim.getChunks().parallelStream().forEach(chunk -> {
 			String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 			AreaMarker marker = markerSet.findAreaMarker(markerId);

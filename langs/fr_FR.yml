@@ -322,6 +322,15 @@ leave-territory-chat: "§fVous quittez le territoire de §e%owner%"
 # > Messages GUI
 # Utilisez \n pour une nouvelle ligne uniquement pour les messages lores
 
+to-unban: " de débannir"
+to-remove-chunk: " de supprimer ce chunk"
+to-teleport: " de vous téléporter"
+to-remove: " de supprimer"
+to-manage: " de gérer"
+to-remove-member: " de supprimer ce membre"
+to-use-setting: " d'utiliser ce paramètre"
+to-buy: " d'acheter"
+
 gui-button-no-permission: "§cVous n'avez pas la permission"
 
 owner-claim-title: "§e%owner%"
