@@ -103,7 +103,7 @@ public class AdminGestionClaimsGui implements InventoryHolder {
             String owner = entry.getKey();
             int claimAmount = entry.getValue();
             OfflinePlayer target = instance.getPlayerMain().getOfflinePlayer(owner);
-            List<String> lore = new ArrayList<>(getLore("§7Claims: §b"+String.valueOf(claimAmount)+"\n \n§c[Left-click]§7 to display his claims\n§c[Shift-left-click]§7 to remove all his claims"));
+            List<String> lore = new ArrayList<>(getLore("§7Claims: §b"+instance.getMain().getNumberSeparate(String.valueOf(claimAmount))+"\n \n§c[Left-click]§7 to display his claims\n§c[Shift-left-click]§7 to remove all his claims"));
             cPlayer.addMapString(i, owner);
             inv.setItem(i, createOwnerClaimItem(owner, lore, target));
             i++;
@@ -188,8 +188,8 @@ public class AdminGestionClaimsGui implements InventoryHolder {
      */
     private ItemStack createFilterItem(String filter) {
         String loreFilter = "§7Change filter\n%status_color_1%➲ All owners\n%status_color_2%➲ Owners with claims in sale\n%status_color_3%➲ Online owners\n%status_color_4%➲ Offline owners\n§7▸ §fClick to change"
-            .replaceAll("%status_color_" + getStatusIndex(filter) + "%", "§a")
-            .replaceAll("%status_color_[^" + getStatusIndex(filter) + "]%", "§8");
+            .replace("%status_color_" + getStatusIndex(filter) + "%", "§a")
+            .replace("%status_color_[^" + getStatusIndex(filter) + "]%", "§8");
         return createItem(Material.END_CRYSTAL, "§eFilter", getLore(loreFilter));
     }
 

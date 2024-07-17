@@ -117,7 +117,7 @@ public class ClaimEvents implements Listener {
 		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
 		if(cPlayer.getClaimChat()) {
 			event.setCancelled(true);
-			String msg = instance.getLanguage().getMessage("chat-format").replaceAll("%player%",playerName).replaceAll("%message%", event.getMessage());
+			String msg = instance.getLanguage().getMessage("chat-format").replace("%player%",playerName).replace("%message%", event.getMessage());
 			player.sendMessage(msg);
 			for(String p : instance.getMain().getAllMembersWithPlayerParallel(playerName)) {
 				Player target = Bukkit.getPlayer(p);

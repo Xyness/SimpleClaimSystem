@@ -245,8 +245,8 @@ public class ClaimsGui implements InventoryHolder {
      */
     private ItemStack createFilterItem(String filter) {
         String loreFilter = instance.getLanguage().getMessage("filter-new-lore")
-            .replaceAll("%status_color_" + getStatusIndex(filter) + "%", instance.getLanguage().getMessage("status_color_active_filter"))
-            .replaceAll("%status_color_[^" + getStatusIndex(filter) + "]%", instance.getLanguage().getMessage("status_color_inactive_filter"));
+            .replace("%status_color_" + getStatusIndex(filter) + "%", instance.getLanguage().getMessage("status_color_active_filter"))
+            .replace("%status_color_[^" + getStatusIndex(filter) + "]%", instance.getLanguage().getMessage("status_color_inactive_filter"));
         return createItem(instance.getGuis().getItemMaterial("claims", "filter"), instance.getLanguage().getMessage("filter-title"), getLore(loreFilter));
     }
 
@@ -367,7 +367,7 @@ public class ClaimsGui implements InventoryHolder {
     private List<String> getLoreWithPlaceholders(List<String> template, String owner, int claimAmount, OfflinePlayer target) {
         List<String> lore = new ArrayList<>();
         for (String s : template) {
-            lore.add(s.replace("%claim-amount%", String.valueOf(claimAmount)));
+            lore.add(s.replace("%claim-amount%", instance.getMain().getNumberSeparate(String.valueOf(claimAmount))));
         }
         lore.add(instance.getLanguage().getMessage("owner-claim-access"));
         return getLoreWP(lore, owner, target);

@@ -59,7 +59,7 @@ public class ClaimMainGui implements InventoryHolder {
      */
     public ClaimMainGui(Player player, Claim claim, SimpleClaimSystem instance) {
     	this.instance = instance;
-        String title = instance.getGuis().getGuiTitle("main").replaceAll("%name%", claim.getName());
+        String title = instance.getGuis().getGuiTitle("main").replace("%name%", claim.getName());
         if (instance.getSettings().getBooleanSetting("placeholderapi")) {
             title = PlaceholderAPI.setPlaceholders(player, title);
         }
@@ -88,24 +88,24 @@ public class ClaimMainGui implements InventoryHolder {
         for (String key : items) {
             String lower_name = key.toLowerCase();
             String lore_template = instance.getLanguage().getMessageWP(lower_name + "-lore", (OfflinePlayer) player)
-            	.replaceAll("%description%", claim.getDescription())
-	    		.replaceAll("%claim-name%", claim.getName())
-	    		.replaceAll("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
-					.replaceAll("%price%", AdminGestionMainGui.getNumberSeparate(String.valueOf(claim.getPrice())))
-					.replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))) : instance.getLanguage().getMessage("claim-info-lore-sale-status-false"))
-	    		.replaceAll("%chunks-count%", AdminGestionMainGui.getNumberSeparate(String.valueOf(claim.getChunks().size())))
-				.replaceAll("%members-count%", AdminGestionMainGui.getNumberSeparate(String.valueOf(claim.getMembers().size())))
-				.replaceAll("%bans-count%", AdminGestionMainGui.getNumberSeparate(String.valueOf(claim.getBans().size())));
+            	.replace("%description%", claim.getDescription())
+	    		.replace("%claim-name%", claim.getName())
+	    		.replace("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
+					.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+					.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))) : instance.getLanguage().getMessage("claim-info-lore-sale-status-false"))
+	    		.replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())))
+				.replace("%members-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size())))
+				.replace("%bans-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size())));
             List<String> lore = new ArrayList<>(instance.getGuis().getLore(lore_template));
             String title = instance.getLanguage().getMessageWP(lower_name + "-title", (OfflinePlayer) player)
-            	.replaceAll("%description%", claim.getDescription())
-	    		.replaceAll("%claim-name%", claim.getName())
-	    		.replaceAll("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
-					.replaceAll("%price%", AdminGestionMainGui.getNumberSeparate(String.valueOf(claim.getPrice())))
-					.replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))) : instance.getLanguage().getMessage("claim-info-lore-sale-status-false"))
-	    		.replaceAll("%chunks-count%", AdminGestionMainGui.getNumberSeparate(String.valueOf(claim.getChunks().size())))
-				.replaceAll("%members-count%", AdminGestionMainGui.getNumberSeparate(String.valueOf(claim.getMembers().size())))
-				.replaceAll("%bans-count%", AdminGestionMainGui.getNumberSeparate(String.valueOf(claim.getBans().size())));
+            	.replace("%description%", claim.getDescription())
+	    		.replace("%claim-name%", claim.getName())
+	    		.replace("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
+					.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+					.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))) : instance.getLanguage().getMessage("claim-info-lore-sale-status-false"))
+	    		.replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())))
+				.replace("%members-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size())))
+				.replace("%bans-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size())));
             if(isClickableSlot(key)) {
             	lore.add(!checkPermButton(player, key) ? instance.getLanguage().getMessage("gui-button-no-permission") : instance.getLanguage().getMessage("access-button"));
             }

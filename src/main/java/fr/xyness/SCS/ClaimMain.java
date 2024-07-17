@@ -219,6 +219,37 @@ public class ClaimMain {
         };
         updateTask.run();
     }
+    
+    /**
+     * Returns the number separate with , for big numbers
+     * @param text The number in string format
+     * @return The string with new format
+     */
+    public String getNumberSeparate(String text) {
+    	if(text.contains(".")) {
+    		String[] parts = text.split(".");
+    		return getNumberSeparate(parts[0])+parts[1];
+    	}
+        int length = text.length();
+        
+        if (length >= 4 && length <= 6) {
+            return text.substring(0, length - 3) + "," + text.substring(length - 3);
+        } else if (length >= 7 && length <= 9) {
+            return text.substring(0, length - 6) + "," + text.substring(length - 6, length - 3) + "," + text.substring(length - 3);
+        } else if (length >= 10 && length <= 12) {
+            return text.substring(0, length - 9) + "," + text.substring(length - 9, length - 6) + "," + text.substring(length - 6, length - 3) + "," + text.substring(length - 3);
+        } else if (length >= 13 && length <= 15) {
+            return text.substring(0, length - 12) + "," + text.substring(length - 12, length - 9) + "," + text.substring(length - 9, length - 6) + "," + text.substring(length - 6, length - 3) + "," + text.substring(length - 3);
+        } else if (length >= 16 && length <= 18) {
+            return text.substring(0, length - 15) + "," + text.substring(length - 15, length - 12) + "," + text.substring(length - 12, length - 9) + "," + text.substring(length - 9, length - 6) + "," + text.substring(length - 6, length - 3) + "," + text.substring(length - 3);
+        } else if (length >= 19 && length <= 21) {
+            return text.substring(0, length - 18) + "," + text.substring(length - 18, length - 15) + "," + text.substring(length - 15, length - 12) + "," + text.substring(length - 12, length - 9) + "," + text.substring(length - 9, length - 6) + "," + text.substring(length - 6, length - 3) + "," + text.substring(length - 3);
+        } else if (length >= 22 && length <= 24) {
+            return text.substring(0, length - 21) + "," + text.substring(length - 21, length - 18) + "," + text.substring(length - 18, length - 15) + "," + text.substring(length - 15, length - 12) + "," + text.substring(length - 12, length - 9) + "," + text.substring(length - 9, length - 6) + "," + text.substring(length - 6, length - 3) + "," + text.substring(length - 3);
+        } else {
+            return text;
+        }
+    }
 
     
     // ********************
@@ -626,7 +657,7 @@ public class ClaimMain {
             return;
         }
 
-        player.sendMessage(instance.getLanguage().getMessage("teleportation-in-progress").replaceAll("%delay%", String.valueOf(delay)));
+        player.sendMessage(instance.getLanguage().getMessage("teleportation-in-progress").replace("%delay%", String.valueOf(delay)));
         Location originalLocation = player.getLocation().clone();
         playerLocations.put(player, originalLocation);
 
@@ -847,7 +878,7 @@ public class ClaimMain {
                    }
         	}
     		instance.executeSync(() -> {
-    			sender.sendMessage(AdminGestionMainGui.getNumberSeparate(String.valueOf(i[0]))+" imported claims, reloading..");
+    			sender.sendMessage(getNumberSeparate(String.valueOf(i[0]))+" imported claims, reloading..");
     			Bukkit.dispatchCommand(sender, "scs reload");
     		});
     	});
@@ -879,7 +910,7 @@ public class ClaimMain {
                     count++;
                 }
                 insertStmt.executeBatch();
-                instance.getPlugin().getLogger().info(count + " claims transferred");
+                instance.getPlugin().getLogger().info(getNumberSeparate(String.valueOf(count)) + " claims transferred");
                 instance.getPlugin().getLogger().info("Safe reloading..");
                 instance.executeSync(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "aclaim reload"));
             } catch (SQLException e) {
@@ -1137,9 +1168,9 @@ public class ClaimMain {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        instance.info(AdminGestionMainGui.getNumberSeparate(String.valueOf(i[0]))+"/"+AdminGestionMainGui.getNumberSeparate(String.valueOf(max_i))+" claims loaded.");
-        instance.info("> including "+AdminGestionMainGui.getNumberSeparate(String.valueOf(protected_areas_count))+" protected areas.");
-        instance.info("> including "+AdminGestionMainGui.getNumberSeparate(String.valueOf(chunks_count[0]))+" chunks" + (instance.getSettings().getBooleanSetting("preload-chunks") ? " (all preloaded)." : "."));
+        instance.info(getNumberSeparate(String.valueOf(i[0]))+"/"+getNumberSeparate(String.valueOf(max_i))+" claims loaded.");
+        instance.info("> including "+getNumberSeparate(String.valueOf(protected_areas_count))+" protected areas.");
+        instance.info("> including "+getNumberSeparate(String.valueOf(chunks_count[0]))+" chunks" + (instance.getSettings().getBooleanSetting("preload-chunks") ? " (all preloaded)." : "."));
         return;
     }
 
@@ -3535,11 +3566,11 @@ public class ClaimMain {
     public void getHelp(Player player, String help, String cmd) {
     	if(help.equalsIgnoreCase("no arg")) {
             if(cmd.equalsIgnoreCase("claim")) {
-            	player.sendMessage(instance.getLanguage().getMessage("available-args").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")).replaceAll("%args%", String.join(", ", commandArgsClaim)));
+            	player.sendMessage(instance.getLanguage().getMessage("available-args").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")).replace("%args%", String.join(", ", commandArgsClaim)));
             } else if (cmd.equalsIgnoreCase("scs")) {
-            	player.sendMessage(instance.getLanguage().getMessage("available-args").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")).replaceAll("%args%", String.join(", ", commandArgsScs)));
+            	player.sendMessage(instance.getLanguage().getMessage("available-args").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")).replace("%args%", String.join(", ", commandArgsScs)));
             } else if (cmd.equalsIgnoreCase("parea") || cmd.equalsIgnoreCase("protectedarea")) {
-            	player.sendMessage(instance.getLanguage().getMessage("available-args").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")).replaceAll("%args%", String.join(", ", commandArgsParea)));
+            	player.sendMessage(instance.getLanguage().getMessage("available-args").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")).replace("%args%", String.join(", ", commandArgsParea)));
             }
             return;
     	}
@@ -3551,11 +3582,11 @@ public class ClaimMain {
             return;
         }
         if(cmd.equalsIgnoreCase("claim")) {
-        	player.sendMessage(instance.getLanguage().getMessage("sub-arg-not-found").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")).replaceAll("%arg%", help).replaceAll("%args%", String.join(", ", commandArgsClaim)));
+        	player.sendMessage(instance.getLanguage().getMessage("sub-arg-not-found").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")).replace("%arg%", help).replace("%args%", String.join(", ", commandArgsClaim)));
         } else if (cmd.equalsIgnoreCase("scs")) {
-        	player.sendMessage(instance.getLanguage().getMessage("sub-arg-not-found").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")).replaceAll("%arg%", help).replaceAll("%args%", String.join(", ", commandArgsScs)));
+        	player.sendMessage(instance.getLanguage().getMessage("sub-arg-not-found").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")).replace("%arg%", help).replace("%args%", String.join(", ", commandArgsScs)));
         } else if (cmd.equalsIgnoreCase("parea") || cmd.equalsIgnoreCase("protectedarea")) {
-        	player.sendMessage(instance.getLanguage().getMessage("sub-arg-not-found").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")).replaceAll("%arg%", help).replaceAll("%args%", String.join(", ", commandArgsParea)));
+        	player.sendMessage(instance.getLanguage().getMessage("sub-arg-not-found").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")).replace("%arg%", help).replace("%args%", String.join(", ", commandArgsParea)));
         }
     }
     
@@ -3569,9 +3600,9 @@ public class ClaimMain {
     public void getHelp(CommandSender sender, String help, String cmd) {
     	if(help.equalsIgnoreCase("no arg")) {
             if(cmd.equalsIgnoreCase("claim")) {
-            	sender.sendMessage(instance.getLanguage().getMessage("available-args").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")).replaceAll("%args%", String.join(", ", commandArgsClaim)));
+            	sender.sendMessage(instance.getLanguage().getMessage("available-args").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")).replace("%args%", String.join(", ", commandArgsClaim)));
             } else if (cmd.equalsIgnoreCase("scs")) {
-            	sender.sendMessage(instance.getLanguage().getMessage("available-args").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")).replaceAll("%args%", String.join(", ", commandArgsScs)));
+            	sender.sendMessage(instance.getLanguage().getMessage("available-args").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")).replace("%args%", String.join(", ", commandArgsScs)));
             }
             return;
     	}
@@ -3583,9 +3614,9 @@ public class ClaimMain {
             return;
         }
         if(cmd.equalsIgnoreCase("claim")) {
-        	sender.sendMessage(instance.getLanguage().getMessage("sub-arg-not-found").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")).replaceAll("%arg%", help).replaceAll("%args%", String.join(", ", commandArgsClaim)));
+        	sender.sendMessage(instance.getLanguage().getMessage("sub-arg-not-found").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")).replace("%arg%", help).replace("%args%", String.join(", ", commandArgsClaim)));
         } else if (cmd.equalsIgnoreCase("scs")) {
-        	sender.sendMessage(instance.getLanguage().getMessage("sub-arg-not-found").replaceAll("%help-separator%", instance.getLanguage().getMessage("help-separator")).replaceAll("%arg%", help).replaceAll("%args%", String.join(", ", commandArgsScs)));
+        	sender.sendMessage(instance.getLanguage().getMessage("sub-arg-not-found").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")).replace("%arg%", help).replace("%args%", String.join(", ", commandArgsScs)));
         }
     }
     
@@ -3663,9 +3694,9 @@ public class ClaimMain {
             boolean isClaimed = checkIfClaimExists(centerChunk);
             
             String name = isClaimed 
-                ? instance.getLanguage().getMessage("map-actual-claim-name-message").replaceAll("%name%", getClaimNameByChunk(centerChunk)) 
+                ? instance.getLanguage().getMessage("map-actual-claim-name-message").replace("%name%", getClaimNameByChunk(centerChunk)) 
                 : instance.getLanguage().getMessage("map-no-claim-name-message");
-            String coords = instance.getLanguage().getMessage("map-coords-message").replaceAll("%coords%", centerX + "," + centerZ).replaceAll("%direction%", direction);
+            String coords = instance.getLanguage().getMessage("map-coords-message").replace("%coords%", centerX + "," + centerZ).replace("%direction%", direction);
             String colorRelationNoClaim = instance.getLanguage().getMessage("map-no-claim-color");
             String colorCursor = instance.getLanguage().getMessage("map-cursor-color");
             String symbolNoClaim = instance.getLanguage().getMessage("map-symbol-no-claim");
@@ -3681,12 +3712,12 @@ public class ClaimMain {
                     : colorRelationNoClaim + symbolNoClaim;
 
             Map<Integer, String> legendMap = new HashMap<>();
-            legendMap.put(-3, "  " + name + (isClaimed ? " " + instance.getLanguage().getMessage("map-actual-claim-name-message-owner").replaceAll("%owner%", listClaims.get(centerChunk).getOwner()) : ""));
+            legendMap.put(-3, "  " + name + (isClaimed ? " " + instance.getLanguage().getMessage("map-actual-claim-name-message-owner").replace("%owner%", listClaims.get(centerChunk).getOwner()) : ""));
             legendMap.put(-2, "  " + coords);
-            legendMap.put(0, "  " + instance.getLanguage().getMessage("map-legend-you").replaceAll("%cursor-color%", colorCursor));
-            legendMap.put(1, "  " + instance.getLanguage().getMessage("map-legend-free").replaceAll("%no-claim-color%", colorRelationNoClaim));
-            legendMap.put(2, "  " + instance.getLanguage().getMessage("map-legend-yours").replaceAll("%claim-relation-member%", instance.getLanguage().getMessage("map-claim-relation-member")));
-            legendMap.put(3, "  " + instance.getLanguage().getMessage("map-legend-other").replaceAll("%claim-relation-visitor%", instance.getLanguage().getMessage("map-claim-relation-visitor")));
+            legendMap.put(0, "  " + instance.getLanguage().getMessage("map-legend-you").replace("%cursor-color%", colorCursor));
+            legendMap.put(1, "  " + instance.getLanguage().getMessage("map-legend-free").replace("%no-claim-color%", colorRelationNoClaim));
+            legendMap.put(2, "  " + instance.getLanguage().getMessage("map-legend-yours").replace("%claim-relation-member%", instance.getLanguage().getMessage("map-claim-relation-member")));
+            legendMap.put(3, "  " + instance.getLanguage().getMessage("map-legend-other").replace("%claim-relation-visitor%", instance.getLanguage().getMessage("map-claim-relation-visitor")));
 
             if(instance.isFolia()) {
                 Bukkit.getRegionScheduler().run(instance.getPlugin(), player.getLocation(), task -> {
@@ -3703,7 +3734,7 @@ public class ClaimMain {
                         }
                         mapMessage.append("\n");
                     });
-                	instance.executeSync(() -> player.sendMessage(mapMessage.toString()));
+                	instance.executeEntitySync(player, () -> player.sendMessage(mapMessage.toString()));
                 });
             } else {
                 IntStream.rangeClosed(-4, 4).forEach(dz -> {
@@ -3846,7 +3877,7 @@ public class ClaimMain {
                 config.set("groups."+value, null);
             	try {
 					config.save(configFile);
-					player.sendMessage(instance.getLanguage().getMessage("setting-changed-via-command").replaceAll("%setting%", "Group").replaceAll("%value%", "'"+value+"' deleted"));
+					player.sendMessage(instance.getLanguage().getMessage("setting-changed-via-command").replace("%setting%", "Group").replace("%value%", "'"+value+"' deleted"));
 					instance.executeSync(() -> {
 						if(Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "scs reload")) {
 							new AdminGestionGui(player,instance);
@@ -3892,7 +3923,7 @@ public class ClaimMain {
                 config.set("groups."+data[0]+".max-chunks-total", max_chunks_total);
             	try {
 					config.save(configFile);
-					player.sendMessage(instance.getLanguage().getMessage("setting-changed-via-command").replaceAll("%setting%", "Group").replaceAll("%value%", data[0]));
+					player.sendMessage(instance.getLanguage().getMessage("setting-changed-via-command").replace("%setting%", "Group").replace("%value%", data[0]));
 					instance.executeSync(() -> {
 						if(Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "scs reload")) {
 							new AdminGestionGui(player,instance);
@@ -3910,7 +3941,7 @@ public class ClaimMain {
                 config.set("groups."+value, null);
             	try {
 					config.save(configFile);
-					player.sendMessage(instance.getLanguage().getMessage("setting-changed-via-command").replaceAll("%setting%", "Player").replaceAll("%value%", "'"+value+"' deleted"));
+					player.sendMessage(instance.getLanguage().getMessage("setting-changed-via-command").replace("%setting%", "Player").replace("%value%", "'"+value+"' deleted"));
 					instance.executeSync(() -> {
 						if(Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "scs reload")) {
 							new AdminGestionGui(player,instance);
@@ -3954,7 +3985,7 @@ public class ClaimMain {
                 config.set("players."+data[0]+".max-chunks-total", max_chunks_total);
             	try {
 					config.save(configFile);
-					player.sendMessage(instance.getLanguage().getMessage("setting-changed-via-command").replaceAll("%setting%", "Player").replaceAll("%value%", data[0]));
+					player.sendMessage(instance.getLanguage().getMessage("setting-changed-via-command").replace("%setting%", "Player").replace("%value%", data[0]));
 					instance.executeSync(() -> {
 						if(Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "scs reload")) {
 							new AdminGestionGui(player,instance);
@@ -4030,7 +4061,7 @@ public class ClaimMain {
                 	try {
 						config.save(configFile);
 						instance.getSettings().addSetting("max-sell-price", String.valueOf(price));
-						player.sendMessage(instance.getLanguage().getMessage("setting-changed-via-command").replaceAll("%setting%", "Max-sell-price").replaceAll("%value%", String.valueOf(price)));
+						player.sendMessage(instance.getLanguage().getMessage("setting-changed-via-command").replace("%setting%", "Max-sell-price").replace("%value%", String.valueOf(price)));
 						new AdminGestionGui(player,instance);
 						return;
 					} catch (IOException e) {
@@ -4049,7 +4080,7 @@ public class ClaimMain {
     				player.sendMessage(instance.getLanguage().getMessage("map-must-be-three-settings"));
     				return;
     			}
-    			data[2] = data[2].replaceAll("&", "§");
+    			data[2] = data[2].replace("&", "§");
                 config.set(setting+"-settings.claim-border-color", data[0]);
                 config.set(setting+"-settings.claim-fill-color", data[1]);
                 config.set(setting+"-settings.claim-hover-text", data[2]);
@@ -4058,7 +4089,7 @@ public class ClaimMain {
 					instance.getSettings().addSetting(setting+"-claim-border-color", data[0]);
 					instance.getSettings().addSetting(setting+"-claim-fill-color", data[1]);
 					instance.getSettings().addSetting(setting+"-claim-hover-text", data[2]);
-					player.sendMessage(instance.getLanguage().getMessage("map-new-settings").replaceAll("%settings%",
+					player.sendMessage(instance.getLanguage().getMessage("map-new-settings").replace("%settings%",
 							"Claim-border-color: " + AdminGestionGui.fromHex(data[0])
 							+ "\n§fClaim-fill-color: " + AdminGestionGui.fromHex(data[1])
 							+ "\n§fClaim-hover-text: " + data[2]));

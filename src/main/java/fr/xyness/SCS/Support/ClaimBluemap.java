@@ -96,8 +96,8 @@ public class ClaimBluemap {
 	    String owner = claim.getOwner();
 	    Set<Chunk> chunks = claim.getChunks();
 	    String hoverText = instance.getSettings().getSetting("bluemap-claim-hover-text")
-	            .replaceAll("%claim-name%", name)
-	            .replaceAll("%owner%", owner);
+	            .replace("%claim-name%", name)
+	            .replace("%owner%", owner);
 	    String fcolor = "80" + instance.getSettings().getSetting("bluemap-claim-fill-color");
 	    String lcolor = "80" + instance.getSettings().getSetting("bluemap-claim-border-color");
 	    Color fillColor = new Color((int) Long.parseLong(fcolor, 16));
@@ -142,8 +142,8 @@ public class ClaimBluemap {
 	 */
 	public void updateName(Claim claim) {
     	String t = instance.getSettings().getSetting("bluemap-claim-hover-text")
-    			.replaceAll("%claim-name%", claim.getName())
-    			.replaceAll("%owner%", claim.getOwner());
+    			.replace("%claim-name%", claim.getName())
+    			.replace("%owner%", claim.getOwner());
 		claim.getChunks().forEach(chunk -> {
 			String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 			MarkerSet markerSet = markerSets.get(chunk.getWorld());

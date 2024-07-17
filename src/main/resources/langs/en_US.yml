@@ -324,9 +324,18 @@ leave-territory-chat: "§fYou leave the territory of §e%owner%"
 
 gui-button-no-permission: "§cYou don't have the permission"
 
+to-unban: " to unban"
+to-remove-chunk: " to remove this chunk"
+to-teleport: " to teleport"
+to-remove: " to remove"
+to-manage: " to manage"
+to-remove-member: " to remove this member"
+to-use-setting: " to use this setting"
+to-buy: " to buy"
+
 owner-claim-title: "§e%owner%"
 owner-claim-lore: "§7Claims: §b%claim-amount%"
-owner-claim-access: "§7▸ §fDisplay his claims"
+owner-claim-access: "§7▸ §fDisplay their claims"
 
 access-all-claim-title: "§e%name% §b(Territory of %owner%)"
 access-all-claim-lore: "§7%description%\n \n§7Members:\n%members%\n \n"

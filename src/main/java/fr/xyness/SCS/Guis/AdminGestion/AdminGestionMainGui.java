@@ -97,12 +97,12 @@ public class AdminGestionMainGui implements InventoryHolder {
         lore.clear();
         lore.add("§7Claims statistics");
         lore.add(" ");
-        lore.add("§7➣ Claims count: §b"+getNumberSeparate(String.valueOf(instance.getMain().getAllClaimsCount())));
-        lore.add("§7   ⁃ §a"+getNumberSeparate(String.valueOf(instance.getMain().getProtectedAreasCount()))+" protected areas§7.");
-        lore.add("§7   ⁃ A total of §d"+getNumberSeparate(String.valueOf(instance.getMain().getAllClaimsChunk().size()))+" chunks§7.");
+        lore.add("§7➣ Claims count: §b"+instance.getMain().getNumberSeparate(String.valueOf(instance.getMain().getAllClaimsCount())));
+        lore.add("§7   ⁃ §a"+instance.getMain().getNumberSeparate(String.valueOf(instance.getMain().getProtectedAreasCount()))+" protected areas§7.");
+        lore.add("§7   ⁃ A total of §d"+instance.getMain().getNumberSeparate(String.valueOf(instance.getMain().getAllClaimsChunk().size()))+" chunks§7.");
         lore.add(" ");
-        lore.add("§7➣ Owners count: §b"+getNumberSeparate(String.valueOf(instance.getMain().getClaimsOwners().size())));
-        lore.add("§7   ⁃ §a"+getNumberSeparate(String.valueOf(instance.getMain().getClaimsOnlineOwners().size()))+" online owners§7.");
+        lore.add("§7➣ Owners count: §b"+instance.getMain().getNumberSeparate(String.valueOf(instance.getMain().getClaimsOwners().size())));
+        lore.add("§7   ⁃ §a"+instance.getMain().getNumberSeparate(String.valueOf(instance.getMain().getClaimsOnlineOwners().size()))+" online owners§7.");
         lore.add(" ");
         lore.add("§7Information updated now");
         inv.setItem(13, instance.getGuis().createItem(Material.BOOK, "§cClaims informations", lore));
@@ -123,32 +123,5 @@ public class AdminGestionMainGui implements InventoryHolder {
      */
     public void openInventory(Player player) {
         player.openInventory(inv);
-    }
-    
-    /**
-     * Returns the number separate with , for big numbers
-     * @param text The number in string format
-     * @return The string with new format
-     */
-    public static String getNumberSeparate(String text) {
-        int length = text.length();
-        
-        if (length >= 4 && length <= 6) {
-            return text.substring(0, length - 3) + "," + text.substring(length - 3);
-        } else if (length >= 7 && length <= 9) {
-            return text.substring(0, length - 6) + "," + text.substring(length - 6, length - 3) + "," + text.substring(length - 3);
-        } else if (length >= 10 && length <= 12) {
-            return text.substring(0, length - 9) + "," + text.substring(length - 9, length - 6) + "," + text.substring(length - 6, length - 3) + "," + text.substring(length - 3);
-        } else if (length >= 13 && length <= 15) {
-            return text.substring(0, length - 12) + "," + text.substring(length - 12, length - 9) + "," + text.substring(length - 9, length - 6) + "," + text.substring(length - 6, length - 3) + "," + text.substring(length - 3);
-        } else if (length >= 16 && length <= 18) {
-            return text.substring(0, length - 15) + "," + text.substring(length - 15, length - 12) + "," + text.substring(length - 12, length - 9) + "," + text.substring(length - 9, length - 6) + "," + text.substring(length - 6, length - 3) + "," + text.substring(length - 3);
-        } else if (length >= 19 && length <= 21) {
-            return text.substring(0, length - 18) + "," + text.substring(length - 18, length - 15) + "," + text.substring(length - 15, length - 12) + "," + text.substring(length - 12, length - 9) + "," + text.substring(length - 9, length - 6) + "," + text.substring(length - 6, length - 3) + "," + text.substring(length - 3);
-        } else if (length >= 22 && length <= 24) {
-            return text.substring(0, length - 21) + "," + text.substring(length - 21, length - 18) + "," + text.substring(length - 18, length - 15) + "," + text.substring(length - 15, length - 12) + "," + text.substring(length - 12, length - 9) + "," + text.substring(length - 9, length - 6) + "," + text.substring(length - 6, length - 3) + "," + text.substring(length - 3);
-        } else {
-            return text;
-        }
     }
 }

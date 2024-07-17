@@ -135,7 +135,7 @@ public class ClaimPurge {
             for (Map.Entry<String, String> entry : players.entrySet()) {
                 String key = entry.getKey();
                 String value = entry.getValue();
-                sb.append(key).append(" (").append(value).append(" claims), ");
+                sb.append(key).append(" (").append(instance.getMain().getNumberSeparate(value)).append(" claims), ");
             }
             if (sb.length() > 0) {
                 sb.setLength(sb.length() - 2);

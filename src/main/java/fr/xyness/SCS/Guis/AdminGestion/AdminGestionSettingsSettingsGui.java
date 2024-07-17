@@ -105,12 +105,12 @@ public class AdminGestionSettingsSettingsGui implements InventoryHolder {
                 if (instance.getGuis().getItemCheckCustomModelData("settings", key)) {
                     inv.setItem(instance.getGuis().getItemSlot("settings", key),
                     		instance.getGuis().createItemWMD(instance.getLanguage().getMessageWP(lower_name + "-title", (OfflinePlayer) player)
-                                    .replaceAll("%status%", statut), lore, instance.getGuis().getItemMaterialMD("settings", key),
+                                    .replace("%status%", statut), lore, instance.getGuis().getItemMaterialMD("settings", key),
                                     instance.getGuis().getItemCustomModelData("settings", key)));
                 } else {
                     inv.setItem(instance.getGuis().getItemSlot("settings", key), instance.getGuis().createItem(
                             instance.getGuis().getItemMaterial("settings", key),
-                            instance.getLanguage().getMessageWP(lower_name + "-title", (OfflinePlayer) player).replaceAll("%status%", statut),
+                            instance.getLanguage().getMessageWP(lower_name + "-title", (OfflinePlayer) player).replace("%status%", statut),
                             lore));
                 }
             }

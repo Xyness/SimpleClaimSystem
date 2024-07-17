@@ -63,7 +63,7 @@ public class ClaimListGui implements InventoryHolder {
      */
     public ClaimListGui(Player player, int page, String filter, SimpleClaimSystem instance) {
     	this.instance = instance;
-        String title = instance.getGuis().getGuiTitle("list").replaceAll("%page%", String.valueOf(page));
+        String title = instance.getGuis().getGuiTitle("list").replace("%page%", String.valueOf(page));
         if (instance.getSettings().getBooleanSetting("placeholderapi")) {
             title = PlaceholderAPI.setPlaceholders(player, title);
         }
@@ -95,13 +95,13 @@ public class ClaimListGui implements InventoryHolder {
 
         String lore_tp = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")
                 ? instance.getLanguage().getMessage("access-claim-clickable-tp")
-                : instance.getLanguage().getMessage("gui-button-no-permission") + " to teleport";
+                : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-teleport");
         String lore_remove = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.remove")
                 ? instance.getLanguage().getMessage("access-claim-clickable-remove")
-                : instance.getLanguage().getMessage("gui-button-no-permission") + " to remove";
+                : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-remove");
         String lore_settings = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim")
                 ? instance.getLanguage().getMessage("access-claim-clickable-manage")
-                : instance.getLanguage().getMessage("gui-button-no-permission") + " to manage";
+                : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-manage");
 
         if (page > 1) {
             inv.setItem(instance.getGuis().getItemSlot("list", "back-page-list"), backPage(page - 1));
@@ -135,9 +135,9 @@ public class ClaimListGui implements InventoryHolder {
             cPlayer.addMapLoc(i, claim.getLocation());
             List<String> used_lore = new ArrayList<>();
             for (String s : lore) {
-                s = s.replaceAll("%owner%", claim.getOwner());
-                s = s.replaceAll("%description%", claim.getDescription());
-                s = s.replaceAll("%name%", claim.getName()).replaceAll("%coords%", instance.getMain().getClaimCoords(claim));
+                s = s.replace("%owner%", claim.getOwner());
+                s = s.replace("%description%", claim.getDescription());
+                s = s.replace("%name%", claim.getName()).replace("%coords%", instance.getMain().getClaimCoords(claim));
                 if (s.contains("%members%")) {
                     String members = getMembers(claim);
                     if (members.contains("\n")) {
@@ -172,8 +172,8 @@ public class ClaimListGui implements InventoryHolder {
                 inv.setItem(i_f,
                 		instance.getGuis().createItemWMD(
                                 instance.getLanguage().getMessageWP("access-claim-title", (OfflinePlayer) player)
-                                        .replaceAll("%name%", claim.getName())
-                                        .replaceAll("%coords%", instance.getMain().getClaimCoords(claim)),
+                                        .replace("%name%", claim.getName())
+                                        .replace("%coords%", instance.getMain().getClaimCoords(claim)),
                                 used_lore, instance.getGuis().getItemMaterialMD("list", "claim-item"),
                                 instance.getGuis().getItemCustomModelData("list", "claim-item")));
                 i++;
@@ -182,7 +182,7 @@ public class ClaimListGui implements InventoryHolder {
             if (instance.getGuis().getItemMaterialMD("list", "claim-item").contains("PLAYER_HEAD")) {
             	ItemStack item = instance.getPlayerMain().getPlayerHead((OfflinePlayer) player);
                 SkullMeta meta = (SkullMeta) item.getItemMeta();
-                meta.setDisplayName(instance.getLanguage().getMessageWP("access-claim-title", (OfflinePlayer) player).replaceAll("%name%", claim.getName()).replaceAll("%coords%", instance.getMain().getClaimCoords(claim)));
+                meta.setDisplayName(instance.getLanguage().getMessageWP("access-claim-title", (OfflinePlayer) player).replace("%name%", claim.getName()).replace("%coords%", instance.getMain().getClaimCoords(claim)));
                 meta.setLore(used_lore);
                 item.setItemMeta(meta);
                 inv.setItem(i_f, item);
@@ -192,7 +192,7 @@ public class ClaimListGui implements InventoryHolder {
             inv.setItem(i_f,
             		instance.getGuis().createItem(instance.getGuis().getItemMaterial("list", "claim-item"),
                             instance.getLanguage().getMessageWP("access-claim-title", (OfflinePlayer) player)
-                                    .replaceAll("%name%", claim.getName()).replaceAll("%coords%", instance.getMain().getClaimCoords(claim)),
+                                    .replace("%name%", claim.getName()).replace("%coords%", instance.getMain().getClaimCoords(claim)),
                             used_lore));
             i++;
         }
@@ -300,8 +300,8 @@ public class ClaimListGui implements InventoryHolder {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("previous-page-title").replaceAll("%page%", String.valueOf(page)));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("previous-page-lore").replaceAll("%page%", String.valueOf(page))));
+            meta.setDisplayName(instance.getLanguage().getMessage("previous-page-title").replace("%page%", String.valueOf(page)));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("previous-page-lore").replace("%page%", String.valueOf(page))));
             meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }
@@ -340,7 +340,7 @@ public class ClaimListGui implements InventoryHolder {
 
         if (meta != null) {
             meta.setDisplayName(instance.getLanguage().getMessage("back-page-main-title"));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("back-page-main-lore").replaceAll("%claim-name%", claim.getName())));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("back-page-main-lore").replace("%claim-name%", claim.getName())));
             meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }
@@ -378,8 +378,8 @@ public class ClaimListGui implements InventoryHolder {
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("next-page-title").replaceAll("%page%", String.valueOf(page)));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("next-page-lore").replaceAll("%page%", String.valueOf(page))));
+            meta.setDisplayName(instance.getLanguage().getMessage("next-page-title").replace("%page%", String.valueOf(page)));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("next-page-lore").replace("%page%", String.valueOf(page))));
             meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }
@@ -406,11 +406,11 @@ public class ClaimListGui implements InventoryHolder {
         if (meta != null) {
             String loreFilter = instance.getLanguage().getMessage("filter-list-lore");
             if (filter.equals("not_owner")) {
-                loreFilter = loreFilter.replaceAll("%status_color_1%", instance.getLanguage().getMessage("status_color_inactive_filter"))
-                        .replaceAll("%status_color_2%", instance.getLanguage().getMessage("status_color_active_filter"));
+                loreFilter = loreFilter.replace("%status_color_1%", instance.getLanguage().getMessage("status_color_inactive_filter"))
+                        .replace("%status_color_2%", instance.getLanguage().getMessage("status_color_active_filter"));
             } else {
-                loreFilter = loreFilter.replaceAll("%status_color_1%", instance.getLanguage().getMessage("status_color_active_filter"))
-                        .replaceAll("%status_color_2%", instance.getLanguage().getMessage("status_color_inactive_filter"));
+                loreFilter = loreFilter.replace("%status_color_1%", instance.getLanguage().getMessage("status_color_active_filter"))
+                        .replace("%status_color_2%", instance.getLanguage().getMessage("status_color_inactive_filter"));
             }
             meta.setDisplayName(instance.getLanguage().getMessage("filter-title"));
             meta.setLore(instance.getGuis().getLore(loreFilter));

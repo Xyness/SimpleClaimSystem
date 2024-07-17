@@ -31,7 +31,6 @@ import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Guis.ClaimBansGui;
 import fr.xyness.SCS.Guis.ClaimChunksGui;
 import fr.xyness.SCS.Guis.ClaimSettingsGui;
-import fr.xyness.SCS.Guis.AdminGestion.AdminGestionMainGui;
 import fr.xyness.SCS.Guis.ClaimListGui;
 import fr.xyness.SCS.Guis.ClaimMembersGui;
 import fr.xyness.SCS.Guis.ClaimMainGui;
@@ -206,7 +205,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             instance.getMain().setClaimDescription(claim, description)
             	.thenAccept(success -> {
             		if (success) {
-            			player.sendMessage(instance.getLanguage().getMessage("claim-set-description-success").replaceAll("%name%", args[1]).replaceAll("%description%", description));
+            			player.sendMessage(instance.getLanguage().getMessage("claim-set-description-success").replace("%name%", args[1]).replace("%description%", description));
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("error"));
             		}
@@ -253,7 +252,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             instance.getMain().removeClaimChunk(claim, parts[0]+";"+parts[1]+";"+parts[2])
             	.thenAccept(success -> {
             		if (success) {
-            			player.sendMessage(instance.getLanguage().getMessage("delete-chunk-success").replaceAll("%chunk%", "["+args[2]+"]").replaceAll("%claim-name%", claim.getName()));
+            			player.sendMessage(instance.getLanguage().getMessage("delete-chunk-success").replace("%chunk%", "["+args[2]+"]").replace("%claim-name%", claim.getName()));
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("error-delete-chunk"));
             		}
@@ -304,7 +303,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             Set<Chunk> chunks = new HashSet<>(claim1.getChunks());
             claims.forEach(c -> chunks.addAll(c.getChunks()));
-            if(!cPlayer.canClaimWithNumber(chunks.size()+claim1.getChunks().size())) {
+            if(!cPlayer.canClaimWithNumber(chunks.size())) {
             	player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks"));
             	return;
             }
@@ -315,7 +314,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             instance.getMain().mergeClaims(claim1, claims)
             	.thenAccept(success -> {
             		if (success) {
-            			player.sendMessage(instance.getLanguage().getMessage("claims-are-now-merged").replaceAll("%claim-name%", claim1.getName()));
+            			player.sendMessage(instance.getLanguage().getMessage("claims-are-now-merged").replace("%claim-name%", claim1.getName()));
             			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, claim1.getChunks(), true, false);
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -350,7 +349,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 	instance.getMain().setClaimName(claim, args[2])
                 		.thenAccept(success -> {
                 			if (success) {
-                				player.sendMessage(instance.getLanguage().getMessage("name-change-success").replaceAll("%name%", args[2]));
+                				player.sendMessage(instance.getLanguage().getMessage("name-change-success").replace("%name%", args[2]));
                 			} else {
                 				player.sendMessage(instance.getLanguage().getMessage("error"));
                 			}
@@ -361,7 +360,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         });
                     return;
                 }
-                player.sendMessage(instance.getLanguage().getMessage("error-name-exists").replaceAll("%name%", args[1]));
+                player.sendMessage(instance.getLanguage().getMessage("error-name-exists").replace("%name%", args[1]));
                 return;
             }
             player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
@@ -379,7 +378,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 }
                 Player target = Bukkit.getPlayer(args[2]);
                 if(target == null) {
-                	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replaceAll("%player%", args[2]));
+                	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[2]));
                 	return;
                 }
 	        	if(!instance.getMain().getAllChunksFromAllClaims(playerName).contains(target.getLocation().getChunk())) {
@@ -398,7 +397,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             Player target = Bukkit.getPlayer(args[2]);
             if(target == null) {
-            	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replaceAll("%player%", args[2]));
+            	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[2]));
             	return;
             }
             if(!claim.getChunks().contains(target.getLocation().getChunk())) {
@@ -426,7 +425,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 if (target == null) {
                     OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
                     if (otarget == null || !otarget.hasPlayedBefore() || !otarget.hasPlayedBefore()) {
-                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[2]));
+                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
                         return;
                     }
                     targetName = otarget.getName();
@@ -437,7 +436,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 	player.sendMessage(instance.getLanguage().getMessage("cant-ban-yourself"));
                     return;
                 }
-                String message = instance.getLanguage().getMessage("add-ban-all-success").replaceAll("%player%", targetName);
+                String message = instance.getLanguage().getMessage("add-ban-all-success").replace("%player%", targetName);
                 instance.getMain().addAllClaimBan(playerName, targetName)
                 	.thenAccept(success -> {
                 		if (success) {
@@ -446,8 +445,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             		        	if(instance.getMain().getAllChunksFromAllClaims(playerName).contains(target.getLocation().getChunk())) {
             		        		instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
             		        	}
-            		        	target.sendMessage(instance.getLanguage().getMessage("banned-all-claim-player").replaceAll("%owner%", playerName));
-            		        	target.sendMessage(instance.getLanguage().getMessage("remove-all-claim-player").replaceAll("%owner%", playerName));
+            		        	target.sendMessage(instance.getLanguage().getMessage("banned-all-claim-player").replace("%owner%", playerName));
+            		        	target.sendMessage(instance.getLanguage().getMessage("remove-all-claim-player").replace("%owner%", playerName));
             		        }
                 		} else {
                 			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -469,7 +468,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             if (target == null) {
                 OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
                 if (otarget == null || !otarget.hasPlayedBefore()) {
-                	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[2]));
+                	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
                     return;
                 }
                 targetName = otarget.getName();
@@ -480,7 +479,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("cant-ban-yourself"));
                 return;
             }
-            String message = instance.getLanguage().getMessage("add-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", claim.getName());
+            String message = instance.getLanguage().getMessage("add-ban-success").replace("%player%", targetName).replace("%claim-name%", claim.getName());
             instance.getMain().addClaimBan(claim, targetName)
             	.thenAccept(success -> {
             		if (success) {
@@ -490,8 +489,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         		        	if(claim.getChunks().contains(target.getLocation().getChunk())) {
         		        		instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
         		        	}
-        		        	target.sendMessage(instance.getLanguage().getMessage("banned-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claimName));
-        		        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claimName));
+        		        	target.sendMessage(instance.getLanguage().getMessage("banned-claim-player").replace("%owner%", playerName).replace("%claim-name%", claimName));
+        		        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replace("%owner%", playerName).replace("%claim-name%", claimName));
         		        }
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -521,13 +520,13 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 } else {
                     targetName = target.getName();
                 }
-                String message = instance.getLanguage().getMessage("remove-ban-all-success").replaceAll("%player%", targetName);
+                String message = instance.getLanguage().getMessage("remove-ban-all-success").replace("%player%", targetName);
                 instance.getMain().removeAllClaimBan(playerName, targetName)
                 	.thenAccept(success -> {
                 		if (success) {
                             player.sendMessage(message);
             		        if (target != null && target.isOnline()) {
-            		        	target.sendMessage(instance.getLanguage().getMessage("unbanned-all-claim-player").replaceAll("%owner%", playerName));
+            		        	target.sendMessage(instance.getLanguage().getMessage("unbanned-all-claim-player").replace("%owner%", playerName));
             		        }
                 		} else {
                 			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -545,7 +544,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             if (!instance.getMain().checkBan(claim, args[2])) {
-                String message = instance.getLanguage().getMessage("not-banned").replaceAll("%player%", args[2]);
+                String message = instance.getLanguage().getMessage("not-banned").replace("%player%", args[2]);
                 player.sendMessage(message);
                 return;
             }
@@ -553,11 +552,11 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             instance.getMain().removeClaimBan(claim, targetName)
             	.thenAccept(success -> {
             		if (success) {
-                        String message = instance.getLanguage().getMessage("remove-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", claim.getName());
+                        String message = instance.getLanguage().getMessage("remove-ban-success").replace("%player%", targetName).replace("%claim-name%", claim.getName());
                         player.sendMessage(message);
                         Player target = Bukkit.getPlayer(targetName);
         		        if (target != null && target.isOnline()) {
-        		        	target.sendMessage(instance.getLanguage().getMessage("unbanned-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claim.getName()));
+        		        	target.sendMessage(instance.getLanguage().getMessage("unbanned-claim-player").replace("%owner%", playerName).replace("%claim-name%", claim.getName()));
         		        }
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -590,7 +589,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 if (target == null) {
                     OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
                     if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[2]));
+                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
                         return;
                     }
                     targetName = otarget.getName();
@@ -601,13 +600,13 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 	player.sendMessage(instance.getLanguage().getMessage("cant-add-yourself"));
                     return;
                 }
-                String message = instance.getLanguage().getMessage("add-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", instance.getLanguage().getMessage("all-your-claims-title"));
+                String message = instance.getLanguage().getMessage("add-member-success").replace("%player%", targetName).replace("%claim-name%", instance.getLanguage().getMessage("all-your-claims-title"));
                 instance.getMain().addAllClaimsMember(playerName, targetName)
                 	.thenAccept(success -> {
                 		if (success) {
                             player.sendMessage(message);
                             if(target != null && target.isOnline()) {
-                            	target.sendMessage(instance.getLanguage().getMessage("add-all-claim-player").replaceAll("%owner%", playerName));
+                            	target.sendMessage(instance.getLanguage().getMessage("add-all-claim-player").replace("%owner%", playerName));
                             }
                 		} else {
                 			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -633,7 +632,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             if (target == null) {
                 OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
                 if (otarget == null || !otarget.hasPlayedBefore()) {
-                	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[2]));
+                	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
                     return;
                 }
                 targetName = otarget.getName();
@@ -645,17 +644,17 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             if (instance.getMain().checkMembre(claim, targetName)) {
-                String message = instance.getLanguage().getMessage("already-member").replaceAll("%player%", targetName);
+                String message = instance.getLanguage().getMessage("already-member").replace("%player%", targetName);
                 player.sendMessage(message);
                 return;
             }
-            String message = instance.getLanguage().getMessage("add-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", claim.getName());
+            String message = instance.getLanguage().getMessage("add-member-success").replace("%player%", targetName).replace("%claim-name%", claim.getName());
             instance.getMain().addClaimMember(claim, targetName)
             	.thenAccept(success -> {
             		if (success) {
                         player.sendMessage(message);
                         if(target != null && target.isOnline()) {
-                        	target.sendMessage(instance.getLanguage().getMessage("add-claim-player").replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", playerName));
+                        	target.sendMessage(instance.getLanguage().getMessage("add-claim-player").replace("%claim-name%", claim.getName()).replace("%owner%", playerName));
                         }
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -685,11 +684,11 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 instance.getMain().removeAllClaimsMember(playerName, targetName)
                 	.thenAccept(success -> {
                 		if (success) {
-                            String message = instance.getLanguage().getMessage("remove-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", instance.getLanguage().getMessage("all-your-claims-title"));
+                            String message = instance.getLanguage().getMessage("remove-member-success").replace("%player%", targetName).replace("%claim-name%", instance.getLanguage().getMessage("all-your-claims-title"));
                             player.sendMessage(message);
                             Player target = Bukkit.getPlayer(targetName);
                             if(target != null && target.isOnline()) {
-                            	target.sendMessage(instance.getLanguage().getMessage("remove-all-claim-player").replaceAll("%owner%", playerName));
+                            	target.sendMessage(instance.getLanguage().getMessage("remove-all-claim-player").replace("%owner%", playerName));
                             }
                 		} else {
                 			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -712,7 +711,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             if (!instance.getMain().checkMembre(claim, targetName)) {
-                String message = instance.getLanguage().getMessage("not-member").replaceAll("%player%", targetName);
+                String message = instance.getLanguage().getMessage("not-member").replace("%player%", targetName);
                 player.sendMessage(message);
                 return;
             }
@@ -720,11 +719,11 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             instance.getMain().removeClaimMember(claim, realName)
             	.thenAccept(success -> {
             		if (success) {
-                        String message = instance.getLanguage().getMessage("remove-member-success").replaceAll("%player%", realName).replaceAll("%claim-name%", claim.getName());
+                        String message = instance.getLanguage().getMessage("remove-member-success").replace("%player%", realName).replace("%claim-name%", claim.getName());
                         player.sendMessage(message);
                         Player target = Bukkit.getPlayer(realName);
                         if(target != null && target.isOnline()) {
-                        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", playerName));
+                        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replace("%claim-name%", claim.getName()).replace("%owner%", playerName));
                         }
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -751,7 +750,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 if (target == null) {
                     OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
                     if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[2]));
+                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
                         return;
                     }
                     targetName = otarget.getName();
@@ -764,7 +763,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 }
                 final String tName = targetName;
             	instance.getMain().getPlayerClaims(playerName).forEach(c -> instance.getMain().setOwner(tName, c));
-            	player.sendMessage(instance.getLanguage().getMessage("setowner-all-success").replaceAll("%owner%", tName));
+            	player.sendMessage(instance.getLanguage().getMessage("setowner-all-success").replace("%owner%", tName));
                 return;
             }
             Claim claim = instance.getMain().getClaimByName(args[1], playerName);
@@ -777,7 +776,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             if (target == null) {
                 OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
                 if (otarget == null || !otarget.hasPlayedBefore()) {
-                	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[2]));
+                	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
                     return;
                 }
                 targetName = otarget.getName();
@@ -788,7 +787,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("cant-transfer-ownership-yourself"));
                 return;
             }
-            String message = instance.getLanguage().getMessage("setowner-claim-success").replaceAll("%owner%", targetName).replaceAll("%claim-name%", claim.getName());
+            String message = instance.getLanguage().getMessage("setowner-claim-success").replace("%owner%", targetName).replace("%claim-name%", claim.getName());
             instance.getMain().setOwner(targetName, claim)
             	.thenAccept(success -> {
             		if (success) {
@@ -817,16 +816,14 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 Double price = Double.parseDouble(args[2]);
                 Double max_price = Double.parseDouble(instance.getSettings().getSetting("max-sell-price"));
                 if (price > max_price || price <= 0) {
-                	player.sendMessage(instance.getLanguage().getMessage("sell-claim-price-syntax").replaceAll("%max-price%", instance.getSettings().getSetting("max-sell-price")));
+                	player.sendMessage(instance.getLanguage().getMessage("sell-claim-price-syntax").replace("%max-price%", instance.getMain().getNumberSeparate(instance.getSettings().getSetting("max-sell-price"))));
                     return;
                 }
                 instance.getMain().setChunkSale(claim, price)
                 	.thenAccept(success -> {
                 		if (success) {
-                            player.sendMessage(instance.getLanguage().getMessage("claim-for-sale-success").replaceAll("%name%", args[1]).replaceAll("%price%", args[2]).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
-                            for (Player p : Bukkit.getOnlinePlayers()) {
-                                p.sendMessage(instance.getLanguage().getMessage("claim-for-sale-success-broadcast").replaceAll("%name%", args[1]).replaceAll("%price%", args[2]).replaceAll("%player%", playerName).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
-                            }
+                            player.sendMessage(instance.getLanguage().getMessage("claim-for-sale-success").replace("%name%", args[1]).replace("%price%", instance.getMain().getNumberSeparate(args[2])).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+                            Bukkit.getOnlinePlayers().parallelStream().forEach(p -> p.sendMessage(instance.getLanguage().getMessage("claim-for-sale-success-broadcast").replace("%name%", args[1]).replace("%price%", instance.getMain().getNumberSeparate(args[2])).replace("%player%", playerName).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
                 		} else {
                 			player.sendMessage(instance.getLanguage().getMessage("error"));
                 		}
@@ -878,12 +875,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	if(claim_target.getOwner().equalsIgnoreCase(playerName)) {
             		if(claim_target.equals(claim)) {
             			player.sendMessage(instance.getLanguage().getMessage("add-chunk-already-in-claim")
-            					.replaceAll("%claim-name%", claim.getName()));
+            					.replace("%claim-name%", claim.getName()));
             			return;
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("add-chunk-already-owner")
-            					.replaceAll("%claim-name%", claim.getName())
-            					.replaceAll("%claim-name-1%", claim_target.getName()));
+            					.replace("%claim-name%", claim.getName())
+            					.replace("%claim-name-1%", claim_target.getName()));
             			return;
             		}
             	} else {
@@ -892,7 +889,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	}
             }
             Set<Chunk> chunks = new HashSet<>(claim.getChunks());
-            if(!cPlayer.canClaimTotalWithNumber(chunks.size()+1)) {
+            if(!cPlayer.canClaimTotalWithNumber(instance.getMain().getAllChunksFromAllClaims(playerName).size()+1)) {
             	player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks"));
             	return;
             }
@@ -914,8 +911,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	.thenAccept(success -> {
             		if (success) {
             			player.sendMessage(instance.getLanguage().getMessage("add-chunk-successful")
-            					.replaceAll("%chunk%", "["+chunk.getWorld().getName()+";"+String.valueOf(chunk.getX())+";"+String.valueOf(chunk.getZ())+"]")
-            					.replaceAll("%claim-name%", claim.getName()));
+            					.replace("%chunk%", "["+chunk.getWorld().getName()+";"+String.valueOf(chunk.getX())+";"+String.valueOf(chunk.getZ())+"]")
+            					.replace("%claim-name%", claim.getName()));
             			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, claim.getChunks(), true, false);
             			return;
             		} else {
@@ -946,7 +943,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             Player target = Bukkit.getPlayer(args[1]);
             if(target == null) {
-            	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replaceAll("%player%", args[1]));
+            	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[1]));
             	return;
             }
             if(!claim.getChunks().contains(target.getLocation().getChunk())) {
@@ -980,7 +977,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             if (target == null) {
                 OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[1]);
                 if (otarget == null || !otarget.hasPlayedBefore()) {
-                	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[1]));
+                	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[1]));
                     return;
                 }
                 targetName = otarget.getName();
@@ -991,7 +988,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("cant-ban-yourself"));
                 return;
             }
-            String message = instance.getLanguage().getMessage("add-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", claim.getName());
+            String message = instance.getLanguage().getMessage("add-ban-success").replace("%player%", targetName).replace("%claim-name%", claim.getName());
             instance.getMain().addClaimBan(claim, targetName)
             	.thenAccept(success -> {
             		if (success) {
@@ -1001,8 +998,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         		        	if(claim.getChunks().contains(target.getLocation().getChunk())) {
         		        		instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
         		        	}
-        		        	target.sendMessage(instance.getLanguage().getMessage("banned-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claimName));
-        		        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claimName));
+        		        	target.sendMessage(instance.getLanguage().getMessage("banned-claim-player").replace("%owner%", playerName).replace("%claim-name%", claimName));
+        		        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replace("%owner%", playerName).replace("%claim-name%", claimName));
         		        }
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -1031,19 +1028,19 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             if (!instance.getMain().checkBan(claim, args[1])) {
-                String message = instance.getLanguage().getMessage("not-banned").replaceAll("%player%", args[1]);
+                String message = instance.getLanguage().getMessage("not-banned").replace("%player%", args[1]);
                 player.sendMessage(message);
                 return;
             }
             String targetName = instance.getMain().getRealNameFromClaimBans(claim, args[1]);
-            String message = instance.getLanguage().getMessage("remove-ban-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", claim.getName());
+            String message = instance.getLanguage().getMessage("remove-ban-success").replace("%player%", targetName).replace("%claim-name%", claim.getName());
             instance.getMain().removeClaimBan(claim, targetName)
             	.thenAccept(success -> {
             		if (success) {
                         player.sendMessage(message);
                         Player target = Bukkit.getPlayer(targetName);
         		        if (target != null && target.isOnline()) {
-        		        	target.sendMessage(instance.getLanguage().getMessage("unbanned-claim-player").replaceAll("%owner%", playerName).replaceAll("%claim-name%", claim.getName()));
+        		        	target.sendMessage(instance.getLanguage().getMessage("unbanned-claim-player").replace("%owner%", playerName).replace("%claim-name%", claim.getName()));
         		        }
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -1076,7 +1073,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             if (target == null) {
                 OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[1]);
                 if (otarget == null || !otarget.hasPlayedBefore()) {
-                	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[1]));
+                	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[1]));
                     return;
                 }
                 targetName = otarget.getName();
@@ -1087,7 +1084,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("cant-transfer-ownership-yourself"));
                 return;
             }
-            String message = instance.getLanguage().getMessage("setowner-claim-success").replaceAll("%owner%", targetName).replaceAll("%claim-name%", claim.getName());
+            String message = instance.getLanguage().getMessage("setowner-claim-success").replace("%owner%", targetName).replace("%claim-name%", claim.getName());
             instance.getMain().setOwner(targetName, claim)
             	.thenAccept(success -> {
             		if (success) {
@@ -1123,19 +1120,19 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             if (!instance.getMain().checkMembre(claim, targetName)) {
-                String message = instance.getLanguage().getMessage("not-member").replaceAll("%player%", targetName);
+                String message = instance.getLanguage().getMessage("not-member").replace("%player%", targetName);
                 player.sendMessage(message);
                 return;
             }
             String realName = instance.getMain().getRealNameFromClaimMembers(claim, targetName);
-            String message = instance.getLanguage().getMessage("remove-member-success").replaceAll("%player%", realName).replaceAll("%claim-name%", claim.getName());
+            String message = instance.getLanguage().getMessage("remove-member-success").replace("%player%", realName).replace("%claim-name%", claim.getName());
             instance.getMain().removeClaimMember(claim, realName)
             	.thenAccept(success -> {
             		if (success) {
                         player.sendMessage(message);
                         Player target = Bukkit.getPlayer(realName);
                         if(target != null && target.isOnline()) {
-                        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", playerName));
+                        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replace("%claim-name%", claim.getName()).replace("%owner%", playerName));
                         }
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -1172,7 +1169,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             if (target == null) {
                 OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[1]);
                 if (otarget == null || !otarget.hasPlayedBefore()) {
-                	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replaceAll("%player%", args[1]));
+                	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[1]));
                     return;
                 }
                 targetName = otarget.getName();
@@ -1184,17 +1181,17 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             if (instance.getMain().checkMembre(claim, targetName)) {
-                String message = instance.getLanguage().getMessage("already-member").replaceAll("%player%", targetName);
+                String message = instance.getLanguage().getMessage("already-member").replace("%player%", targetName);
                 player.sendMessage(message);
                 return;
             }
-            String message = instance.getLanguage().getMessage("add-member-success").replaceAll("%player%", targetName).replaceAll("%claim-name%", claim.getName());
+            String message = instance.getLanguage().getMessage("add-member-success").replace("%player%", targetName).replace("%claim-name%", claim.getName());
             instance.getMain().addClaimMember(claim, targetName)
             	.thenAccept(success -> {
             		if (success) {
                         player.sendMessage(message);
                         if(target != null && target.isOnline()) {
-                        	target.sendMessage(instance.getLanguage().getMessage("add-claim-player").replaceAll("%claim-name%", claim.getName()).replaceAll("%owner%", playerName));
+                        	target.sendMessage(instance.getLanguage().getMessage("add-claim-player").replace("%claim-name%", claim.getName()).replace("%owner%", playerName));
                         }
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -1213,11 +1210,11 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().isWorldDisabled(world)) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replaceAll("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
             if (instance.getMain().getPlayerClaimsCount(args[1]) == 0) {
-            	player.sendMessage(instance.getLanguage().getMessage("target-does-not-have-claim").replaceAll("%name%", args[1]));
+            	player.sendMessage(instance.getLanguage().getMessage("target-does-not-have-claim").replace("%name%", args[1]));
                 return;
             }
             Set<Chunk> chunks = new HashSet<>();
@@ -1302,7 +1299,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	instance.getMain().delChunkSale(claim)
             		.thenAccept(success -> {
             			if (success) {
-            				player.sendMessage(instance.getLanguage().getMessage("claim-in-sale-cancel").replaceAll("%name%", args[1]));
+            				player.sendMessage(instance.getLanguage().getMessage("claim-in-sale-cancel").replace("%name%", args[1]));
             			} else {
             				player.sendMessage(instance.getLanguage().getMessage("error"));
             			}
@@ -1414,7 +1411,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().isWorldDisabled(world)) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replaceAll("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
             if (cPlayer.getClaimAutomap()) {
@@ -1433,7 +1430,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().isWorldDisabled(world)) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replaceAll("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
             instance.getMain().getMap(player, player.getLocation().getChunk());
@@ -1446,7 +1443,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().isWorldDisabled(world)) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replaceAll("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
             if (cPlayer.getClaimAutoclaim()) {
@@ -1478,7 +1475,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         	instance.getMain().setClaimLocation(claim, l)
         		.thenAccept(success -> {
         			if (success) {
-        				player.sendMessage(instance.getLanguage().getMessage("loc-change-success").replaceAll("%coords%", instance.getMain().getClaimCoords(claim)));
+        				player.sendMessage(instance.getLanguage().getMessage("loc-change-success").replace("%coords%", instance.getMain().getClaimCoords(claim)));
         			} else {
         				player.sendMessage(instance.getLanguage().getMessage("error"));
         			}
@@ -1584,7 +1581,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().isWorldDisabled(world)) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replaceAll("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
             Chunk chunk = player.getLocation().getChunk();
@@ -1597,7 +1594,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             return;
         }
         if (instance.getSettings().isWorldDisabled(player.getWorld().getName())) {
-        	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replaceAll("%world%", player.getWorld().getName()));
+        	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", player.getWorld().getName()));
             return;
         }
         try {
@@ -1628,7 +1625,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	        	            }
 	        	            
 	        	            // Check if player can claim with all these chunks (total)
-	        	            if (!cPlayer.canClaimTotalWithNumber(chunksToClaim.size())) {
+	        	            if (!cPlayer.canClaimTotalWithNumber(instance.getMain().getAllChunksFromAllClaims(playerName).size()+chunksToClaim.size())) {
 	        	                player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks"));
 	        	                return;
 	        	            }
@@ -1645,7 +1642,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 		        	            price = instance.getMain().calculateClaimPrice(cPlayer, chunksToClaim.size());
 		        	            double balance = instance.getVault().getPlayerBalance(playerName);
 		        	            if (balance < price) {
-		        	                player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replace("%missing-price%", String.valueOf(price - balance)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+		        	                player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replace("%missing-price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round((price - balance)*100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
 		        	                return;
 		        	            }
 	        	            }
@@ -1657,7 +1654,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	                                // Make player pay
 	                                if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
 		                	            instance.getVault().removePlayerBalance(playerName, price);
-		                	            player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+		                	            player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round(price * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
 	                                }
 		                	            
 	                	            // Create claim
@@ -1669,7 +1666,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	        	                	            }
 	        	                	            Claim claim = instance.getMain().getClaim(player.getLocation().getChunk());
 	        	                	            int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
-	        	                	            player.sendMessage(instance.getLanguage().getMessage("create-claim-radius-success").replace("%number%", AdminGestionMainGui.getNumberSeparate(String.valueOf(chunks.size()))).replace("%remaining-claims%", AdminGestionMainGui.getNumberSeparate(String.valueOf(remainingClaims))).replace("%claim-name%", claim.getName()));
+	        	                	            player.sendMessage(instance.getLanguage().getMessage("create-claim-radius-success").replace("%number%", instance.getMain().getNumberSeparate(String.valueOf(chunks.size()))).replace("%remaining-claims%", instance.getMain().getNumberSeparate(String.valueOf(remainingClaims))).replace("%claim-name%", claim.getName()));
 	        	                    		} else {
 	        	                    			player.sendMessage(instance.getLanguage().getMessage("error"));
 	        	                    		}
@@ -1693,7 +1690,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	                        // Make player pay
 	                        if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
 		        	            instance.getVault().removePlayerBalance(playerName, price);
-		        	            player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+		        	            player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round(price * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
 	                        }
 		        	            
 	        	            // Create claim
@@ -1705,7 +1702,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	                    	            }
 	                    	            Claim claim = instance.getMain().getClaim(player.getLocation().getChunk());
 	                    	            int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
-	                    	            player.sendMessage(instance.getLanguage().getMessage("create-claim-radius-success").replace("%number%", AdminGestionMainGui.getNumberSeparate(String.valueOf(chunks.size()))).replace("%remaining-claims%", AdminGestionMainGui.getNumberSeparate(String.valueOf(remainingClaims))).replace("%claim-name%", claim.getName()));
+	                    	            player.sendMessage(instance.getLanguage().getMessage("create-claim-radius-success").replace("%number%", instance.getMain().getNumberSeparate(String.valueOf(chunks.size()))).replace("%remaining-claims%", instance.getMain().getNumberSeparate(String.valueOf(remainingClaims))).replace("%claim-name%", claim.getName()));
 	                        		} else {
 	                        			player.sendMessage(instance.getLanguage().getMessage("error"));
 	                        		}
@@ -1742,12 +1739,16 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     		String owner = claim.getOwner();
             if (owner.equals("admin")) {
                 player.sendMessage(instance.getLanguage().getMessage("create-error-protected-area"));
-                return;
-            } else if(!owner.equals(player.getName())) {
-    			player.sendMessage(instance.getLanguage().getMessage("create-already-claim").replace("%player%", owner));
-    			return;
-    		}
-    		new ClaimMainGui(player,claim,instance);
+            } else if (owner.equals(player.getName())) {
+            	if(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.main")) {
+            		new ClaimMainGui(player,claim,instance);
+            	} else {
+            		player.sendMessage(instance.getLanguage().getMessage("create-already-yours"));
+            	}
+                
+            } else {
+                player.sendMessage(instance.getLanguage().getMessage("create-already-claim").replace("%player%", owner));
+            }
     		return;
     	}
     	
@@ -1764,12 +1765,6 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         }
 
         if (instance.getSettings().getBooleanSetting("claim-confirmation")) {
-        	
-            // Check if the chunk is already claimed
-            if (instance.getMain().checkIfClaimExists(chunk)) {
-            	instance.getMain().handleClaimConflict(player, chunk);
-            	return;
-            }
             
             // Check if there is chunk near
             instance.getMain().isAreaClaimFree(chunk, cPlayer.getClaimDistance(), playerName)
@@ -1782,7 +1777,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         }
                         
                         // Check if player can claim with all these chunks (total)
-                        if (!cPlayer.canClaimTotalWithNumber(1)) {
+                        if (!cPlayer.canClaimTotalWithNumber(instance.getMain().getAllChunksFromAllClaims(playerName).size()+1)) {
                             player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks"));
                             return;
                         }
@@ -1794,7 +1789,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                             double balance = instance.getVault().getPlayerBalance(playerName);
 
                             if (balance < price) {
-                            	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replaceAll("%missing-price%", String.valueOf(price - balance)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+                            	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replace("%missing-price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round((price - balance)*100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
                                 return;
                             }
                         }
@@ -1805,7 +1800,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                             // Make the player pay
                             if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
                                 instance.getVault().removePlayerBalance(playerName, price);
-                                if (price > 0) player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replaceAll("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+                                if (price > 0) player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round(price * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
                             }
                             
                             // Create claim
@@ -1813,7 +1808,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	            	.thenAccept(success -> {
             	            		if (success) {
             	            			int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
-            	            			player.sendMessage(instance.getLanguage().getMessage("create-claim-success").replaceAll("%remaining-claims%", String.valueOf(remainingClaims)));
+            	            			player.sendMessage(instance.getLanguage().getMessage("create-claim-success").replace("%remaining-claims%", instance.getMain().getNumberSeparate(String.valueOf(remainingClaims))));
             	            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, Set.of(chunk), true, false);
             	            		} else {
             	            			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -1849,12 +1844,6 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             return;
         }
         
-        // Check if the chunk is already claimed
-        if (instance.getMain().checkIfClaimExists(chunk)) {
-        	instance.getMain().handleClaimConflict(player, chunk);
-        	return;
-        }
-        
         // Check if there is chunk near
         instance.getMain().isAreaClaimFree(chunk, cPlayer.getClaimDistance(), playerName)
         		.thenAccept(successs -> {
@@ -1865,18 +1854,24 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         		            return;
         		        }
         		        
+                        // Check if player can claim with all these chunks (total)
+                        if (!cPlayer.canClaimTotalWithNumber(instance.getMain().getAllChunksFromAllClaims(playerName).size()+1)) {
+                            player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks"));
+                            return;
+                        }
+        		        
         		        // Check if the player can pay
         		        if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
         		            double price = instance.getSettings().getBooleanSetting("claim-cost-multiplier") ? cPlayer.getMultipliedCost() : cPlayer.getCost();
         		            double balance = instance.getVault().getPlayerBalance(playerName);
 
         		            if (balance < price) {
-        		            	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replaceAll("%missing-price%", String.valueOf(price - balance)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+        		            	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replace("%missing-price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round((price - balance)*100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
         		                return;
         		            }
 
         		            instance.getVault().removePlayerBalance(playerName, price);
-        		            if (price > 0) player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replaceAll("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+        		            if (price > 0) player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round(price * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
         		        }
         		        
         		        // Create claim
@@ -1884,7 +1879,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         		        	.thenAccept(success -> {
         		        		if (success) {
         		        			int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
-        		        			player.sendMessage(instance.getLanguage().getMessage("create-claim-success").replaceAll("%remaining-claims%", String.valueOf(remainingClaims)));
+        		        			player.sendMessage(instance.getLanguage().getMessage("create-claim-success").replace("%remaining-claims%", String.valueOf(remainingClaims)));
         		        			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, Set.of(chunk), true, false);
         		        		} else {
         		        			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -2078,7 +2073,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     public static CompletableFuture<Set<Chunk>> getChunksInRadius(Player player, Location center, int radius, SimpleClaimSystem instance) {
         
         player.sendMessage(instance.getLanguage().getMessage("chunk-are-loading")
-                .replaceAll("%chunks-count%", AdminGestionMainGui.getNumberSeparate(String.valueOf(calculateNumberOfChunks(radius)))));
+                .replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(calculateNumberOfChunks(radius)))));
 
         Set<Chunk> chunks = ConcurrentHashMap.newKeySet(); // Thread-safe set
         World world = center.getWorld();
@@ -2099,8 +2094,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                                         int count = loadedChunks.incrementAndGet();
                                         if (count % 1000 == 0) {
                                             instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("chunk-while-loading")
-                                                    .replace("%loaded-chunks%", AdminGestionMainGui.getNumberSeparate(String.valueOf(count)))
-                                                    .replace("%chunks-count%", AdminGestionMainGui.getNumberSeparate(String.valueOf(totalChunks)))));
+                                                    .replace("%loaded-chunks%", instance.getMain().getNumberSeparate(String.valueOf(count)))
+                                                    .replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(totalChunks)))));
                                         }
                                     })
                                     .exceptionally(ex -> {
@@ -2123,8 +2118,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                                 int count = loadedChunks.incrementAndGet();
                                 if (count % 1000 == 0) {
                                     instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("chunk-while-loading")
-                                            .replace("%loaded-chunks%", AdminGestionMainGui.getNumberSeparate(String.valueOf(count)))
-                                            .replace("%chunks-count%", AdminGestionMainGui.getNumberSeparate(String.valueOf(totalChunks)))));
+                                            .replace("%loaded-chunks%", instance.getMain().getNumberSeparate(String.valueOf(count)))
+                                            .replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(totalChunks)))));
                                 }
                                 return chunk;
                             }))

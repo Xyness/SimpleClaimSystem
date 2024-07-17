@@ -350,7 +350,7 @@ public class ClaimEventsEnterLeave implements Listener {
      */
     private void handleAutoClaim(Player player, CPlayer cPlayer, Chunk chunk, String world) {
         if (instance.getSettings().isWorldDisabled(world)) {
-            player.sendMessage(instance.getLanguage().getMessage("autoclaim-world-disabled").replaceAll("%world%", world));
+            player.sendMessage(instance.getLanguage().getMessage("autoclaim-world-disabled").replace("%world%", world));
             cPlayer.setClaimAutoclaim(false);
         } else {
         	String playerName = player.getName();
@@ -378,12 +378,12 @@ public class ClaimEventsEnterLeave implements Listener {
                 double balance = instance.getVault().getPlayerBalance(playerName);
 
                 if (balance < price) {
-                	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replaceAll("%missing-price%", String.valueOf(price - balance)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+                	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replace("%missing-price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round((price - balance)*100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
                     return;
                 }
 
                 instance.getVault().removePlayerBalance(playerName, price);
-                if (price > 0) player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replaceAll("%price%", String.valueOf(price)).replaceAll("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+                if (price > 0) player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round(price * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
             }
             
             // Create claim
@@ -391,7 +391,7 @@ public class ClaimEventsEnterLeave implements Listener {
             	.thenAccept(success -> {
             		if (success) {
             			int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
-            			player.sendMessage(instance.getLanguage().getMessage("create-claim-success").replaceAll("%remaining-claims%", String.valueOf(remainingClaims)));
+            			player.sendMessage(instance.getLanguage().getMessage("create-claim-success").replace("%remaining-claims%", instance.getMain().getNumberSeparate(String.valueOf(remainingClaims))));
             			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, Set.of(chunk), true, false);
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("error"));
@@ -414,7 +414,7 @@ public class ClaimEventsEnterLeave implements Listener {
      */
     private void handleAutoMap(Player player, CPlayer cPlayer, Chunk chunk, String world) {
         if (instance.getSettings().isWorldDisabled(world)) {
-            player.sendMessage(instance.getLanguage().getMessage("automap-world-disabled").replaceAll("%world%", world));
+            player.sendMessage(instance.getLanguage().getMessage("automap-world-disabled").replace("%world%", world));
             cPlayer.setClaimAutomap(false);
         } else {
             instance.getMain().getMap(player, chunk);

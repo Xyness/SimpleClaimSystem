@@ -149,7 +149,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
                 inv.setItem(instance.getGuis().getItemSlot("claims_owner", "next-page-list"), createNavigationItem("next-page-list", page + 1));
                 break;
             }
-            if (claim.getPermission("Visitor") && !instance.getSettings().getBooleanSetting("claims-visitors-off-visible")) continue;
+            if (claim.getPermission("Visitors") && !instance.getSettings().getBooleanSetting("claims-visitors-off-visible")) continue;
             OfflinePlayer target = instance.getPlayerMain().getOfflinePlayer(claim.getOwner());
             List<String> lore = prepareLore(loreTemplate, claim, player, target);
             ItemStack item = createClaimItem(claim, player, lore, target);
@@ -210,10 +210,10 @@ public class ClaimsOwnerGui implements InventoryHolder {
     private void addEconomyLore(Player player, Claim claim, List<String> lore, OfflinePlayer target) {
         if (instance.getSettings().getBooleanSetting("economy") && claim.getSale()) {
             Collections.addAll(lore, instance.getLanguage().getMessageWP("all-claim-buyable-price", target)
-                .replaceAll("%price%", String.valueOf(claim.getPrice()))
-                .replaceAll("%money-symbol%",instance.getLanguage().getMessage("money-symbol"))
+                .replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                .replace("%money-symbol%",instance.getLanguage().getMessage("money-symbol"))
                 .split("\n"));
-            lore.add(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.buy") ? instance.getLanguage().getMessage("all-claim-is-buyable") : instance.getLanguage().getMessage("gui-button-no-permission") + " to buy");
+            lore.add(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.buy") ? instance.getLanguage().getMessage("all-claim-is-buyable") : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-buy"));
         }
     }
 
@@ -228,7 +228,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
         String visitorMessage = claim.getPermission("Visitors") || claim.getOwner().equals(player.getName()) ? 
             instance.getLanguage().getMessage("access-all-claim-lore-allow-visitors") : 
             instance.getLanguage().getMessage("access-all-claim-lore-deny-visitors");
-        lore.add(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp") ? visitorMessage : instance.getLanguage().getMessage("gui-button-no-permission") + " to teleport");
+        lore.add(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp") ? visitorMessage : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-teleport"));
     }
     
     /**
