@@ -227,8 +227,8 @@ public class ClaimMain {
      */
     public String getNumberSeparate(String text) {
     	if(text.contains(".")) {
-    		String[] parts = text.split(".");
-    		return getNumberSeparate(parts[0])+parts[1];
+    		String[] parts = text.split("\\.");
+    		return getNumberSeparate(parts[0])+"."+parts[1];
     	}
         int length = text.length();
         
