@@ -99,7 +99,7 @@ public class ClaimListGui implements InventoryHolder {
         String lore_remove = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.remove")
                 ? instance.getLanguage().getMessage("access-claim-clickable-remove")
                 : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-remove");
-        String lore_settings = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim")
+        String lore_settings = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.main")
                 ? instance.getLanguage().getMessage("access-claim-clickable-manage")
                 : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-manage");
 

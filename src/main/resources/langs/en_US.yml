@@ -215,7 +215,7 @@ economy-setup-how-to: "§fSend in the chat the new max sell price like this :\n�
 map-setup-how-to: "§fSend in the chat the settings like this :\n§b<CLAIM-BORDER-COLOR>§f;§b<CLAIM-FILL-COLOR>§f;§b<CLAIM-HOVER-TEXT>"
 map-must-be-three-settings: "§cThe map requires 3 parameters:\n§c<CLAIM-BORDER-COLOR>;<CLAIM-FILL-COLOR>;<CLAIM-HOVER-TEXT>"
 map-new-settings: "§fNew map settings:\n%settings%"
-money-symbol: "\\$" # keep the \\
+money-symbol: "$"
 delete-claim-protected-area: "§aProtected area deleted successfully."
 delete-claim-all-protected-areas: "§aAll protected areas deleted successfully."
 delete-chunk-success: "§aChunk §f%chunk% §adeleted successfully from §f%claim-name%§a."

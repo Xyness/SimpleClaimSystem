@@ -245,8 +245,8 @@ public class ClaimsGui implements InventoryHolder {
      */
     private ItemStack createFilterItem(String filter) {
         String loreFilter = instance.getLanguage().getMessage("filter-new-lore")
-            .replace("%status_color_" + getStatusIndex(filter) + "%", instance.getLanguage().getMessage("status_color_active_filter"))
-            .replace("%status_color_[^" + getStatusIndex(filter) + "]%", instance.getLanguage().getMessage("status_color_inactive_filter"));
+            .replaceAll("%status_color_" + getStatusIndex(filter) + "%", instance.getLanguage().getMessage("status_color_active_filter"))
+            .replaceAll("%status_color_[^" + getStatusIndex(filter) + "]%", instance.getLanguage().getMessage("status_color_inactive_filter"));
         return createItem(instance.getGuis().getItemMaterial("claims", "filter"), instance.getLanguage().getMessage("filter-title"), getLore(loreFilter));
     }
 
