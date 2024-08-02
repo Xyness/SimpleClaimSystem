@@ -2195,7 +2195,7 @@ public class ClaimMain {
      */
     public boolean canPermCheck(Chunk chunk, String perm, String role) {
         Claim claim = listClaims.get(chunk);
-        return claim != null && claim.getPermission(perm, role == null ? "natural" : role);
+        return claim != null && claim.getPermission(perm, role == null ? "natural" : role.toLowerCase());
     }
     
     /**
@@ -2335,7 +2335,7 @@ public class ClaimMain {
             	String owner = claim.getOwner();
             	
             	// Update permission
-		        claim.getPermissions().get(role == null ? "natural" : role).put(permission, value);
+		        claim.getPermissions().get(role == null ? "natural" : role.toLowerCase()).put(permission, value);
 		
 		        // Check if permission is Weather, then update weather for players in the chunks
 		        if (permission.equals("Weather")) updateWeatherChunk(claim);
@@ -2932,8 +2932,8 @@ public class ClaimMain {
 	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
 	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
 	        	chunks.stream().forEach(c -> listClaims.remove(c));
-                updateWeatherChunk(claim);
-                updateFlyChunk(claim);
+                resetWeatherChunk(claim);
+                resetFlyChunk(claim);
 	            
 	            // Get uuid of the owner and update owner claims count
 	            String uuid = "";
@@ -2998,8 +2998,8 @@ public class ClaimMain {
 	                    if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
 	                    if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
 	                    chunks.stream().forEach(c -> listClaims.remove(c));
-	                    updateWeatherChunk(claim);
-	                    updateFlyChunk(claim);
+	                    resetWeatherChunk(claim);
+	                    resetFlyChunk(claim);
 	            	});
 	            	protectedAreas.clear();
 	            } else {
@@ -4292,7 +4292,7 @@ public class ClaimMain {
     	Bukkit.getOnlinePlayers().stream().forEach(p -> {
 			Chunk c = p.getLocation().getChunk();
 			if(chunks.contains(c)) {
-				boolean value = claim.getPermissionForPlayer("Fly", p);
+				boolean value = claim.getPermissionForPlayer("Weather", p);
                 if(value) {
                 	p.resetPlayerWeather();
                 } else {
@@ -4325,6 +4325,41 @@ public class ClaimMain {
                     }
                 }
 
+			}
+    	});
+    }
+    
+    /**
+     * Method to reset the weather in the claim.
+     *
+     * @param claim the claim to be updated
+     * @param result the new weather state
+     */
+    public void resetWeatherChunk(Claim claim) {
+		Set<Chunk> chunks = claim.getChunks();
+    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+			Chunk c = p.getLocation().getChunk();
+			if(chunks.contains(c)) {
+                p.resetPlayerWeather();
+			}
+    	});
+    }
+
+    /**
+     * Method to reset the fly in the claim.
+     *
+     * @param claim The claim to be updated
+     * @param result the new fly state
+     */
+    public void resetFlyChunk(Claim claim) {
+		Set<Chunk> chunks = claim.getChunks();
+    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+			Chunk c = p.getLocation().getChunk();
+			if(chunks.contains(c)) {
+                CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());
+                if (cPlayer.getClaimFly()) {
+                    instance.getPlayerMain().removePlayerFly(p);
+                }
 			}
     	});
     }

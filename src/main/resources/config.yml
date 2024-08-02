@@ -272,7 +272,7 @@ default-values-settings:
     Damages: false
     EnterTeleport: true
     Fly: true
-    Weather: true
+    Weather: false
   Visitors:
     Build: false
     Destroy: false
@@ -291,9 +291,9 @@ default-values-settings:
     Frostwalker: false
     Teleportations: false
     Damages: false
-    EnterTeleport: true
+    EnterTeleport: false
     Fly: false
-    Weather: false
+    Weather: true
   Natural:
     Explosions: false
     Liquids: false

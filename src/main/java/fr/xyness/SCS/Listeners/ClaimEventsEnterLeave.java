@@ -18,15 +18,9 @@ import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 import fr.xyness.SCS.CPlayer;
-import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.Claim;
-import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
-import fr.xyness.SCS.Config.ClaimLanguage;
-import fr.xyness.SCS.Config.ClaimSettings;
 
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 
 /**
@@ -138,6 +132,24 @@ public class ClaimEventsEnterLeave implements Listener {
         String ownerTO = instance.getMain().getOwnerInClaim(to);
         String ownerFROM = instance.getMain().getOwnerInClaim(from);
         
+        Claim claim = instance.getMain().getClaim(to);
+        if(claim != null) {
+	        if (instance.getMain().checkBan(claim, playerName) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
+	            cancelTeleport(event, player, "player-banned");
+	            return;
+	        }
+	        
+	        if (!claim.getPermissionForPlayer("EnterTeleport",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
+	            cancelTeleport(event, player, "visitors");
+	            return;
+	        }
+	
+	        if (isTeleportBlocked(event, player, claim)) {
+	            cancelTeleport(event, player, "teleportations");
+	            return;
+	        }
+        }
+        
         instance.getBossBars().activeBossBar(player, to);
         handleAutoFly(player, cPlayer, to, ownerTO);
         handleWeatherSettings(player, to, from);
@@ -153,24 +165,6 @@ public class ClaimEventsEnterLeave implements Listener {
 
         if (cPlayer.getClaimAutomap()) {
         	handleAutoMap(player, cPlayer, to, world);
-        }
-        
-        if (!instance.getMain().checkIfClaimExists(to)) return;
-
-        Claim claim = instance.getMain().getClaim(to);
-        if (instance.getMain().checkBan(claim, playerName) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
-            cancelTeleport(event, player, "player-banned");
-            return;
-        }
-        
-        if (!claim.getPermissionForPlayer("EnterTeleport",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
-            cancelTeleport(event, player, "visitors");
-            return;
-        }
-
-        if (isTeleportBlocked(event, player, claim)) {
-            cancelTeleport(event, player, "teleportations");
-            return;
         }
     }
 
