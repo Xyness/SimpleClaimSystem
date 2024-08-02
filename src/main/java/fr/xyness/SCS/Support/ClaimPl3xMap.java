@@ -135,7 +135,26 @@ public class ClaimPl3xMap implements EventListener {
                     .build();
 
             rectangle.setOptions(options);
-            layers.get(chunk.getWorld()).addMarker(rectangle);
+            World world = chunk.getWorld();
+            SimpleLayer targetLayer = layers.get(world);
+            if(targetLayer == null) {
+                String worldName = world.getName();
+                String layerId = "claims_" + world.getName();
+                Registry<net.pl3x.map.core.world.World> worldRegistry = Pl3xMap.api().getWorldRegistry();
+                net.pl3x.map.core.world.World mapWorld = worldRegistry.get(worldName);
+                if (mapWorld != null) {
+                    Layer layer = new SimpleLayer(layerId, () -> "Claims");
+                    layer.setPriority(1);
+                    layer.setZIndex(1);
+                    layer.setLiveUpdate(true);
+                    mapWorld.getLayerRegistry().register(layer);
+                    layers.put(world, (SimpleLayer) layer);
+                    layers.get(world).addMarker(rectangle);
+                }
+            } else {
+            	layers.get(chunk.getWorld()).addMarker(rectangle);
+            }
+            
         });
     }
 

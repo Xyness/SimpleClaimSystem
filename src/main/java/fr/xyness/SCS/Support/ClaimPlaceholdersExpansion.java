@@ -85,7 +85,7 @@ public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
     public String onPlaceholderRequest(Player player, String identifier) {
         if (player == null) return "";
         
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getName());
+        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
         
         CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> {
         	switch (identifier) {
@@ -190,7 +190,7 @@ public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
                 chunk = player.getLocation().getChunk();
                 if (instance.getMain().checkIfClaimExists(chunk)) {
                 	Claim claim = instance.getMain().getClaim(chunk);
-                	Set<String> members = claim.getMembers();
+                	Set<String> members = instance.getMain().convertUUIDSetToStringSet(claim.getMembers());
                 	long onlineMembers = members.stream()
                 	        .filter(member -> Bukkit.getPlayer(member) != null)
                 	        .count();
@@ -211,8 +211,12 @@ public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
                     chunk = player.getLocation().getChunk();
                     if (instance.getMain().checkIfClaimExists(chunk)) {
                     	Claim claim = instance.getMain().getClaim(chunk);
-                        String setting = identifier.replaceFirst("claim_setting_", "");
-                        return claim.getPermission(setting) ? 
+                        String syntax = identifier.replaceFirst("claim_setting_", "");
+                        String[] parts = syntax.split("_");
+                        if(parts.length != 2) return instance.getLanguage().getMessage("status-disabled");
+                        String setting = parts[0];
+                        String role = parts[1];
+                        return claim.getPermission(setting,role) ? 
                                 instance.getLanguage().getMessage("status-enabled") : 
                                 instance.getLanguage().getMessage("status-disabled");
                     }

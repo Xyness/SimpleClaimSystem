@@ -122,7 +122,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
         // Get data
         Player player = (Player) sender;
         String playerName = player.getName();
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
+        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
         
         // Check if for desc (so there are many arguments)
         if (args.length > 1 && args[0].equals("setdesc")) {
@@ -161,7 +161,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
      * Handles the command for description
      */
     private void handleDesc(Player player, String[] args) {
-        if (instance.getMain().getClaimsNameFromOwner("admin").contains(args[1])) {
+        if (instance.getMain().getClaimsNameFromOwner("*").contains(args[1])) {
             String description = String.join(" ", Arrays.copyOfRange(args, 2, args.length));
             if (description.length() > Integer.parseInt(instance.getSettings().getSetting("max-length-claim-description"))) {
             	player.sendMessage(instance.getLanguage().getMessage("claim-description-too-long"));
@@ -171,7 +171,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("incorrect-characters-description"));
             	return;
             }
-            Claim claim = instance.getMain().getClaimByName(args[1], "admin");
+            Claim claim = instance.getMain().getProtectedAreaByName(args[1]);
             instance.getMain().setClaimDescription(claim, description)
             	.thenAccept(success -> {
             		if (success) {
@@ -200,7 +200,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
      */
     private void handleArgThree(Player player, String playerName, CPlayer cPlayer, String[] args) {
     	if (args[0].equalsIgnoreCase("delchunk")) {
-            Claim claim = instance.getMain().getClaimByName(args[1], "admin");
+            Claim claim = instance.getMain().getProtectedAreaByName(args[1]);
             if (claim == null) {
             	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
                 return;
@@ -230,7 +230,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             return;
     	}
     	if (args[0].equalsIgnoreCase("merge")) {
-            Set<String> claimsName = instance.getMain().getClaimsNameFromOwner("admin");
+            Set<String> claimsName = instance.getMain().getClaimsNameFromOwner("*");
             if (!claimsName.contains(args[1])) {
             	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
             	return;
@@ -242,17 +242,17 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                     	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
                     	return;
             		}
-            		claims.add(instance.getMain().getClaimByName(c, "admin"));
+            		claims.add(instance.getMain().getProtectedAreaByName(c));
             	}
             } else {
                 if (!claimsName.contains(args[2])) {
                 	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
                 	return;
                 }
-                Claim claim2 = instance.getMain().getClaimByName(args[2], "admin");
+                Claim claim2 = instance.getMain().getProtectedAreaByName(args[2]);
                 claims.add(claim2);
             }
-            Claim claim1 = instance.getMain().getClaimByName(args[1], "admin");
+            Claim claim1 = instance.getMain().getProtectedAreaByName(args[1]);
             if(claims.contains(claim1)) {
             	player.sendMessage(instance.getLanguage().getMessage("cant-merge-same-claim"));
             	return;
@@ -290,7 +290,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     	}
     	if (args[0].equalsIgnoreCase("kick")) {
             if (args[1].equalsIgnoreCase("*")) {
-        		if(instance.getMain().getPlayerClaimsCount("admin") == 0) {
+        		if(instance.getMain().getProtectedAreasCount() == 0) {
         			player.sendMessage(instance.getLanguage().getMessage("no-admin-claim"));
         			return;
         		}
@@ -299,7 +299,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                 	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[2]));
                 	return;
                 }
-	        	if(!instance.getMain().getAllChunksFromAllClaims("admin").contains(target.getLocation().getChunk())) {
+	        	if(!instance.getMain().getAllChunksFromAllClaims("*").contains(target.getLocation().getChunk())) {
 	            	player.sendMessage(instance.getLanguage().getMessage("player-not-in-any-claim").replace("%player%", target.getName()));
 	            	return;
 	        	}
@@ -308,7 +308,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 	        	instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
 	        	return;
             }
-            Claim claim = instance.getMain().getClaimByName(args[1], "admin");
+            Claim claim = instance.getMain().getProtectedAreaByName(args[1]);
             if (claim == null) {
             	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
                 return;
@@ -330,14 +330,14 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     	}
     	if(args[0].equalsIgnoreCase("ban")) {
 			if(args[1].equalsIgnoreCase("*")) {
-        		if(instance.getMain().getPlayerClaimsCount("admin") == 0) {
+        		if(instance.getMain().getProtectedAreasCount() == 0) {
         			player.sendMessage(instance.getLanguage().getMessage("no-admin-claim"));
         			return;
         		}
     			Player target = Bukkit.getPlayer(args[2]);
     			String targetName = "";
     			if(target == null) {
-    				OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
+    				OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
     				if(otarget == null || !otarget.hasPlayedBefore()) {
     					player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
         				return;
@@ -351,7 +351,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
         			return;
         		}
         		String message = instance.getLanguage().getMessage("add-ban-all-success").replace("%player%", targetName);
-        		instance.getMain().addAllClaimBan("admin",targetName)
+        		instance.getMain().addAllClaimBan("*",targetName)
         			.thenAccept(success -> {
         				if (success) {
     	        			player.sendMessage(message);
@@ -369,7 +369,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                     });
         		return;
     		}
-    		Claim claim = instance.getMain().getClaimByName(args[1], "admin");
+    		Claim claim = instance.getMain().getProtectedAreaByName(args[1]);
     		if(claim == null) {
     			player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
     			return;
@@ -377,7 +377,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 			Player target = Bukkit.getPlayer(args[2]);
 			String targetName = "";
 			if(target == null) {
-				OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
+				OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
 				if(otarget == null || !otarget.hasPlayedBefore()) {
 					player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
     				return;
@@ -412,20 +412,20 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     	}
     	if(args[0].equalsIgnoreCase("unban")) {
 			if(args[1].equalsIgnoreCase("*")) {
-        		if(instance.getMain().getPlayerClaimsCount("admin") == 0) {
+        		if(instance.getMain().getProtectedAreasCount() == 0) {
         			player.sendMessage(instance.getLanguage().getMessage("no-admin-claim"));
         			return;
         		}
     			Player target = Bukkit.getPlayer(args[2]);
     			String targetName = "";
     			if(target == null) {
-    				OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
+    				OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
     				targetName = otarget == null || !otarget.hasPlayedBefore() ? args[2] : otarget.getName();
     			} else {
     				targetName = target.getName();
     			}
     			String message = instance.getLanguage().getMessage("remove-ban-all-success").replace("%player%", targetName);
-    			instance.getMain().removeAllClaimBan("admin",targetName)
+    			instance.getMain().removeAllClaimBan("*",targetName)
     				.thenAccept(success -> {
     					if (success) {
     						player.sendMessage(message);
@@ -442,7 +442,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                     });
         		return;
     		}
-    		Claim claim = instance.getMain().getClaimByName(args[1], "admin");
+    		Claim claim = instance.getMain().getProtectedAreaByName(args[1]);
     		if(claim == null) {
     			player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
     			return;
@@ -473,13 +473,13 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     		return;
     	}
     	if(args[0].equalsIgnoreCase("setname")) {
-			if (!instance.getMain().checkName("admin",args[1])) {
+			if (!instance.getMain().checkName("*",args[1])) {
                 if (args[2].contains("claim-") || !args[2].matches("^[a-zA-Z0-9]+$")) {
                 	player.sendMessage(instance.getLanguage().getMessage("you-cannot-use-this-name"));
                     return;
                 }
-        		if(instance.getMain().checkName("admin",args[2])) {
-        			Claim claim = instance.getMain().getClaimByName(args[1], "admin");
+        		if(instance.getMain().checkName("*",args[2])) {
+        			Claim claim = instance.getMain().getProtectedAreaByName(args[1]);
                 	instance.getMain().setClaimName(claim, args[2])
             		.thenAccept(success -> {
             			if (success) {
@@ -504,7 +504,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     		}
     		Claim claim = instance.getMain().getClaim(chunk);
     		String owner = claim.getOwner();
-    		if(!owner.equals("admin")) {
+    		if(!owner.equals("*")) {
     			player.sendMessage(instance.getLanguage().getMessage("claim-not-an-admin-claim"));
     			return;
     		}
@@ -512,7 +512,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 				player.sendMessage(instance.getLanguage().getMessage("you-cannot-use-this-name"));
 				return;
 			}
-    		if(instance.getMain().checkName("admin",args[1])) {
+    		if(instance.getMain().checkName("*",args[1])) {
             	instance.getMain().setClaimName(claim, args[1])
         		.thenAccept(success -> {
         			if (success) {
@@ -532,14 +532,14 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     	}
     	if(args[0].equalsIgnoreCase("add")) {
 			if(args[1].equalsIgnoreCase("*")) {
-        		if(instance.getMain().getPlayerClaimsCount("admin") == 0) {
+        		if(instance.getMain().getProtectedAreasCount() == 0) {
         			player.sendMessage(instance.getLanguage().getMessage("no-admin-claim"));
         			return;
         		}
     			Player target = Bukkit.getPlayer(args[2]);
     			String targetName = "";
     			if(target == null) {
-    				OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
+    				OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
     				if(otarget == null || !otarget.hasPlayedBefore()) {
     					player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
         				return;
@@ -549,7 +549,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     				targetName = target.getName();
     			}
     			String message = instance.getLanguage().getMessage("add-member-success").replace("%player%", targetName).replace("%claim-name%", instance.getLanguage().getMessage("protected-area-title"));
-    			instance.getMain().addAllClaimsMember("admin",targetName)
+    			instance.getMain().addAllClaimsMember("*",targetName)
     				.thenAccept(success -> {
     					if (success) {
     	        			player.sendMessage(message);
@@ -569,7 +569,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             Player target = Bukkit.getPlayer(args[2]);
             String targetName = "";
             if (target == null) {
-                OfflinePlayer otarget = instance.getPlayerMain().getOfflinePlayer(args[2]);
+                OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
                 if (otarget == null || !otarget.hasPlayedBefore()) {
                 	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
                     return;
@@ -578,7 +578,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             } else {
                 targetName = target.getName();
             }
-    		Claim claim = instance.getMain().getClaimByName(args[1], "admin");
+    		Claim claim = instance.getMain().getProtectedAreaByName(args[1]);
     		if(claim == null) {
     			player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
     			return;
@@ -603,13 +603,13 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     	}
     	if(args[0].equalsIgnoreCase("remove")) {
     		if(args[1].equalsIgnoreCase("*")) {
-        		if(instance.getMain().getPlayerClaimsCount("admin") == 0) {
+        		if(instance.getMain().getProtectedAreasCount() == 0) {
         			player.sendMessage(instance.getLanguage().getMessage("no-admin-claim"));
         			return;
         		}
     			String targetName = args[2];
     			String message = instance.getLanguage().getMessage("remove-member-success").replace("%player%", targetName).replace("%claim-name%", instance.getLanguage().getMessage("protected-area-title"));
-    			instance.getMain().removeAllClaimsMember("admin",targetName)
+    			instance.getMain().removeAllClaimsMember("*",targetName)
     				.thenAccept(success -> {
     					if (success) {
     						player.sendMessage(message);
@@ -627,7 +627,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                     });
         		return;
     		}
-    		Claim claim = instance.getMain().getClaimByName(args[1], "admin");
+    		Claim claim = instance.getMain().getProtectedAreaByName(args[1]);
     		if(claim == null) {
     			player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
     			return;
@@ -670,7 +670,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
      * @param args The args for the command
      */
     private void handleArgTwo(Player player, String playerName, CPlayer cPlayer, String[] args) {
-    	Claim claim = instance.getMain().getClaimByName(args[1], "admin");
+    	Claim claim = instance.getMain().getProtectedAreaByName(args[1]);
     	if (args[0].equalsIgnoreCase("addchunk")) {
             if (claim == null) {
             	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
@@ -679,7 +679,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             Chunk chunk = player.getLocation().getChunk();
             if(instance.getMain().checkIfClaimExists(chunk)) {
             	Claim claim_target = instance.getMain().getClaim(chunk);
-            	if(claim_target.getOwner().equalsIgnoreCase("admin")) {
+            	if(claim_target.getOwner().equalsIgnoreCase("*")) {
             		if(claim_target.equals(claim)) {
             			player.sendMessage(instance.getLanguage().getMessage("add-chunk-already-in-claim-protected-area")
             					.replace("%claim-name%", claim.getName()));
@@ -727,7 +727,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     	if (args[0].equalsIgnoreCase("unclaim")) {
             if (claim == null) {
             	if (args[1].equalsIgnoreCase("*")) {
-                    instance.getMain().deleteAllClaims("admin")
+                    instance.getMain().deleteAllClaims("*")
 	                	.thenAccept(success -> {
 	                		if (success) {
 	                			player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
@@ -805,7 +805,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     			player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
     			return;
     		}
-    		new AdminGestionClaimGui(player,claim,instance);
+    		new AdminGestionClaimGui(player,claim,instance,"visitors");
     		return;
     	}
     	instance.getMain().getHelp(player, args[0], "parea");
@@ -828,7 +828,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                 return;
             }
     		String owner = claim.getOwner();
-    		if(owner.equals("admin")) {
+    		if(owner.equals("*")) {
     			cPlayer.setGuiPage(1);
     			new AdminGestionClaimBansGui(player, claim, 1, instance);
     			return;
@@ -844,8 +844,8 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                 return;
             }
     		String owner = claim.getOwner();
-    		if(owner.equals("admin")) {
-    			new AdminGestionClaimGui(player, claim, instance);
+    		if(owner.equals("*")) {
+    			new AdminGestionClaimGui(player, claim, instance,"visitors");
     			return;
     		}
     		player.sendMessage(instance.getLanguage().getMessage("claim-not-an-admin-claim"));
@@ -864,7 +864,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                 return;
             }
     		String owner = claim.getOwner();
-    		if(!owner.equals("admin")) {
+    		if(!owner.equals("*")) {
     			player.sendMessage(instance.getLanguage().getMessage("claim-not-an-admin-claim"));
     			return;
     		}
@@ -880,7 +880,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                 return;
             }
     		String owner = claim.getOwner();
-    		if(!owner.equals("admin")) {
+    		if(!owner.equals("*")) {
     			player.sendMessage(instance.getLanguage().getMessage("claim-not-an-admin-claim"));
     			return;
     		}
@@ -936,7 +936,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     	if(instance.getMain().checkIfClaimExists(chunk)) {
     		Claim claim = instance.getMain().getClaim(chunk);
     		String owner = claim.getOwner();
-    		if(!owner.equals("admin")) {
+    		if(!owner.equals("*")) {
     			player.sendMessage(instance.getLanguage().getMessage("create-already-claim").replace("%player%", owner));
     			return;
     		}
@@ -1005,13 +1005,13 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             case "addchunk":
             case "delchunk":
             case "chunks":
-                completions.addAll(instance.getMain().getClaimsNameFromOwner("admin"));
+                completions.addAll(instance.getMain().getClaimsNameFromOwner("*"));
                 break;
             case "remove":
             case "unclaim":
             case "kick":
                 completions.add("*");
-                completions.addAll(instance.getMain().getClaimsNameFromOwner("admin"));
+                completions.addAll(instance.getMain().getClaimsNameFromOwner("*"));
                 break;
             default:
                 break;
@@ -1030,10 +1030,13 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
         String command = args[0].toLowerCase();
         String claimName = args[1];
+        
+        Claim claim = instance.getMain().getProtectedAreaByName(claimName);
+        if(claim == null) return completions;
 
         switch (command) {
             case "unban":
-                completions.addAll(instance.getMain().getBannedFromClaimName("admin", claimName));
+                completions.addAll(instance.getMain().convertUUIDSetToStringSet(claim.getBans()));
                 break;
             case "ban":
             case "add":
@@ -1042,17 +1045,16 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                 break;
             case "remove":
                 if (!claimName.equals("*")) {
-                    completions.addAll(instance.getMain().getMembersFromClaimName("admin", claimName));
+                    completions.addAll(instance.getMain().convertUUIDSetToStringSet(claim.getMembers()));
                 } else {
-                    completions.addAll(instance.getMain().getAllMembersOfAllPlayerClaim("admin"));
+                    completions.addAll(instance.getMain().getAllMembersOfAllPlayerClaim("*"));
                 }
                 break;
             case "merge":
-            	completions.addAll(instance.getMain().getClaimsNameFromOwner("admin"));
+            	completions.addAll(instance.getMain().getClaimsNameFromOwner("*"));
             	completions.remove(args[1]);
             	break;
             case "delchunk":
-            	Claim claim = instance.getMain().getClaimByName(claimName, "admin");
             	if(claim != null) {
             		completions.addAll(instance.getMain().getStringChunkFromClaim(claim));
             	}

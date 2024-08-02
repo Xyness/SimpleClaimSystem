@@ -3,9 +3,7 @@ package fr.xyness.SCS.Config;
 import java.util.HashMap;
 import java.util.Map;
 
-import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 
 import fr.xyness.SCS.SimpleClaimSystem;
 import me.clip.placeholderapi.PlaceholderAPI;
@@ -76,13 +74,11 @@ public class ClaimLanguage {
      * @param target The targeted player's name.
      * @return The message with placeholders replaced, or an empty string if the key is not found.
      */
-    public String getMessageWP(String key, OfflinePlayer target) {
+    public String getMessage(String key, OfflinePlayer target) {
         if (!instance.getSettings().getBooleanSetting("placeholderapi") || !lang.containsKey(key)) {
-            return getMessage(key);
+            return lang.get(key);
         }
-        
-        String message = lang.get(key);
-        return PlaceholderAPI.setPlaceholders(target, message);
+        return PlaceholderAPI.setPlaceholders(target, lang.get(key));
     }
 
 }

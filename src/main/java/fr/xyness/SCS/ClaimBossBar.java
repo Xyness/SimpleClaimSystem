@@ -28,6 +28,18 @@ public class ClaimBossBar {
     
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
+    
+    /** Default bossbar color */
+    private BarColor defaultColor;
+    
+    /** Default bossbar style */
+    private BarStyle defaultStyle;
+    
+    /** For sale bossbar color */
+    private BarColor saleColor;
+    
+    /** For sale bossbar style */
+    private BarStyle saleStyle;
 
     
     // ******************
@@ -49,6 +61,16 @@ public class ClaimBossBar {
     // *  Others Methods  *
     // ********************
     
+    
+    /**
+     * Loads bossbar settings
+     */
+    public void loadBossbarSettings() {
+    	this.defaultColor = BarColor.valueOf(instance.getSettings().getSetting("bossbar-color"));
+    	this.defaultStyle = BarStyle.valueOf(instance.getSettings().getSetting("bossbar-style"));
+    	this.saleColor = BarColor.valueOf(instance.getSettings().getSetting("announce-sale.bossbar-settings.color"));
+    	this.saleStyle = BarStyle.valueOf(instance.getSettings().getSetting("announce-sale.bossbar-settings.style"));
+    }
     
     /**
      * Activates the BossBar for the player.
@@ -76,20 +98,53 @@ public class ClaimBossBar {
             String chunkName = claim.getName();
             String title;
 
-            if (owner.equals("admin")) {
-                title = instance.getLanguage().getMessageWP("bossbar-protected-area-message",player).replace("%name%", chunkName);
-            } else if (owner.equals(player.getName())) {
-                title = instance.getLanguage().getMessageWP("bossbar-owner-message",player).replace("%owner%", owner).replace("%name%", chunkName);
-            } else if (instance.getMain().checkMembre(claim, player)) {
-                title = instance.getLanguage().getMessageWP("bossbar-member-message",player)
-                        .replace("%player%", player.getName())
-                        .replace("%owner%", owner)
-                        .replace("%name%", chunkName);
+            if(claim.getSale() && instance.getSettings().getBooleanSetting("announce-sale.bossbar")) {
+            	b.setColor(saleColor);
+            	b.setStyle(saleStyle);
+                if (owner.equals("*")) {
+                    title = instance.getLanguage().getMessage("bossbar-protected-area-for-sale-message",player)
+                    		.replace("%name%", chunkName)
+                    		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                      		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
+                } else if (owner.equals(player.getName())) {
+                    title = instance.getLanguage().getMessage("bossbar-owner-for-sale-message",player)
+                    		.replace("%owner%", owner)
+                    		.replace("%name%", chunkName)
+                    		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                      		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
+                } else if (instance.getMain().checkMembre(claim, player)) {
+                    title = instance.getLanguage().getMessage("bossbar-member-for-sale-message",player)
+                            .replace("%player%", player.getName())
+                            .replace("%owner%", owner)
+                            .replace("%name%", chunkName)
+                    		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                      		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
+                } else {
+                    title = instance.getLanguage().getMessage("bossbar-visitor-for-sale-message",player)
+                            .replace("%player%", player.getName())
+                            .replace("%owner%", owner)
+                            .replace("%name%", chunkName)
+                    		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                      		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
+                }
             } else {
-                title = instance.getLanguage().getMessageWP("bossbar-visitor-message",player)
-                        .replace("%player%", player.getName())
-                        .replace("%owner%", owner)
-                        .replace("%name%", chunkName);
+            	b.setColor(defaultColor);
+            	b.setStyle(defaultStyle);
+                if (owner.equals("*")) {
+                    title = instance.getLanguage().getMessage("bossbar-protected-area-message",player).replace("%name%", chunkName);
+                } else if (owner.equals(player.getName())) {
+                    title = instance.getLanguage().getMessage("bossbar-owner-message",player).replace("%owner%", owner).replace("%name%", chunkName);
+                } else if (instance.getMain().checkMembre(claim, player)) {
+                    title = instance.getLanguage().getMessage("bossbar-member-message",player)
+                            .replace("%player%", player.getName())
+                            .replace("%owner%", owner)
+                            .replace("%name%", chunkName);
+                } else {
+                    title = instance.getLanguage().getMessage("bossbar-visitor-message",player)
+                            .replace("%player%", player.getName())
+                            .replace("%owner%", owner)
+                            .replace("%name%", chunkName);
+                }
             }
 
             b.setTitle(title);
@@ -103,7 +158,7 @@ public class ClaimBossBar {
      * @param color the new color for the BossBars.
      */
     public void setBossBarColor(BarColor color) {
-        bossBars.values().parallelStream().forEach(b -> b.setColor(color));
+        bossBars.values().stream().forEach(b -> b.setColor(color));
     }
     
     /**
@@ -112,7 +167,7 @@ public class ClaimBossBar {
      * @param style the new style for the BossBars.
      */
     public void setBossBarStyle(BarStyle style) {
-        bossBars.values().parallelStream().forEach(b -> b.setStyle(style));
+        bossBars.values().stream().forEach(b -> b.setStyle(style));
     }
     
     /**
@@ -178,7 +233,7 @@ public class ClaimBossBar {
      */
     public void activateBossBar(Set<Chunk> chunks) {
     	if (!instance.getSettings().getBooleanSetting("bossbar")) return;
-        Bukkit.getOnlinePlayers().parallelStream().forEach(p -> {
+        Bukkit.getOnlinePlayers().stream().forEach(p -> {
         	Chunk c = p.getLocation().getChunk();
         	if(chunks.contains(c)) {
         		activeBossBar(p,c);
@@ -193,7 +248,7 @@ public class ClaimBossBar {
      */
     public void deactivateBossBar(Set<Chunk> chunks) {
     	if (!instance.getSettings().getBooleanSetting("bossbar")) return;
-        Bukkit.getOnlinePlayers().parallelStream().forEach(p -> {
+        Bukkit.getOnlinePlayers().stream().forEach(p -> {
         	Chunk c = p.getLocation().getChunk();
         	if(chunks.contains(c)) {
         		disableBossBar(p);

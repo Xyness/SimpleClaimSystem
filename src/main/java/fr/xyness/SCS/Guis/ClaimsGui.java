@@ -1,15 +1,14 @@
 package fr.xyness.SCS.Guis;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.*;
-import fr.xyness.SCS.Config.*;
-import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
  * Class representing the Claims GUI.
@@ -23,25 +22,7 @@ public class ClaimsGui implements InventoryHolder {
 
 	
     /** The inventory for this GUI. */
-    private final Inventory inv;
-    
-    /** The player who opened the GUI. */
-    private final Player player;
-    
-    /** The current page of the GUI. */
-    private final int page;
-    
-    /** The filter applied to the claims. */
-    private final String filter;
-    
-    /** The number of items per page. */
-    private final int itemsPerPage;
-    
-    /** The minimum slot index for owner items. */
-    private final int minSlot;
-    
-    /** The maximum slot index for owner items. */
-    private final int maxSlot;
+    private Inventory inv;
     
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
@@ -61,20 +42,27 @@ public class ClaimsGui implements InventoryHolder {
      * @param instance The instance of the SimpleClaimSystem plugin.
      */
     public ClaimsGui(Player player, int page, String filter, SimpleClaimSystem instance) {
-        this.player = player;
-        this.page = page;
-        this.filter = filter;
-        this.minSlot = instance.getGuis().getGuiMinSlot("claims");
-        this.maxSlot = instance.getGuis().getGuiMaxSlot("claims");
-        this.itemsPerPage = maxSlot - minSlot + 1;
-        this.instance = instance;
-
-        String title = instance.getGuis().getGuiTitle("claims").replace("%page%", String.valueOf(page));
-        if (instance.getSettings().getBooleanSetting("placeholderapi")) {
-            title = PlaceholderAPI.setPlaceholders(player, title);
-        }
-        inv = Bukkit.createInventory(this, instance.getGuis().getGuiRows("claims") * 9, title);
-        instance.executeAsync(this::loadItems);
+    	this.instance = instance;
+    	
+    	// Get title
+    	String title = instance.getLanguage().getMessage("gui-claims-title")
+    			.replace("%page%", String.valueOf(page));
+    	
+    	// Create the inventory
+        inv = Bukkit.createInventory(this, 54, title);
+        
+        // Load the items asynchronously
+        loadItems(player, page, filter).thenAccept(success -> {
+        	if (success) {
+        		instance.executeEntitySync(player, () -> player.openInventory(inv));
+        	} else {
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        	}
+        })
+        .exceptionally(ex -> {
+            ex.printStackTrace();
+            return null;
+        });
     }
     
     
@@ -85,43 +73,118 @@ public class ClaimsGui implements InventoryHolder {
     
     /**
      * Load items into the inventory.
+     * 
+     * @param player The player for whom the GUI is being initialized.
+     * @param page   The current page of the GUI.
+     * @param filter The filter applied to the list.
+     * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    private void loadItems() {
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getName());
-        cPlayer.setFilter(filter);
-        cPlayer.clearMapString();
+    private CompletableFuture<Boolean> loadItems(Player player, int page, String filter) {
+    	
+    	return CompletableFuture.supplyAsync(() -> {
+    	
+	    	// Get player data
+	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+	        
+	        // Get claims data
+	        Map<String, Integer> owners = getOwnersByFilter(filter);
+	        int ownersCount = owners.size();
+	        
+	        // Update player data (gui)
+	        cPlayer.setFilter(filter);
+	        cPlayer.clearMapString();
+	
+	        // Set bottom items
+	        if (page > 1) inv.setItem(48, backPage(page - 1));
+	        inv.setItem(49, filter(filter));
+	        if (ownersCount > (page*45)) inv.setItem(50, nextPage(page + 1));
+	
+	        // Prepare lore
+	        List<String> loreTemplate = instance.getGuis().getLore(instance.getLanguage().getMessage("owner-claim-lore"));
+	        
+	        // Prepare count
+	        int startItem = (page - 1) * 45;
+	        int i = 0;
+	        int count = 0;
+	
+	        // Start loop
+	        for (Map.Entry<String, Integer> entry : owners.entrySet()) {
+	        	
+	        	// Continue if not in the page
+	            if (count++ < startItem) continue;
+	            
+	            // Break if bigger than 45 to not exceed
+	            if (i == 45) break;
+	
+	            // Get owner data
+	            String owner = entry.getKey();
+	            int claimAmount = entry.getValue();
+	            
+	            // Set lore for owner
+	            List<String> lore = new ArrayList<>();
+	            loreTemplate.forEach(s -> {
+	            	String l = s.replace("%claim-amount%", instance.getMain().getNumberSeparate(String.valueOf(claimAmount)));
+	            	lore.add(l);
+	            });
+	            lore.add(instance.getLanguage().getMessage("owner-claim-access"));
+	            
+	            // Add the owner to map string for gui clicking
+	            cPlayer.addMapString(i, owner);
+	            
+	            // Set owner head item
+	        	ItemStack item = instance.getPlayerMain().getPlayerHead(owner);
+	            SkullMeta meta = (SkullMeta) item.getItemMeta();
+	            meta.setDisplayName(instance.getLanguage().getMessage("owner-claim-title").replace("%owner%", owner));
+	            meta.setLore(lore);
+	            item.setItemMeta(meta);
+	            inv.setItem(i, item);
+	            i++;
+	        }
+	        
+	        return true;
 
-        if (page > 1) {
-            inv.setItem(instance.getGuis().getItemSlot("claims", "back-page-list"), createNavigationItem("back-page-list", page - 1));
+    	});
+	        
+    }
+    
+    /**
+     * Creates an item for the back page slot.
+     *
+     * @param page The page number.
+     * @return The created back page item.
+     */
+    private ItemStack backPage(int page) {
+        ItemStack item = new ItemStack(Material.ARROW);
+        ItemMeta meta = item.getItemMeta();
+
+        if (meta != null) {
+            meta.setDisplayName(instance.getLanguage().getMessage("previous-page-title").replace("%page%", String.valueOf(page)));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("previous-page-lore").replace("%page%", String.valueOf(page))));
+            meta = instance.getGuis().setItemFlag(meta);
+            item.setItemMeta(meta);
         }
 
-        List<String> loreTemplate = getLore(instance.getLanguage().getMessage("owner-claim-lore"));
-        Map<String, Integer> owners = getOwnersByFilter(filter);
-        inv.setItem(instance.getGuis().getItemSlot("claims", "filter"), createFilterItem(filter));
+        return item;
+    }
+    
+    /**
+     * Creates an item for the next page slot.
+     *
+     * @param page The page number.
+     * @return The created next page item.
+     */
+    private ItemStack nextPage(int page) {
+        ItemStack item = new ItemStack(Material.ARROW);
+        ItemMeta meta = item.getItemMeta();
 
-        int startItem = (page - 1) * itemsPerPage;
-        int i = minSlot;
-        int count = 0;
-
-        for (Map.Entry<String, Integer> entry : owners.entrySet()) {
-            if (count++ < startItem) continue;
-            if (i > maxSlot) {
-                inv.setItem(instance.getGuis().getItemSlot("claims", "next-page-list"), createNavigationItem("next-page-list", page + 1));
-                break;
-            }
-
-            String owner = entry.getKey();
-            int claimAmount = entry.getValue();
-            OfflinePlayer target = instance.getPlayerMain().getOfflinePlayer(owner);
-            List<String> lore = getLoreWithPlaceholders(loreTemplate, owner, claimAmount, target);
-            cPlayer.addMapString(i, owner);
-            inv.setItem(i, createOwnerClaimItem(owner, lore, target));
-            i++;
+        if (meta != null) {
+            meta.setDisplayName(instance.getLanguage().getMessage("next-page-title").replace("%page%", String.valueOf(page)));
+            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("next-page-lore").replace("%page%", String.valueOf(page))));
+            meta = instance.getGuis().setItemFlag(meta);
+            item.setItemMeta(meta);
         }
 
-        setCustomItems();
-
-        instance.executeEntitySync(player, () -> player.openInventory(inv));
+        return item;
     }
 
     /**
@@ -144,110 +207,24 @@ public class ClaimsGui implements InventoryHolder {
     }
 
     /**
-     * Create an item representing an owner's claim.
-     * 
-     * @param owner The owner of the claim.
-     * @param lore  The lore for the item.
-     * @return The created ItemStack.
-     */
-    private ItemStack createOwnerClaimItem(String owner, List<String> lore, OfflinePlayer target) {
-        String title = instance.getLanguage().getMessageWP("owner-claim-title", target).replace("%owner%", owner);
-        if (instance.getGuis().getItemCheckCustomModelData("claims", "claim-item")) {
-            return createItemWithModelData(title, lore, instance.getGuis().getItemMaterialMD("claims", "claim-item"), instance.getGuis().getItemCustomModelData("claims", "claim-item"));
-        }
-        if (instance.getGuis().getItemMaterialMD("claims", "claim-item").contains("PLAYER_HEAD")) {
-            return createPlayerHeadItem(owner, title, lore, target);
-        }
-        return createItem(instance.getGuis().getItemMaterial("claims", "claim-item"), title, lore);
-    }
-
-    /**
-     * Create a player head item representing an owner's claim.
-     * 
-     * @param owner The owner of the claim.
-     * @param title The title for the item.
-     * @param lore  The lore for the item.
-     * @return The created ItemStack.
-     */
-    private ItemStack createPlayerHeadItem(String owner, String title, List<String> lore, OfflinePlayer target) {
-    	ItemStack item = instance.getPlayerMain().getPlayerHead(target);
-        SkullMeta meta = (SkullMeta) item.getItemMeta();
-        meta.setDisplayName(title);
-        meta.setLore(lore);
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    /**
-     * Create a custom item.
-     * 
-     * @param key   The key of the custom item.
-     * @param title The title for the item.
-     * @param lore  The lore for the item.
-     * @return The created ItemStack.
-     */
-    private ItemStack createCustomItem(String key, String title, List<String> lore) {
-        if (instance.getGuis().getCustomItemCheckCustomModelData("claims", key)) {
-            return createItemWithModelData(title, lore, instance.getGuis().getCustomItemMaterialMD("claims", key), instance.getGuis().getCustomItemCustomModelData("claims", key));
-        } else {
-            return createItem(instance.getGuis().getCustomItemMaterial("claims", key), title, lore);
-        }
-    }
-
-    /**
-     * Create a standard item.
-     * 
-     * @param material The material of the item.
-     * @param name     The display name of the item.
-     * @param lore     The lore of the item.
-     * @return The created ItemStack.
-     */
-    private ItemStack createItem(Material material, String name, List<String> lore) {
-        ItemStack item = new ItemStack(material != null ? material : Material.STONE, 1);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(name);
-            meta.setLore(lore);
-            meta = instance.getGuis().setItemFlag(meta);
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
-
-    /**
-     * Create an item with model data.
-     * 
-     * @param name          The display name of the item.
-     * @param lore          The lore of the item.
-     * @param customItemName The custom item name.
-     * @param modelData     The custom model data.
-     * @return The created ItemStack.
-     */
-    private ItemStack createItemWithModelData(String name, List<String> lore, String customItemName, int modelData) {
-        CustomStack customStack = CustomStack.getInstance(customItemName);
-        ItemStack item = customStack != null ? customStack.getItemStack() : new ItemStack(Material.STONE, 1);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(name);
-            meta.setLore(lore);
-            meta.setCustomModelData(modelData);
-            meta = instance.getGuis().setItemFlag(meta);
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
-
-    /**
      * Create a filter item.
      * 
      * @param filter The current filter.
      * @return The created ItemStack.
      */
-    private ItemStack createFilterItem(String filter) {
-        String loreFilter = instance.getLanguage().getMessage("filter-new-lore")
-            .replaceAll("%status_color_" + getStatusIndex(filter) + "%", instance.getLanguage().getMessage("status_color_active_filter"))
-            .replaceAll("%status_color_[^" + getStatusIndex(filter) + "]%", instance.getLanguage().getMessage("status_color_inactive_filter"));
-        return createItem(instance.getGuis().getItemMaterial("claims", "filter"), instance.getLanguage().getMessage("filter-title"), getLore(loreFilter));
+    private ItemStack filter(String filter) {
+        ItemStack item = new ItemStack(Material.END_CRYSTAL);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            String loreFilter = instance.getLanguage().getMessage("filter-new-lore")
+                    .replaceAll("%status_color_" + getStatusIndex(filter) + "%", instance.getLanguage().getMessage("status_color_active_filter"))
+                    .replaceAll("%status_color_[^" + getStatusIndex(filter) + "]%", instance.getLanguage().getMessage("status_color_inactive_filter"));
+            meta.setDisplayName(instance.getLanguage().getMessage("filter-title"));
+            meta.setLore(instance.getGuis().getLore(loreFilter));
+            meta = instance.getGuis().setItemFlag(meta);
+            item.setItemMeta(meta);
+        }
+        return item;
     }
 
     /**
@@ -267,110 +244,6 @@ public class ClaimsGui implements InventoryHolder {
             default:
                 return 1;
         }
-    }
-
-    /**
-     * Create a navigation item.
-     * 
-     * @param key  The key for the item.
-     * @param page The page number.
-     * @return The created ItemStack.
-     */
-    private ItemStack createNavigationItem(String key, int page) {
-        ItemStack item;
-        if (instance.getGuis().getItemCheckCustomModelData("claims", key)) {
-            CustomStack customStack = CustomStack.getInstance(instance.getGuis().getItemMaterialMD("claims", key));
-            item = customStack != null ? customStack.getItemStack() : new ItemStack(Material.STONE, 1);
-        } else {
-            Material material = instance.getGuis().getItemMaterial("claims", key);
-            item = new ItemStack(material != null ? material : Material.STONE, 1);
-        }
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage(key + "-title").replace("%page%", String.valueOf(page)));
-            meta.setLore(getLore(instance.getLanguage().getMessage(key + "-lore").replace("%page%", String.valueOf(page))));
-            meta = instance.getGuis().setItemFlag(meta);
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
-
-    /**
-     * Set custom items in the inventory.
-     */
-    private void setCustomItems() {
-        Set<String> customItems = new HashSet<>(instance.getGuis().getCustomItems("claims"));
-        for (String key : customItems) {
-            List<String> lore = getLoreP(instance.getGuis().getCustomItemLore("claims", key), player);
-            String title = instance.getGuis().getCustomItemTitle("claims", key);
-            if (instance.getSettings().getBooleanSetting("placeholderapi")) {
-                title = PlaceholderAPI.setPlaceholders(player, title);
-            }
-            inv.setItem(instance.getGuis().getCustomItemSlot("claims", key), createCustomItem(key, title, lore));
-        }
-    }
-
-    /**
-     * Split a lore string into a list of strings.
-     * 
-     * @param lore The lore string to split.
-     * @return A list of lore lines.
-     */
-    public List<String> getLore(String lore) {
-        return Arrays.asList(lore.split("\n"));
-    }
-
-    /**
-     * Apply placeholders to a lore string for a player.
-     * 
-     * @param lore   The lore string.
-     * @param player The player to apply placeholders for.
-     * @return A list of lore lines with placeholders applied.
-     */
-    public List<String> getLoreP(String lore, Player player) {
-        if (!instance.getSettings().getBooleanSetting("placeholderapi")) {
-            return getLore(lore);
-        }
-        List<String> lores = new ArrayList<>();
-        for (String s : lore.split("\n")) {
-            lores.add(PlaceholderAPI.setPlaceholders(player, s));
-        }
-        return lores;
-    }
-
-    /**
-     * Get a list of lore lines with placeholders replaced.
-     * 
-     * @param lore       The list of lore lines.
-     * @param playerName The name of the player for whom to replace placeholders.
-     * @return A list of lore lines with placeholders replaced.
-     */
-    public List<String> getLoreWP(List<String> lore, String playerName, OfflinePlayer target) {
-        if (!instance.getSettings().getBooleanSetting("placeholderapi")) {
-            return lore;
-        }
-        List<String> lores = new ArrayList<>();
-        for (String line : lore) {
-            lores.add(PlaceholderAPI.setPlaceholders(target, line));
-        }
-        return lores;
-    }
-
-    /**
-     * Get lore with placeholders replaced.
-     * 
-     * @param template    The lore template.
-     * @param owner       The owner of the claim.
-     * @param claimAmount The claim amount.
-     * @return A list of lore lines with placeholders replaced.
-     */
-    private List<String> getLoreWithPlaceholders(List<String> template, String owner, int claimAmount, OfflinePlayer target) {
-        List<String> lore = new ArrayList<>();
-        for (String s : template) {
-            lore.add(s.replace("%claim-amount%", instance.getMain().getNumberSeparate(String.valueOf(claimAmount))));
-        }
-        lore.add(instance.getLanguage().getMessage("owner-claim-access"));
-        return getLoreWP(lore, owner, target);
     }
 
     @Override

@@ -123,7 +123,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
         // Get data
         Player player = (Player) sender;
         String playerName = player.getName();
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
+        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
  
         if (instance.getSettings().isWorldDisabled(player.getWorld().getName())) {
         	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", player.getWorld().getName()));
@@ -159,7 +159,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
                     });
                 return true;
             }
-            Claim claim = instance.getMain().getClaimByName(args[0], playerName);
+            Claim claim = instance.getMain().getClaimByName(args[0], player);
             if (claim == null) {
             	player.sendMessage(instance.getLanguage().getMessage("help-command.unclaim-unclaim").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")));
                 return false;
@@ -189,7 +189,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
         Claim claim = instance.getMain().getClaim(chunk);
         String owner = claim.getOwner();
         
-        if (owner.equals("admin") && player.hasPermission("scs.admin")) {
+        if (owner.equals("*") && player.hasPermission("scs.admin")) {
         	instance.getMain().deleteClaim(claim)
         		.thenAccept(success -> {
         			if (success) {

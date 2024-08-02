@@ -70,17 +70,39 @@ enter-leave-title-messages: true
 # Enable/Disable the enter/leave message in the chat
 enter-leave-chat-messages: true
 
-# Should claims with the Visitors setting disabled be displayed in /claims?
+# Should claims with the EnterTeleport setting disabled be displayed in /claims?
 claims-visitors-off-visible: true
 
 # Enable/Disable the economy system (sell/buy claims)
 economy: true
+
+# Max sell price for a claim
 max-sell-price: 1000000000
+
 # If /claim is paid
 claim-cost: false
+
 # If claim cost is multiplied (for example if claim-cost-multipler = 2, first claim will be the claim-cost, 1000 for example,
 # the second claim will cost 2000, the third one 4000 ..)
 claim-cost-multiplier: false
+
+# Settings of announce
+announce-sale:
+
+  # Announce sale in bossbar
+  bossbar: true
+  bossbar-settings:
+    color: RED
+    style: SOLID
+    
+  # Announce sale in chat
+  chat: true
+  
+  # Announce sale in title/subtitle
+  title: true
+  
+  # Announce sale in actionbar
+  actionbar: true
 
 # Enable/Disable the bossbar when you are in a territory
 # Placeholders :
@@ -222,7 +244,7 @@ status-settings:
   Firespread: true
   Teleportations: true
   Damages: true
-  Visitors: true
+  EnterTeleport: true
   Pvp: true
   Monsters: true
   Weather: true
@@ -230,32 +252,55 @@ status-settings:
 
 # List of default values for the settings
 default-values-settings:
-  Build: false
-  Destroy: false
-  Buttons: true
-  Items: true
-  InteractBlocks: false
-  Levers: true
-  Plates: true
-  Doors: true
-  Trapdoors: true
-  Fencegates: true
-  Tripwires: true
-  RepeatersComparators: true
-  Bells: true
-  Entities: false
-  Explosions: false
-  Liquids: false
-  Redstone: false
-  Frostwalker: false
-  Firespread: false
-  Teleportations: false
-  Damages: false
-  Visitors: true
-  Pvp: true
-  Monsters: true
-  Weather: true
-  Fly: true
+  Members:
+    Build: false
+    Destroy: false
+    Buttons: true
+    Items: true
+    InteractBlocks: false
+    Levers: true
+    Plates: true
+    Doors: true
+    Trapdoors: true
+    Fencegates: true
+    Tripwires: true
+    RepeatersComparators: true
+    Bells: true
+    Entities: false
+    Frostwalker: false
+    Teleportations: false
+    Damages: false
+    EnterTeleport: true
+    Fly: true
+    Weather: true
+  Visitors:
+    Build: false
+    Destroy: false
+    Buttons: true
+    Items: true
+    InteractBlocks: false
+    Levers: true
+    Plates: true
+    Doors: true
+    Trapdoors: true
+    Fencegates: true
+    Tripwires: true
+    RepeatersComparators: true
+    Bells: true
+    Entities: false
+    Frostwalker: false
+    Teleportations: false
+    Damages: false
+    EnterTeleport: true
+    Fly: false
+    Weather: false
+  Natural:
+    Explosions: false
+    Liquids: false
+    Redstone: false
+    Firespread: false
+    Monsters: true
+    Pvp: false
 
 # List of blocked containers for the settings "Interact with blocks"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
@@ -300,6 +345,23 @@ blocked-interact-blocks:
 - GREEN_SHULKER_BOX
 - RED_SHULKER_BOX
 - BLACK_SHULKER_BOX
+- CRAFTER
+- WHITE_BED
+- ORANGE_BED
+- MAGENTA_BED
+- LIGHT_BLUE_BED
+- YELLOW_BED
+- LIME_BED
+- PINK_BED
+- GRAY_BED
+- LIGHT_GRAY_BED
+- CYAN_BED
+- PURPLE_BED
+- BLUE_BED
+- BROWN_BED
+- GREEN_BED
+- RED_BED
+- BLACK_BED
 
 # List of blocked items for the settings "Use items"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
@@ -331,3 +393,9 @@ blocked-entities:
 - PAINTING
 - BOAT
 - MINECART
+- HORSE
+- DONKEY
+- MULE
+- PIG
+- STRIDER
+- LLAMA

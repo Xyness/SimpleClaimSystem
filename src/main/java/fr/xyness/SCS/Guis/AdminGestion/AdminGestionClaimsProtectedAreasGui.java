@@ -1,6 +1,8 @@
 package fr.xyness.SCS.Guis.AdminGestion;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
@@ -46,7 +48,17 @@ public class AdminGestionClaimsProtectedAreasGui implements InventoryHolder {
     public AdminGestionClaimsProtectedAreasGui(Player player, int page, String filter, SimpleClaimSystem instance) {
     	this.instance = instance;
         inv = Bukkit.createInventory(this, 54, "§4[A]§r Protected areas (Page "+String.valueOf(page)+")");
-        instance.executeAsync(() -> loadItems(player, page, filter));
+        loadItems(player, page, filter).thenAccept(success -> {
+        	if (success) {
+        		instance.executeEntitySync(player, () -> player.openInventory(inv));
+        	} else {
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        	}
+        })
+        .exceptionally(ex -> {
+            ex.printStackTrace();
+            return null;
+        });
     }
     
     
@@ -61,22 +73,29 @@ public class AdminGestionClaimsProtectedAreasGui implements InventoryHolder {
      * @param player The player who opened the GUI.
      * @param page   The current page of the GUI.
      * @param filter The filter applied to the claims.
+     * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    private void loadItems(Player player, int page, String filter) {
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getName());
-        cPlayer.setFilter(filter);
-        cPlayer.clearMapClaim();
-        cPlayer.clearMapLoc();
-
-        inv.setItem(48, backPage(page - 1,!(page > 1)));
-        
-        Set<Claim> claims = getClaims(filter, "admin");
-        setFilterItem(filter);
-
-        List<String> loreTemplate = instance.getGuis().getLore("§7Chunks: §e%chunks_count%\n§7Spawn location: §b%location%\n§7%sale-status%\n \n§7Members:\n%members%\n \n§7Banned players:\n%bans%\n \n");
-        fillClaimsItems(player, cPlayer, page, loreTemplate, claims);
-        
-        instance.executeEntitySync(player, () -> player.openInventory(inv));
+    private CompletableFuture<Boolean> loadItems(Player player, int page, String filter) {
+    	
+    	return CompletableFuture.supplyAsync(() -> {
+    	
+	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+	        cPlayer.setFilter(filter);
+	        cPlayer.clearMapClaim();
+	        cPlayer.clearMapLoc();
+	
+	        inv.setItem(48, backPage(page - 1,!(page > 1)));
+	        
+	        Set<Claim> claims = getClaims(filter, "*");
+	        setFilterItem(filter);
+	
+	        List<String> loreTemplate = instance.getGuis().getLore("§7Chunks: §e%chunks_count%\n§7Spawn location: §b%location%\n§7%sale-status%\n \n§7Members:\n%members%\n \n§7Banned players:\n%bans%\n \n");
+	        fillClaimsItems(player, cPlayer, page, loreTemplate, claims);
+	        
+	        return true;
+	        
+    	});
+    	
     }
 
     /**
@@ -285,13 +304,14 @@ public class AdminGestionClaimsProtectedAreasGui implements InventoryHolder {
      * @return A string representing the members of the claim.
      */
     public String getMembers(Claim claim) {
-        Set<String> members = claim.getMembers();
+        Set<String> members = instance.getMain().convertUUIDSetToStringSet(claim.getMembers());
         if (members.isEmpty()) {
             return "§8no members";
         }
         StringBuilder membersList = new StringBuilder();
         int i = 0;
         for (String member : members) {
+        	if(member == null) continue;
             Player player = Bukkit.getPlayer(member);
             String memberName = player != null ? "§a" + member : "§c" + member;
             membersList.append(memberName);
@@ -313,13 +333,14 @@ public class AdminGestionClaimsProtectedAreasGui implements InventoryHolder {
      * @return A string representing the bans of the claim.
      */
     public String getBans(Claim claim) {
-        Set<String> members = claim.getBans();
+        Set<String> members = instance.getMain().convertUUIDSetToStringSet(claim.getBans());
         if (members.isEmpty()) {
             return "§8no banned players";
         }
         StringBuilder membersList = new StringBuilder();
         int i = 0;
         for (String member : members) {
+        	if(member == null) continue;
             Player player = Bukkit.getPlayer(member);
             String memberName = player != null ? "§a" + member : "§c" + member;
             membersList.append(memberName);

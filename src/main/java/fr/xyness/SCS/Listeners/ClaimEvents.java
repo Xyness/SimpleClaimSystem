@@ -109,12 +109,8 @@ public class ClaimEvents implements Listener {
 	@EventHandler(priority = EventPriority.LOW)
 	public void onPlayerChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
-		if(instance.getMain().isPlayerAdminSetting(player)) {
-			event.setCancelled(true);
-			instance.getMain().handleAdminGestionPlugin(player, event.getMessage());
-		}
 		String playerName = player.getName();
-		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
+		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
 		if(cPlayer.getClaimChat()) {
 			event.setCancelled(true);
 			String msg = instance.getLanguage().getMessage("chat-format").replace("%player%",playerName).replace("%message%", event.getMessage());
@@ -134,7 +130,7 @@ public class ClaimEvents implements Listener {
 	public void onPlayerDamage(EntityDamageEvent event) {
 		if(!(event.getEntity() instanceof Player)) return;
 		Player player = (Player) event.getEntity();
-		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getName());
+		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
     	if(cPlayer != null && cPlayer.getClaimFly()) {
     		instance.getPlayerMain().removePlayerFly(player);
     		instance.getMain().sendMessage(player, instance.getLanguage().getMessage("claim-fly-disabled-on-damage"), instance.getSettings().getSetting("protection-message"));
@@ -154,10 +150,11 @@ public class ClaimEvents implements Listener {
 	    Chunk chunk = player.getLocation().getChunk();
 	    
 	    if(instance.getMain().checkIfClaimExists(chunk)) {
+	    	Claim claim = instance.getMain().getClaim(chunk);
 	        if (event.getDamager() instanceof Player) {
 	            Player damager = (Player) event.getDamager();
 	            if(damager.hasPermission("scs.bypass")) return;
-	            if(!instance.getMain().canPermCheck(chunk, "Pvp")) {
+	            if(!claim.getPermission("Pvp", "Natural")) {
 	                instance.getMain().sendMessage(damager, instance.getLanguage().getMessage("pvp"), instance.getSettings().getSetting("protection-message"));
 	                event.setCancelled(true);
 	            }
@@ -167,7 +164,7 @@ public class ClaimEvents implements Listener {
 	            if (shooter instanceof Player) {
 	                Player damager = (Player) shooter;
 	                if(damager.hasPermission("scs.bypass")) return;
-	                if(!instance.getMain().canPermCheck(chunk, "Pvp")) {
+	                if(!claim.getPermission("Pvp", "Natural")) {
 	                    instance.getMain().sendMessage(damager, instance.getLanguage().getMessage("pvp"), instance.getSettings().getSetting("protection-message"));
 	                    event.setCancelled(true);
 	                }
@@ -184,9 +181,10 @@ public class ClaimEvents implements Listener {
     public void onCreatureSpawn(CreatureSpawnEvent event) {
 		Chunk chunk = event.getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
+			Claim claim = instance.getMain().getClaim(chunk);
 			Entity entity = event.getEntity();
 			if(!(entity instanceof Monster)) return;
-			if(!instance.getMain().canPermCheck(chunk, "Monsters")) {
+			if(!claim.getPermission("Monsters", "Natural")) {
 				event.setCancelled(true);
 				return;
 			}
@@ -202,8 +200,8 @@ public class ClaimEvents implements Listener {
         Iterator<Block> blockIterator = event.blockList().iterator();
         while (blockIterator.hasNext()) {
             Block block = blockIterator.next();
-            if (instance.getMain().checkIfClaimExists(block.getLocation().getChunk()) &&
-                !instance.getMain().canPermCheck(block.getLocation().getChunk(), "Explosions")) {
+            Chunk chunk = block.getLocation().getChunk();
+            if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
                 blockIterator.remove();
             }
         }
@@ -218,13 +216,14 @@ public class ClaimEvents implements Listener {
         if (event.getEntityType() == EntityType.WITHER_SKULL) {
             if (event.getHitBlock() != null) {
             	Block block = event.getHitBlock();
-                if (instance.getMain().checkIfClaimExists(block.getLocation().getChunk()) && !instance.getMain().canPermCheck(block.getLocation().getChunk(), "Explosions")) {
+            	Chunk chunk = block.getLocation().getChunk();
+                if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
                 	event.setCancelled(true);
                 }
             }
             if (event.getHitEntity() != null) {
         		Chunk chunk = event.getHitEntity().getLocation().getChunk();
-        		if(instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions")) {
+        		if(instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
         			event.setCancelled(true);
         		}
             }
@@ -240,8 +239,8 @@ public class ClaimEvents implements Listener {
         Iterator<Block> blockIterator = event.blockList().iterator();
         while (blockIterator.hasNext()) {
             Block block = blockIterator.next();
-            if (instance.getMain().checkIfClaimExists(block.getLocation().getChunk()) &&
-                !instance.getMain().canPermCheck(block.getLocation().getChunk(), "Explosions")) {
+            Chunk chunk = block.getLocation().getChunk();
+            if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
                 blockIterator.remove();
             }
         }
@@ -255,7 +254,8 @@ public class ClaimEvents implements Listener {
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
         if (event.getEntityType() == EntityType.WITHER || event.getEntityType() == EntityType.WITHER_SKULL) {
             Block block = event.getBlock();
-            if (instance.getMain().checkIfClaimExists(block.getLocation().getChunk()) && !instance.getMain().canPermCheck(block.getLocation().getChunk(), "Explosions")) {
+            Chunk chunk = block.getLocation().getChunk();
+            if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
             	event.setCancelled(true);
             }
         }
@@ -272,7 +272,7 @@ public class ClaimEvents implements Listener {
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-			if(!instance.getMain().checkMembre(claim, player) && !instance.getMain().canPermCheck(chunk, "Destroy")) {
+			if(!claim.getPermissionForPlayer("Destroy", player)) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
 				return;
@@ -293,31 +293,17 @@ public class ClaimEvents implements Listener {
 			Player player = (Player) damager;
 			if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
 			Claim claim = instance.getMain().getClaim(chunk);
-			if(instance.getMain().checkMembre(claim, player)) return;
-			if(!instance.getMain().canPermCheck(chunk, "Destroy")) {
+			if(!claim.getPermissionForPlayer("Destroy", player)) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
 		}
-		if(!instance.getMain().canPermCheck(chunk, "Destroy")) {
+		if(!instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
 			event.setCancelled(true);
 			return;
 		}
 	}
-	
-    /**
-     * Handles lightning strike events to prevent weather-related damage in claims.
-     * @param event the lightning strike event.
-     */
-    @EventHandler
-    public void onLightningStrike(LightningStrikeEvent event) {
-        Location strikeLocation = event.getLightning().getLocation();
-        Chunk chunk = strikeLocation.getChunk();
-        if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Weather")) {
-            event.setCancelled(true);
-        }
-    }
 	
     /**
      * Handles block place events to prevent building in claims.
@@ -339,7 +325,8 @@ public class ClaimEvents implements Listener {
 	        if (!chunk.equals(adjacentChunk)) {
 	            if (instance.getMain().checkIfClaimExists(adjacentChunk) &&
 	                !instance.getMain().getOwnerInClaim(chunk).equals(instance.getMain().getOwnerInClaim(adjacentChunk))) {
-	                if (!instance.getMain().canPermCheck(adjacentChunk, "Build")) {
+	            	Claim claim = instance.getMain().getClaim(adjacentChunk);
+	                if (!claim.getPermissionForPlayer("Build", player)) {
 	                    event.setCancelled(true);
 	                    instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 	                    return;
@@ -350,7 +337,7 @@ public class ClaimEvents implements Listener {
 		
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-			if(!instance.getMain().checkMembre(claim, player) && !instance.getMain().canPermCheck(chunk, "Build")) {
+			if(!claim.getPermissionForPlayer("Build", player)) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 				return;
@@ -370,7 +357,7 @@ public class ClaimEvents implements Listener {
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-			if(!instance.getMain().checkMembre(claim, player) && !instance.getMain().canPermCheck(chunk, "Build")) {
+			if(!claim.getPermissionForPlayer("Build", player)) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 				return;
@@ -386,7 +373,7 @@ public class ClaimEvents implements Listener {
 	public void onHangingBreak(HangingBreakEvent event) {
 		Chunk chunk = event.getEntity().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
-			if(event.getCause() == HangingBreakEvent.RemoveCause.PHYSICS && !instance.getMain().canPermCheck(chunk, "Destroy")) {
+			if(event.getCause() == HangingBreakEvent.RemoveCause.PHYSICS && !instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
 				event.setCancelled(true);
 			}
 		}
@@ -406,8 +393,7 @@ public class ClaimEvents implements Listener {
                 	Player player = (Player) event.getRemover();
                 	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
                 	Claim claim = instance.getMain().getClaim(chunk);
-                	if(instance.getMain().checkMembre(claim, player)) return;
-                	if(!instance.getMain().canPermCheck(chunk, "Destroy")) {
+                	if(!claim.getPermissionForPlayer("Destroy", player)) {
                 		event.setCancelled(true);
                 		instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
                 		return;
@@ -415,7 +401,7 @@ public class ClaimEvents implements Listener {
                 }
                 return;
             }
-           	if(!instance.getMain().canPermCheck(chunk, "Destroy")) {
+           	if(!instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
         		event.setCancelled(true);
         		return;
         	}
@@ -427,8 +413,7 @@ public class ClaimEvents implements Listener {
                 	Player player = (Player) event.getRemover();
                 	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
                 	Claim claim = instance.getMain().getClaim(chunk);
-                	if(instance.getMain().checkMembre(claim, player)) return;
-                	if(!instance.getMain().canPermCheck(chunk, "Destroy")) {
+                	if(!claim.getPermissionForPlayer("Destroy", player)) {
                 		event.setCancelled(true);
                 		instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
                 		return;
@@ -436,7 +421,7 @@ public class ClaimEvents implements Listener {
                 }
                 return;
             }
-           	if(!instance.getMain().canPermCheck(chunk, "Destroy")) {
+           	if(!instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
         		event.setCancelled(true);
         		return;
         	}
@@ -455,7 +440,7 @@ public class ClaimEvents implements Listener {
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-			if(!instance.getMain().checkMembre(claim, player) && !instance.getMain().canPermCheck(chunk, "Build")) {
+			if(!claim.getPermissionForPlayer("Build", player)) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 				return;
@@ -475,7 +460,7 @@ public class ClaimEvents implements Listener {
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-			if(!instance.getMain().checkMembre(claim, player) && !instance.getMain().canPermCheck(chunk, "Destroy")) {
+			if(!claim.getPermissionForPlayer("Destroy", player)) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
 				return;
@@ -495,7 +480,7 @@ public class ClaimEvents implements Listener {
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-			if(!instance.getMain().checkMembre(claim, player) && !instance.getMain().canPermCheck(chunk, "Build")) {
+			if(!claim.getPermissionForPlayer("Build", player)) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 				return;
@@ -520,49 +505,49 @@ public class ClaimEvents implements Listener {
 		}
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-	        if (event.getAction() == Action.RIGHT_CLICK_BLOCK && !instance.getMain().checkMembre(claim, player)) {
+	        if ((event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.LEFT_CLICK_BLOCK) && !instance.getMain().checkMembre(claim, player)) {
 	            Material mat = event.getClickedBlock().getType();
-	            if (mat.name().contains("BUTTON") && !instance.getMain().canPermCheck(chunk, "Buttons")) {
+	            if (mat.name().contains("BUTTON") && !claim.getPermissionForPlayer("Buttons", player)) {
 	            	event.setCancelled(true);
 	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("buttons"), instance.getSettings().getSetting("protection-message"));
 	                return;
 	            }
-	            if (mat.name().contains("TRAPDOOR") && !instance.getMain().canPermCheck(chunk, "Trapdoors")) {
+	            if (mat.name().contains("TRAPDOOR") && !claim.getPermissionForPlayer("Trapdoors", player)) {
 	            	event.setCancelled(true);
 	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("trapdoors"), instance.getSettings().getSetting("protection-message"));
 	                return;
 	            }
-	            if (mat.name().contains("DOOR") && !instance.getMain().canPermCheck(chunk, "Doors")) {
+	            if (mat.name().contains("DOOR") && !claim.getPermissionForPlayer("Doors", player)) {
 	            	event.setCancelled(true);
 	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("doors"), instance.getSettings().getSetting("protection-message"));
 	                return;
 	            }
-	            if (mat.name().contains("FENCE_GATE") && !instance.getMain().canPermCheck(chunk, "Fencegates")) {
+	            if (mat.name().contains("FENCE_GATE") && !claim.getPermissionForPlayer("Fencegates", player)) {
 	            	event.setCancelled(true);
 	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("fencegates"), instance.getSettings().getSetting("protection-message"));
 	                return;
 	            }
-	            if (mat.equals(Material.LEVER) && !instance.getMain().canPermCheck(chunk, "Levers")) {
+	            if (mat.equals(Material.LEVER) && !claim.getPermissionForPlayer("Levers", player)) {
 	            	event.setCancelled(true);
 	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("levers"), instance.getSettings().getSetting("protection-message"));
 	                return;
 	            }
-	            if (mat.equals(Material.REPEATER) && !instance.getMain().canPermCheck(chunk, "RepeatersComparators")) {
+	            if (mat.equals(Material.REPEATER) && !claim.getPermissionForPlayer("RepeatersComparators", player)) {
 	            	event.setCancelled(true);
 	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("repeaters"), instance.getSettings().getSetting("protection-message"));
 	                return;
 	            }
-	            if (mat.equals(Material.COMPARATOR) && !instance.getMain().canPermCheck(chunk, "RepeatersComparators")) {
+	            if (mat.equals(Material.COMPARATOR) && !claim.getPermissionForPlayer("RepeatersComparators", player)) {
 	            	event.setCancelled(true);
 	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("comparators"), instance.getSettings().getSetting("protection-message"));
 	                return;
 	            }
-	            if (mat.equals(Material.BELL) && !instance.getMain().canPermCheck(chunk, "Bells")) {
+	            if (mat.equals(Material.BELL) && !claim.getPermissionForPlayer("Bells", player)) {
 	            	event.setCancelled(true);
 	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("bells"), instance.getSettings().getSetting("protection-message"));
 	                return;
 	            }
-	            if(!instance.getMain().canPermCheck(chunk, "InteractBlocks")) {
+	            if(!claim.getPermissionForPlayer("InteractBlocks", player)) {
 	            	Material item = block.getType();
 	            	if(instance.getSettings().isRestrictedContainer(item)) {
                         event.setCancelled(true);
@@ -570,7 +555,7 @@ public class ClaimEvents implements Listener {
                         return;
 	            	}
 	            }
-	            if(!instance.getMain().canPermCheck(chunk, "Items")) {
+	            if(!claim.getPermissionForPlayer("Items", player)) {
 	                Material item = event.getMaterial();
 	                if(instance.getSettings().isRestrictedItem(item)) {
                         event.setCancelled(true);
@@ -581,18 +566,18 @@ public class ClaimEvents implements Listener {
 	            return;
 	        }
 	        if (event.getAction() == Action.PHYSICAL && !instance.getMain().checkMembre(claim, player)) {
-	        	if(block != null && block.getType().name().contains("PRESSURE_PLATE") && !instance.getMain().canPermCheck(chunk, "Plates")) {
+	        	if(block != null && block.getType().name().contains("PRESSURE_PLATE") && !claim.getPermissionForPlayer("Plates", player)) {
 	            	event.setCancelled(true);
 	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("plates"), instance.getSettings().getSetting("protection-message"));
 	                return;
 	        	}
-	        	if (block.getType() == Material.TRIPWIRE && !instance.getMain().canPermCheck(chunk, "Tripwires")) {
+	        	if (block.getType() == Material.TRIPWIRE && !claim.getPermissionForPlayer("Tripwires", player)) {
 	            	event.setCancelled(true);
 	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("tripwires"), instance.getSettings().getSetting("protection-message"));
 	                return;
 	            }
 	        }
-	        if(!instance.getMain().canPermCheck(chunk, "Items") && !instance.getMain().checkMembre(claim, player)) {
+	        if(!claim.getPermissionForPlayer("Items", player) && !instance.getMain().checkMembre(claim, player)) {
                 Material item = event.getMaterial();
                 if(instance.getSettings().isRestrictedItem(item)) {
                     event.setCancelled(true);
@@ -615,12 +600,11 @@ public class ClaimEvents implements Listener {
         	Player player = event.getPlayer();
         	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
         	Claim claim = instance.getMain().getClaim(chunk);
-        	if(instance.getMain().checkMembre(claim, player)) return;
         	Entity entity = event.getRightClicked();
         	
         	EntityType e = event.getRightClicked().getType();
         	if(!instance.getSettings().isRestrictedEntityType(e)) return;
-        	if(!instance.getMain().canPermCheck(chunk, "Entities")) {
+        	if(!claim.getPermissionForPlayer("Entities", player)) {
         		event.setCancelled(true);
         		instance.getMain().sendMessage(player,instance.getLanguage().getMessage("entities"), instance.getSettings().getSetting("protection-message"));
         		return;
@@ -629,7 +613,9 @@ public class ClaimEvents implements Listener {
             ItemStack itemInHand = player.getInventory().getItem(event.getHand());
             if (itemInHand != null) {
             	if(!instance.getSettings().isRestrictedItem(itemInHand.getType())) return;
-                if (!instance.getMain().canPermCheck(entity.getLocation().getChunk(), "Items")) {
+            	Claim claim2 = instance.getMain().getClaim(entity.getLocation().getChunk());
+            	if(claim2 == null) return;
+                if (!claim.getPermissionForPlayer("Items", player)) {
                     event.setCancelled(true);
                     instance.getMain().sendMessage(player,instance.getLanguage().getMessage("items"), instance.getSettings().getSetting("protection-message"));
                     return;
@@ -650,12 +636,11 @@ public class ClaimEvents implements Listener {
         	Player player = event.getPlayer();
         	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
         	Claim claim = instance.getMain().getClaim(chunk);
-        	if(instance.getMain().checkMembre(claim, player)) return;
         	Entity entity = event.getRightClicked();
         	
         	EntityType e = event.getRightClicked().getType();
         	if(!instance.getSettings().isRestrictedEntityType(e)) return;
-        	if(!instance.getMain().canPermCheck(chunk, "Entities")) {
+        	if(!claim.getPermissionForPlayer("Entities", player)) {
         		event.setCancelled(true);
         		instance.getMain().sendMessage(player,instance.getLanguage().getMessage("entities"), instance.getSettings().getSetting("protection-message"));
         		return;
@@ -664,7 +649,9 @@ public class ClaimEvents implements Listener {
             ItemStack itemInHand = player.getInventory().getItem(event.getHand());
             if (itemInHand != null) {
             	if(!instance.getSettings().isRestrictedItem(itemInHand.getType())) return;
-                if (!instance.getMain().canPermCheck(entity.getLocation().getChunk(), "Items")) {
+            	Claim claim2 = instance.getMain().getClaim(entity.getLocation().getChunk());
+            	if(claim2 == null) return;
+                if (!claim.getPermissionForPlayer("Items", player)) {
                     event.setCancelled(true);
                     instance.getMain().sendMessage(player,instance.getLanguage().getMessage("items"), instance.getSettings().getSetting("protection-message"));
                     return;
@@ -686,7 +673,7 @@ public class ClaimEvents implements Listener {
     	if(block.getLocation().getChunk().equals(chunk)) return;
     	if(instance.getMain().checkIfClaimExists(chunk)) {
     		if(instance.getMain().getOwnerInClaim(chunk).equals(instance.getMain().getOwnerInClaim(block.getLocation().getChunk()))) return;
-    		if(instance.getMain().canPermCheck(chunk, "Liquids")) return;
+    		if(instance.getMain().canPermCheck(chunk, "Liquids", "Natural")) return;
             if (block.isLiquid()) {
                 if (toBlock.getBlockData() instanceof Waterlogged) {
                     Waterlogged waterlogged = (Waterlogged) toBlock.getBlockData();
@@ -724,7 +711,7 @@ public class ClaimEvents implements Listener {
     	if(block.getLocation().getChunk().equals(targetChunk)) return;
     	if(instance.getMain().checkIfClaimExists(targetChunk)) {
     		if(instance.getMain().getOwnerInClaim(block.getLocation().getChunk()).equals(instance.getMain().getOwnerInClaim(targetChunk))) return;
-    		if(!instance.getMain().canPermCheck(targetChunk, "Redstone")) {
+    		if(!instance.getMain().canPermCheck(targetChunk, "Redstone", "Natural")) {
     			event.setCancelled(true);
     		}
     	}
@@ -773,15 +760,14 @@ public class ClaimEvents implements Listener {
     	Chunk chunk = event.getBlock().getLocation().getChunk();
     	if(!instance.getMain().checkIfClaimExists(chunk)) return;
     	Claim claim = instance.getMain().getClaim(chunk);
-    	if(instance.getMain().canPermCheck(chunk, "Frostwalker")) return;
         if (event.getNewState().getType() == Material.FROSTED_ICE) {
             Entity entity = event.getEntity();
             if (entity instanceof Player) {
                 Player player = (Player) entity;
                 if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+                if(claim.getPermissionForPlayer("FrostWalker", player)) return;
                 ItemStack boots = player.getInventory().getBoots();
                 if (boots != null && boots.containsEnchantment(Enchantment.FROST_WALKER)) {
-                	if(instance.getMain().checkMembre(claim, player)) return;
                     event.setCancelled(true);
                 }
             }
@@ -797,7 +783,7 @@ public class ClaimEvents implements Listener {
         if (event.getNewState().getType() == Material.FIRE) {
             Chunk chunk = event.getBlock().getLocation().getChunk();
             if(!instance.getMain().checkIfClaimExists(chunk)) return;
-            if(instance.getMain().canPermCheck(chunk, "Firespread")) return;
+            if(instance.getMain().canPermCheck(chunk, "Firespread", "Natural")) return;
             event.setCancelled(true);
         }
     }
@@ -814,9 +800,13 @@ public class ClaimEvents implements Listener {
         Player player = event.getPlayer();
         if(player != null) {
         	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
-        	if(instance.getMain().checkMembre(claim, player)) return;
+			if(!claim.getPermissionForPlayer("Build", player)) {
+				event.setCancelled(true);
+				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
+				return;
+			}
         }
-        if(instance.getMain().canPermCheck(chunk, "Firespread")) return;
+        if(instance.getMain().canPermCheck(chunk, "Firespread", "Natural")) return;
         event.setCancelled(true);
     }
     
@@ -828,7 +818,7 @@ public class ClaimEvents implements Listener {
     public void onBlockBurn(BlockBurnEvent event) {
         Chunk chunk = event.getBlock().getLocation().getChunk();
         if(!instance.getMain().checkIfClaimExists(chunk)) return;
-        if(instance.getMain().canPermCheck(chunk, "Firespread")) return;
+        if(instance.getMain().canPermCheck(chunk, "Firespread", "Natural")) return;
         event.setCancelled(true);
     }
     
@@ -847,15 +837,14 @@ public class ClaimEvents implements Listener {
             	Claim claim = instance.getMain().getClaim(chunk);
             	Player player = (Player) damager;
             	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
-            	if(instance.getMain().checkMembre(claim, player)) return;
-                if (!instance.getMain().canPermCheck(chunk, "Destroy")) {
+                if (!claim.getPermissionForPlayer("Destroy", player)) {
                 	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
                     event.setCancelled(true);
                 }
             	return;
             }
             
-            if (!instance.getMain().canPermCheck(chunk, "Destroy")) {
+            if (!instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
             	event.setCancelled(true);
             }
         }
@@ -902,9 +891,8 @@ public class ClaimEvents implements Listener {
         	Chunk chunk = vehicle.getLocation().getChunk();
             if (instance.getMain().checkIfClaimExists(chunk)) {
             	Claim claim = instance.getMain().getClaim(chunk);
-            	if(instance.getMain().canPermCheck(chunk, "Entities")) return;
+            	if(!claim.getPermissionForPlayer("Entities", player)) return;
             	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
-            	if(instance.getMain().checkMembre(claim, player)) return;
                 event.setCancelled(true);
                 instance.getMain().sendMessage(player,instance.getLanguage().getMessage("entities"), instance.getSettings().getSetting("protection-message"));
             }
@@ -926,8 +914,7 @@ public class ClaimEvents implements Listener {
             if (instance.getMain().checkIfClaimExists(chunk)) {
             	Claim claim = instance.getMain().getClaim(chunk);
             	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
-            	if(instance.getMain().checkMembre(claim, player)) return;
-                if(!instance.getMain().canPermCheck(chunk, "Destroy")) {
+                if(!claim.getPermissionForPlayer("Destroy", player)) {
                 	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
                     event.setCancelled(true);
                 }
@@ -955,7 +942,7 @@ public class ClaimEvents implements Listener {
 	            if (!chunk.equals(pistonChunk)) {
 	                if (instance.getMain().checkIfClaimExists(chunk)) {
 	                	if(instance.getMain().getOwnerInClaim(pistonChunk).equals(instance.getMain().getOwnerInClaim(chunk))) return true;
-	                	if(!instance.getMain().canPermCheck(chunk, "Redstone")) {
+	                	if(!instance.getMain().canPermCheck(chunk, "Redstone", "Natural")) {
 	                		return false;
 	                	}
 	                }
@@ -968,7 +955,7 @@ public class ClaimEvents implements Listener {
             if (!chunk.equals(pistonChunk)) {
                 if (instance.getMain().checkIfClaimExists(chunk)) {
                 	if(instance.getMain().getOwnerInClaim(pistonChunk).equals(instance.getMain().getOwnerInClaim(chunk))) return true;
-                	if(!instance.getMain().canPermCheck(chunk, "Redstone")) {
+                	if(!instance.getMain().canPermCheck(chunk, "Redstone", "Natural")) {
                 		return false;
                 	}
                 }
@@ -986,8 +973,7 @@ public class ClaimEvents implements Listener {
     private void processDamageByPlayer(Player player, Chunk chunk, EntityDamageByEntityEvent event) {
         if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
         Claim claim = instance.getMain().getClaim(chunk);
-        if(instance.getMain().checkMembre(claim, player)) return;
-        if(!instance.getMain().canPermCheck(chunk, "Damages")) {
+        if(!claim.getPermissionForPlayer("Damages", player)) {
             event.setCancelled(true);
             instance.getMain().sendMessage(player, instance.getLanguage().getMessage("damages"), instance.getSettings().getSetting("protection-message"));
         }
