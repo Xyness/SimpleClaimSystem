@@ -50,25 +50,20 @@ public class SimpleClaimSystemAPI_Impl implements SimpleClaimSystemAPI {
 	
 
 	// Player methods
-	
-	@Override
-	public Claim getPlayerClaim(String playerName, String claimName) {
-		return instance.getMain().getClaimByName(claimName, playerName);
-	}
 
 	@Override
 	public Claim getPlayerClaim(Player player, String claimName) {
-		return instance.getMain().getClaimByName(claimName, player.getName());
+		return instance.getMain().getClaimByName(claimName, player);
 	}
 
 	@Override
 	public CPlayer getCPlayer(String playerName) {
-		return instance.getPlayerMain().getCPlayer(playerName);
+		return instance.getPlayerMain().getCPlayer(Bukkit.getOfflinePlayer(playerName).getUniqueId());
 	}
 
 	@Override
 	public CPlayer getCPlayer(Player player) {
-		return instance.getPlayerMain().getCPlayer(player.getName());
+		return instance.getPlayerMain().getCPlayer(player.getUniqueId());
 	}
 	
 	// Claim methods
@@ -117,7 +112,7 @@ public class SimpleClaimSystemAPI_Impl implements SimpleClaimSystemAPI {
 
 	@Override
 	public boolean resetAllClaimsSettings() {
-		return instance.getMain().resetAllClaimsSettings().join();
+		return instance.getMain().resetAllPlayerClaimsSettings().join();
 	}
 
 	@Override
@@ -192,8 +187,8 @@ public class SimpleClaimSystemAPI_Impl implements SimpleClaimSystemAPI {
 	}
 
 	@Override
-	public boolean setClaimPerm(Claim claim, String permission, boolean value) {
-		return instance.getMain().updatePerm(claim, permission, value).join();
+	public boolean setClaimPerm(Claim claim, String permission, boolean value, String role) {
+		return instance.getMain().updatePerm(claim, permission, value, role).join();
 	}
 
 	@Override

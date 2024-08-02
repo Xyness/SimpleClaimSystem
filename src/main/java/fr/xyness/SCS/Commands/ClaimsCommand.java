@@ -64,7 +64,7 @@ public class ClaimsCommand implements CommandExecutor {
 
         // Get data
         Player player = (Player) sender;
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getName());
+        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
         
         // Open the claims GUI for the player
         cPlayer.setGuiPage(1);

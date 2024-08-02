@@ -3,6 +3,7 @@ package fr.xyness.SCS.Listeners;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -77,7 +78,7 @@ public class ClaimEventsEnterLeave implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         instance.getPlayerMain().addPlayerPermSetting(player);
-        instance.getPlayerMain().refreshPlayerHead(player);
+        instance.getPlayerMain().checkPlayer(player);
         if (player.hasPermission("scs.admin")) {
             if (instance.isUpdateAvailable()) {
                 player.sendMessage(instance.getUpdateMessage());
@@ -95,7 +96,7 @@ public class ClaimEventsEnterLeave implements Listener {
             return;
         }
         
-        if (!claim.isMember(playerName) && !claim.getPermission("Visitors") && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
+        if (!claim.getPermissionForPlayer("EnterTeleport",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
         	instance.getMain().teleportPlayer(player, Bukkit.getWorlds().get(0).getSpawnLocation());
             return;
         }
@@ -112,7 +113,8 @@ public class ClaimEventsEnterLeave implements Listener {
     public void onPlayerQuit(PlayerQuitEvent event) {
         Player player = event.getPlayer();
         player.resetPlayerWeather();
-        instance.getPlayerMain().removeCPlayer(player.getName());
+        instance.getPlayerMain().removeCPlayer(player.getUniqueId());
+        instance.getMain().clearDataForPlayer(player);
         if (bossBars.containsKey(player)) bossBars.remove(player);
     }
 
@@ -128,8 +130,9 @@ public class ClaimEventsEnterLeave implements Listener {
         if (!instance.getMain().checkIfClaimExists(to)) return;
 
         Player player = event.getPlayer();
+        UUID playerId = player.getUniqueId();
         String playerName = player.getName();
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
+        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
         if(cPlayer == null) return;
         
         String ownerTO = instance.getMain().getOwnerInClaim(to);
@@ -160,7 +163,7 @@ public class ClaimEventsEnterLeave implements Listener {
             return;
         }
         
-        if (!claim.isMember(playerName) && !claim.getPermission("Visitors") && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
+        if (!claim.getPermissionForPlayer("EnterTeleport",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
             cancelTeleport(event, player, "visitors");
             return;
         }
@@ -179,12 +182,11 @@ public class ClaimEventsEnterLeave implements Listener {
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
-        String playerName = player.getName();
         
         Chunk to = event.getRespawnLocation().getChunk();
         String ownerTO = instance.getMain().getOwnerInClaim(to);
         
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
+        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
         if(cPlayer == null) return;
         
         String world = player.getWorld().getName();
@@ -214,8 +216,9 @@ public class ClaimEventsEnterLeave implements Listener {
         Chunk to = event.getTo().getChunk();
         Chunk from = event.getFrom().getChunk();
         Player player = event.getPlayer();
+        UUID playerId = player.getUniqueId();
         String playerName = player.getName();
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
+        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
         if(cPlayer == null) return;
         String ownerTO = instance.getMain().getOwnerInClaim(to);
         String ownerFROM = instance.getMain().getOwnerInClaim(from);
@@ -227,26 +230,28 @@ public class ClaimEventsEnterLeave implements Listener {
 	            instance.getMain().sendMessage(player, instance.getLanguage().getMessage("player-banned"), instance.getSettings().getSetting("protection-message"));
 	            return;
 	        }
-	        if (!claim.isMember(playerName) && !claim.getPermission("Visitors") && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
+	        if (!claim.getPermissionForPlayer("EnterTeleport",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
 	        	instance.getMain().teleportPlayer(player, event.getFrom());
 	        	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("visitors"), instance.getSettings().getSetting("protection-message"));
 	            return;
 	        }
+	        
+	        if (cPlayer.getClaimAutofly() && (ownerTO.equals(playerName) || claim.getPermissionForPlayer("Fly",player)) && !instance.isFolia()) {
+	            instance.getPlayerMain().activePlayerFly(player);
+	            if (instance.getSettings().getBooleanSetting("claim-fly-message-auto-fly")) {
+	                instance.getMain().sendMessage(player, instance.getLanguage().getMessage("fly-enabled"), "CHAT");
+	            }
+	        } else if (!claim.getPermissionForPlayer("Fly",player) && !ownerTO.equals(playerName) && cPlayer.getClaimFly() && !instance.isFolia()) {
+	            instance.getPlayerMain().removePlayerFly(player);
+	            if (instance.getSettings().getBooleanSetting("claim-fly-message-auto-fly")) {
+	                instance.getMain().sendMessage(player, instance.getLanguage().getMessage("fly-disabled"), "CHAT");
+	            }
+	        }
+        } else {
+        	instance.getPlayerMain().removePlayerFly(player);
         }
 
         handleWeatherSettings(player,to,from);
-
-        if (cPlayer.getClaimAutofly() && (ownerTO.equals(playerName) || instance.getMain().canPermCheck(to, "Fly")) && !instance.isFolia()) {
-            instance.getPlayerMain().activePlayerFly(player);
-            if (instance.getSettings().getBooleanSetting("claim-fly-message-auto-fly")) {
-                instance.getMain().sendMessage(player, instance.getLanguage().getMessage("fly-enabled"), "CHAT");
-            }
-        } else if (!instance.getMain().canPermCheck(to, "Fly") && !ownerTO.equals(playerName) && cPlayer.getClaimFly() && !instance.isFolia()) {
-            instance.getPlayerMain().removePlayerFly(player);
-            if (instance.getSettings().getBooleanSetting("claim-fly-message-auto-fly")) {
-                instance.getMain().sendMessage(player, instance.getLanguage().getMessage("fly-disabled"), "CHAT");
-            }
-        }
 
         instance.getBossBars().activeBossBar(player, to);
 
@@ -292,7 +297,7 @@ public class ClaimEventsEnterLeave implements Listener {
      * @return True if the teleport is blocked, false otherwise.
      */
     private boolean isTeleportBlocked(PlayerTeleportEvent event, Player player, Claim claim) {
-        if (!instance.getPlayerMain().checkPermPlayer(player, "scs.bypass") && !instance.getMain().checkMembre(claim, player) && !claim.getPermission("Teleportations")) {
+        if (!instance.getPlayerMain().checkPermPlayer(player, "scs.bypass") && !instance.getMain().checkMembre(claim, player) && !claim.getPermissionForPlayer("Teleportations",player)) {
             switch (event.getCause()) {
                 case ENDER_PEARL:
                 case CHORUS_FRUIT:
@@ -311,9 +316,11 @@ public class ClaimEventsEnterLeave implements Listener {
      * @param chunk  The chunk.
      */
     private void handleWeatherSettings(Player player, Chunk to, Chunk from) {
-        if (instance.getMain().checkIfClaimExists(to) && !instance.getMain().canPermCheck(to, "Weather")) {
+    	Claim claimTo = instance.getMain().getClaim(to);
+    	Claim claimFrom = instance.getMain().getClaim(from);
+        if (instance.getMain().checkIfClaimExists(to) && !claimTo.getPermissionForPlayer("Weather",player)) {
             player.setPlayerWeather(WeatherType.CLEAR);
-        } else if (instance.getMain().checkIfClaimExists(from) && !instance.getMain().canPermCheck(from, "Weather")) {
+        } else if (instance.getMain().checkIfClaimExists(from) && !claimFrom.getPermissionForPlayer("Weather",player)) {
             player.resetPlayerWeather();
         }
     }
@@ -327,12 +334,13 @@ public class ClaimEventsEnterLeave implements Listener {
      * @param owner   The owner of the chunk.
      */
     private void handleAutoFly(Player player, CPlayer cPlayer, Chunk chunk, String owner) {
-        if (cPlayer.getClaimAutofly() && (owner.equals(player.getName()) || instance.getMain().canPermCheck(chunk, "Fly")) && !instance.isFolia()) {
+    	Claim claim = instance.getMain().getClaim(chunk);
+        if (cPlayer.getClaimAutofly() && (owner.equals(player.getName()) || claim != null && claim.getPermissionForPlayer("Fly", player)) && !instance.isFolia()) {
             instance.getPlayerMain().activePlayerFly(player);
             if (instance.getSettings().getBooleanSetting("claim-fly-message-auto-fly")) {
                 instance.getMain().sendMessage(player, instance.getLanguage().getMessage("fly-enabled"), "CHAT");
             }
-        } else if (!instance.getMain().canPermCheck(chunk, "Fly") && !owner.equals(player.getName()) && cPlayer.getClaimFly() && !instance.isFolia()) {
+        } else if (claim != null && !claim.getPermissionForPlayer("Fly", player) && !owner.equals(player.getName()) && cPlayer.getClaimFly() && !instance.isFolia()) {
             instance.getPlayerMain().removePlayerFly(player);
             if (instance.getSettings().getBooleanSetting("claim-fly-message-auto-fly")) {
                 instance.getMain().sendMessage(player, instance.getLanguage().getMessage("fly-disabled"), "CHAT");
@@ -458,18 +466,35 @@ public class ClaimEventsEnterLeave implements Listener {
             String fromName = instance.getMain().getClaimNameByChunk(from);
 
             if (instance.getMain().checkIfClaimExists(to)) {
-                String message = ownerTO.equals("admin")
-                        ? instance.getLanguage().getMessage("enter-protected-area").replace("%name%", toName)
-                        : instance.getLanguage().getMessage("enter-territory")
-                          .replace("%owner%", ownerTO)
-                          .replace("%player%", playerName)
-                          .replace("%name%", toName);
+            	Claim claim = instance.getMain().getClaim(to);
+            	String message;
+            	if(claim.getSale() && instance.getSettings().getBooleanSetting("announce-sale.chat")) {
+                    message = ownerTO.equals("*")
+                            ? instance.getLanguage().getMessage("enter-protected-area-for-sale-chat")
+                            		.replace("%name%", toName)
+                            		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                            		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))
+                            : instance.getLanguage().getMessage("enter-territory-for-sale-chat")
+                              .replace("%owner%", ownerTO)
+                              .replace("%player%", playerName)
+                              .replace("%name%", toName)
+                      		  .replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                      		  .replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
+            	} else {
+                    message = ownerTO.equals("*")
+                            ? instance.getLanguage().getMessage("enter-protected-area-chat").replace("%name%", toName)
+                            : instance.getLanguage().getMessage("enter-territory-chat")
+                              .replace("%owner%", ownerTO)
+                              .replace("%player%", playerName)
+                              .replace("%name%", toName);
+            	}
+
                 instance.executeEntitySync(player, () -> player.sendMessage(message));
                 return;
             }
 
             if (instance.getMain().checkIfClaimExists(from)) {
-                String message = ownerFROM.equals("admin")
+                String message = ownerFROM.equals("*")
                         ? instance.getLanguage().getMessage("leave-protected-area").replace("%name%", fromName)
                         : instance.getLanguage().getMessage("leave-territory")
                           .replace("%owner%", ownerFROM)
@@ -497,18 +522,34 @@ public class ClaimEventsEnterLeave implements Listener {
             String fromName = instance.getMain().getClaimNameByChunk(from);
 
             if (instance.getMain().checkIfClaimExists(to)) {
-                String message = ownerTO.equals("admin")
-                        ? instance.getLanguage().getMessage("enter-protected-area").replace("%name%", toName)
-                        : instance.getLanguage().getMessage("enter-territory")
+            	Claim claim = instance.getMain().getClaim(to);
+            	String message;
+            	if(claim.getSale() && instance.getSettings().getBooleanSetting("announce-sale.actionbar")) {
+            		message = ownerTO.equals("*")
+                        ? instance.getLanguage().getMessage("enter-protected-area-for-sale")
+                        		.replace("%name%", toName)
+                        		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                        		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))
+                        : instance.getLanguage().getMessage("enter-territory-for-sale")
                           .replace("%owner%", ownerTO)
                           .replace("%player%", playerName)
-                          .replace("%name%", toName);
+                          .replace("%name%", toName)
+                  		  .replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                  		  .replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
+            	} else {
+            		message = ownerTO.equals("*")
+                            ? instance.getLanguage().getMessage("enter-protected-area").replace("%name%", toName)
+                            : instance.getLanguage().getMessage("enter-territory")
+                              .replace("%owner%", ownerTO)
+                              .replace("%player%", playerName)
+                              .replace("%name%", toName);
+            	}
                 instance.executeEntitySync(player, () -> instance.getMain().sendMessage(player, message, "ACTION_BAR"));
                 return;
             }
 
             if (instance.getMain().checkIfClaimExists(from)) {
-                String message = ownerFROM.equals("admin")
+                String message = ownerFROM.equals("*")
                         ? instance.getLanguage().getMessage("leave-protected-area").replace("%name%", fromName)
                         : instance.getLanguage().getMessage("leave-territory")
                           .replace("%owner%", ownerFROM)
@@ -535,24 +576,60 @@ public class ClaimEventsEnterLeave implements Listener {
             String playerName = player.getName();
             
             if (instance.getMain().checkIfClaimExists(to)) {
-            	String toTitleKey = ownerTO.equals("admin") ? "enter-protected-area-title" : "enter-territory-title";
-            	String toSubtitleKey = ownerTO.equals("admin") ? "enter-protected-area-subtitle" : "enter-territory-subtitle";
+            	Claim claim = instance.getMain().getClaim(to);
+            	String toTitleKey;
+            	String toSubtitleKey;
+            	if(claim.getSale() && instance.getSettings().getBooleanSetting("announce-sale.title")) {
+                	toTitleKey = ownerTO.equals("*") ? instance.getLanguage().getMessage("enter-protected-area-for-sale-title")
+                	        .replace("%name%", toName)
+                	        .replace("%owner%", ownerTO)
+                	        .replace("%player%", playerName)
+                    		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                      		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))
+                			: instance.getLanguage().getMessage("enter-territory-for-sale-title")
+                    	        .replace("%name%", toName)
+                    	        .replace("%owner%", ownerTO)
+                    	        .replace("%player%", playerName)
+                        		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                          		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
+                	toSubtitleKey = ownerTO.equals("*") ? instance.getLanguage().getMessage("enter-protected-area-for-sale-subtitle")
+                	        .replace("%name%", toName)
+                	        .replace("%owner%", ownerTO)
+                	        .replace("%player%", playerName)
+                    		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                      		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))
+                	        : instance.getLanguage().getMessage("enter-territory-for-sale-subtitle")
+                    	        .replace("%name%", toName)
+                    	        .replace("%owner%", ownerTO)
+                    	        .replace("%player%", playerName)
+                        		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                          		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
+            	} else {
+                	toTitleKey = ownerTO.equals("*") ? instance.getLanguage().getMessage("enter-protected-area-title")
+                	        .replace("%name%", toName)
+                	        .replace("%owner%", ownerTO)
+                	        .replace("%player%", playerName)
+                			: instance.getLanguage().getMessage("enter-territory-title")
+                    	        .replace("%name%", toName)
+                    	        .replace("%owner%", ownerTO)
+                    	        .replace("%player%", playerName);;
+                	toSubtitleKey = ownerTO.equals("*") ? instance.getLanguage().getMessage("enter-protected-area-subtitle")
+                	        .replace("%name%", toName)
+                	        .replace("%owner%", ownerTO)
+                	        .replace("%player%", playerName)
+                	        : instance.getLanguage().getMessage("enter-territory-subtitle")
+                    	        .replace("%name%", toName)
+                    	        .replace("%owner%", ownerTO)
+                    	        .replace("%player%", playerName);
+            	}
 
-            	String title = instance.getLanguage().getMessage(toTitleKey)
-            	        .replace("%name%", toName)
-            	        .replace("%owner%", ownerTO)
-            	        .replace("%player%", playerName);
-            	String subtitle = instance.getLanguage().getMessage(toSubtitleKey)
-            	        .replace("%name%", toName)
-            	        .replace("%owner%", ownerTO)
-            	        .replace("%player%", playerName);
-            	instance.executeEntitySync(player, () -> player.sendTitle(title, subtitle, 5, 25, 5));
+            	instance.executeEntitySync(player, () -> player.sendTitle(toTitleKey, toSubtitleKey, 5, 25, 5));
                 return;
             }
             
             if (instance.getMain().checkIfClaimExists(from)) {
-            	String fromTitleKey = ownerFROM.equals("admin") ? "leave-protected-area-title" : "leave-territory-title";
-            	String fromSubtitleKey = ownerFROM.equals("admin") ? "leave-protected-area-subtitle" : "leave-territory-subtitle";
+            	String fromTitleKey = ownerFROM.equals("*") ? "leave-protected-area-title" : "leave-territory-title";
+            	String fromSubtitleKey = ownerFROM.equals("*") ? "leave-protected-area-subtitle" : "leave-territory-subtitle";
 
             	String title = instance.getLanguage().getMessage(fromTitleKey)
             	        .replace("%name%", fromName)

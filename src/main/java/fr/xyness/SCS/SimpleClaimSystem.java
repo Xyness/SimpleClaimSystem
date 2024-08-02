@@ -8,6 +8,7 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
+import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -16,6 +17,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
@@ -105,7 +107,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private JavaPlugin plugin;
     
     /** The version of the plugin */
-    private String Version = "1.10.0.5";
+    private String Version = "1.11";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -141,8 +143,9 @@ public class SimpleClaimSystem extends JavaPlugin {
         info(ChatColor.AQUA + " |___/ \\___| |___/  " + ChatColor.DARK_GRAY + "Running on " + Bukkit.getVersion());
         info(" ");
         
-        // Register plugin instance and api instance
+        // Register plugin instance
         this.plugin = this;
+        this.instance = this;
         
         // Initialize the API
         SimpleClaimSystemAPI_Provider.initialize(this);
@@ -245,12 +248,6 @@ public class SimpleClaimSystem extends JavaPlugin {
             claimSettingsInstance.addSetting("placeholderapi", "false");
         }
         
-        // Check ItemsAdder
-        boolean check_itemsadder = false;
-        if (Bukkit.getPluginManager().getPlugin("ItemsAdder") != null) {
-            check_itemsadder = true;
-        }
-        
         // Check WorldGuard
         if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
             claimSettingsInstance.addSetting("worldguard", "true");
@@ -295,26 +292,9 @@ public class SimpleClaimSystem extends JavaPlugin {
         } else {
             claimSettingsInstance.addSetting("pl3xmap", "false");
         }
-        
-        // Check "guis" folder
-        File dossier = new File(plugin.getDataFolder(), "guis");
-        if (!dossier.exists()) {
-            dossier.mkdirs();
-        }
-        
-        // Check GUI files
-        checkAndSaveResource("guis/main.yml");
-        checkAndSaveResource("guis/settings.yml");
-        checkAndSaveResource("guis/members.yml");
-        checkAndSaveResource("guis/list.yml");
-        checkAndSaveResource("guis/claims.yml");
-        checkAndSaveResource("guis/claims_owner.yml");
-        checkAndSaveResource("guis/bans.yml");
-        checkAndSaveResource("guis/chunks.yml");
-        claimGuisInstance.loadGuiSettings(plugin, check_itemsadder);
 
         // Check "langs" folder
-        dossier = new File(plugin.getDataFolder(), "langs");
+        File dossier = new File(plugin.getDataFolder(), "langs");
         if (!dossier.exists()) {
             dossier.mkdirs();
         }
@@ -351,6 +331,20 @@ public class SimpleClaimSystem extends JavaPlugin {
         }
         claimLanguageInstance.setLanguage(messages);
         
+        // Add default settings (before loading DB)
+        Map<String,LinkedHashMap<String, Boolean>> defaultSettings = new HashMap<>();
+        LinkedHashMap<String, Boolean> v = new LinkedHashMap<>();
+        ConfigurationSection statusSettings = plugin.getConfig().getConfigurationSection("default-values-settings");
+        for (String key : statusSettings.getKeys(false)) {
+        	ConfigurationSection statusSettingsSub = statusSettings.getConfigurationSection(key);
+        	v = new LinkedHashMap<>();
+        	for (String subkey : statusSettingsSub.getKeys(false)) {
+        		v.put(subkey, statusSettingsSub.getBoolean(subkey));
+        	}
+        	defaultSettings.put(key.toLowerCase(), v);
+        }
+        claimSettingsInstance.setDefaultValues(defaultSettings);
+        
         // Check database
         String configC = plugin.getConfig().getString("database");
         if (configC.equalsIgnoreCase("true")) {
@@ -372,39 +366,40 @@ public class SimpleClaimSystem extends JavaPlugin {
             try (Connection connection = dataSource.getConnection()) {
                 info("Database connection successful.");
                 try (Statement stmt = connection.createStatement()) {
-                	String sql = "CREATE TABLE IF NOT EXISTS scs_claims " +
-                		    "(id_pk INT AUTO_INCREMENT PRIMARY KEY, " +
-                		    "id INT, " +
-                		    "uuid VARCHAR(36), " +
-                		    "name VARCHAR(36), " +
-                		    "claim_name VARCHAR(255), " +
-                		    "claim_description VARCHAR(255), " +
-                		    "X TEXT, " +
-                		    "Z TEXT, " +
-                		    "World VARCHAR(255), " +
-                		    "Location VARCHAR(255), " +
-                		    "Members TEXT, " +
-                		    "Permissions VARCHAR(510), " +
-                		    "isSale TINYINT(1) DEFAULT 0, " +
-                		    "SalePrice DOUBLE DEFAULT 0, " +
-                		    "Bans TEXT)";
+                	String sql = "CREATE TABLE IF NOT EXISTS scs_claims_1 " +
+                		    "(id INT AUTO_INCREMENT PRIMARY KEY, " +
+                		    "id_claim INT NOT NULL, " +
+                		    "owner_uuid VARCHAR(36) NOT NULL, " +
+                		    "owner_name VARCHAR(36) NOT NULL, " +
+                		    "claim_name VARCHAR(255) NOT NULL, " +
+                		    "claim_description VARCHAR(255) NOT NULL, " +
+                		    "chunks TEXT NOT NULL, " +
+                		    "world_name VARCHAR(255) NOT NULL, " +
+                		    "location VARCHAR(255) NOT NULL, " +
+                		    "members TEXT NOT NULL, " +
+                		    "permissions VARCHAR(510) NOT NULL, " +
+                		    "for_sale TINYINT(1) NOT NULL DEFAULT 0, " +
+                		    "sale_price DOUBLE NOT NULL DEFAULT 0, " +
+                		    "bans TEXT NOT NULL DEFAULT '')";
                     stmt.executeUpdate(sql);
-                    sql = "ALTER TABLE scs_claims MODIFY COLUMN SalePrice DOUBLE;";
+                	sql = "CREATE TABLE IF NOT EXISTS scs_players " +
+                		    "(id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                		    "uuid_server VARCHAR(36) NOT NULL UNIQUE, " +
+                		    "uuid_mojang VARCHAR(36) NOT NULL, " + 
+                		    "player_name VARCHAR(36) NOT NULL, " +
+                		    "player_head TEXT NOT NULL, " +
+                		    "player_textures TEXT NOT NULL)";
                     stmt.executeUpdate(sql);
-                    sql = "ALTER TABLE scs_claims MODIFY COLUMN X TEXT, MODIFY COLUMN Z TEXT;";
-                    stmt.executeUpdate(sql);
-                    String checkColumnSQL = String.format(
-                            "SELECT COUNT(*) AS column_count FROM information_schema.columns " +
-                            "WHERE table_name = '%s' AND column_name = '%s'",
-                            "scs_claims", "Bans");
-                    ResultSet rs = stmt.executeQuery(checkColumnSQL);
-                    if (rs.next() && rs.getInt("column_count") == 0) {
-                        sql = "ALTER TABLE scs_claims ADD COLUMN Bans VARCHAR(1020) DEFAULT '';";
-                        stmt.executeUpdate(sql);
-                    }
                 } catch (SQLException e) {
                     info(ChatColor.RED + "Error creating tables, using local db.");
                     configC = "false";
+                }
+                
+                DatabaseMetaData metaData = connection.getMetaData();
+                try (ResultSet resultSet = metaData.getTables(null, null, "scs_claims", new String[]{"TABLE"})) {
+                    if(resultSet.next()) {
+                    	claimInstance.convertDistantToNewDistant();
+                    }
                 }
             } catch (SQLException e) {
                 info(ChatColor.RED + "Error connecting to database, using local db.");
@@ -413,7 +408,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         }
         if (configC.equals("false")) {
             HikariConfig configH = new HikariConfig();
-            configH.setJdbcUrl("jdbc:sqlite:plugins/SimpleClaimSystem/claims.db");
+            configH.setJdbcUrl("jdbc:sqlite:plugins/SimpleClaimSystem/storage.db");
             configH.addDataSourceProperty("cachePrepStmts", "true");
             configH.addDataSourceProperty("prepStmtCacheSize", "250");
             configH.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
@@ -425,30 +420,46 @@ public class SimpleClaimSystem extends JavaPlugin {
             dataSource = new HikariDataSource(configH);
             try (Connection connection = dataSource.getConnection()) {
                 try (Statement stmt = connection.createStatement()) {
-                    String sql = "CREATE TABLE IF NOT EXISTS scs_claims " +
-                            "(id_pk INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                            "id INT, " +
-                            "uuid VARCHAR(36), " +
-                            "name VARCHAR(36), " +
-                            "claim_name VARCHAR(255), " +
-                            "claim_description VARCHAR(255), " +
-                            "X TEXT, " +
-                            "Z TEXT, " +
-                            "World VARCHAR(255), " +
-                            "Location VARCHAR(255), " +
-                            "Members TEXT, " +
-                            "Permissions VARCHAR(510), " +
-                            "isSale TINYINT(1) DEFAULT 0, " +
-                            "SalePrice DOUBLE DEFAULT 0, " +
-                            "Bans TEXT DEFAULT '')";
+                    String sql = "CREATE TABLE IF NOT EXISTS scs_claims_1 " +
+                            "(id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                		    "id_claim INT NOT NULL, " +
+                		    "owner_uuid VARCHAR(36) NOT NULL, " +
+                		    "owner_name VARCHAR(36) NOT NULL, " +
+                		    "claim_name VARCHAR(255) NOT NULL, " +
+                		    "claim_description VARCHAR(255) NOT NULL, " +
+                		    "chunks TEXT NOT NULL, " +
+                		    "world_name VARCHAR(255) NOT NULL, " +
+                		    "location VARCHAR(255) NOT NULL, " +
+                		    "members TEXT NOT NULL, " +
+                		    "permissions VARCHAR(510) NOT NULL, " +
+                		    "for_sale TINYINT(1) NOT NULL DEFAULT 0, " +
+                		    "sale_price DOUBLE NOT NULL DEFAULT 0, " +
+                		    "bans TEXT NOT NULL DEFAULT '')";
+                    stmt.executeUpdate(sql);
+                	sql = "CREATE TABLE IF NOT EXISTS scs_players " +
+                		    "(id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                		    "uuid_server VARCHAR(36) NOT NULL UNIQUE, " +
+                		    "uuid_mojang VARCHAR(36) NOT NULL, " + 
+                		    "player_name VARCHAR(36) NOT NULL, " +
+                		    "player_head TEXT NOT NULL, " +
+                		    "player_textures TEXT NOT NULL)";
                     stmt.executeUpdate(sql);
                 } catch (SQLException e) {
                     info(ChatColor.RED + "Error creating tables, disabling plugin.");
                     return false;
                 }
+                
             } catch (SQLException e) {
                 info(ChatColor.RED + "Error creating tables, disabling plugin.");
                 return false;
+            }
+            
+            // Check new DB
+            String databasePath = "plugins/SimpleClaimSystem/claims.db";
+            File databaseFile = new File(databasePath);
+
+            if (databaseFile.exists()) {
+            	claimInstance.convertLocalToNewLocal();
             }
         }
         claimSettingsInstance.addSetting("database", configC);
@@ -585,18 +596,40 @@ public class SimpleClaimSystem extends JavaPlugin {
             claimSettingsInstance.addSetting("economy", "false");
         }
         
+        // Add announce sale settings
+        claimSettingsInstance.addSetting("announce-sale.bossbar", plugin.getConfig().getString("announce-sale.bossbar"));
+        String barColor = getConfig().getString("announce-sale.bossbar-settings.color").toUpperCase();
+        try {
+        	BarColor color = BarColor.valueOf(barColor);
+        } catch (IllegalArgumentException e) {
+            info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
+            barColor = "YELLOW";
+        }
+        String barStyle = plugin.getConfig().getString("announce-sale.bossbar-settings.style").toUpperCase();
+        try {
+        	BarStyle style = BarStyle.valueOf(barStyle);
+        } catch (IllegalArgumentException e) {
+        	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
+        	barStyle = "SOLID";
+        }
+        claimSettingsInstance.addSetting("announce-sale.bossbar-settings.color", barColor);
+        claimSettingsInstance.addSetting("announce-sale.bossbar-settings.style", barStyle);
+        claimSettingsInstance.addSetting("announce-sale.chat", plugin.getConfig().getString("announce-sale.chat"));
+        claimSettingsInstance.addSetting("announce-sale.title", plugin.getConfig().getString("announce-sale.title"));
+        claimSettingsInstance.addSetting("announce-sale.actionbar", plugin.getConfig().getString("announce-sale.actionbar"));
+        
         // Add bossbar settings
         configC = plugin.getConfig().getString("bossbar");
         claimSettingsInstance.addSetting("bossbar", configC);
         // Load bossbar settings
-        String barColor = getConfig().getString("bossbar-settings.color").toUpperCase();
+        barColor = getConfig().getString("bossbar-settings.color").toUpperCase();
         try {
         	BarColor color = BarColor.valueOf(barColor);
         } catch (IllegalArgumentException e) {
             info(ChatColor.RED + "Invalid bossbar color, using default color YELLOW.");
             barColor = "YELLOW";
         }
-        String barStyle = plugin.getConfig().getString("bossbar-settings.style").toUpperCase();
+        barStyle = plugin.getConfig().getString("bossbar-settings.style").toUpperCase();
         try {
         	BarStyle style = BarStyle.valueOf(barStyle);
         } catch (IllegalArgumentException e) {
@@ -632,7 +665,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         
         // Add player settings
         ConfigurationSection playersSection = plugin.getConfig().getConfigurationSection("players");
-        Map<String, Map<String, Double>> playersSettings = new HashMap<>();
+        Map<UUID, Map<String, Double>> playersSettings = new HashMap<>();
         for (String key : playersSection.getKeys(false)) {
             Map<String, Double> settings = new HashMap<>();
             if (plugin.getConfig().isSet("players." + key + ".max-claims")) settings.put("max-claims", plugin.getConfig().getDouble("players." + key + ".max-claims"));
@@ -643,7 +676,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             if (plugin.getConfig().isSet("players." + key + ".max-chunks-per-claim")) settings.put("max-chunks-per-claim", plugin.getConfig().getDouble("players." + key + ".max-chunks-per-claim"));
             if (plugin.getConfig().isSet("players." + key + ".claim-distance")) settings.put("claim-distance", plugin.getConfig().getDouble("players." + key + ".claim-distance"));
             if (plugin.getConfig().isSet("players." + key + ".max-chunks-total")) settings.put("max-chunks-total", plugin.getConfig().getDouble("players." + key + ".max-chunks-total"));
-            if (!settings.isEmpty()) playersSettings.put(key, settings);
+            if (!settings.isEmpty()) playersSettings.put(Bukkit.getOfflinePlayer(key).getUniqueId(), settings);
         }
         cPlayerMainInstance.setPlayersConfigSettings(playersSettings);
         
@@ -654,20 +687,12 @@ public class SimpleClaimSystem extends JavaPlugin {
         plugin.getServer().getPluginManager().registerEvents(new ClaimGuiEvents(this), plugin);
         
         // Add enabled/disabled settings
-        LinkedHashMap<String, Boolean> v = new LinkedHashMap<>();
-        ConfigurationSection statusSettings = plugin.getConfig().getConfigurationSection("status-settings");
+        v = new LinkedHashMap<>();
+        statusSettings = plugin.getConfig().getConfigurationSection("status-settings");
         for (String key : statusSettings.getKeys(false)) {
             v.put(key, statusSettings.getBoolean(key));
         }
         claimSettingsInstance.setEnabledSettings(v);
-        
-        // Add default settings
-        v = new LinkedHashMap<>();
-        statusSettings = plugin.getConfig().getConfigurationSection("default-values-settings");
-        for (String key : statusSettings.getKeys(false)) {
-            v.put(key, statusSettings.getBoolean(key));
-        }
-        claimSettingsInstance.setDefaultValues(v);
         
         // Add blocked items
         claimSettingsInstance.setRestrictedItems(plugin.getConfig().getStringList("blocked-items"));
@@ -689,9 +714,15 @@ public class SimpleClaimSystem extends JavaPlugin {
         plugin.getCommand("protectedarea").setExecutor(new ProtectedAreaCommand(this));
         
         plugin.saveConfig();
+        
+        // Load bossbar default settings
+        claimBossBarInstance.loadBossbarSettings();
 
         // Load claims system
         claimInstance.loadClaims();
+        
+        // Load players
+        cPlayerMainInstance.loadPlayers();
         
         // Add players setting and active their bossbar (/reload prevention)
         Bukkit.getOnlinePlayers().forEach(p -> {
@@ -699,6 +730,475 @@ public class SimpleClaimSystem extends JavaPlugin {
         	claimBossBarInstance.activeBossBar(p, p.getLocation().getChunk());
         });
         if(reload) info("==========================================================================");
+        return true;
+    }
+    
+    /**
+     * Loads or reloads the plugin configuration.
+     * 
+     * @return True if the configuration was loaded successfully, false otherwise
+     */
+    public boolean reloadOnlyConfig() {
+        info("==========================================================================");
+        plugin.saveDefaultConfig();
+        plugin.reloadConfig();
+        
+        // Update config if necessary
+        updateConfigWithDefaults();
+        // Check Folia
+        checkFolia();
+        
+        // Check GriefPrevention
+        if (Bukkit.getPluginManager().getPlugin("GriefPrevention") != null) {
+            claimSettingsInstance.addSetting("griefprevention", "true");
+        } else {
+            claimSettingsInstance.addSetting("griefprevention", "false");
+        }
+        
+        // Check PlaceholderAPI
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            claimSettingsInstance.addSetting("placeholderapi", "true");
+            new ClaimPlaceholdersExpansion(this).register();
+        } else {
+            claimSettingsInstance.addSetting("placeholderapi", "false");
+        }
+        
+        // Check WorldGuard
+        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
+            claimSettingsInstance.addSetting("worldguard", "true");
+        } else {
+            claimSettingsInstance.addSetting("worldguard", "false");
+        }
+        
+        // Check Vault
+        boolean check_vault = false;
+        if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
+        	claimVaultInstance = new ClaimVault();
+            if (claimVaultInstance.setupEconomy()) {
+                claimSettingsInstance.addSetting("vault", "true");
+                check_vault = true;
+            } else {
+                claimSettingsInstance.addSetting("vault", "false");
+            }
+        } else {
+            claimSettingsInstance.addSetting("vault", "false");
+        }
+        
+        // Check Dynmap
+        Plugin dynmap = Bukkit.getPluginManager().getPlugin("dynmap");
+        if (dynmap != null) {
+            claimSettingsInstance.addSetting("dynmap", "true");
+        } else {
+            claimSettingsInstance.addSetting("dynmap", "false");
+        }
+        
+        // Check Bluemap
+        Plugin bluemap = Bukkit.getPluginManager().getPlugin("bluemap");
+        if (bluemap != null) {
+            claimSettingsInstance.addSetting("bluemap", "true");
+        } else {
+            claimSettingsInstance.addSetting("bluemap", "false");
+        }
+        
+        // Check Pl3xmap
+        Plugin pl3xmap = Bukkit.getPluginManager().getPlugin("pl3xmap");
+        if (pl3xmap != null) {
+            claimSettingsInstance.addSetting("pl3xmap", "true");
+        } else {
+            claimSettingsInstance.addSetting("pl3xmap", "false");
+        }
+
+        // Check "langs" folder
+        File dossier = new File(plugin.getDataFolder(), "langs");
+        if (!dossier.exists()) {
+            dossier.mkdirs();
+        }
+        
+        // Check default language file for additions
+        checkAndSaveResource("langs/en_US.yml");
+        updateLangFileWithMissingKeys("en_US.yml");
+        
+        // Check custom language file
+        String lang = plugin.getConfig().getString("lang");
+        File custom = new File(plugin.getDataFolder() + File.separator + "langs", lang);
+        if (!custom.exists()) {
+            info(ChatColor.RED + "File '" + lang + "' not found, using en_US.yml");
+            lang = "en_US.yml";
+        } else {
+            updateLangFileWithMissingKeys(lang);
+        }
+        claimSettingsInstance.addSetting("lang", lang);
+        
+        // Load selected language file
+        File lang_final = new File(plugin.getDataFolder() + File.separator + "langs", lang);
+        FileConfiguration config = YamlConfiguration.loadConfiguration(lang_final);
+        Map<String, String> messages = new HashMap<>();
+        for (String key : config.getKeys(false)) {
+            if (key.equals("help-command")) {
+                ConfigurationSection configHelp = config.getConfigurationSection("help-command");
+                for (String help : configHelp.getKeys(false)) {
+                    messages.put("help-command." + help, configHelp.getString(help));
+                }
+                continue;
+            }
+            String value = config.getString(key);
+            messages.put(key, value);
+        }
+        claimLanguageInstance.setLanguage(messages);
+        
+        // Add default settings (before loading DB)
+        Map<String,LinkedHashMap<String, Boolean>> defaultSettings = new HashMap<>();
+        LinkedHashMap<String, Boolean> v = new LinkedHashMap<>();
+        ConfigurationSection statusSettings = plugin.getConfig().getConfigurationSection("default-values-settings");
+        for (String key : statusSettings.getKeys(false)) {
+        	ConfigurationSection statusSettingsSub = statusSettings.getConfigurationSection(key);
+        	v = new LinkedHashMap<>();
+        	for (String subkey : statusSettingsSub.getKeys(false)) {
+        		v.put(subkey, statusSettingsSub.getBoolean(subkey));
+        	}
+        	defaultSettings.put(key.toLowerCase(), v);
+        }
+        claimSettingsInstance.setDefaultValues(defaultSettings);
+        
+        // Check database
+        String configC = plugin.getConfig().getString("database");
+        if (configC.equalsIgnoreCase("true")) {
+            // Create data source
+            HikariConfig configH = new HikariConfig();
+            configH.setJdbcUrl("jdbc:mysql://" + plugin.getConfig().getString("database-settings.hostname") + ":" + plugin.getConfig().getString("database-settings.port") + "/" + plugin.getConfig().getString("database-settings.database_name"));
+            configH.setUsername(plugin.getConfig().getString("database-settings.username"));
+            configH.setPassword(plugin.getConfig().getString("database-settings.password"));
+            configH.addDataSourceProperty("cachePrepStmts", "true");
+            configH.addDataSourceProperty("prepStmtCacheSize", "250");
+            configH.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+            configH.addDataSourceProperty("useServerPrepStmts", "true");
+            configH.setPoolName("MySQL");
+            configH.setMaximumPoolSize(10);
+            configH.setMinimumIdle(2);
+            configH.setIdleTimeout(60000);
+            configH.setMaxLifetime(600000);
+            dataSource = new HikariDataSource(configH);
+            try (Connection connection = dataSource.getConnection()) {
+                info("Database connection successful.");
+                try (Statement stmt = connection.createStatement()) {
+                	String sql = "CREATE TABLE IF NOT EXISTS scs_claims_1 " +
+                		    "(id INT AUTO_INCREMENT PRIMARY KEY, " +
+                		    "id_claim INT NOT NULL, " +
+                		    "owner_uuid VARCHAR(36) NOT NULL, " +
+                		    "owner_name VARCHAR(36) NOT NULL, " +
+                		    "claim_name VARCHAR(255) NOT NULL, " +
+                		    "claim_description VARCHAR(255) NOT NULL, " +
+                		    "chunks TEXT NOT NULL, " +
+                		    "world_name VARCHAR(255) NOT NULL, " +
+                		    "location VARCHAR(255) NOT NULL, " +
+                		    "members TEXT NOT NULL, " +
+                		    "permissions VARCHAR(510) NOT NULL, " +
+                		    "for_sale TINYINT(1) NOT NULL DEFAULT 0, " +
+                		    "sale_price DOUBLE NOT NULL DEFAULT 0, " +
+                		    "bans TEXT NOT NULL DEFAULT '')";
+                    stmt.executeUpdate(sql);
+                	sql = "CREATE TABLE IF NOT EXISTS scs_players " +
+                		    "(id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                		    "uuid_server VARCHAR(36) NOT NULL UNIQUE, " +
+                		    "uuid_mojang VARCHAR(36) NOT NULL, " + 
+                		    "player_name VARCHAR(36) NOT NULL, " +
+                		    "player_head TEXT NOT NULL, " +
+                		    "player_textures TEXT NOT NULL)";
+                    stmt.executeUpdate(sql);
+                } catch (SQLException e) {
+                    info(ChatColor.RED + "Error creating tables, using local db.");
+                    configC = "false";
+                }
+                
+                DatabaseMetaData metaData = connection.getMetaData();
+                try (ResultSet resultSet = metaData.getTables(null, null, "scs_claims", new String[]{"TABLE"})) {
+                    if(resultSet.next()) {
+                    	claimInstance.convertDistantToNewDistant();
+                    }
+                }
+            } catch (SQLException e) {
+                info(ChatColor.RED + "Error connecting to database, using local db.");
+                configC = "false";
+            }
+        }
+        if (configC.equals("false")) {
+            HikariConfig configH = new HikariConfig();
+            configH.setJdbcUrl("jdbc:sqlite:plugins/SimpleClaimSystem/storage.db");
+            configH.addDataSourceProperty("cachePrepStmts", "true");
+            configH.addDataSourceProperty("prepStmtCacheSize", "250");
+            configH.addDataSourceProperty("prepStmtCacheSqlLimit", "2048");
+            configH.setPoolName("SQLitePool");
+            configH.setMaximumPoolSize(10);
+            configH.setMinimumIdle(2);
+            configH.setIdleTimeout(60000);
+            configH.setMaxLifetime(600000);
+            dataSource = new HikariDataSource(configH);
+            try (Connection connection = dataSource.getConnection()) {
+                try (Statement stmt = connection.createStatement()) {
+                    String sql = "CREATE TABLE IF NOT EXISTS scs_claims_1 " +
+                            "(id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                		    "id_claim INT NOT NULL, " +
+                		    "owner_uuid VARCHAR(36) NOT NULL, " +
+                		    "owner_name VARCHAR(36) NOT NULL, " +
+                		    "claim_name VARCHAR(255) NOT NULL, " +
+                		    "claim_description VARCHAR(255) NOT NULL, " +
+                		    "chunks TEXT NOT NULL, " +
+                		    "world_name VARCHAR(255) NOT NULL, " +
+                		    "location VARCHAR(255) NOT NULL, " +
+                		    "members TEXT NOT NULL, " +
+                		    "permissions VARCHAR(510) NOT NULL, " +
+                		    "for_sale TINYINT(1) NOT NULL DEFAULT 0, " +
+                		    "sale_price DOUBLE NOT NULL DEFAULT 0, " +
+                		    "bans TEXT NOT NULL DEFAULT '')";
+                    stmt.executeUpdate(sql);
+                	sql = "CREATE TABLE IF NOT EXISTS scs_players " +
+                		    "(id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                		    "uuid_server VARCHAR(36) NOT NULL UNIQUE, " +
+                		    "uuid_mojang VARCHAR(36) NOT NULL, " + 
+                		    "player_name VARCHAR(36) NOT NULL, " +
+                		    "player_head TEXT NOT NULL, " +
+                		    "player_textures TEXT NOT NULL)";
+                    stmt.executeUpdate(sql);
+                } catch (SQLException e) {
+                    info(ChatColor.RED + "Error creating tables, disabling plugin.");
+                    return false;
+                }
+                
+            } catch (SQLException e) {
+                info(ChatColor.RED + "Error creating tables, disabling plugin.");
+                return false;
+            }
+            
+            // Check new DB
+            String databasePath = "plugins/SimpleClaimSystem/claims.db";
+            File databaseFile = new File(databasePath);
+
+            if (databaseFile.exists()) {
+            	claimInstance.convertLocalToNewLocal();
+            }
+        }
+        claimSettingsInstance.addSetting("database", configC);
+        
+        // Auto-purge settings
+        configC = plugin.getConfig().getString("auto-purge");
+        claimSettingsInstance.addSetting("auto-purge", configC);
+        if (configC.equals("true")) {
+            configC = plugin.getConfig().getString("auto-purge-checking");
+            claimSettingsInstance.addSetting("auto-purge-checking", configC);
+            try {
+                int minutes = Integer.parseInt(configC);
+                if (minutes < 1) {
+                    info(ChatColor.RED + "'auto-purge-checking' must be a correct number (integer and > 0). Using default value.");
+                    minutes = 60;
+                }
+                configC = plugin.getConfig().getString("auto-purge-time-without-login");
+                claimSettingsInstance.addSetting("auto-purge-time-without-login", configC);
+                claimPurgeInstance = new ClaimPurge(this);
+                claimPurgeInstance.startPurge(minutes, configC);
+            } catch (NumberFormatException e) {
+                info(ChatColor.RED + "'auto-purge-checking' must be a correct number (integer and > 0). Using default value.");
+                int minutes = 60;
+                configC = plugin.getConfig().getString("auto-purge-time-without-login");
+                claimSettingsInstance.addSetting("auto-purge-time-without-login", configC);
+                claimPurgeInstance = new ClaimPurge(this);
+                claimPurgeInstance.startPurge(minutes, configC);
+            }
+        }
+        
+        // Add Dynmap settings
+        configC = plugin.getConfig().getString("dynmap");
+        claimSettingsInstance.addSetting("dynmap", configC);
+        claimSettingsInstance.addSetting("dynmap-claim-border-color", plugin.getConfig().getString("dynmap-settings.claim-border-color"));
+        claimSettingsInstance.addSetting("dynmap-claim-fill-color", plugin.getConfig().getString("dynmap-settings.claim-fill-color"));
+        claimSettingsInstance.addSetting("dynmap-claim-hover-text", plugin.getConfig().getString("dynmap-settings.claim-hover-text"));
+        
+        // Add Bluemap settings
+        configC = plugin.getConfig().getString("bluemap");
+        claimSettingsInstance.addSetting("bluemap", configC);
+        claimSettingsInstance.addSetting("bluemap-claim-border-color", plugin.getConfig().getString("bluemap-settings.claim-border-color"));
+        claimSettingsInstance.addSetting("bluemap-claim-fill-color", plugin.getConfig().getString("bluemap-settings.claim-fill-color"));
+        claimSettingsInstance.addSetting("bluemap-claim-hover-text", plugin.getConfig().getString("bluemap-settings.claim-hover-text"));
+        
+        // Add Pl3xmap settings
+        configC = plugin.getConfig().getString("pl3xmap");
+        claimSettingsInstance.addSetting("pl3xmap", configC);
+        claimSettingsInstance.addSetting("pl3xmap-claim-border-color", plugin.getConfig().getString("pl3xmap-settings.claim-border-color"));
+        claimSettingsInstance.addSetting("pl3xmap-claim-fill-color", plugin.getConfig().getString("pl3xmap-settings.claim-fill-color"));
+        claimSettingsInstance.addSetting("pl3xmap-claim-hover-text", plugin.getConfig().getString("pl3xmap-settings.claim-hover-text"));
+        
+        // Add the message type for protection
+        configC = plugin.getConfig().getString("protection-message");
+        if (configC.equalsIgnoreCase("action_bar") || 
+                configC.equalsIgnoreCase("title") ||
+                configC.equalsIgnoreCase("subtitle") ||
+                configC.equalsIgnoreCase("chat") ||
+                configC.equalsIgnoreCase("bossbar")) {
+            claimSettingsInstance.addSetting("protection-message", configC);
+        } else {
+            info(ChatColor.RED + "'protection-message' must be 'ACTION_BAR', 'TITLE', 'SUBTITLE', 'CHAT' or 'BOSSBAR'. Using default value.");
+            claimSettingsInstance.addSetting("protection-message", "ACTION_BAR");
+        }
+        
+        // Add disabled worlds
+        Set<String> worlds = new HashSet<>(plugin.getConfig().getStringList("worlds-disabled"));
+        claimSettingsInstance.setDisabledWorlds(worlds);
+        
+        // Check the preload chunks
+        claimSettingsInstance.addSetting("preload-chunks", plugin.getConfig().getString("preload-chunks"));
+        
+        // Check the keep chunks loaded
+        claimSettingsInstance.addSetting("keep-chunks-loaded", plugin.getConfig().getString("keep-chunks-loaded"));
+        
+        // Check the max length of the claim name
+        claimSettingsInstance.addSetting("max-length-claim-name", plugin.getConfig().getString("max-length-claim-name"));
+        
+        // Check the max length of the claim description
+        claimSettingsInstance.addSetting("max-length-claim-description", plugin.getConfig().getString("max-length-claim-description"));
+        
+        // Add confirmation check setting
+        claimSettingsInstance.addSetting("claim-confirmation", plugin.getConfig().getString("claim-confirmation"));
+        
+        // Add claim particles setting
+        claimSettingsInstance.addSetting("claim-particles", plugin.getConfig().getString("claim-particles"));
+        
+        // Add claim fly disabled on damage setting
+        claimSettingsInstance.addSetting("claim-fly-disabled-on-damage", plugin.getConfig().getString("claim-fly-disabled-on-damage"));
+        
+        // Add claim fly message setting
+        claimSettingsInstance.addSetting("claim-fly-message-auto-fly", plugin.getConfig().getString("claim-fly-message-auto-fly"));
+        
+        // Check if enter/leave messages in a claim in the action bar are enabled
+        claimSettingsInstance.addSetting("enter-leave-messages", plugin.getConfig().getString("enter-leave-messages"));
+        
+        // Check if enter/leave messages in a claim in the title/subtitle are enabled
+        claimSettingsInstance.addSetting("enter-leave-title-messages", plugin.getConfig().getString("enter-leave-title-messages"));
+        
+        // Check if enter/leave messages in a claim in the chat are enabled
+        claimSettingsInstance.addSetting("enter-leave-chat-messages", plugin.getConfig().getString("enter-leave-chat-messages"));
+        
+        // Check if claims where Visitors is false are displayed in the /claims GUI
+        claimSettingsInstance.addSetting("claims-visitors-off-visible", plugin.getConfig().getString("claims-visitors-off-visible"));
+        
+        // Add economy settings
+        if (check_vault) {
+            claimSettingsInstance.addSetting("economy", plugin.getConfig().getString("economy"));
+            claimSettingsInstance.addSetting("max-sell-price", plugin.getConfig().getString("max-sell-price"));
+            claimSettingsInstance.addSetting("claim-cost", plugin.getConfig().getString("claim-cost"));
+            claimSettingsInstance.addSetting("claim-cost-multiplier", plugin.getConfig().getString("claim-cost-multiplier"));
+        } else {
+            claimSettingsInstance.addSetting("economy", "false");
+        }
+        
+        // Add announce sale settings
+        claimSettingsInstance.addSetting("announce-sale.bossbar", plugin.getConfig().getString("announce-sale.bossbar"));
+        String barColor = getConfig().getString("announce-sale.bossbar-settings.color").toUpperCase();
+        try {
+        	BarColor color = BarColor.valueOf(barColor);
+        } catch (IllegalArgumentException e) {
+            info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
+            barColor = "YELLOW";
+        }
+        String barStyle = plugin.getConfig().getString("announce-sale.bossbar-settings.style").toUpperCase();
+        try {
+        	BarStyle style = BarStyle.valueOf(barStyle);
+        } catch (IllegalArgumentException e) {
+        	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
+        	barStyle = "SOLID";
+        }
+        claimSettingsInstance.addSetting("announce-sale.bossbar-settings.color", barColor);
+        claimSettingsInstance.addSetting("announce-sale.bossbar-settings.style", barStyle);
+        claimSettingsInstance.addSetting("announce-sale.chat", plugin.getConfig().getString("announce-sale.chat"));
+        claimSettingsInstance.addSetting("announce-sale.title", plugin.getConfig().getString("announce-sale.title"));
+        claimSettingsInstance.addSetting("announce-sale.actionbar", plugin.getConfig().getString("announce-sale.actionbar"));
+        
+        // Add bossbar settings
+        configC = plugin.getConfig().getString("bossbar");
+        claimSettingsInstance.addSetting("bossbar", configC);
+        // Load bossbar settings
+        barColor = getConfig().getString("bossbar-settings.color").toUpperCase();
+        try {
+        	BarColor color = BarColor.valueOf(barColor);
+        } catch (IllegalArgumentException e) {
+            info(ChatColor.RED + "Invalid bossbar color, using default color YELLOW.");
+            barColor = "YELLOW";
+        }
+        barStyle = plugin.getConfig().getString("bossbar-settings.style").toUpperCase();
+        try {
+        	BarStyle style = BarStyle.valueOf(barStyle);
+        } catch (IllegalArgumentException e) {
+        	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
+        	barStyle = "SOLID";
+        }
+        claimSettingsInstance.addSetting("bossbar-color", barColor);
+        claimSettingsInstance.addSetting("bossbar-style", barStyle);
+        
+        // Add teleportation delay moving setting
+        claimSettingsInstance.addSetting("teleportation-delay-moving", plugin.getConfig().getString("teleportation-delay-moving"));
+        
+        // Add group settings
+        ConfigurationSection groupsSection = plugin.getConfig().getConfigurationSection("groups");
+        LinkedHashMap<String, String> groups = new LinkedHashMap<>();
+        Map<String, Map<String, Double>> groupsSettings = new HashMap<>();
+        for (String key : groupsSection.getKeys(false)) {
+            if (!key.equalsIgnoreCase("default")) groups.put(key, plugin.getConfig().getString("groups." + key + ".permission"));
+            Map<String, Double> settings = new HashMap<>();
+            settings.put("max-claims", plugin.getConfig().getDouble("groups." + key + ".max-claims"));
+            settings.put("max-radius-claims", plugin.getConfig().getDouble("groups." + key + ".max-radius-claims"));
+            settings.put("teleportation-delay", plugin.getConfig().getDouble("groups." + key + ".teleportation-delay"));
+            settings.put("max-members", plugin.getConfig().getDouble("groups." + key + ".max-members"));
+            settings.put("claim-cost", plugin.getConfig().getDouble("groups." + key + ".claim-cost"));
+            settings.put("claim-cost-multiplier", plugin.getConfig().getDouble("groups." + key + ".claim-cost-multiplier"));
+            settings.put("max-chunks-per-claim", plugin.getConfig().getDouble("groups." + key + ".max-chunks-per-claim"));
+            settings.put("claim-distance", plugin.getConfig().getDouble("groups." + key + ".claim-distance"));
+            settings.put("max-chunks-total", plugin.getConfig().getDouble("groups." + key + ".max-chunks-total"));
+            groupsSettings.put(key, settings);
+        }
+        claimSettingsInstance.setGroups(groups);
+        claimSettingsInstance.setGroupsSettings(groupsSettings);
+        
+        // Add player settings
+        ConfigurationSection playersSection = plugin.getConfig().getConfigurationSection("players");
+        Map<UUID, Map<String, Double>> playersSettings = new HashMap<>();
+        for (String key : playersSection.getKeys(false)) {
+            Map<String, Double> settings = new HashMap<>();
+            if (plugin.getConfig().isSet("players." + key + ".max-claims")) settings.put("max-claims", plugin.getConfig().getDouble("players." + key + ".max-claims"));
+            if (plugin.getConfig().isSet("players." + key + ".max-radius-claims")) settings.put("max-radius-claims", plugin.getConfig().getDouble("players." + key + ".max-radius-claims"));
+            if (plugin.getConfig().isSet("players." + key + ".teleportation-delay")) settings.put("teleportation-delay", plugin.getConfig().getDouble("players." + key + ".teleportation-delay"));
+            if (plugin.getConfig().isSet("players." + key + ".claim-cost")) settings.put("claim-cost", plugin.getConfig().getDouble("players." + key + ".claim-cost"));
+            if (plugin.getConfig().isSet("players." + key + ".claim-cost-multiplier")) settings.put("claim-cost-multiplier", plugin.getConfig().getDouble("players." + key + ".claim-cost-multiplier"));
+            if (plugin.getConfig().isSet("players." + key + ".max-chunks-per-claim")) settings.put("max-chunks-per-claim", plugin.getConfig().getDouble("players." + key + ".max-chunks-per-claim"));
+            if (plugin.getConfig().isSet("players." + key + ".claim-distance")) settings.put("claim-distance", plugin.getConfig().getDouble("players." + key + ".claim-distance"));
+            if (plugin.getConfig().isSet("players." + key + ".max-chunks-total")) settings.put("max-chunks-total", plugin.getConfig().getDouble("players." + key + ".max-chunks-total"));
+            if (!settings.isEmpty()) playersSettings.put(Bukkit.getOfflinePlayer(key).getUniqueId(), settings);
+        }
+        cPlayerMainInstance.setPlayersConfigSettings(playersSettings);
+        
+        // Add enabled/disabled settings
+        v = new LinkedHashMap<>();
+        statusSettings = plugin.getConfig().getConfigurationSection("status-settings");
+        for (String key : statusSettings.getKeys(false)) {
+            v.put(key, statusSettings.getBoolean(key));
+        }
+        claimSettingsInstance.setEnabledSettings(v);
+        
+        // Add blocked items
+        claimSettingsInstance.setRestrictedItems(plugin.getConfig().getStringList("blocked-items"));
+        
+        // Add blocked containers
+        claimSettingsInstance.setRestrictedContainers(plugin.getConfig().getStringList("blocked-interact-blocks"));
+        
+        // Add blocked entities
+        claimSettingsInstance.setRestrictedEntityType(plugin.getConfig().getStringList("blocked-entities"));
+        
+        // Register protection listener
+        plugin.getServer().getPluginManager().registerEvents(new ClaimEvents(this), plugin);
+        
+        plugin.saveConfig();
+        
+        // Load bossbar default settings
+        claimBossBarInstance.loadBossbarSettings();
+
+        info("==========================================================================");
         return true;
     }
     
@@ -910,6 +1410,10 @@ public class SimpleClaimSystem extends JavaPlugin {
                 changed = true;
             }
         }
+        
+        ConfigurationSection defaultGroup = defConfig.getConfigurationSection("groups.default");
+        ConfigurationSection groups = defConfig.getConfigurationSection("groups");
+        if(addMissingKeysFromDefault(defaultGroup, groups)) changed = true;
 
         if (changed) {
             try {
@@ -919,6 +1423,43 @@ public class SimpleClaimSystem extends JavaPlugin {
                 e.printStackTrace();
             }
         }
+    }
+    
+    /**
+     * Adds missing keys from the default group to all other groups.
+     *
+     * @param defaultGroup the ConfigurationSection of the default group
+     * @param groups       the ConfigurationSection containing all groups
+     */
+    private boolean addMissingKeysFromDefault(ConfigurationSection defaultGroup, ConfigurationSection groups) {
+    	boolean changed = false;
+        for (String groupName : groups.getKeys(false)) {
+            if (!groupName.equals("default")) {
+                ConfigurationSection group = groups.getConfigurationSection(groupName);
+                if (group != null) {
+                    changed = addMissingKeys(defaultGroup, group);
+                }
+            }
+        }
+        return changed;
+    }
+
+    /**
+     * Adds missing keys from the default group to the specified group.
+     *
+     * @param defaultGroup the ConfigurationSection of the default group
+     * @param group        the ConfigurationSection of the group to update
+     */
+    private boolean addMissingKeys(ConfigurationSection defaultGroup, ConfigurationSection group) {
+    	boolean changed = false;
+        for (String key : defaultGroup.getKeys(false)) {
+            if (!group.contains(key)) {
+                Object value = defaultGroup.get(key);
+                group.set(key, value);
+                changed = true;
+            }
+        }
+        return changed;
     }
     
     /**

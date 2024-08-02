@@ -3,6 +3,7 @@ package fr.xyness.SCS.Guis.AdminGestion;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -53,7 +54,17 @@ public class AdminGestionClaimChunksGui implements InventoryHolder {
     public AdminGestionClaimChunksGui(Player player, Claim claim, int page, SimpleClaimSystem instance) {
     	this.instance = instance;
         inv = Bukkit.createInventory(this, 54, "§4[A]§r Chunks: "+claim.getName()+" ("+claim.getOwner()+")");
-        instance.executeAsync(() -> loadItems(player, claim, page));
+        loadItems(player, claim, page).thenAccept(success -> {
+        	if (success) {
+        		instance.executeEntitySync(player, () -> player.openInventory(inv));
+        	} else {
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        	}
+        })
+        .exceptionally(ex -> {
+            ex.printStackTrace();
+            return null;
+        });
     }
     
     
@@ -66,42 +77,49 @@ public class AdminGestionClaimChunksGui implements InventoryHolder {
      * Initializes the items for the GUI.
      * 
      * @param player The player who opened the GUI.
-     * @param chunk  The chunk for which the GUI is displayed.
+     * @param claim  The claim for which the GUI is displayed.
      * @param page   The current page of the GUI.
+     * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public void loadItems(Player player, Claim claim, int page) {
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getName());
-        cPlayer.setClaim(claim);
-        cPlayer.clearMapString();
-        int min_member_slot = 0;
-        int max_member_slot = 44;
-        int items_count = max_member_slot - min_member_slot + 1;
-        if(page>1) inv.setItem(48, backPage(page - 1));
-        inv.setItem(49, backMainMenu(claim.getName()));
-        List<String> lore = new ArrayList<>(Arrays.asList("§7The chunk is part of the claim",claim.getChunks().size() == 1 ? "§cYou can't remove the only remaining chunk" : "§c[Left-click]§7 to remove chunk"));
-        int startItem = (page - 1) * items_count;
-        int i = min_member_slot;
-        int count = 0;
-        int chunk_count = 0;
-        for (Chunk chunk : claim.getChunks()) {
-        	chunk_count++;
-            if (count++ < startItem) continue;
-            if (i == max_member_slot + 1) {
-            	inv.setItem(50, nextPage(page + 1));
-                break;
-            }
-            cPlayer.addMapString(i, String.valueOf(chunk.getWorld().getName()+";"+chunk.getX()+";"+chunk.getZ()));
-            ItemStack item = new ItemStack(Material.RED_MUSHROOM_BLOCK);
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName("§6Chunk-"+String.valueOf(chunk_count)+" §7("+String.valueOf(chunk.getWorld().getName()+", X:"+chunk.getX()+", Z:"+chunk.getZ())+")");
-            meta.setLore(lore);
-            item.setItemMeta(meta);
-            inv.setItem(i, item);
-            i++;
-            continue;
-        }
+    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, int page) {
+    	
+    	return CompletableFuture.supplyAsync(() -> {
+    	
+	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+	        cPlayer.setClaim(claim);
+	        cPlayer.clearMapString();
+	        int min_member_slot = 0;
+	        int max_member_slot = 44;
+	        int items_count = max_member_slot - min_member_slot + 1;
+	        if(page>1) inv.setItem(48, backPage(page - 1));
+	        inv.setItem(49, backMainMenu(claim.getName()));
+	        List<String> lore = new ArrayList<>(Arrays.asList("§7The chunk is part of the claim",claim.getChunks().size() == 1 ? "§cYou can't remove the only remaining chunk" : "§c[Left-click]§7 to remove chunk"));
+	        int startItem = (page - 1) * items_count;
+	        int i = min_member_slot;
+	        int count = 0;
+	        int chunk_count = 0;
+	        for (Chunk chunk : claim.getChunks()) {
+	        	chunk_count++;
+	            if (count++ < startItem) continue;
+	            if (i == max_member_slot + 1) {
+	            	inv.setItem(50, nextPage(page + 1));
+	                break;
+	            }
+	            cPlayer.addMapString(i, String.valueOf(chunk.getWorld().getName()+";"+chunk.getX()+";"+chunk.getZ()));
+	            ItemStack item = new ItemStack(Material.RED_MUSHROOM_BLOCK);
+	            ItemMeta meta = item.getItemMeta();
+	            meta.setDisplayName("§6Chunk-"+String.valueOf(chunk_count)+" §7("+String.valueOf(chunk.getWorld().getName()+", X:"+chunk.getX()+", Z:"+chunk.getZ())+")");
+	            meta.setLore(lore);
+	            item.setItemMeta(meta);
+	            inv.setItem(i, item);
+	            i++;
+	            continue;
+	        }
+	        
+	        return true;
         
-        instance.executeEntitySync(player, () -> player.openInventory(inv));
+    	});
+	        
     }
     
     /**

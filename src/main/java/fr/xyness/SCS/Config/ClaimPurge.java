@@ -62,13 +62,11 @@ public class ClaimPurge {
      * Checks if a player has been offline for the duration set in the configuration.
      * If true, the system will delete all their claims.
      *
-     * @param playerName the name of the player.
+     * @param target the player.
      * @return true if the player has been offline for the specified time, false otherwise.
      */
-    public boolean hasBeenOfflineFor(String playerName) {
-        Player player = Bukkit.getPlayer(playerName);
-        if (player == null) {
-            OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
+    public boolean hasBeenOfflineFor(OfflinePlayer target) {
+        if (!target.isOnline()) {
             if (!target.hasPlayedBefore()) return false;
             long lastPlayed = target.getLastPlayed();
             if (lastPlayed <= 0) return false;
@@ -122,8 +120,9 @@ public class ClaimPurge {
     public void purgeClaims() {
         Map<String, String> players = new HashMap<>();
         for (String owner : instance.getMain().getClaimsOwners()) {
-            if (hasBeenOfflineFor(owner)) {
-                int nb = instance.getMain().getPlayerClaimsCount(owner);
+        	OfflinePlayer p = Bukkit.getOfflinePlayer(owner);
+            if (hasBeenOfflineFor(p)) {
+                int nb = instance.getMain().getPlayerClaimsCount(p.getUniqueId());
                 players.put(owner, String.valueOf(nb));
                 instance.getMain().deleteAllClaims(owner);
             }
@@ -143,6 +142,36 @@ public class ClaimPurge {
             sb.append(".");
         }
         instance.getPlugin().getLogger().info("Auto-purge: " + sb.toString());
+    }
+    
+    /**
+     * Purge claims manually of offline players.
+     */
+    public void purgeClaims(Player player) {
+        Map<String, String> players = new HashMap<>();
+        for (String owner : instance.getMain().getClaimsOwners()) {
+        	OfflinePlayer p = Bukkit.getOfflinePlayer(owner);
+            if (hasBeenOfflineFor(p)) {
+                int nb = instance.getMain().getPlayerClaimsCount(p.getUniqueId());
+                players.put(owner, String.valueOf(nb));
+                instance.getMain().deleteAllClaims(owner);
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        if (players.isEmpty()) {
+            sb.append("no claims removed.");
+        } else {
+            for (Map.Entry<String, String> entry : players.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                sb.append(key).append(" (").append(instance.getMain().getNumberSeparate(value)).append(" claims), ");
+            }
+            if (sb.length() > 0) {
+                sb.setLength(sb.length() - 2);
+            }
+            sb.append(".");
+        }
+        player.sendMessage("Auto-purge: " + sb.toString());
     }
 
     /**

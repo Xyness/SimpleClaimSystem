@@ -1,22 +1,9 @@
 package fr.xyness.SCS.Listeners;
 
-import java.io.File;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
 import org.bukkit.Sound;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -46,10 +33,7 @@ import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimMembersGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimsGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimsOwnerGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimsProtectedAreasGui;
-import fr.xyness.SCS.Guis.AdminGestion.AdminGestionGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionMainGui;
-import fr.xyness.SCS.Guis.AdminGestion.AdminGestionSettingWorldsGui;
-import fr.xyness.SCS.Guis.AdminGestion.AdminGestionSettingsSettingsGui;
 
 /**
  * Event listener for claim guis events.
@@ -99,7 +83,7 @@ public class ClaimGuiEvents implements Listener {
         if (inv != null && inv.equals(openInventory)) {
         	
         	InventoryHolder holder = event.getInventory().getHolder();
-        	CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getName());
+        	CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
         	
         	if (holder instanceof ClaimMainGui) {
         		handleClaimMainGuiClick(event, player, cPlayer);
@@ -117,8 +101,6 @@ public class ClaimGuiEvents implements Listener {
         		handleClaimsGuiClick(event, player, cPlayer);
         	} else if (holder instanceof ClaimsOwnerGui) {
         		handleClaimsOwnerGuiClick(event, player, cPlayer);
-        	} else if (holder instanceof AdminGestionGui) {
-        		handleAdminGestionGuiClick(event, player);
         	} else if (holder instanceof AdminGestionMainGui) {
         		handleAdminGestionMainGuiClick(event, player, cPlayer);
         	} else if (holder instanceof AdminGestionClaimsGui) {
@@ -133,14 +115,10 @@ public class ClaimGuiEvents implements Listener {
         		handleAdminGestionClaimBansGuiClick(event, player, cPlayer);
         	} else if (holder instanceof AdminGestionClaimsProtectedAreasGui) {
         		handleAdminGestionClaimsProtectedAreasGuiClick(event, player, cPlayer);
-        	} else if (holder instanceof AdminGestionSettingWorldsGui) {
-        		handleAdminGestionSettingWorldsGuiClick(event, player, cPlayer);
         	} else if (holder instanceof AdminGestionClaimMainGui) {
         		handleAdminGestionClaimMainGuiClick(event, player, cPlayer);
         	} else if (holder instanceof AdminGestionClaimChunksGui) {
         		handleAdminGestionClaimChunksGuiClick(event, player, cPlayer);
-        	} else if (holder instanceof AdminGestionSettingsSettingsGui) {
-        		handleAdminGestionSettingsSettingsClick(event, player, cPlayer);
         	}
         }
 	}
@@ -166,55 +144,42 @@ public class ClaimGuiEvents implements Listener {
         Claim claim = cPlayer.getClaim();
         if(claim == null) return;
         
-        if(clickedSlot == instance.getGuis().getItemSlot("main", "manage-bans")) {
-        	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.bans")) return;
-        	cPlayer.setGuiPage(1);
-        	new ClaimBansGui(player,claim,1,instance);
-        	return;
+        switch(clickedSlot) {
+        	case 13:
+            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.list")) return;
+            	cPlayer.setGuiPage(1);
+            	new ClaimListGui(player,1,"owner",instance);
+            	break;
+        	case 20:
+            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.bans")) return;
+            	cPlayer.setGuiPage(1);
+            	new ClaimBansGui(player,claim,1,instance);
+            	break;
+        	case 29:
+            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.settings")) return;
+            	new ClaimSettingsGui(player,claim,instance,"visitors");
+            	break;
+        	case 30:
+            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.members")) return;
+            	cPlayer.setGuiPage(1);
+            	new ClaimMembersGui(player,claim,1,instance);
+            	break;
+        	case 32:
+            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.chunks")) return;
+            	cPlayer.setGuiPage(1);
+            	new ClaimChunksGui(player,claim,1,instance);
+            	break;
+        	case 33:
+            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) return;
+            	player.closeInventory();
+            	instance.getMain().goClaim(player, claim.getLocation());
+            	break;
+        	case 24:
+            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.unclaim")) return;
+            	player.closeInventory();
+            	Bukkit.dispatchCommand(player, "unclaim "+claim.getName());
+            	break;
         }
-        
-        if(clickedSlot == instance.getGuis().getItemSlot("main", "manage-members")) {
-        	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.members")) return;
-        	cPlayer.setGuiPage(1);
-        	new ClaimMembersGui(player,claim,1,instance);
-        	return;
-        }
-        
-        if(clickedSlot == instance.getGuis().getItemSlot("main", "manage-settings")) {
-        	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.settings")) return;
-        	new ClaimSettingsGui(player,claim,instance);
-        	return;
-        }
-        
-        if(clickedSlot == instance.getGuis().getItemSlot("main", "manage-chunks")) {
-        	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.chunks")) return;
-        	cPlayer.setGuiPage(1);
-        	new ClaimChunksGui(player,claim,1,instance);
-        	return;
-        }
-        
-        if(clickedSlot == instance.getGuis().getItemSlot("main", "unclaim")) {
-        	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.unclaim")) return;
-        	player.closeInventory();
-        	Bukkit.dispatchCommand(player, "unclaim "+claim.getName());
-        	return;
-        }
-        
-        if(clickedSlot == instance.getGuis().getItemSlot("main", "teleport-claim")) {
-        	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) return;
-        	player.closeInventory();
-        	instance.getMain().goClaim(player, claim.getLocation());
-        	return;
-        }
-        
-        if(clickedSlot == instance.getGuis().getItemSlot("main", "claim-info")) {
-        	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.list")) return;
-        	cPlayer.setGuiPage(1);
-        	new ClaimListGui(player,1,"owner",instance);
-        	return;
-        }
-        
-        instance.getGuis().executeAction(player, "main", clickedSlot, event.getClick());
         return;
     }
     
@@ -231,9 +196,10 @@ public class ClaimGuiEvents implements Listener {
         int clickedSlot = event.getSlot();
         
         Claim claim = cPlayer.getClaim();
-        if(claim == null) return;
+        String role = cPlayer.getFilter();
+        if(claim == null || role == null) return;
         
-        if(clickedSlot == instance.getGuis().getItemSlot("settings", "apply-all-claims")) {
+        if(clickedSlot == 50) {
         	player.closeInventory();
         	instance.getMain().applyAllSettings(claim)
         		.thenAccept(success -> {
@@ -250,22 +216,34 @@ public class ClaimGuiEvents implements Listener {
         	return;
         }
         
-        if(clickedSlot == instance.getGuis().getItemSlot("settings", "back-page-main")) {
+        if(clickedSlot == 49) {
         	new ClaimMainGui(player,claim,instance);
         	return;
         }
         
-        if(instance.getGuis().isAllowedSlot(clickedSlot)) {
+        if (clickedSlot == 48) {
+        	if(role.equals("visitors")) {
+        		role = "members";
+        	} else if (role.equals("members")) {
+        		role = "natural";
+        	} else {
+        		role = "visitors";
+        	}
+            new ClaimSettingsGui(player,claim,instance,role);
+            return;
+        }
+        
+        if(instance.getGuis().isAllowedSlot(clickedSlot,role)) {
         	ItemMeta meta = clickedItem.getItemMeta();
             if (meta != null && meta.hasLore()) {
             	String title = meta.getDisplayName();
                 List<String> lore = meta.getLore();
                 String check = lore.get(lore.size()-1);
                 if(check.equals(instance.getLanguage().getMessage("choice-setting-disabled"))) return;
-                String action = instance.getGuis().getSlotPerm(clickedSlot);
-                if(!instance.getPlayerMain().checkPermPlayer(player, "scs.setting."+action)) return;
+                String action = instance.getGuis().getSlotPerm(clickedSlot,role);
+                if(!instance.getPlayerMain().checkPermPlayer(player, "scs.setting."+action) && !instance.getPlayerMain().checkPermPlayer(player, "scs.setting.*")) return;
                 if(title.contains(instance.getLanguage().getMessage("status-enabled"))){
-                	instance.getMain().updatePerm(claim, action, false)
+                	instance.getMain().updatePerm(claim, action, false, role)
                 		.thenAccept(success -> {
                 			if (success) {
                             	meta.setDisplayName(title.replace(instance.getLanguage().getMessage("status-enabled"), instance.getLanguage().getMessage("status-disabled")));
@@ -284,7 +262,7 @@ public class ClaimGuiEvents implements Listener {
                         });
                     return;
                 }
-                instance.getMain().updatePerm(claim, action, true)
+                instance.getMain().updatePerm(claim, action, true, role)
                 	.thenAccept(success -> {
                 		if (success) {
                         	meta.setDisplayName(title.replace(instance.getLanguage().getMessage("status-disabled"), instance.getLanguage().getMessage("status-enabled")));
@@ -304,8 +282,6 @@ public class ClaimGuiEvents implements Listener {
                 return;
             }
         }
-        
-        instance.getGuis().executeAction(player, "settings", clickedSlot, event.getClick());
         return;
     }
 
@@ -324,30 +300,30 @@ public class ClaimGuiEvents implements Listener {
         Claim claim = cPlayer.getClaim();
         if(claim == null) return;
         
-        if (clickedSlot == instance.getGuis().getItemSlot("members", "back-page-list")) {
+        if (clickedSlot == 48) {
         	int page = cPlayer.getGuiPage();
         	cPlayer.setGuiPage(page-1);
             new ClaimMembersGui(player,claim,page-1,instance);
             return;
         }
         
-        if (clickedSlot == instance.getGuis().getItemSlot("members", "back-page-main")) {
+        if (clickedSlot == 49) {
             new ClaimMainGui(player,claim,instance);
             return;
         }
         
-        if (clickedSlot == instance.getGuis().getItemSlot("members", "next-page-list")) {
+        if (clickedSlot == 50) {
         	int page = cPlayer.getGuiPage()+1;
         	cPlayer.setGuiPage(page);
             new ClaimMembersGui(player,claim,page,instance);
             return;
         }
         
-        if(clickedSlot >= instance.getGuis().getGuiMinSlot("members") && clickedSlot <= instance.getGuis().getGuiMaxSlot("members")) {
+        if(clickedSlot >= 0 && clickedSlot <= 44) {
         	String targetName = cPlayer.getMapString(clickedSlot);
         	String owner_claim = claim.getOwner();
         	String playerName = player.getName();
-        	if(targetName.equals(playerName) && !owner_claim.equals("admin")) return;
+        	if(targetName.equals(playerName) && !owner_claim.equals("*")) return;
         	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.remove")) return;
         	String message = instance.getLanguage().getMessage("remove-member-success").replace("%player%", targetName).replace("%claim-name%", claim.getName());
         	instance.getMain().removeClaimMember(claim, targetName)
@@ -371,8 +347,6 @@ public class ClaimGuiEvents implements Listener {
                 });
             return;
         }
-        
-        instance.getGuis().executeAction(player, "members", clickedSlot, event.getClick());
         return;
     }
     
@@ -391,26 +365,26 @@ public class ClaimGuiEvents implements Listener {
         Claim claim = cPlayer.getClaim();
         if(claim == null) return;
         
-        if (clickedSlot == instance.getGuis().getItemSlot("chunks", "back-page-list")) {
+        if (clickedSlot == 48) {
         	int page = cPlayer.getGuiPage();
         	cPlayer.setGuiPage(page-1);
             new ClaimChunksGui(player,claim,page-1,instance);
             return;
         }
         
-        if (clickedSlot == instance.getGuis().getItemSlot("chunks", "back-page-main")) {
+        if (clickedSlot == 49) {
             new ClaimMainGui(player,claim,instance);
             return;
         }
         
-        if (clickedSlot == instance.getGuis().getItemSlot("chunks", "next-page-list")) {
+        if (clickedSlot == 50) {
         	int page = cPlayer.getGuiPage()+1;
         	cPlayer.setGuiPage(page);
             new ClaimChunksGui(player,claim,page,instance);
             return;
         }
         
-        if(clickedSlot >= instance.getGuis().getGuiMinSlot("chunks") && clickedSlot <= instance.getGuis().getGuiMaxSlot("chunks")) {
+        if(clickedSlot >= 0 && clickedSlot <= 44) {
         	String chunk = cPlayer.getMapString(clickedSlot);
         	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.delchunk")) return;
         	if (claim.getChunks().size() == 1) return;
@@ -430,8 +404,6 @@ public class ClaimGuiEvents implements Listener {
             });
             return;
         }
-        
-        instance.getGuis().executeAction(player, "chunks", clickedSlot, event.getClick());
         return;
     }
 
@@ -450,26 +422,26 @@ public class ClaimGuiEvents implements Listener {
         Claim claim = cPlayer.getClaim();
         if(claim == null) return;
         
-        if (clickedSlot == instance.getGuis().getItemSlot("bans", "back-page-list")) {
+        if (clickedSlot == 48) {
         	int page = cPlayer.getGuiPage();
         	cPlayer.setGuiPage(page-1);
             new ClaimBansGui(player,claim,page-1,instance);
             return;
         }
         
-        if (clickedSlot == instance.getGuis().getItemSlot("bans", "back-page-main")) {
+        if (clickedSlot == 49) {
             new ClaimMainGui(player,claim,instance);
             return;
         }
         
-        if (clickedSlot == instance.getGuis().getItemSlot("bans", "next-page-list")) {
+        if (clickedSlot == 50) {
         	int page = cPlayer.getGuiPage()+1;
         	cPlayer.setGuiPage(page);
             new ClaimBansGui(player,claim,page,instance);
             return;
         }
         
-        if(clickedSlot >= instance.getGuis().getGuiMinSlot("bans") && clickedSlot <= instance.getGuis().getGuiMaxSlot("bans")) {
+        if(clickedSlot >= 0 && clickedSlot <= 44) {
         	String targetName = cPlayer.getMapString(clickedSlot);
         	String playerName = player.getName();
         	if(targetName.equals(playerName)) return;
@@ -496,8 +468,6 @@ public class ClaimGuiEvents implements Listener {
                 });
             return;
         }
-        
-        instance.getGuis().executeAction(player, "bans", clickedSlot, event.getClick());
         return;
     }
 
@@ -513,14 +483,14 @@ public class ClaimGuiEvents implements Listener {
         if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
         int clickedSlot = event.getSlot();
         
-        if (clickedSlot == instance.getGuis().getItemSlot("list", "back-page-list")) {
+        if (clickedSlot == 48) {
         	int page = cPlayer.getGuiPage()-1;
         	cPlayer.setGuiPage(page);
             new ClaimListGui(player,page,cPlayer.getFilter(),instance);
             return;
         }
         
-        if (clickedSlot == instance.getGuis().getItemSlot("list", "back-page-main")) {
+        if (clickedSlot == 49) {
     		if(!instance.getMain().checkIfClaimExists(cPlayer.getClaim())) {
     			player.sendMessage(instance.getLanguage().getMessage("the-claim-does-not-exists-anymore"));
     			player.closeInventory();
@@ -530,7 +500,7 @@ public class ClaimGuiEvents implements Listener {
     		return;
         }
         
-        if (clickedSlot == instance.getGuis().getItemSlot("list", "filter")) {
+        if (clickedSlot == 53) {
         	cPlayer.setGuiPage(1);
         	String filter = cPlayer.getFilter();
         	if(filter.equals("owner")) {
@@ -542,14 +512,14 @@ public class ClaimGuiEvents implements Listener {
             return;
         }
         
-        if (clickedSlot == instance.getGuis().getItemSlot("list", "next-page-list")) {
+        if (clickedSlot == 50) {
         	int page = cPlayer.getGuiPage()+1;
         	cPlayer.setGuiPage(page);
             new ClaimListGui(player,page,cPlayer.getFilter(),instance);
             return;
         }
         
-        if(clickedSlot >= instance.getGuis().getGuiMinSlot("list") && clickedSlot <= instance.getGuis().getGuiMaxSlot("list")) {
+        if(clickedSlot >= 0 && clickedSlot <= 44) {
             if(event.getClick() == ClickType.LEFT) {
             	if(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) {
 	            	player.closeInventory();
@@ -585,8 +555,6 @@ public class ClaimGuiEvents implements Listener {
 	        	return;
             }
         }
-        
-        instance.getGuis().executeAction(player, "list", clickedSlot, event.getClick());
         return;
     }
 
@@ -602,21 +570,21 @@ public class ClaimGuiEvents implements Listener {
         if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
         int clickedSlot = event.getSlot();
         
-        if (clickedSlot == instance.getGuis().getItemSlot("claims", "back-page-list")) {
+        if (clickedSlot == 48) {
         	int page = cPlayer.getGuiPage()-1;
         	cPlayer.setGuiPage(page);
             new ClaimsGui(player,page,cPlayer.getFilter(),instance);
             return;
         }
         
-        if (clickedSlot == instance.getGuis().getItemSlot("claims", "next-page-list")) {
+        if (clickedSlot == 50) {
         	int page = cPlayer.getGuiPage()+1;
         	cPlayer.setGuiPage(page);
             new ClaimsGui(player,page,cPlayer.getFilter(),instance);
             return;
         }
         
-        if (clickedSlot == instance.getGuis().getItemSlot("claims", "filter")) {
+        if (clickedSlot == 49) {
         	cPlayer.setGuiPage(1);
         	String filter = cPlayer.getFilter();
         	if(filter.equals("all")) {
@@ -632,7 +600,7 @@ public class ClaimGuiEvents implements Listener {
             return;
         }
         
-        if(clickedSlot >= instance.getGuis().getGuiMinSlot("claims") && clickedSlot <= instance.getGuis().getGuiMaxSlot("claims")) {
+        if(clickedSlot >= 0 && clickedSlot <= 44) {
         	String filter = cPlayer.getFilter();
         	cPlayer.setGuiPage(1);
         	if(filter.equals("sales")) {
@@ -642,8 +610,6 @@ public class ClaimGuiEvents implements Listener {
         	new ClaimsOwnerGui(player,1,"all",cPlayer.getMapString(clickedSlot),instance);
         	return;
         }
-        
-        instance.getGuis().executeAction(player, "claims", clickedSlot, event.getClick());
         return;
     }
 
@@ -659,7 +625,7 @@ public class ClaimGuiEvents implements Listener {
         if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
         int clickedSlot = event.getSlot();
         
-        if (clickedSlot == instance.getGuis().getItemSlot("claims_owner", "back-page-list")) {
+        if (clickedSlot == 48) {
         	if(cPlayer.getGuiPage() == 1) {
         		new ClaimsGui(player,1,"all",instance);
         		return;
@@ -670,14 +636,14 @@ public class ClaimGuiEvents implements Listener {
             return;
         }
         
-        if (clickedSlot == instance.getGuis().getItemSlot("claims_owner", "next-page-list")) {
+        if (clickedSlot == 50) {
         	int page = cPlayer.getGuiPage()+1;
         	cPlayer.setGuiPage(page);
         	new ClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner(),instance);
             return;
         }
         
-        if (clickedSlot == instance.getGuis().getItemSlot("claims_owner", "filter")) {
+        if (clickedSlot == 49) {
         	cPlayer.setGuiPage(1);
         	String filter = cPlayer.getFilter();
         	if(filter.equals("all")) {
@@ -689,11 +655,11 @@ public class ClaimGuiEvents implements Listener {
             return;
         }
         
-        if(clickedSlot >= instance.getGuis().getGuiMinSlot("claims_owner") && clickedSlot <= instance.getGuis().getGuiMaxSlot("claims_owner")) {
+        if(clickedSlot >= 0 && clickedSlot <= 44) {
         	Claim claim = cPlayer.getMapClaim(clickedSlot);
         	if(event.getClick() == ClickType.LEFT) {
         		if(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) {
-		            if(!claim.getPermission("Visitors") && !claim.getOwner().equals(player.getName())) return;
+		            if(!claim.getPermissionForPlayer("EnterTeleport",player) && !claim.getOwner().equals(player.getName())) return;
 	            	player.closeInventory();
 		        	instance.getMain().goClaim(player, cPlayer.getMapLoc(clickedSlot));
 		        	return;
@@ -718,12 +684,12 @@ public class ClaimGuiEvents implements Listener {
         	            	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money"));
         	                return;
         	            }
-            			instance.getMain().sellChunk(playerName, claim)
+            			instance.getMain().sellChunk(player, claim)
             				.thenAccept(success -> {
             					if (success) {
-	            	                player.sendMessage(instance.getLanguage().getMessage("buy-claim-success").replace("%name%", old_name).replace("%price%", String.valueOf(price)).replace("%owner%", old_owner.equalsIgnoreCase("admin") ? "protected areas" : old_owner).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+	            	                player.sendMessage(instance.getLanguage().getMessage("buy-claim-success").replace("%name%", old_name).replace("%price%", String.valueOf(price)).replace("%owner%", old_owner.equalsIgnoreCase("*") ? "protected areas" : old_owner).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
 	            	                player.closeInventory();
-	            	                if(!old_owner.equalsIgnoreCase("admin")) {
+	            	                if(!old_owner.equalsIgnoreCase("*")) {
 	                	                Player target = Bukkit.getPlayer(old_owner);
 	                	                if(target != null && target.isOnline()) {
 	                	                	target.sendMessage(instance.getLanguage().getMessage("claim-was-sold").replace("%name%", old_name).replace("%buyer%", playerName).replace("%price%", String.valueOf(price)).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
@@ -746,8 +712,6 @@ public class ClaimGuiEvents implements Listener {
         		return;
         	}
         }
-        
-        instance.getGuis().executeAction(player, "claims_owner", clickedSlot, event.getClick());
         return;
     }
     
@@ -768,705 +732,22 @@ public class ClaimGuiEvents implements Listener {
 
         int clickedSlot = event.getSlot();
         
-        if(clickedSlot == 20) {
+        if(clickedSlot == 21) {
         	cPlayer.setGuiPage(1);
         	new AdminGestionClaimsGui(player,1,"all",instance);
         	return;
         }
         
-        if(clickedSlot == 21) {
+        if(clickedSlot == 22) {
         	cPlayer.setGuiPage(1);
         	new AdminGestionClaimsProtectedAreasGui(player,1,"all",instance);
         	return;
         }
         
         if(clickedSlot == 23) {
-        	new AdminGestionGui(player,instance);
-        	return;
-        }
-        
-        if(clickedSlot == 24) {
-        	instance.getAutopurge().purgeClaims();
-        	player.sendMessage(instance.getLanguage().getMessage("purge-started-manualy"));
+        	instance.getAutopurge().purgeClaims(player);
         	player.closeInventory();
         	return;
-        }
-    }
-    
-	/**
-     * Handles admin gestion setting worlds GUI click events.
-     * @param event the inventory click event.
-     * @param player the player clicking in the inventory.
-     * @param cPlayer the CPlayer object for the player.
-     */
-    private void handleAdminGestionSettingWorldsGuiClick(InventoryClickEvent event, Player player, CPlayer cPlayer) {
-        event.setCancelled(true);
-        ItemStack clickedItem = event.getCurrentItem();
-        if (clickedItem != null) {
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f);
-        } else {
-            return;
-        }
-
-        int clickedSlot = event.getSlot();
-        
-        if(clickedSlot == 49) {
-        	new AdminGestionGui(player,instance);
-        	return;
-        }
-        
-        String world = cPlayer.getMapString(clickedSlot);
-        if(world == null) return;
-        
-        File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
-        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-        Set<String> worlds = new HashSet<>(config.getStringList("worlds-disabled"));
-        if(worlds.contains(world)) {
-        	worlds.remove(world);
-        } else {
-        	worlds.add(world);
-        }
-        config.set("worlds-disabled", new ArrayList<>(worlds));
-        try {
-            config.save(configFile);
-            instance.reloadConfig();
-            instance.getSettings().addDisabledWorld(world);
-            new AdminGestionSettingWorldsGui(player, instance);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        
-    }
-    
-	/**
-     * Handles admin gestion claim GUI click events.
-     * @param event the inventory click event.
-     * @param player the player clicking in the inventory.
-     * @param cPlayer the CPlayer object for the player.
-     */
-    private void handleAdminGestionGuiClick(InventoryClickEvent event, Player player) {
-        event.setCancelled(true);
-        ItemStack clickedItem = event.getCurrentItem();
-        if (clickedItem != null) {
-            player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f);
-        } else {
-            return;
-        }
-
-        int clickedSlot = event.getSlot();
-        File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
-        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-        
-        if(clickedSlot == 49) {
-        	new AdminGestionMainGui(player,instance);
-        	return;
-        }
-
-        if (clickedSlot == 0) {
-            File guisDir = new File(instance.getPlugin().getDataFolder(), "langs");
-            if (!guisDir.exists()) {
-                guisDir.mkdirs();
-            }
-
-            FilenameFilter ymlFilter = (dir, name) -> name.toLowerCase().endsWith(".yml");
-            File[] files = guisDir.listFiles(ymlFilter);
-            if (files == null || files.length <= 1) {
-                return;
-            }
-
-            String currentLang = config.getString("lang");
-            int currentIndex = -1;
-
-            for (int i = 0; i < files.length; i++) {
-                if (files[i].getName().equalsIgnoreCase(currentLang)) {
-                    currentIndex = i;
-                    break;
-                }
-            }
-
-            int nextIndex = (currentIndex + 1) % files.length;
-            String newLang = files[nextIndex].getName();
-
-            config.set("lang", newLang);
-
-            try {
-                config.save(configFile);
-                instance.reloadLang(player, newLang);
-                new AdminGestionGui(player, instance);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return;
-        }
-        
-        if (clickedSlot == 1) {
-        	Boolean param = config.getBoolean("database");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("database", new_param);
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-            		Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "aclaim reload");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	if(event.getClick() == ClickType.RIGHT) {
-        		player.closeInventory();
-        		player.sendMessage(instance.getLanguage().getMessage("database-setup-how-to"));
-        		instance.getMain().addPlayerAdminSetting(player, "database");
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 2) {
-        	Boolean param = config.getBoolean("auto-purge");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("auto-purge", new_param);
-        		instance.getSettings().addSetting("auto-purge", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-            		if(new_param) {
-            			instance.getAutopurge().stopPurge();
-            		} else {
-            			instance.getAutopurge().startPurge(config.getInt("auto-purge-checking"), config.getString("auto-purge-time-without-login"));
-            		}
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	if(event.getClick() == ClickType.RIGHT && param) {
-        		player.closeInventory();
-        		player.sendMessage(instance.getLanguage().getMessage("auto-purge-setup-how-to"));
-        		instance.getMain().addPlayerAdminSetting(player, "auto-purge");
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 3) {
-        	String param = config.getString("protection-message").toUpperCase();
-        	switch(param) {
-        		case "ACTION_BAR":
-        			param = "BOSSBAR";
-        			break;
-        		case "BOSSBAR":
-        			param = "TITLE";
-        			break;
-        		case "TITLE":
-        			param = "SUBTITLE";
-        			break;
-        		case "SUBTITLE":
-        			param = "CHAT";
-        			break;
-        		default:
-        			param = "ACTION_BAR";
-        			break;
-        	}
-        	config.set("protection-message", param);
-        	instance.getSettings().addSetting("protection-message", param);
-            try {
-                config.save(configFile);
-                instance.reloadConfig();
-                new AdminGestionGui(player, instance);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return;
-        }
-        
-        if (clickedSlot == 4) {
-        	if(event.getClick() == ClickType.RIGHT) {
-        		new AdminGestionSettingWorldsGui(player, instance);
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 5) {
-        	Boolean param = config.getBoolean("preload-chunks");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("preload-chunks", new_param);
-        		instance.getSettings().addSetting("preload-chunks", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 6) {
-        	Boolean param = config.getBoolean("keep-chunks-loaded");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("keep-chunks-loaded", new_param);
-        		instance.getSettings().addSetting("keep-chunks-loaded", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 7) {
-        	int param = config.getInt("max-length-claim-name");
-        	if(event.getClick() == ClickType.LEFT) {
-        		param++;
-        	}
-        	if(event.getClick() == ClickType.RIGHT) {
-        		param--;
-        	}
-        	if(param < 1) param = 1;
-        	config.set("max-length-claim-name", param);
-    		instance.getSettings().addSetting("max-length-claim-name", String.valueOf(param));
-            try {
-                config.save(configFile);
-                instance.reloadConfig();
-                new AdminGestionGui(player, instance);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return;
-        }
-        
-        if (clickedSlot == 8) {
-        	int param = config.getInt("max-length-claim-description");
-        	if(event.getClick() == ClickType.LEFT) {
-        		param++;
-        	}
-        	if(event.getClick() == ClickType.RIGHT) {
-        		param--;
-        	}
-        	if(param < 1) param = 1;
-        	config.set("max-length-claim-description", param);
-    		instance.getSettings().addSetting("max-length-claim-description", String.valueOf(param));
-            try {
-                config.save(configFile);
-                instance.reloadConfig();
-                new AdminGestionGui(player, instance);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return;
-        }
-        
-        if (clickedSlot == 9) {
-        	Boolean param = config.getBoolean("claim-confirmation");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("claim-confirmation", new_param);
-        		instance.getSettings().addSetting("claim-confirmation", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 10) {
-        	Boolean param = config.getBoolean("claim-particles");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("claim-particles", new_param);
-        		instance.getSettings().addSetting("claim-particles", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 11) {
-        	Boolean param = config.getBoolean("claim-fly-disabled-on-damage");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("claim-fly-disabled-on-damage", new_param);
-        		instance.getSettings().addSetting("claim-fly-disabled-on-damage", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 12) {
-        	Boolean param = config.getBoolean("claim-fly-message-auto-fly");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("claim-fly-message-auto-fly", new_param);
-        		instance.getSettings().addSetting("claim-fly-message-auto-fly", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 13) {
-        	Boolean param = config.getBoolean("enter-leave-messages");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("enter-leave-messages", new_param);
-        		instance.getSettings().addSetting("enter-leave-messages", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 14) {
-        	Boolean param = config.getBoolean("enter-leave-title-messages");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("enter-leave-title-messages", new_param);
-        		instance.getSettings().addSetting("enter-leave-title-messages", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 15) {
-        	Boolean param = config.getBoolean("enter-leave-chat-messages");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("enter-leave-chat-messages", new_param);
-        		instance.getSettings().addSetting("enter-leave-chat-messages", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 16) {
-        	Boolean param = config.getBoolean("claims-visitors-off-visible");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("claims-visitors-off-visible", new_param);
-        		instance.getSettings().addSetting("claims-visitors-off-visible", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 17) {
-        	if(!instance.getSettings().getBooleanSetting("vault")) {
-        		player.sendMessage(instance.getLanguage().getMessage("vault-required"));
-        		return;
-        	}
-        	Boolean param = config.getBoolean("economy");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("economy", new_param);
-        		instance.getSettings().addSetting("economy", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	if(event.getClick() == ClickType.RIGHT && param) {
-        		player.closeInventory();
-        		player.sendMessage(instance.getLanguage().getMessage("economy-setup-how-to"));
-        		instance.getMain().addPlayerAdminSetting(player, "economy");
-        		return;
-        	}
-        	if(event.getClick() == ClickType.SHIFT_LEFT && param) {
-            	param = config.getBoolean("claim-cost");
-        		Boolean new_param = param ? false : true;
-        		config.set("claim-cost", new_param);
-        		instance.getSettings().addSetting("claim-cost", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	if(event.getClick() == ClickType.SHIFT_RIGHT && param) {
-            	param = config.getBoolean("claim-cost-multiplier");
-        		Boolean new_param = param ? false : true;
-        		config.set("claim-cost-multiplier", new_param);
-        		instance.getSettings().addSetting("claim-cost-multiplier", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 18) {
-        	Boolean param = config.getBoolean("bossbar");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("bossbar", new_param);
-        		instance.getSettings().addSetting("bossbar", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                    Bukkit.getOnlinePlayers().forEach(p -> instance.getBossBars().activeBossBar(p, p.getLocation().getChunk()));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	if (event.getClick() == ClickType.SHIFT_LEFT && param) {
-        	    String param2 = config.getString("bossbar-settings.color");
-        	    int i = 0;
-        	    BarColor[] values = BarColor.values();
-
-        	    for (BarColor c : values) {
-        	        if (c.name().equalsIgnoreCase(param2)) {
-        	            break;
-        	        }
-        	        i++;
-        	    }
-        	    i = (i + 1) % values.length;
-        	    String new_param = values[i].name().toUpperCase();
-        	    BarColor new_color = values[i];
-        	    config.set("bossbar-settings.color", new_param);
-        	    instance.getSettings().addSetting("bossbar-color", new_param);
-        	    try {
-        	        config.save(configFile);
-        	        instance.reloadConfig();
-        	        new AdminGestionGui(player, instance);
-        	        instance.getBossBars().setBossBarColor(new_color);
-        	    } catch (IOException e) {
-        	        e.printStackTrace();
-        	    }
-        	    return;
-        	}
-        	if (event.getClick() == ClickType.SHIFT_RIGHT && param) {
-        	    String param2 = config.getString("bossbar-settings.style");
-        	    int i = 0;
-        	    BarStyle[] values = BarStyle.values();
-        	    for (BarStyle c : values) {
-        	        if (c.name().equalsIgnoreCase(param2)) {
-        	            break;
-        	        }
-        	        i++;
-        	    }
-        	    i = (i + 1) % values.length;
-        	    String new_param = values[i].name().toUpperCase();
-        	    BarStyle new_style = values[i];
-        	    config.set("bossbar-settings.style", new_param);
-        	    instance.getSettings().addSetting("bossbar-style", new_param);
-        	    try {
-        	        config.save(configFile);
-        	        instance.reloadConfig();
-        	        new AdminGestionGui(player, instance);
-        	        instance.getBossBars().setBossBarStyle(new_style);
-        	    } catch (IOException e) {
-        	        e.printStackTrace();
-        	    }
-        	    return;
-        	}
-        }
-        
-        if (clickedSlot == 19) {
-        	Boolean param = config.getBoolean("teleportation-delay-moving");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("teleportation-delay-moving", new_param);
-        		instance.getSettings().addSetting("teleportation-delay-moving", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 20) {
-        	Boolean param = config.getBoolean("dynmap");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("dynmap", new_param);
-        		instance.getSettings().addSetting("dynmap", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	if(event.getClick() == ClickType.RIGHT && param) {
-        		player.closeInventory();
-        		player.sendMessage(instance.getLanguage().getMessage("map-setup-how-to"));
-        		instance.getMain().addPlayerAdminSetting(player, "dynmap");
-        		return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 21) {
-        	Boolean param = config.getBoolean("bluemap");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("bluemap", new_param);
-        		instance.getSettings().addSetting("bluemap", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	if(event.getClick() == ClickType.RIGHT && param) {
-        		player.closeInventory();
-        		player.sendMessage(instance.getLanguage().getMessage("map-setup-how-to"));
-        		instance.getMain().addPlayerAdminSetting(player, "bluemap");
-        		return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 22) {
-        	Boolean param = config.getBoolean("pl3xmap");
-        	if(event.getClick() == ClickType.LEFT) {
-        		Boolean new_param = param ? false : true;
-        		config.set("pl3xmap", new_param);
-        		instance.getSettings().addSetting("pl3xmap", String.valueOf(new_param));
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-                    new AdminGestionGui(player, instance);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return;
-        	}
-        	if(event.getClick() == ClickType.RIGHT && param) {
-        		player.closeInventory();
-        		player.sendMessage(instance.getLanguage().getMessage("map-setup-how-to"));
-        		instance.getMain().addPlayerAdminSetting(player, "pl3xmap");
-        		return;
-        	}
-        	return;
-        }
-        
-        if (clickedSlot == 23) {
-        	if(event.getClick() == ClickType.LEFT) {
-        		player.closeInventory();
-        		player.sendMessage(instance.getLanguage().getMessage("group2-setup-how-to"));
-        		instance.getMain().addPlayerAdminSetting(player, "group2");
-        		return;
-        	}
-        	if(event.getClick() == ClickType.RIGHT) {
-        		player.closeInventory();
-        		player.sendMessage(instance.getLanguage().getMessage("group-setup-how-to"));
-        		instance.getMain().addPlayerAdminSetting(player, "group");
-        		return;
-        	}
-        }
-        
-        if (clickedSlot == 24) {
-        	if(event.getClick() == ClickType.LEFT) {
-        		player.closeInventory();
-        		player.sendMessage(instance.getLanguage().getMessage("player2-setup-how-to"));
-        		instance.getMain().addPlayerAdminSetting(player, "player2");
-        		return;
-        	}
-        	if(event.getClick() == ClickType.RIGHT) {
-        		player.closeInventory();
-        		player.sendMessage(instance.getLanguage().getMessage("player-setup-how-to"));
-        		instance.getMain().addPlayerAdminSetting(player, "player");
-        		return;
-        	}
-        }
-        
-        if (clickedSlot == 25) {
-        	if(event.getClick() == ClickType.RIGHT) {
-        		new AdminGestionSettingsSettingsGui(player,"status",instance);
-        		return;
-        	}
-        }
-        
-        if (clickedSlot == 26) {
-        	if(event.getClick() == ClickType.RIGHT) {
-        		new AdminGestionSettingsSettingsGui(player,"default",instance);
-        		return;
-        	}
         }
     }
     
@@ -1637,7 +918,8 @@ public class ClaimGuiEvents implements Listener {
         int clickedSlot = event.getSlot();
         
         Claim claim = cPlayer.getClaim();
-        if(claim == null) return;
+        String role = cPlayer.getFilter();
+        if(claim == null || role == null) return;
         
         if(clickedSlot == 49) {
         	new AdminGestionClaimMainGui(player,claim,instance);
@@ -1650,7 +932,7 @@ public class ClaimGuiEvents implements Listener {
         			if (success) {
                 		player.sendMessage(instance.getLanguage().getMessage("apply-all-settings-success-aclaim").replace("%player%", claim.getOwner()));
                 		String target = cPlayer.getOwner();
-                    	if(target.equals("admin")) {
+                    	if(target.equals("*")) {
                     		new AdminGestionClaimsProtectedAreasGui(player,1,cPlayer.getFilter(), instance);
                     		return;
                     	}
@@ -1667,17 +949,29 @@ public class ClaimGuiEvents implements Listener {
         	return;
         }
         
-        if(instance.getGuis().isAllowedSlot(clickedSlot)) {
+        if (clickedSlot == 48) {
+        	if(role.equals("visitors")) {
+        		role = "members";
+        	} else if (role.equals("members")) {
+        		role = "natural";
+        	} else {
+        		role = "visitors";
+        	}
+            new AdminGestionClaimGui(player,claim,instance,role);
+            return;
+        }
+        
+        if(instance.getGuis().isAllowedSlot(clickedSlot,role)) {
         	ItemMeta meta = clickedItem.getItemMeta();
             if (meta != null && meta.hasLore()) {
             	String title = meta.getDisplayName();
                 List<String> lore = meta.getLore();
                 String check = lore.get(lore.size()-1);
                 if(check.equals(instance.getLanguage().getMessage("choice-setting-disabled"))) return;
-                String action = instance.getGuis().getSlotPerm(clickedSlot);
+                String action = instance.getGuis().getSlotPerm(clickedSlot,role);
                 if(!instance.getPlayerMain().checkPermPlayer(player, "scs.setting."+action)) return;
                 if(title.contains(instance.getLanguage().getMessage("status-enabled"))){
-                	instance.getMain().updatePerm(claim, action, false)
+                	instance.getMain().updatePerm(claim, action, false, role)
                 		.thenAccept(success -> {
                 			if (success) {
                             	meta.setDisplayName(title.replace(instance.getLanguage().getMessage("status-enabled"), instance.getLanguage().getMessage("status-disabled")));
@@ -1696,7 +990,7 @@ public class ClaimGuiEvents implements Listener {
                         });
                     return;
                 }
-                instance.getMain().updatePerm(claim, action, true)
+                instance.getMain().updatePerm(claim, action, true, role)
                 	.thenAccept(success -> {
                 		if (success) {
                         	meta.setDisplayName(title.replace(instance.getLanguage().getMessage("status-disabled"), instance.getLanguage().getMessage("status-enabled")));
@@ -1713,78 +1007,6 @@ public class ClaimGuiEvents implements Listener {
                         ex.printStackTrace();
                         return null;
                     });
-                return;
-            }
-        }
-        return;
-    }
-    
-    /**
-     * Handles admin gestion settings settings GUI click events.
-     * @param event the inventory click event.
-     * @param player the player clicking in the inventory.
-     * @param cPlayer the CPlayer object for the player.
-     */
-    private void handleAdminGestionSettingsSettingsClick(InventoryClickEvent event, Player player, CPlayer cPlayer) {
-    	event.setCancelled(true);
-        ItemStack clickedItem = event.getCurrentItem();
-        if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
-        int clickedSlot = event.getSlot();
-        
-        if(clickedSlot == 49) {
-        	new AdminGestionGui(player,instance);
-        	return;
-        }
-        
-        File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
-        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-        String filter = cPlayer.getFilter();
-        
-        if(instance.getGuis().isAllowedSlot(clickedSlot)) {
-        	ItemMeta meta = clickedItem.getItemMeta();
-            if (meta != null && meta.hasLore()) {
-            	String title = meta.getDisplayName();
-                List<String> lore = meta.getLore();
-                String action = instance.getGuis().getSlotPerm(clickedSlot);
-                if(title.contains(instance.getLanguage().getMessage("status-enabled"))){
-                	if(filter.equals("status")) {
-                		config.set("status-settings."+action, false);
-                		instance.getSettings().getStatusSettings().put(action, false);
-                	} else {
-                		config.set("default-values-settings."+action, false);
-                		instance.getSettings().getDefaultValues().put(action, false);
-                	}
-                    try {
-                        config.save(configFile);
-                        instance.reloadConfig();
-                    	meta.setDisplayName(title.replace(instance.getLanguage().getMessage("status-enabled"), instance.getLanguage().getMessage("status-disabled")));
-                    	lore.remove(lore.size()-1);
-                    	lore.add(instance.getLanguage().getMessage("choice-disabled"));
-                    	meta.setLore(lore);
-                    	clickedItem.setItemMeta(meta);
-                        return;
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            	if(filter.equals("status")) {
-            		config.set("status-settings."+action, true);
-            		instance.getSettings().getStatusSettings().put(action, true);
-            	} else {
-            		config.set("default-values-settings."+action, true);
-            		instance.getSettings().getDefaultValues().put(action, true);
-            	}
-                try {
-                    config.save(configFile);
-                    instance.reloadConfig();
-	            	meta.setDisplayName(title.replace(instance.getLanguage().getMessage("status-disabled"), instance.getLanguage().getMessage("status-enabled")));
-	            	lore.remove(lore.size()-1);
-	            	lore.add(instance.getLanguage().getMessage("choice-enabled"));
-	            	meta.setLore(lore);
-	            	clickedItem.setItemMeta(meta);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
                 return;
             }
         }
@@ -1829,9 +1051,9 @@ public class ClaimGuiEvents implements Listener {
         	String targetName = cPlayer.getMapString(clickedSlot);
         	String owner_claim = claim.getOwner();
         	String claimName = claim.getName();
-        	if(targetName.equals(player.getName()) && !owner_claim.equals("admin")) return;
+        	if(targetName.equals(owner_claim) && !owner_claim.equals("*")) return;
     		String message = instance.getLanguage().getMessage("remove-member-success-aclaim").replace("%player%", targetName).replace("%claim-name%", claimName).replace("%owner%", owner_claim);
-    		String targetMessage = owner_claim.equalsIgnoreCase("admin") ?
+    		String targetMessage = owner_claim.equalsIgnoreCase("*") ?
     				instance.getLanguage().getMessage("remove-claim-protected-area-player").replace("%claim-name%", claimName) :
     				instance.getLanguage().getMessage("remove-claim-player").replace("%claim-name%", claimName).replace("%owner%", owner_claim);
     		instance.getMain().removeClaimMember(claim, targetName)
@@ -1898,7 +1120,7 @@ public class ClaimGuiEvents implements Listener {
         	String claimName = claim.getName();
         	if(targetName.equals(player.getName())) return;
     		String message = instance.getLanguage().getMessage("remove-ban-success-aclaim").replace("%player%", targetName).replace("%claim-name%", claim.getName()).replace("%owner%", owner_claim);
-    		String targetMessage = owner_claim.equalsIgnoreCase("admin") ?
+    		String targetMessage = owner_claim.equalsIgnoreCase("*") ?
     				instance.getLanguage().getMessage("unbanned-claim-protected-area-player").replace("%claim-name%", claimName) :
     				instance.getLanguage().getMessage("unbanned-claim-player").replace("%claim-name%", claimName).replace("%owner%", owner_claim);
     		instance.getMain().removeClaimBan(claim, targetName)
@@ -2021,7 +1243,7 @@ public class ClaimGuiEvents implements Listener {
         }
         
         if(clickedSlot == 29) {
-        	new AdminGestionClaimGui(player,claim,instance);
+        	new AdminGestionClaimGui(player,claim,instance,"visitors");
         	return;
         }
         
@@ -2039,7 +1261,7 @@ public class ClaimGuiEvents implements Listener {
         
         if(clickedSlot == 24) {
         	player.closeInventory();
-        	if(claim.getOwner().equalsIgnoreCase("admin")) {
+        	if(claim.getOwner().equalsIgnoreCase("*")) {
         		Bukkit.dispatchCommand(player, "parea unclaim "+claim.getName());
         	} else {
         		Bukkit.dispatchCommand(player, "scs player unclaim "+claim.getOwner()+" " +claim.getName());
@@ -2050,7 +1272,7 @@ public class ClaimGuiEvents implements Listener {
         if(clickedSlot == 49) {
         	cPlayer.setGuiPage(1);
         	String owner = claim.getOwner();
-        	if(owner.equals("admin")) {
+        	if(owner.equals("*")) {
         		new AdminGestionClaimsProtectedAreasGui(player,1,"all",instance);
         	} else {
         		new AdminGestionClaimsOwnerGui(player,1,"all",claim.getOwner(),instance);

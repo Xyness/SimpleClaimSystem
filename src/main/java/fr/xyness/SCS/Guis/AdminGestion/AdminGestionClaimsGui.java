@@ -1,6 +1,8 @@
 package fr.xyness.SCS.Guis.AdminGestion;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
@@ -22,24 +24,6 @@ public class AdminGestionClaimsGui implements InventoryHolder {
     /** The inventory for this GUI. */
     private final Inventory inv;
     
-    /** The player who opened the GUI. */
-    private final Player player;
-    
-    /** The current page of the GUI. */
-    private final int page;
-    
-    /** The filter applied to the claims. */
-    private final String filter;
-    
-    /** The number of items per page. */
-    private final int itemsPerPage;
-    
-    /** The minimum slot index for owner items. */
-    private final int minSlot;
-    
-    /** The maximum slot index for owner items. */
-    private final int maxSlot;
-    
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
@@ -58,16 +42,19 @@ public class AdminGestionClaimsGui implements InventoryHolder {
      * @param instance The instance of the SimpleClaimSystem plugin.
      */
     public AdminGestionClaimsGui(Player player, int page, String filter, SimpleClaimSystem instance) {
-        this.player = player;
-        this.page = page;
-        this.filter = filter;
-        this.minSlot = 0;
-        this.maxSlot = 44;
-        this.itemsPerPage = maxSlot - minSlot + 1;
         this.instance = instance;
-
         inv = Bukkit.createInventory(this, 54, "§4[A]§r Claims (Page "+String.valueOf(page)+")");
-        instance.executeAsync(this::loadItems);
+        loadItems(player, page, filter).thenAccept(success -> {
+        	if (success) {
+        		instance.executeEntitySync(player, () -> player.openInventory(inv));
+        	} else {
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        	}
+        })
+        .exceptionally(ex -> {
+            ex.printStackTrace();
+            return null;
+        });
     }
     
     
@@ -78,38 +65,51 @@ public class AdminGestionClaimsGui implements InventoryHolder {
     
     /**
      * Load items into the inventory.
+     * 
+     * @param player The player who opened the GUI.
+     * @param page   The current page of the GUI.
+     * @param filter The filter applied to the claims.
+     * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    private void loadItems() {
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getName());
-        cPlayer.setFilter(filter);
-        cPlayer.clearMapString();
+    private CompletableFuture<Boolean> loadItems(Player player, int page, String filter) {
+    	
+    	return CompletableFuture.supplyAsync(() -> {
+    	
+	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+	        cPlayer.setFilter(filter);
+	        cPlayer.clearMapString();
+	
+	        inv.setItem(48, backPage(page - 1,!(page > 1)));
+	
+	        Map<String, Integer> owners = getOwnersByFilter(filter);
+	        inv.setItem(49, createFilterItem(filter));
+	
+	        int maxSlot = 44;
+	        int minSlot = 0;
+	        int itemsPerPage = maxSlot - minSlot + 1;
+	        int startItem = (page - 1) * itemsPerPage;
+	        int i = minSlot;
+	        int count = 0;
+	
+	        for (Map.Entry<String, Integer> entry : owners.entrySet()) {
+	            if (count++ < startItem) continue;
+	            if (i > maxSlot) {
+	                inv.setItem(50, nextPage(page + 1));
+	                break;
+	            }
+	
+	            String owner = entry.getKey();
+	            int claimAmount = entry.getValue();
+	            List<String> lore = new ArrayList<>(getLore("§7Claims: §b"+instance.getMain().getNumberSeparate(String.valueOf(claimAmount))+"\n \n§c[Left-click]§7 to display his claims\n§c[Shift-left-click]§7 to remove all his claims"));
+	            cPlayer.addMapString(i, owner);
+	            inv.setItem(i, createOwnerClaimItem(owner, lore));
+	            i++;
+	        }
+	        
+	        return true;
 
-        inv.setItem(48, backPage(page - 1,!(page > 1)));
-
-        Map<String, Integer> owners = getOwnersByFilter(filter);
-        inv.setItem(49, createFilterItem(filter));
-
-        int startItem = (page - 1) * itemsPerPage;
-        int i = minSlot;
-        int count = 0;
-
-        for (Map.Entry<String, Integer> entry : owners.entrySet()) {
-            if (count++ < startItem) continue;
-            if (i > maxSlot) {
-                inv.setItem(50, nextPage(page + 1));
-                break;
-            }
-
-            String owner = entry.getKey();
-            int claimAmount = entry.getValue();
-            OfflinePlayer target = instance.getPlayerMain().getOfflinePlayer(owner);
-            List<String> lore = new ArrayList<>(getLore("§7Claims: §b"+instance.getMain().getNumberSeparate(String.valueOf(claimAmount))+"\n \n§c[Left-click]§7 to display his claims\n§c[Shift-left-click]§7 to remove all his claims"));
-            cPlayer.addMapString(i, owner);
-            inv.setItem(i, createOwnerClaimItem(owner, lore, target));
-            i++;
-        }
-
-        instance.executeEntitySync(player, () -> player.openInventory(inv));
+    	});
+	        
     }
 
     /**
@@ -138,9 +138,9 @@ public class AdminGestionClaimsGui implements InventoryHolder {
      * @param lore  The lore for the item.
      * @return The created ItemStack.
      */
-    private ItemStack createOwnerClaimItem(String owner, List<String> lore, OfflinePlayer target) {
+    private ItemStack createOwnerClaimItem(String owner, List<String> lore) {
         String title = "§e"+owner;
-        return createPlayerHeadItem(owner, title, lore, target);
+        return createPlayerHeadItem(owner, title, lore);
     }
 
     /**
@@ -151,8 +151,8 @@ public class AdminGestionClaimsGui implements InventoryHolder {
      * @param lore  The lore for the item.
      * @return The created ItemStack.
      */
-    private ItemStack createPlayerHeadItem(String owner, String title, List<String> lore, OfflinePlayer target) {
-    	ItemStack item = instance.getPlayerMain().getPlayerHead(target);
+    private ItemStack createPlayerHeadItem(String owner, String title, List<String> lore) {
+    	ItemStack item = instance.getPlayerMain().getPlayerHead(owner);
         SkullMeta meta = (SkullMeta) item.getItemMeta();
         meta.setDisplayName(title);
         meta.setLore(lore);
@@ -188,8 +188,8 @@ public class AdminGestionClaimsGui implements InventoryHolder {
      */
     private ItemStack createFilterItem(String filter) {
         String loreFilter = "§7Change filter\n%status_color_1%➲ All owners\n%status_color_2%➲ Owners with claims in sale\n%status_color_3%➲ Online owners\n%status_color_4%➲ Offline owners\n§7▸ §fClick to change"
-            .replace("%status_color_" + getStatusIndex(filter) + "%", "§a")
-            .replace("%status_color_[^" + getStatusIndex(filter) + "]%", "§8");
+            .replaceAll("%status_color_" + getStatusIndex(filter) + "%", "§a")
+            .replaceAll("%status_color_[^" + getStatusIndex(filter) + "]%", "§8");
         return createItem(Material.END_CRYSTAL, "§eFilter", getLore(loreFilter));
     }
 

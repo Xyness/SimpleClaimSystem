@@ -1,12 +1,15 @@
 package fr.xyness.SCS;
 
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.bukkit.Chunk;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 /**
  * This class handles claim object.
@@ -29,7 +32,7 @@ public class Claim {
     private String owner;
     
     /** Members who have access to the claim */
-    private Set<String> members;
+    private Set<UUID> members;
     
     /** Location of the claim */
     private Location location;
@@ -41,7 +44,7 @@ public class Claim {
     private String description;
     
     /** Permissions associated with the claim */
-    private LinkedHashMap<String, Boolean> permissions;
+    private Map<String,LinkedHashMap<String, Boolean>> permissions;
     
     /** Whether the claim is for sale */
     private boolean sale;
@@ -50,7 +53,7 @@ public class Claim {
     private Double price;
     
     /** Banned members from the claim */
-    private Set<String> bans;
+    private Set<UUID> bans;
     
     
     // ******************
@@ -72,14 +75,14 @@ public class Claim {
      * @param price Price of the claim if for sale
      * @param bans Banned members from the claim
      */
-    public Claim(Set<Chunk> chunks, String owner, Set<String> members, Location location, String name, String description, LinkedHashMap<String, Boolean> permissions, boolean sale, Double price, Set<String> bans, int id) {
+    public Claim(Set<Chunk> chunks, String owner, Set<UUID> members, Location location, String name, String description, Map<String,LinkedHashMap<String, Boolean>> permissions, boolean sale, Double price, Set<UUID> bans, int id) {
         this.chunks = chunks;
         this.owner = owner;
         this.members = new HashSet<>(members);
         this.location = location;
         this.name = name;
         this.description = description;
-        this.permissions = new LinkedHashMap<>(permissions);
+        this.permissions = new HashMap<>(permissions);
         this.sale = sale;
         this.price = price;
         this.bans = new HashSet<>(bans);
@@ -120,7 +123,7 @@ public class Claim {
      * 
      * @param members The new set of members
      */
-    public void setMembers(Set<String> members) { this.members = members; }
+    public void setMembers(Set<UUID> members) { this.members = members; }
     
     /**
      * Sets the location of this claim.
@@ -148,7 +151,7 @@ public class Claim {
      * 
      * @param permissions The new permissions
      */
-    public void setPermissions(LinkedHashMap<String, Boolean> permissions) { this.permissions = permissions; }
+    public void setPermissions(Map<String,LinkedHashMap<String, Boolean>> permissions) { this.permissions = permissions; }
     
     /**
      * Sets whether this claim is for sale.
@@ -169,7 +172,7 @@ public class Claim {
      * 
      * @param bans The new set of banned members
      */
-    public void setBans(Set<String> bans) { this.bans = bans; }
+    public void setBans(Set<UUID> bans) { this.bans = bans; }
     
     // Getters
     
@@ -199,7 +202,7 @@ public class Claim {
      * 
      * @return The members
      */
-    public Set<String> getMembers() { return this.members; }
+    public Set<UUID> getMembers() { return this.members; }
     
     /**
      * Gets the location of this claim.
@@ -227,15 +230,29 @@ public class Claim {
      * 
      * @return The permissions
      */
-    public LinkedHashMap<String, Boolean> getPermissions() { return this.permissions; }
+    public Map<String,LinkedHashMap<String, Boolean>> getPermissions() { return this.permissions; }
     
     /**
      * Gets a specific permission associated with this claim.
      * 
      * @param permission The permission key
+     * @param role The role of the player, can be null
      * @return The permission value
      */
-    public boolean getPermission(String permission) { return this.permissions.getOrDefault(permission, false); }
+    public boolean getPermission(String permission, String role) {
+    	return this.permissions.getOrDefault(role == null ? "natural" : role, new LinkedHashMap<>()).getOrDefault(permission, false);
+    }
+    
+    /**
+     * Gets a specific permission for a player associated with this claim.
+     * 
+     * @param permission The permission key
+     * @param player The target player
+     * @return The permission value
+     */
+    public boolean getPermissionForPlayer(String permission, Player player) {
+    	return this.permissions.getOrDefault(isMember(player.getUniqueId()) ? "members" : "visitors", new LinkedHashMap<>()).getOrDefault(permission, false);
+    }
     
     /**
      * Gets whether this claim is for sale.
@@ -256,7 +273,7 @@ public class Claim {
      * 
      * @return The banned members
      */
-    public Set<String> getBans() { return this.bans; }
+    public Set<UUID> getBans() { return this.bans; }
     
     // Modifications
     
@@ -266,51 +283,37 @@ public class Claim {
      * @param permission The permission key
      * @param value The new permission value
      */
-    public void updatePermission(String permission, Boolean value) { this.permissions.put(permission, value); }
+    public void updatePermission(String role, String permission, Boolean value) {
+    	this.permissions.getOrDefault(role == null ? "natural" : role, new LinkedHashMap<>()).put(permission, value);
+    }
     
     /**
      * Adds a member to the claim.
      * 
      * @param member The member to add
      */
-    public void addMember(String member) { this.members.add(member); }
+    public void addMember(UUID member) { this.members.add(member); }
     
     /**
      * Removes a member from the claim.
      * 
      * @param member The member to remove
      */
-    public void removeMember(String member) {
-    	Iterator<String> iterator = this.members.iterator();
-        while (iterator.hasNext()) {
-            String currentString = iterator.next();
-            if (currentString.equalsIgnoreCase(member)) {
-                iterator.remove();
-            }
-        }
-    }
+    public void removeMember(UUID member) { this.members.remove(member); }
     
     /**
-     * Adds a member to the banned list of this claim.
+     * Adds a player to the banned list of this claim.
      * 
-     * @param member The member to ban
+     * @param member The player to ban
      */
-    public void addBan(String member) { this.bans.add(member); }
+    public void addBan(UUID ban) { this.bans.add(ban); }
     
     /**
-     * Removes a member from the banned list of this claim.
+     * Removes a player from the banned list of this claim.
      * 
-     * @param member The member to unban
+     * @param member The player to unban
      */
-    public void removeBan(String member) {
-        Iterator<String> iterator = this.bans.iterator();
-        while (iterator.hasNext()) {
-            String currentString = iterator.next();
-            if (currentString.equalsIgnoreCase(member)) {
-                iterator.remove();
-            }
-        }
-    }
+    public void removeBan(UUID ban) { this.bans.remove(ban); }
     
     /**
      * Adds a chunk to the claim.
@@ -334,35 +337,21 @@ public class Claim {
     /**
      * Checks if a player is banned.
      *
-     * @param playerName the name of the player to check
+     * @param targetUUID the uuid of the player to check
      * @return True if the player is banned, False otherwise
      */
-    public boolean isBanned(String playerName) {
-        Iterator<String> iterator = this.bans.iterator();
-        while (iterator.hasNext()) {
-            String currentString = iterator.next();
-            if (currentString.equalsIgnoreCase(playerName)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean isBanned(UUID targetUUID) {
+        return this.bans.contains(targetUUID);
     }
 
     /**
      * Checks if a player is a member.
      *
-     * @param playerName the name of the player to check
+     * @param targetUUID the uuid of the player to check
      * @return True if the player is a member, False otherwise
      */
-    public boolean isMember(String playerName) {
-        Iterator<String> iterator = this.members.iterator();
-        while (iterator.hasNext()) {
-            String currentString = iterator.next();
-            if (currentString.equalsIgnoreCase(playerName)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean isMember(UUID targetUUID) {
+        return this.members.contains(targetUUID);
     }
 
 }

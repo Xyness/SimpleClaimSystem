@@ -24,15 +24,6 @@ public interface SimpleClaimSystemAPI {
     /**
      * Retrieves a player's claim by name.
      *
-     * @param playerName the name of the player
-     * @param claimName the name of the claim
-     * @return the player's claim, or null if not found
-     */
-    Claim getPlayerClaim(String playerName, String claimName);
-
-    /**
-     * Retrieves a player's claim by name.
-     *
      * @param player the player
      * @param claimName the name of the claim
      * @return the player's claim, or null if not found
@@ -239,9 +230,10 @@ public interface SimpleClaimSystemAPI {
      * @param claim the claim
      * @param permission the permission to set
      * @param value the value of the permission
+     * @param role the role to update permission for
      * @return true if the permission was successfully set, false otherwise
      */
-    boolean setClaimPerm(Claim claim, String permission, boolean value);
+    boolean setClaimPerm(Claim claim, String permission, boolean value, String role);
 
     /**
      * Sets the name of a specific claim.

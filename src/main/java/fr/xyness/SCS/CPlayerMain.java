@@ -1,24 +1,43 @@
 package fr.xyness.SCS;
 
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.configuration.InvalidConfigurationException;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -33,17 +52,26 @@ public class CPlayerMain {
     // ***************
     
 	
-    /** A map of player names to CPlayer instances */
-    private Map<String, CPlayer> players = new HashMap<>();
+    /** A map of player uuid to CPlayer instances */
+    private Map<UUID, CPlayer> players = new HashMap<>();
+    
+    /** A map of player uuid to players name instances */
+    private Map<UUID, String> playersName = new HashMap<>();
+    
+    /** A map of players name to players uuid instances */
+    private Map<String, UUID> playersUUID = new HashMap<>();
+    
+    /** A set of players in DB */
+    private Set<UUID> playersRegistered = new HashSet<>();
     
     /** A map of player names to their configuration settings */
-    private Map<String, Map<String, Double>> playersConfigSettings = new HashMap<>();
+    private Map<UUID, Map<String, Double>> playersConfigSettings = new HashMap<>();
     
-    /** Set of offline players */
-    private ConcurrentHashMap<String,OfflinePlayer> offlinePlayers = new ConcurrentHashMap<>();
+    /** Map of ItemStacks for players head */
+    private ConcurrentHashMap<String,ItemStack> playersHead = new ConcurrentHashMap<>();
     
-    /** Set of ItemStacks for players head */
-    private ConcurrentHashMap<OfflinePlayer,ItemStack> playersHead = new ConcurrentHashMap<>();
+    /** Map of players head hashed texture */
+    private ConcurrentHashMap<String,String> playersHashedTexture = new ConcurrentHashMap<>();
     
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
@@ -51,8 +79,20 @@ public class CPlayerMain {
     /** Link of the mojang API */
     private final String MOJANG_API_URL = "https://api.mojang.com/users/profiles/minecraft/";
     
-    /** Link of the mineskin API */
-    private final String MINESKIN_API_URL = "https://api.mineskin.org/generate/user/";
+    /** Link of the second mojang API */
+    private final String MOJANG_API_URL_2 = "https://api.mojang.com/profiles/minecraft";
+    
+    /** Link of the mojang profile API */
+    private final String MOJANG_PROFILE_API_URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
+    
+    /** Defines the rate limit for requests in milliseconds */
+    private static final int RATE_LIMIT = 50;
+
+    /** Schedules tasks to run after a specified delay using a single-threaded executor */
+    private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+    /** Tracks the number of requests sent to calculate the scheduling delay for the next request */
+    private int requestCount = 0;
     
     
     // ******************
@@ -81,55 +121,243 @@ public class CPlayerMain {
     public void clearAll() {
         players.clear();
         playersConfigSettings.clear();
-        offlinePlayers.clear();
-    }
-    
-    /**
-     * Get the offline player by his name.
-     *
-     * @param playerName The player name.
-     * @return The OfflinePlayer object.
-     */
-    public OfflinePlayer getOfflinePlayer(String playerName) {
-        return offlinePlayers.computeIfAbsent(playerName, Bukkit::getOfflinePlayer);
+        playersHead.clear();
     }
 
     /**
      * Load owner player.
      */
-    public void loadOwner(String owner) {
+    public void loadOwners(Map<String, String> owners) {
+
+        // Return if map is empty
+        if (owners.isEmpty()) return;
+
+        // Get Mojang UUID for players
+        Map<String, String> uuids = getUUIDsFromMojang(new ArrayList<>(owners.keySet()));
+        if (uuids.keySet().size() != owners.size()) {
+            owners.keySet().forEach(o -> {
+                if (!uuids.containsKey(o)) {
+                    uuids.put(o, null);
+                }
+            });
+        }
+
+        // Add players
+        for (Map.Entry<String, String> entry : uuids.entrySet()) {
+            String name = entry.getKey();
+            String uuid_mojang = entry.getValue();
+            String uuid_server = owners.get(name);
+
+            if (uuid_server != null) {
+                UUID uuid_server_real = UUID.fromString(uuid_server);
+                playersName.put(uuid_server_real, name);
+                playersUUID.put(name, uuid_server_real);
+
+                getSkinURL(uuid_mojang).thenAccept(textures -> {
+                    ItemStack playerHead;
+                    if (uuid_mojang != null && textures != null) {
+                        playerHead = createPlayerHeadWithTexture(uuid_mojang, textures);
+                    } else {
+                        playerHead = new ItemStack(Material.PLAYER_HEAD);
+                        playersHashedTexture.put(name, "none");
+                    }
+                    playersHead.put(name, playerHead);
+                    playersHashedTexture.put(name, textures == null ? "none" : textures);
+                }).exceptionally(ex -> {
+                    return null;
+                });
+            } else {
+                playersHead.put(name, new ItemStack(Material.PLAYER_HEAD));
+            }
+        }
+       
+    }
+    
+    /**
+     * Checks if the player's data has changed.
+     *
+     * @param player The player to check and update claims for.
+     */
+    public void checkPlayer(Player player) {
         instance.executeAsync(() -> {
-            if (!offlinePlayers.containsKey(owner)) {
-                OfflinePlayer p = Bukkit.getOfflinePlayer(owner);
-                offlinePlayers.put(owner, p);
-                String uuid = getUUIDFromMojang(owner);
-                if (uuid != null) {
-                    ItemStack head = createPlayerHeadWithTexture(uuid);
-                    playersHead.put(p, head);
-                } else {
-                    playersHead.put(p, new ItemStack(Material.PLAYER_HEAD));
+            UUID uuid = player.getUniqueId();
+            String playerName = player.getName();
+            String oldName = playersName.get(uuid);
+
+            // Check if the player is registered
+            if (!playersRegistered.contains(uuid) || oldName == null) {
+            	playersRegistered.add(uuid);
+                playersName.put(uuid, playerName);
+                playersUUID.put(playerName, uuid);
+
+                String uuid_mojang = getUUIDFromMojang(playerName);
+
+                String textures = getSkinURLWithoutDelay(uuid_mojang);
+                ItemStack playerHead = createPlayerHeadWithTexture(uuid_mojang, textures);
+                playersHead.put(playerName, playerHead);
+                playersHashedTexture.put(playerName, textures);
+
+                // Update database
+                try (Connection connection = instance.getDataSource().getConnection()) {
+                    String dbProductName = connection.getMetaData().getDatabaseProductName().toLowerCase();
+                    String updateQuery;
+
+                    if (dbProductName.contains("sqlite")) {
+                        updateQuery = "INSERT INTO scs_players(uuid_server, uuid_mojang, player_name, player_head, player_textures) VALUES(?, ?, ?, ?, ?) ON CONFLICT(uuid_server) DO UPDATE SET player_name = excluded.player_name";
+                    } else if (dbProductName.contains("mysql")) {
+                        updateQuery = "INSERT INTO scs_players(uuid_server, uuid_mojang, player_name, player_head, player_textures) VALUES(?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE player_name = VALUES(player_name)";
+                    } else {
+                        throw new UnsupportedOperationException("Unsupported database: " + dbProductName);
+                    }
+
+                    try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+                        preparedStatement.setString(1, uuid.toString());
+                        preparedStatement.setString(2, uuid_mojang);
+                        preparedStatement.setString(3, playerName);
+                        preparedStatement.setString(4, serializeItemStack(playerHead));
+                        preparedStatement.setString(5, textures);
+                        preparedStatement.executeUpdate();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+                // Log this
+                instance.getLogger().info(playerName + " is now registered (" + uuid.toString() + ").");
+                return;
+            }
+
+            // Check if the player has changed name (premium players)
+            if (!oldName.equals(playerName)) {
+                // Log this
+                instance.getLogger().info(oldName + " changed his name to " + playerName + " (" + uuid.toString() + "), new name saved.");
+                playersUUID.remove(oldName);
+                playersName.put(uuid, playerName);
+                playersUUID.put(playerName, uuid);
+
+                Set<Claim> claims = instance.getMain().getPlayerClaims(uuid);
+                claims.forEach(c -> {
+                    c.setOwner(playerName);
+                    instance.getBossBars().activateBossBar(c.getChunks());
+                });
+                instance.getMain().setPlayerClaims(uuid, claims);
+                
+                try (Connection connection = instance.getDataSource().getConnection()) {
+
+	                // Update database
+	                String updateQuery = "UPDATE scs_players SET player_name = ? WHERE uuid_server = ?";
+	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+	                    preparedStatement.setString(1, playerName);
+	                    preparedStatement.setString(2, uuid.toString());
+	                    preparedStatement.executeUpdate();
+	                } catch (SQLException e) {
+	                    e.printStackTrace();
+	                }
+	
+	                // Update database
+	                updateQuery = "UPDATE scs_claims SET owner_name = ? WHERE owner_uuid = ?";
+	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+	                    preparedStatement.setString(1, playerName);
+	                    preparedStatement.setString(2, uuid.toString());
+	                    preparedStatement.executeUpdate();
+	                } catch (SQLException e) {
+	                    e.printStackTrace();
+	                }
+	                
+                } catch (SQLException e) {
+                    e.printStackTrace();
                 }
             }
+
+            // Refresh player head texture
+            String uuid_mojang = getUUIDFromMojang(playerName);
+            if (uuid_mojang != null) {
+                String textures = getSkinURLWithoutDelay(uuid_mojang);
+
+                // Check if the texture is the same
+                if (textures.equals(playersHashedTexture.getOrDefault(playerName, ""))) return;
+
+                // Log this
+                instance.getLogger().info(playerName + " changed his skin (" + uuid.toString() + "), new textures saved.");
+
+                ItemStack head = createPlayerHeadWithTexture(uuid_mojang, textures);
+                playersHead.put(playerName, head);
+                playersHashedTexture.put(playerName, textures);
+                
+                try (Connection connection = instance.getDataSource().getConnection()) {
+
+                    // Update database
+                    String updateQuery = "UPDATE scs_players SET player_head = ?, player_textures = ? WHERE uuid_server = ?";
+                    try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+                        preparedStatement.setString(1, serializeItemStack(head));
+                        preparedStatement.setString(2, textures);
+                        preparedStatement.setString(3, uuid.toString());
+                        preparedStatement.executeUpdate();
+                    } catch (SQLException e) {
+                        e.printStackTrace();
+                    }
+                    
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+
+            } else if (!playersHead.containsKey(playerName)) {
+                playersHead.put(playerName, new ItemStack(Material.PLAYER_HEAD));
+            }
+
         });
     }
-
+    
     /**
-     * Refresh the player head.
-     *
-     * @param player The target player.
+     * Loads player data from Bukkit and inserts it into the database.
+     * If a player already exists in the database, their name is updated.
      */
-    public void refreshPlayerHead(Player player) {
-        instance.executeAsync(() -> {
-            String playerName = player.getName();
-            OfflinePlayer offlinePlayer = getOfflinePlayer(playerName);
-            String uuid = getUUIDFromMojang(playerName);
-            if (uuid != null) {
-                ItemStack head = createPlayerHeadWithTexture(uuid);
-                playersHead.put(offlinePlayer, head);
-            } else {
-                playersHead.put(offlinePlayer, new ItemStack(Material.PLAYER_HEAD));
+    public void loadPlayers() {
+        instance.info(" ");
+        instance.info(net.md_5.bungee.api.ChatColor.DARK_GREEN + "Loading players..");
+        int i = 0;
+
+        try (Connection connection = instance.getDataSource().getConnection()) {
+        	
+            String getQuery = "SELECT * FROM scs_players";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(getQuery)) {
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+                    	UUID uuid = UUID.fromString(resultSet.getString("uuid_server"));
+                    	String uuid_mojang = resultSet.getString("uuid_mojang");
+                    	String playerName = resultSet.getString("player_name");
+                    	String textures = resultSet.getString("player_textures");
+                    	if(!playersHead.containsKey(playerName)) {
+                        	ItemStack playerHead = null;
+                        	try {
+    							playerHead = deserializeItemStack(resultSet.getString("player_head"));
+    						} catch (IOException e) {
+    							e.printStackTrace();
+    						} catch (InvalidConfigurationException e) {
+    							e.printStackTrace();
+    						}
+                        	if(playerHead == null) playerHead = createPlayerHeadWithTexture(uuid_mojang,textures);
+                        	playersHead.put(playerName, playerHead);
+                    	}
+                    	playersHashedTexture.put(playerName, textures);
+                    	playersName.put(uuid, playerName);
+                    	playersUUID.put(playerName, uuid);
+                    	playersRegistered.add(uuid);
+                    	i++;
+                    }
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                }
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
-        });
+            
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        instance.info(instance.getMain().getNumberSeparate(String.valueOf(i)) + " players loaded.");
     }
 
     /**
@@ -138,14 +366,8 @@ public class CPlayerMain {
      * @param player The OfflinePlayer object.
      * @return The ItemStack representing the player's head.
      */
-    public ItemStack getPlayerHead(OfflinePlayer player) {
-        return playersHead.computeIfAbsent(player, p -> {
-            String uuid = getUUIDFromMojang(player.getName());
-            if (uuid != null) {
-            	return createPlayerHeadWithTexture(uuid);
-            }
-            return new ItemStack(Material.PLAYER_HEAD);
-        });
+    public ItemStack getPlayerHead(String playerName) {
+        return playersHead.computeIfAbsent(playerName, p -> new ItemStack(Material.PLAYER_HEAD));
     }
     
     /**
@@ -163,23 +385,23 @@ public class CPlayerMain {
         }
         return uuid;
     }
-
+    
     /**
      * Creates an ItemStack of a player head with the specified texture.
      *
      * @param uuid The UUID of the player.
+     * @param texture The texture of the player's head
      * @return An ItemStack representing the player's head with the applied texture.
      */
-    public ItemStack createPlayerHeadWithTexture(String uuid) {
+    public ItemStack createPlayerHeadWithTexture(String uuid, String texture) {
         ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1);
         SkullMeta meta = (SkullMeta) head.getItemMeta();
 
         if (meta != null && uuid != null && !uuid.isBlank()) {
             PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString(uuid));
-            String skinUrl = getSkinUrl(uuid);
-            if(skinUrl != null) {
+            if(texture != null) {
                 try {
-                    URL url = new URL(skinUrl);
+                    URL url = new URL(texture);
                     PlayerTextures textures = profile.getTextures();
                     textures.setSkin(url);
                     profile.setTextures(textures);
@@ -194,32 +416,81 @@ public class CPlayerMain {
     }
     
     /**
-     * Retrieves the URL of a Minecraft player's skin texture from Mineskin using the player's UUID.
+     * Retrieves the URL of a Minecraft player's skin texture from Mojang using the player's UUID.
      *
      * @param uuid The UUID of the player whose skin texture URL is to be retrieved.
-     * @return A string representing the URL of the player's skin texture, or null if an error occurs or the texture is not found.
+     * @return A CompletableFuture that resolves to a string representing the URL of the player's skin texture, or null if an error occurs or the texture is not found.
      */
-    public String getSkinUrl(String uuid) {
+    public CompletableFuture<String> getSkinURL(String uuid) {
+        CompletableFuture<String> future = new CompletableFuture<>();
+        scheduler.schedule(() -> {
+            try {
+                URL url = new URL(MOJANG_PROFILE_API_URL + uuid);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+
+                if (connection.getResponseCode() == 200) {
+                    InputStreamReader reader = new InputStreamReader(connection.getInputStream());
+                    JsonObject response = JsonParser.parseReader(reader).getAsJsonObject();
+                    JsonObject properties = response.getAsJsonArray("properties").get(0).getAsJsonObject();
+                    String value = properties.get("value").getAsString();
+                    String decodedValue = new String(Base64.getDecoder().decode(value));
+                    JsonObject textureProperty = JsonParser.parseString(decodedValue).getAsJsonObject();
+                    future.complete(textureProperty.getAsJsonObject("textures").getAsJsonObject("SKIN").get("url").getAsString());
+                }
+                
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }, requestCount++ * RATE_LIMIT, TimeUnit.MILLISECONDS);
+        return future;
+    }
+    
+    /**
+     * Retrieves the URL of a Minecraft player's skin texture from Mojang using the player's UUID.
+     *
+     * @param uuid The UUID of the player whose skin texture URL is to be retrieved.
+     * @return A String representing the URL of the player's skin texture, or null if an error occurs or the texture is not found.
+     */
+    public String getSkinURLWithoutDelay(String uuid) {
         try {
-            URL url = new URL(MINESKIN_API_URL + uuid);
+            URL url = new URL(MOJANG_PROFILE_API_URL + uuid);
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
 
             if (connection.getResponseCode() == 200) {
                 InputStreamReader reader = new InputStreamReader(connection.getInputStream());
-                JsonObject responseJson = JsonParser.parseReader(reader).getAsJsonObject();
-                JsonObject data = responseJson.getAsJsonObject("data");
-                if (data != null) {
-                    JsonObject texture = data.getAsJsonObject("texture");
-                    if (texture != null) {
-                        return texture.get("url").getAsString();
-                    }
-                }
+                JsonObject response = JsonParser.parseReader(reader).getAsJsonObject();
+                JsonObject properties = response.getAsJsonArray("properties").get(0).getAsJsonObject();
+                String value = properties.get("value").getAsString();
+                String decodedValue = new String(Base64.getDecoder().decode(value));
+                JsonObject textureProperty = JsonParser.parseString(decodedValue).getAsJsonObject();
+                return textureProperty.getAsJsonObject("textures").getAsJsonObject("SKIN").get("url").getAsString();
             }
+            
+            return null;
+            
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
-        return null;
+    }
+
+    /**
+     * Retrieves the URLs of Minecraft players' skin textures from Mineskin using their UUIDs.
+     *
+     * @param uuids The UUIDs of the players whose skin texture URLs are to be retrieved.
+     * @return A CompletableFuture that resolves to a map of UUIDs to their corresponding skin texture URLs.
+     */
+    public CompletableFuture<Map<String, String>> getSkinURLs(List<String> uuids) {
+        List<CompletableFuture<Map.Entry<String, String>>> futures = uuids.stream()
+                .map(uuid -> getSkinURL(uuid).thenApply(url -> Map.entry(uuid, url)))
+                .collect(Collectors.toList());
+
+        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
+                .thenApply(v -> futures.stream()
+                        .map(CompletableFuture::join)
+                        .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue)));
     }
 
     /**
@@ -247,22 +518,147 @@ public class CPlayerMain {
     }
     
     /**
-     * Removes the CPlayer instance associated with the given player name.
-     * 
-     * @param playerName The name of the player
+     * Retrieves the UUIDs of players from Mojang's API using a list of player names.
+     *
+     * @param playerNames The list of player names.
+     * @return A map of player names to their UUIDs.
      */
-    public void removeCPlayer(String playerName) {
-        players.remove(playerName);
+    public Map<String, String> getUUIDsFromMojang(List<String> playerNames) {
+        Map<String, String> result = new HashMap<>();
+        List<List<String>> batches = splitList(playerNames, 10);
+
+        for (List<String> batch : batches) {
+            result.putAll(getUUIDsFromMojangBatch(batch));
+        }
+
+        return result;
     }
     
     /**
-     * Gets the CPlayer instance associated with the given player name.
+     * Retrieves the UUIDs of players from Mojang's API using a list of player names.
+     *
+     * @param playerNames The list of player names.
+     * @return A map of player names to their UUIDs.
+     */
+    public Map<String, String> getUUIDsFromMojangBatch(List<String> playerNames) {
+        Map<String, String> result = new HashMap<>();
+        try {
+            URL url = new URL(MOJANG_API_URL_2);
+            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("POST");
+            connection.setRequestProperty("Content-Type", "application/json");
+            connection.setDoOutput(true);
+
+            // Create the JSON array for the request
+            JsonArray jsonArray = new JsonArray();
+            for (String playerName : playerNames) {
+                jsonArray.add(playerName);
+            }
+
+            // Send the request
+            try (OutputStream os = connection.getOutputStream()) {
+                os.write(jsonArray.toString().getBytes("utf-8"));
+            }
+
+            // Process the response
+            if (connection.getResponseCode() == 200) {
+                try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
+                    JsonArray responseJson = JsonParser.parseReader(reader).getAsJsonArray();
+                    for (int i = 0; i < responseJson.size(); i++) {
+                        JsonObject playerData = responseJson.get(i).getAsJsonObject();
+                        String id = playerData.get("id").getAsString();
+                        String name = playerNames.get(i);
+                        result.put(name, addDashesToUUID(id));
+                    }
+                }
+            }
+            
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+    
+    /**
+     * Splits a list into smaller sublists of a specified maximum size.
+     *
+     * @param list The list to split.
+     * @param size The maximum size of each sublist.
+     * @return A list of sublists.
+     */
+    private <T> List<List<T>> splitList(List<T> list, int size) {
+        List<List<T>> result = new ArrayList<>();
+        for (int i = 0; i < list.size(); i += size) {
+            result.add(new ArrayList<>(list.subList(i, Math.min(list.size(), i + size))));
+        }
+        return result;
+    }
+    
+    /**
+     * Serializes an ItemStack to a YAML string.
+     *
+     * @param itemStack The ItemStack to serialize.
+     * @return A YAML string representing the serialized ItemStack.
+     */
+    public String serializeItemStack(ItemStack itemStack) {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.set("item", itemStack);
+        return yaml.saveToString();
+    }
+    
+    /**
+     * Deserializes an ItemStack from a YAML string.
+     *
+     * @param yamlString The YAML string to deserialize.
+     * @return The deserialized ItemStack.
+     * @throws IOException If an I/O error occurs during deserialization.
+     * @throws InvalidConfigurationException If the configuration is invalid.
+     */
+    public ItemStack deserializeItemStack(String yamlString) throws IOException, InvalidConfigurationException {
+        YamlConfiguration yaml = new YamlConfiguration();
+        yaml.loadFromString(yamlString);
+        return yaml.getItemStack("item");
+    }
+    
+    /**
+     * Removes the CPlayer instance associated with the given player uuid.
      * 
-     * @param playerName The name of the player
+     * @param targetUUID The uuid of the player
+     */
+    public void removeCPlayer(UUID targetUUID) {
+        players.remove(targetUUID);
+    }
+    
+    /**
+     * Gets the CPlayer instance associated with the given player uuid.
+     * 
+     * @param targetUUID The uuid of the player
      * @return The CPlayer instance, or null if not found
      */
-    public CPlayer getCPlayer(String playerName) {
-        return players.get(playerName);
+    public CPlayer getCPlayer(UUID targetUUID) {
+        return players.get(targetUUID);
+    }
+    
+    /**
+     * Gets the player name associated with the given player uuid.
+     * 
+     * @param targetUUID The uuid of the player
+     * @return The player name
+     */
+    public String getPlayerName(UUID targetUUID) {
+        String name = playersName.get(targetUUID);
+        return name == null ? Bukkit.getOfflinePlayer(targetUUID).getName() : name;
+    }
+    
+    /**
+     * Gets the player uuid associated with the given player name
+     * 
+     * @param targetName The name of the player
+     * @return The player uuid
+     */
+    public UUID getPlayerUUID(String targetName) {
+    	UUID uuid = playersUUID.get(targetName);
+    	return uuid == null ? Bukkit.getOfflinePlayer(targetName).getUniqueId() : uuid;
     }
     
     /**
@@ -270,7 +666,7 @@ public class CPlayerMain {
      * 
      * @param p A map of player names to their configuration settings
      */
-    public void setPlayersConfigSettings(Map<String, Map<String, Double>> p) {
+    public void setPlayersConfigSettings(Map<UUID, Map<String, Double>> p) {
         playersConfigSettings = p;
     }
     
@@ -283,7 +679,7 @@ public class CPlayerMain {
      */
     public boolean canAddMember(Player player, Claim claim) {
         if (player.hasPermission("scs.admin")) return true;
-        CPlayer cPlayer = players.get(player.getName());
+        CPlayer cPlayer = players.get(player.getUniqueId());
         int i = claim.getMembers().size();
         int nb_members = cPlayer.getMaxMembers();
         return nb_members == 0 || nb_members > i;
@@ -306,7 +702,7 @@ public class CPlayerMain {
      * @param player The player
      */
     public void activePlayerFly(Player player) {
-        CPlayer cPlayer = players.get(player.getName());
+        CPlayer cPlayer = players.get(player.getUniqueId());
         if (!player.getAllowFlight()) {
             player.setAllowFlight(true);
         }
@@ -320,7 +716,7 @@ public class CPlayerMain {
      * @param player The player
      */
     public void removePlayerFly(Player player) {
-        CPlayer cPlayer = players.get(player.getName());
+        CPlayer cPlayer = players.get(player.getUniqueId());
         if (cPlayer.getClaimFly()) {
             player.setFlying(false);
             player.setAllowFlight(false);
@@ -335,7 +731,7 @@ public class CPlayerMain {
      */
     public void addPlayerPermSetting(Player player) {
         instance.executeAsync(() -> {
-        	String playerName = player.getName();
+        	UUID playerId = player.getUniqueId();
             Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
             Map<String, Double> groupPlayerSettings = new HashMap<>();
@@ -363,8 +759,8 @@ public class CPlayerMain {
                 }
             }
 
-            if (!playersConfigSettings.containsKey(playerName)) {
-                players.put(playerName, new CPlayer(player, instance.getMain().getPlayerClaimsCount(playerName),
+            if (!playersConfigSettings.containsKey(playerId)) {
+                players.put(playerId, new CPlayer(player, instance.getMain().getPlayerClaimsCount(playerId),
                     (int) Math.round(groupPlayerSettings.get("max-claims")),
                     (int) Math.round(groupPlayerSettings.get("max-radius-claims")),
                     (int) Math.round(groupPlayerSettings.get("teleportation-delay")),
@@ -375,16 +771,16 @@ public class CPlayerMain {
                     (int) Math.round(groupPlayerSettings.get("claim-distance")),
                     (int) Math.round(groupPlayerSettings.get("max-chunks-total"))));
             } else {
-                players.put(playerName, new CPlayer(player, instance.getMain().getPlayerClaimsCount(playerName),
-                    (int) Math.round(playersConfigSettings.get(playerName).getOrDefault("max-claims", groupPlayerSettings.get("max-claims"))),
-                    (int) Math.round(playersConfigSettings.get(playerName).getOrDefault("max-radius-claims", groupPlayerSettings.get("max-radius-claims"))),
-                    (int) Math.round(playersConfigSettings.get(playerName).getOrDefault("teleportation-delay", groupPlayerSettings.get("teleportation-delay"))),
-                    (int) Math.round(playersConfigSettings.get(playerName).getOrDefault("max-members", groupPlayerSettings.get("max-members"))),
-                    playersConfigSettings.get(playerName).getOrDefault("claim-cost", groupPlayerSettings.get("claim-cost")),
-                    playersConfigSettings.get(playerName).getOrDefault("claim-cost-multiplier", groupPlayerSettings.get("claim-cost-multiplier")),
-                    (int) Math.round(playersConfigSettings.get(playerName).getOrDefault("max-chunks-per-claim", groupPlayerSettings.get("max-chunks-per-claim"))),
-                    (int) Math.round(playersConfigSettings.get(playerName).getOrDefault("claim-distance", groupPlayerSettings.get("claim-distance"))),
-                    (int) Math.round(playersConfigSettings.get(playerName).getOrDefault("max-chunks-total", groupPlayerSettings.get("max-chunks-total")))));
+                players.put(playerId, new CPlayer(player, instance.getMain().getPlayerClaimsCount(playerId),
+                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("max-claims", groupPlayerSettings.get("max-claims"))),
+                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("max-radius-claims", groupPlayerSettings.get("max-radius-claims"))),
+                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("teleportation-delay", groupPlayerSettings.get("teleportation-delay"))),
+                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("max-members", groupPlayerSettings.get("max-members"))),
+                    playersConfigSettings.get(playerId).getOrDefault("claim-cost", groupPlayerSettings.get("claim-cost")),
+                    playersConfigSettings.get(playerId).getOrDefault("claim-cost-multiplier", groupPlayerSettings.get("claim-cost-multiplier")),
+                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("max-chunks-per-claim", groupPlayerSettings.get("max-chunks-per-claim"))),
+                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("claim-distance", groupPlayerSettings.get("claim-distance"))),
+                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("max-chunks-total", groupPlayerSettings.get("max-chunks-total")))));
             }
         });
     }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -60,14 +61,27 @@ public class ClaimBansGui implements InventoryHolder {
      */
     public ClaimBansGui(Player player, Claim claim, int page, SimpleClaimSystem instance) {
     	this.instance = instance;
-        String title = instance.getGuis().getGuiTitle("bans")
-                .replace("%name%", claim.getName())
-                .replace("%page%", String.valueOf(page));
-        if (instance.getSettings().getBooleanSetting("placeholderapi")) {
-            title = PlaceholderAPI.setPlaceholders(player, title);
-        }
-        inv = Bukkit.createInventory(this, instance.getGuis().getGuiRows("bans") * 9, title);
-        instance.executeAsync(() -> loadItems(player, claim, page));
+    	
+    	// Get title
+    	String title = instance.getLanguage().getMessage("gui-bans-title")
+    			.replace("%name%", claim.getName())
+    			.replace("%page%", String.valueOf(page));
+    	
+    	// Create the inventory
+        inv = Bukkit.createInventory(this, 54, title);
+        
+        // Load the items asynchronously
+        loadItems(player, claim, page).thenAccept(success -> {
+        	if (success) {
+        		instance.executeEntitySync(player, () -> player.openInventory(inv));
+        	} else {
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        	}
+        })
+        .exceptionally(ex -> {
+            ex.printStackTrace();
+            return null;
+        });
     }
 
     
@@ -80,85 +94,65 @@ public class ClaimBansGui implements InventoryHolder {
      * Initializes items for the GUI.
      *
      * @param player The player for whom the GUI is being initialized.
-     * @param chunk  The chunk associated with the claim.
+     * @param claim  The claim for which the GUI is being initialized.
      * @param page   The page number of the GUI.
+     * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public void loadItems(Player player, Claim claim, int page) {
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getName());
-        cPlayer.setClaim(claim);
-        cPlayer.clearMapString();
-        int min_member_slot = instance.getGuis().getGuiMinSlot("bans");
-        int max_member_slot = instance.getGuis().getGuiMaxSlot("bans");
-        int items_count = max_member_slot - min_member_slot + 1;
-
-    	if (page > 1) {
-            inv.setItem(instance.getGuis().getItemSlot("bans", "back-page-list"), backPage(page - 1));
-        }
-        inv.setItem(instance.getGuis().getItemSlot("bans", "back-page-main"), backPage2(claim));
-
-        List<String> lore = new ArrayList<>();
-        String owner = claim.getOwner();
-        if (owner.equals("admin")) {
-            lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessage("player-banned-protected-area-lore")));
-        } else {
-            lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessage("player-banned-lore")));
-        }
-        lore.add(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.unban") ? instance.getLanguage().getMessage("unban-this-player-button") : (instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-unban")));
-        int startItem = (page - 1) * items_count;
-        int i = min_member_slot;
-        int count = 0;
-        for (String p : claim.getBans()) {
-            if (count++ < startItem)
-                continue;
-            if (i == max_member_slot + 1) {
-                inv.setItem(instance.getGuis().getItemSlot("bans", "next-page-list"), nextPage(page + 1));
-                break;
-            }
-            OfflinePlayer target = instance.getPlayerMain().getOfflinePlayer(p);
-            List<String> lore2 = new ArrayList<>(instance.getGuis().getLoreWP(lore, p, target));
-            cPlayer.addMapString(i, p);
-            if (instance.getGuis().getItemCheckCustomModelData("bans", "player-item")) {
-                inv.setItem(i, instance.getGuis().createItemWMD(
-                        instance.getLanguage().getMessageWP("player-ban-title", target).replace("%player%", p), lore2,
-                        instance.getGuis().getItemMaterialMD("bans", "player-item"),
-                        instance.getGuis().getItemCustomModelData("bans", "player-item")));
-                i++;
-                continue;
-            }
-            if (instance.getGuis().getItemMaterialMD("bans", "player-item").contains("PLAYER_HEAD")) {
-            	ItemStack item = instance.getPlayerMain().getPlayerHead(target);
-                SkullMeta meta = (SkullMeta) item.getItemMeta();
-                meta.setDisplayName(instance.getLanguage().getMessageWP("player-ban-title", target).replace("%player%", p));
-                meta.setLore(lore2);
-                item.setItemMeta(meta);
-                inv.setItem(i, item);
-                i++;
-                continue;
-            }
-            ItemStack item = new ItemStack(instance.getGuis().getItemMaterial("bans", "player-item"), 1);
-            ItemMeta meta = item.getItemMeta();
-            meta.setDisplayName(instance.getLanguage().getMessageWP("player-ban-title", target).replace("%player%", p));
-            meta.setLore(lore2);
-            item.setItemMeta(meta);
-            inv.setItem(i, item);
-            i++;
-        }
-
-        Set<String> custom_items = new HashSet<>(instance.getGuis().getCustomItems("bans"));
-        for (String key : custom_items) {
-            List<String> custom_lore = new ArrayList<>(instance.getGuis().getLoreWP(instance.getGuis().getCustomItemLore("bans", key), player));
-            String title = instance.getSettings().getBooleanSetting("placeholderapi") ? PlaceholderAPI.setPlaceholders(player, instance.getGuis().getCustomItemTitle("bans", key)) : instance.getGuis().getCustomItemTitle("bans", key);
-            if (instance.getGuis().getCustomItemCheckCustomModelData("bans", key)) {
-                inv.setItem(instance.getGuis().getCustomItemSlot("bans", key), instance.getGuis().createItemWMD(title, custom_lore,
-                        instance.getGuis().getCustomItemMaterialMD("bans", key),
-                        instance.getGuis().getCustomItemCustomModelData("bans", key)));
-            } else {
-                inv.setItem(instance.getGuis().getCustomItemSlot("bans", key), instance.getGuis().createItem(
-                        instance.getGuis().getCustomItemMaterial("bans", key), title, custom_lore));
-            }
-        }
-        
-        instance.executeEntitySync(player, () -> player.openInventory(inv));
+    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, int page) {
+    	
+    	return CompletableFuture.supplyAsync(() -> {
+    	
+	    	// Get player data
+	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+	        
+	        // Get claim data
+	        Set<String> bans = instance.getMain().convertUUIDSetToStringSet(claim.getBans());
+	        int bansCount = bans.size();
+	        
+	        // Update player data (gui)
+	        cPlayer.setClaim(claim);
+	        cPlayer.clearMapString();
+	
+	        // Set bottom items
+	    	if (page > 1) inv.setItem(48, backPage(page - 1));
+	        inv.setItem(49, backPageMain(claim));
+	        if (bansCount > (page*45)) inv.setItem(50, nextPage(page + 1));
+	
+	        // Set template lore
+	        List<String> lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessage("player-banned-lore")));
+	        lore.add(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.unban") ? instance.getLanguage().getMessage("unban-this-player-button") : (instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-unban")));
+	        
+	        // Prepare count
+	        int startItem = (page - 1) * 45;
+	        int i = 0;
+	        int count = 0;
+	        
+	        // Start loop
+	        for (String p : bans) {
+	        	
+	        	// Continue if not in the page
+	            if (count++ < startItem) continue;
+	            
+	            // Break if bigger than 45 to not exceed
+	            if (i == 45) break;
+	            
+	            // Add the banned player to map string for gui clicking
+	            cPlayer.addMapString(i, p);
+	
+	            // Set player head item
+	        	ItemStack item = instance.getPlayerMain().getPlayerHead(p);
+	            SkullMeta meta = (SkullMeta) item.getItemMeta();
+	            meta.setDisplayName(instance.getLanguage().getMessage("player-ban-title").replace("%player%", p));
+	            meta.setLore(lore);
+	            item.setItemMeta(meta);
+	            inv.setItem(i, item);
+	            i++;
+	            
+	        }
+	        
+	        return true;
+	        
+    	});
     }
 
     /**
@@ -168,26 +162,7 @@ public class ClaimBansGui implements InventoryHolder {
      * @return The created back page item.
      */
     private ItemStack backPage(int page) {
-        ItemStack item = null;
-        if (instance.getGuis().getItemCheckCustomModelData("bans", "back-page-list")) {
-            CustomStack customStack = CustomStack.getInstance(instance.getGuis().getItemMaterialMD("bans", "back-page-list"));
-            if (customStack == null) {
-                instance.getPlugin().getLogger()
-                        .info("Error custom item loading : " + instance.getGuis().getItemMaterialMD("bans", "back-page-list"));
-                instance.getPlugin().getLogger().info("Using STONE instead");
-                item = new ItemStack(Material.STONE, 1);
-            } else {
-                item = customStack.getItemStack();
-            }
-        } else {
-            Material material = instance.getGuis().getItemMaterial("bans", "back-page-list");
-            if (material == null) {
-                instance.getPlugin().getLogger().info("Error material loading, check members.yml");
-                instance.getPlugin().getLogger().info("Using STONE instead");
-                material = Material.STONE;
-            }
-            item = new ItemStack(material, 1);
-        }
+        ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
@@ -206,27 +181,8 @@ public class ClaimBansGui implements InventoryHolder {
      * @param claim The target claim
      * @return The back page main item.
      */
-    private ItemStack backPage2(Claim claim) {
-        ItemStack item = null;
-        if (instance.getGuis().getItemCheckCustomModelData("bans", "back-page-main")) {
-            CustomStack customStack = CustomStack.getInstance(instance.getGuis().getItemMaterialMD("bans", "back-page-main"));
-            if (customStack == null) {
-                instance.getPlugin().getLogger()
-                        .info("Error custom item loading : " + instance.getGuis().getItemMaterialMD("bans", "back-page-main"));
-                instance.getPlugin().getLogger().info("Using STONE instead");
-                item = new ItemStack(Material.STONE, 1);
-            } else {
-                item = customStack.getItemStack();
-            }
-        } else {
-            Material material = instance.getGuis().getItemMaterial("bans", "back-page-main");
-            if (material == null) {
-                instance.getPlugin().getLogger().info("Error material loading, check bans.yml");
-                instance.getPlugin().getLogger().info("Using STONE instead");
-                material = Material.STONE;
-            }
-            item = new ItemStack(material, 1);
-        }
+    private ItemStack backPageMain(Claim claim) {
+        ItemStack item = new ItemStack(Material.DARK_OAK_DOOR);
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
@@ -246,26 +202,7 @@ public class ClaimBansGui implements InventoryHolder {
      * @return The created next page item.
      */
     private ItemStack nextPage(int page) {
-        ItemStack item = null;
-        if (instance.getGuis().getItemCheckCustomModelData("bans", "next-page-list")) {
-            CustomStack customStack = CustomStack.getInstance(instance.getGuis().getItemMaterialMD("bans", "next-page-list"));
-            if (customStack == null) {
-                instance.getPlugin().getLogger()
-                        .info("Error custom item loading : " + instance.getGuis().getItemMaterialMD("bans", "next-page-list"));
-                instance.getPlugin().getLogger().info("Using STONE instead");
-                item = new ItemStack(Material.STONE, 1);
-            } else {
-                item = customStack.getItemStack();
-            }
-        } else {
-            Material material = instance.getGuis().getItemMaterial("bans", "next-page-list");
-            if (material == null) {
-                instance.getPlugin().getLogger().info("Error material loading, check members.yml");
-                instance.getPlugin().getLogger().info("Using STONE instead");
-                material = Material.STONE;
-            }
-            item = new ItemStack(material, 1);
-        }
+        ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {

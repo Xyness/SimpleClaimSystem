@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -61,7 +62,17 @@ public class AdminGestionClaimMainGui implements InventoryHolder {
     	this.instance = instance;
         String title = "§4[A]§r "+claim.getName()+" ("+claim.getOwner()+")";
         inv = Bukkit.createInventory(this, 54, title);
-        instance.executeAsync(() -> loadItems(player, claim));
+        loadItems(player, claim).thenAccept(success -> {
+        	if (success) {
+        		instance.executeEntitySync(player, () -> player.openInventory(inv));
+        	} else {
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        	}
+        })
+        .exceptionally(ex -> {
+            ex.printStackTrace();
+            return null;
+        });
     }
 
     
@@ -74,59 +85,64 @@ public class AdminGestionClaimMainGui implements InventoryHolder {
      * Initializes items for the GUI.
      *
      * @param player The player for whom the GUI is being initialized.
-     * @param chunk  The chunk associated with the claim.
+     * @param claim  The claim for which the GUI is displayed.
+     * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public void loadItems(Player player, Claim claim) {
-
-        String playerName = player.getName();
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
-        cPlayer.setClaim(claim);
+    public CompletableFuture<Boolean> loadItems(Player player, Claim claim) {
+    	
+    	return CompletableFuture.supplyAsync(() -> {
+    	
+	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+	        cPlayer.setClaim(claim);
+	        
+	        List<String> lore = new ArrayList<>();
+	        lore.add("§7Chunks: §b"+instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())));
+	        lore.add(" ");
+	        lore.add("§7Members: §a"+instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size())));
+	        lore.add("§7Bans: §c"+instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size())));
+	        lore.add(" ");
+	        lore.add(claim.getSale() ? ("§a✔ Claim in sale §7("+instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice()))+instance.getLanguage().getMessage("money-symbol")+"§7)") : "§c✘ Claim not in sale");
+	        inv.setItem(13, instance.getGuis().createItem(Material.PAINTING, "§6"+claim.getName(), lore));
+	        
+	        lore.clear();
+	        lore.add("§7Manage banned players");
+	        lore.add("§7▸ §fClick to perform");
+	        inv.setItem(20, instance.getGuis().createItem(Material.LECTERN, "§cBans", lore));
+	        
+	        lore.clear();
+	        lore.add("§7Delete this claim?");
+	        lore.add("§7▸ §fClick to perform");
+	        inv.setItem(24, instance.getGuis().createItem(Material.RED_CONCRETE, "§4Unclaim", lore));
+	        
+	        lore.clear();
+	        lore.add("§7Manage settings");
+	        lore.add("§7▸ §fClick to perform");
+	        inv.setItem(29, instance.getGuis().createItem(Material.REPEATER, "§3Settings", lore));
+	        
+	        lore.clear();
+	        lore.add("§7Manage members");
+	        lore.add("§7▸ §fClick to perform");
+	        inv.setItem(30, instance.getGuis().createItem(Material.TOTEM_OF_UNDYING, "§aMembers", lore));
+	        
+	        lore.clear();
+	        lore.add("§7Manage chunks");
+	        lore.add("§7▸ §fClick to perform");
+	        inv.setItem(32, instance.getGuis().createItem(Material.RED_MUSHROOM_BLOCK, "§6Chunks", lore));
+	        
+	        lore.clear();
+	        lore.add("§7Teleport to the claim's spawn");
+	        lore.add("§7▸ §fClick to perform");
+	        inv.setItem(33, instance.getGuis().createItem(Material.ENDER_PEARL, "§5Teleport", lore));
+	        
+	        lore.clear();
+	        lore.add("§7Go back to claims list of "+(claim.getOwner().equals("*") ? "protected areas" : claim.getOwner()));
+	        lore.add("§7▸ §fClick to access");
+	        inv.setItem(49, instance.getGuis().createItem(Material.DARK_OAK_DOOR, "§cPrevious page", lore));
         
-        List<String> lore = new ArrayList<>();
-        lore.add("§7Chunks: §b"+instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())));
-        lore.add(" ");
-        lore.add("§7Members: §a"+instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size())));
-        lore.add("§7Bans: §c"+instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size())));
-        lore.add(" ");
-        lore.add(claim.getSale() ? ("§a✔ Claim in sale §7("+instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice()))+instance.getLanguage().getMessage("money-symbol")+"§7)") : "§c✘ Claim not in sale");
-        inv.setItem(13, instance.getGuis().createItem(Material.PAINTING, "§6"+claim.getName(), lore));
-        
-        lore.clear();
-        lore.add("§7Manage banned players");
-        lore.add("§7▸ §fClick to perform");
-        inv.setItem(20, instance.getGuis().createItem(Material.LECTERN, "§cBans", lore));
-        
-        lore.clear();
-        lore.add("§7Delete this claim?");
-        lore.add("§7▸ §fClick to perform");
-        inv.setItem(24, instance.getGuis().createItem(Material.RED_CONCRETE, "§4Unclaim", lore));
-        
-        lore.clear();
-        lore.add("§7Manage settings");
-        lore.add("§7▸ §fClick to perform");
-        inv.setItem(29, instance.getGuis().createItem(Material.REPEATER, "§3Settings", lore));
-        
-        lore.clear();
-        lore.add("§7Manage members");
-        lore.add("§7▸ §fClick to perform");
-        inv.setItem(30, instance.getGuis().createItem(Material.TOTEM_OF_UNDYING, "§aMembers", lore));
-        
-        lore.clear();
-        lore.add("§7Manage chunks");
-        lore.add("§7▸ §fClick to perform");
-        inv.setItem(32, instance.getGuis().createItem(Material.RED_MUSHROOM_BLOCK, "§6Chunks", lore));
-        
-        lore.clear();
-        lore.add("§7Teleport to the claim's spawn");
-        lore.add("§7▸ §fClick to perform");
-        inv.setItem(33, instance.getGuis().createItem(Material.ENDER_PEARL, "§5Teleport", lore));
-        
-        lore.clear();
-        lore.add("§7Go back to claims list of "+(claim.getOwner().equals("admin") ? "protected areas" : claim.getOwner()));
-        lore.add("§7▸ §fClick to access");
-        inv.setItem(49, instance.getGuis().createItem(Material.DARK_OAK_DOOR, "§cPrevious page", lore));
-        
-        instance.executeEntitySync(player, () -> player.openInventory(inv));
+	        return true;
+	        
+    	});
+	        
     }
     
     /**

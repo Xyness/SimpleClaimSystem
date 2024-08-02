@@ -34,10 +34,16 @@ public class ClaimSettings {
     private List<EntityType> restrictedEntityType = new ArrayList<>();
     
     /** Default values for settings. */
-    private LinkedHashMap<String, Boolean> defaultValues = new LinkedHashMap<>();
+    private Map<String,LinkedHashMap<String, Boolean>> defaultValues = new HashMap<>();
     
-    /** Code for default values. */
-    private String defaultValuesCode;
+    /** Code for default values for natural. */
+    private String defaultValuesCode_Natural;
+    
+    /** Code for default values for visitors. */
+    private String defaultValuesCode_Visitors;
+    
+    /** Code for default values for members. */
+    private String defaultValuesCode_Members;
     
     /** Enabled settings map. */
     private Map<String, Boolean> enabledSettings = new HashMap<>();
@@ -78,19 +84,41 @@ public class ClaimSettings {
     /**
      * Gets the default values code.
      *
+     * @param role The role to get default values for
      * @return The default values code.
      */
-    public String getDefaultValuesCode() {
-        return defaultValuesCode;
+    public String getDefaultValuesCode(String role) {
+        switch(role) {
+	        case "natural":
+	        	return defaultValuesCode_Natural;
+	        case "visitors":
+	        	return defaultValuesCode_Visitors;
+	        case "members":
+	        	return defaultValuesCode_Members;
+	        case "all":
+	        	return "natural:"+defaultValuesCode_Natural+";visitors:"+defaultValuesCode_Visitors+";members:"+defaultValuesCode_Members;
+	    	default:
+	    		return "";
+        }
     }
 
     /**
      * Sets the default values code.
      *
      * @param s The default values code to set.
+     * @param role The role to set default values for
      */
-    public void setDefaultValuesCode(String s) {
-        defaultValuesCode = s;
+    public void setDefaultValuesCode(String s, String role) {
+        switch(role) {
+	        case "natural":
+	        	this.defaultValuesCode_Natural = s;
+	        case "visitors":
+	        	this.defaultValuesCode_Visitors = s;
+	        case "members":
+	        	this.defaultValuesCode_Members = s;
+	    	default:
+	    		return;
+        }
     }
 
     /**
@@ -243,7 +271,7 @@ public class ClaimSettings {
      *
      * @return The default values map.
      */
-    public Map<String, Boolean> getDefaultValues() {
+    public Map<String,LinkedHashMap<String, Boolean>> getDefaultValues() {
         return defaultValues;
     }
 
@@ -319,7 +347,7 @@ public class ClaimSettings {
      *
      * @param v The default values to set.
      */
-    public void setDefaultValues(LinkedHashMap<String, Boolean> v) {
+    public void setDefaultValues(Map<String,LinkedHashMap<String, Boolean>> v) {
         defaultValues = v;
     }
 

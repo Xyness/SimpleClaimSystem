@@ -2,16 +2,13 @@ package fr.xyness.SCS.Guis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -19,16 +16,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.CPlayer;
-import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.Claim;
-import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
-import fr.xyness.SCS.Config.ClaimGuis;
-import fr.xyness.SCS.Config.ClaimLanguage;
-import fr.xyness.SCS.Config.ClaimSettings;
-import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
  * Class representing the Claim List GUI.
@@ -57,160 +47,167 @@ public class ClaimListGui implements InventoryHolder {
      * Main constructor for the ClaimListGui.
      *
      * @param player The player for whom the GUI is being created.
-     * @param page   The current page of the GUI.
+     * @param page   The page number of the GUI.
      * @param filter The filter applied to the list.
      * @param instance The instance of the SimpleClaimSystem plugin.
      */
     public ClaimListGui(Player player, int page, String filter, SimpleClaimSystem instance) {
     	this.instance = instance;
-        String title = instance.getGuis().getGuiTitle("list").replace("%page%", String.valueOf(page));
-        if (instance.getSettings().getBooleanSetting("placeholderapi")) {
-            title = PlaceholderAPI.setPlaceholders(player, title);
-        }
-        inv = Bukkit.createInventory(this, instance.getGuis().getGuiRows("list") * 9, title);
-        instance.executeAsync(() -> loadItems(player, page, filter));
+    	
+    	// Get title
+    	String title = instance.getLanguage().getMessage("gui-list-title")
+    			.replace("%page%", String.valueOf(page));
+    	
+    	// Create the inventory
+        inv = Bukkit.createInventory(this, 54, title);
+        
+        // Load the items asynchronously
+        loadItems(player, page, filter).thenAccept(success -> {
+        	if (success) {
+        		instance.executeEntitySync(player, () -> player.openInventory(inv));
+        	} else {
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        	}
+        })
+        .exceptionally(ex -> {
+            ex.printStackTrace();
+            return null;
+        });
     }
 
+    
     // ********************
     // *  Others Methods  *
     // ********************
 
+    
     /**
      * Initializes items for the GUI.
      *
      * @param player The player for whom the GUI is being initialized.
      * @param page   The current page of the GUI.
      * @param filter The filter applied to the list.
+     * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public void loadItems(Player player, int page, String filter) {
+    public CompletableFuture<Boolean> loadItems(Player player, int page, String filter) {
+    	
+    	return CompletableFuture.supplyAsync(() -> {
+    	
+	    	// Get player data
+	        String playerName = player.getName();
+	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+	        int claimsCount = cPlayer.getClaimsCount();
+	        
+	        // Update player data (gui)
+	        cPlayer.setFilter(filter);
+	        cPlayer.clearMapClaim();
+	        cPlayer.clearMapLoc();
+	        
+	        // Set bottom items
+	        if (page > 1) inv.setItem(48, backPage(page - 1));
+	        if (cPlayer.getClaim() != null) inv.setItem(49, backPageMain(cPlayer.getClaim()));
+	        if (claimsCount > (page*45)) inv.setItem(50, nextPage(page + 1));
+	        inv.setItem(53, filter(filter));
+	
+	        // Prepare lore
+	        Set<Claim> claims = new HashSet<>(filter.equals("owner") ? instance.getMain().getPlayerClaims(playerName) : instance.getMain().getClaimsWhereMemberNotOwner(playerName));
+	        List<String> lore = new ArrayList<>(instance.getGuis().getLore(filter.equals("owner") ? instance.getLanguage().getMessage("access-claim-lore") : instance.getLanguage().getMessage("access-claim-not-owner-lore")));
+	        String lore_tp = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")
+	                ? instance.getLanguage().getMessage("access-claim-clickable-tp")
+	                : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-teleport");
+	        String lore_remove = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.remove")
+	                ? instance.getLanguage().getMessage("access-claim-clickable-remove")
+	                : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-remove");
+	        String lore_settings = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.main")
+	                ? instance.getLanguage().getMessage("access-claim-clickable-manage")
+	                : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-manage");
+	
+	        // Prepare count
+	        int startItem = (page - 1) * 45;
+	        int i = 0;
+	        int count = 0;
+	        
+	        // Start loop
+	        for (Claim claim : claims) {
+	        	
+	        	// Continue if not in the page
+	            if (count++ < startItem) continue;
+	            
+	            // Break if bigger than 45 to not exceed
+	            if (i == 45) break;
+	            
+	            // Add the claim and the claim location to map for gui clicking
+	            cPlayer.addMapClaim(i, claim);
+	            cPlayer.addMapLoc(i, claim.getLocation());
+	            
+	            // Prepare the lore per claim
+	            List<String> used_lore = new ArrayList<>(processLore(lore,claim));
+	            if (filter.equals("owner")) {
+	                used_lore.addAll(Arrays.asList(lore_tp, lore_remove, lore_settings));
+	            } else {
+	                used_lore.add(lore_tp);
+	            }
+	            
+	            // Set the claim item
+	        	ItemStack item = instance.getPlayerMain().getPlayerHead(playerName);
+	            SkullMeta meta = (SkullMeta) item.getItemMeta();
+	            meta.setDisplayName(instance.getLanguage().getMessage("access-claim-title").replace("%name%", claim.getName()).replace("%coords%", instance.getMain().getClaimCoords(claim)));
+	            meta.setLore(used_lore);
+	            item.setItemMeta(meta);
+	            inv.setItem(i, item);
+	            i++;
+	
+	        }
+	        
+	        return true;
+        
+    	});
+	        
+    }
+    
+    /**
+     * Processes a list of lore strings by replacing placeholders with claim information.
+     *
+     * @param lore The list of lore strings containing placeholders.
+     * @param claim The claim object containing the information to replace in the lore.
+     * @return A new list of lore strings with placeholders replaced by claim information.
+     */
+    public List<String> processLore(List<String> lore, Claim claim) {
+        List<String> used_lore = new ArrayList<>();
+        String owner = claim.getOwner();
+        String description = claim.getDescription();
+        String name = claim.getName();
+        String coords = instance.getMain().getClaimCoords(claim);
+        String members = getMembers(claim);
+        String bans = getBans(claim);
 
-        int min_member_slot = instance.getGuis().getGuiMinSlot("list");
-        int max_member_slot = instance.getGuis().getGuiMaxSlot("list");
-        int items_count = max_member_slot - min_member_slot + 1;
-        String playerName = player.getName();
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerName);
-        cPlayer.setFilter(filter);
-        cPlayer.clearMapClaim();
-        cPlayer.clearMapLoc();
+        for (String s : lore) {
+            s = s.replace("%owner%", owner)
+                 .replace("%description%", description)
+                 .replace("%name%", name)
+                 .replace("%coords%", coords);
 
-        String lore_tp = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")
-                ? instance.getLanguage().getMessage("access-claim-clickable-tp")
-                : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-teleport");
-        String lore_remove = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.remove")
-                ? instance.getLanguage().getMessage("access-claim-clickable-remove")
-                : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-remove");
-        String lore_settings = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.main")
-                ? instance.getLanguage().getMessage("access-claim-clickable-manage")
-                : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-manage");
-
-        if (page > 1) {
-            inv.setItem(instance.getGuis().getItemSlot("list", "back-page-list"), backPage(page - 1));
-        }
-        if (cPlayer.getClaim() != null) {
-            inv.setItem(instance.getGuis().getItemSlot("list", "back-page-main"), backPage2(cPlayer.getClaim()));
-        }
-
-        inv.setItem(instance.getGuis().getItemSlot("list", "filter"), createFilterItem(filter));
-
-        Set<Claim> claims;
-        List<String> lore;
-        if (filter.equals("owner")) {
-            claims = new HashSet<>(instance.getMain().getPlayerClaims(playerName));
-            lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessageWP("access-claim-lore", (OfflinePlayer) player)));
-        } else {
-            claims = new HashSet<>(instance.getMain().getClaimsWhereMemberNotOwner(playerName));
-            lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessageWP("access-claim-not-owner-lore", (OfflinePlayer) player)));
-        }
-        int startItem = (page - 1) * items_count;
-        int i = min_member_slot;
-        int count = 0;
-        for (Claim claim : claims) {
-            if (count++ < startItem)
-                continue;
-            if (i == max_member_slot + 1) {
-                inv.setItem(instance.getGuis().getItemSlot("list", "next-page-list"), nextPage(page + 1));
-                break;
-            }
-            cPlayer.addMapClaim(i, claim);
-            cPlayer.addMapLoc(i, claim.getLocation());
-            List<String> used_lore = new ArrayList<>();
-            for (String s : lore) {
-                s = s.replace("%owner%", claim.getOwner());
-                s = s.replace("%description%", claim.getDescription());
-                s = s.replace("%name%", claim.getName()).replace("%coords%", instance.getMain().getClaimCoords(claim));
-                if (s.contains("%members%")) {
-                    String members = getMembers(claim);
-                    if (members.contains("\n")) {
-                        String[] parts = members.split("\n");
-                        for (String ss : parts) {
-                            used_lore.add(ss);
-                        }
-                    } else {
-                        used_lore.add(members);
-                    }
-                } else if (s.contains("%bans%")) {
-                    String bans = getBans(claim);
-                    if (bans.contains("\n")) {
-                        String[] parts = bans.split("\n");
-                        for (String ss : parts) {
-                            used_lore.add(ss);
-                        }
-                    } else {
-                        used_lore.add(bans);
+            if (s.contains("%members%")) {
+                if (members.contains("\n")) {
+                    for (String member : members.split("\n")) {
+                        used_lore.add(s.replace("%members%", member));
                     }
                 } else {
-                    used_lore.add(s);
+                    used_lore.add(s.replace("%members%", members));
                 }
-            }
-            if (filter.equals("owner")) {
-                used_lore.addAll(Arrays.asList(lore_tp, lore_remove, lore_settings));
+            } else if (s.contains("%bans%")) {
+                if (bans.contains("\n")) {
+                    for (String ban : bans.split("\n")) {
+                        used_lore.add(s.replace("%bans%", ban));
+                    }
+                } else {
+                    used_lore.add(s.replace("%bans%", bans));
+                }
             } else {
-                used_lore.add(lore_tp);
-            }
-            final int i_f = i;
-            if (instance.getGuis().getItemCheckCustomModelData("list", "claim-item")) {
-                inv.setItem(i_f,
-                		instance.getGuis().createItemWMD(
-                                instance.getLanguage().getMessageWP("access-claim-title", (OfflinePlayer) player)
-                                        .replace("%name%", claim.getName())
-                                        .replace("%coords%", instance.getMain().getClaimCoords(claim)),
-                                used_lore, instance.getGuis().getItemMaterialMD("list", "claim-item"),
-                                instance.getGuis().getItemCustomModelData("list", "claim-item")));
-                i++;
-                continue;
-            }
-            if (instance.getGuis().getItemMaterialMD("list", "claim-item").contains("PLAYER_HEAD")) {
-            	ItemStack item = instance.getPlayerMain().getPlayerHead((OfflinePlayer) player);
-                SkullMeta meta = (SkullMeta) item.getItemMeta();
-                meta.setDisplayName(instance.getLanguage().getMessageWP("access-claim-title", (OfflinePlayer) player).replace("%name%", claim.getName()).replace("%coords%", instance.getMain().getClaimCoords(claim)));
-                meta.setLore(used_lore);
-                item.setItemMeta(meta);
-                inv.setItem(i_f, item);
-                i++;
-                continue;
-            }
-            inv.setItem(i_f,
-            		instance.getGuis().createItem(instance.getGuis().getItemMaterial("list", "claim-item"),
-                            instance.getLanguage().getMessageWP("access-claim-title", (OfflinePlayer) player)
-                                    .replace("%name%", claim.getName()).replace("%coords%", instance.getMain().getClaimCoords(claim)),
-                            used_lore));
-            i++;
-        }
-
-        Set<String> custom_items = new HashSet<>(instance.getGuis().getCustomItems("list"));
-        for (String key : custom_items) {
-            List<String> custom_lore = new ArrayList<>(instance.getGuis().getLoreWP(instance.getGuis().getCustomItemLore("list", key), player));
-            String title = instance.getSettings().getBooleanSetting("placeholderapi") ? PlaceholderAPI.setPlaceholders(player, instance.getGuis().getCustomItemTitle("list", key)) : instance.getGuis().getCustomItemTitle("list", key);
-            if (instance.getGuis().getCustomItemCheckCustomModelData("list", key)) {
-                inv.setItem(instance.getGuis().getCustomItemSlot("list", key), instance.getGuis().createItemWMD(title, custom_lore,
-                        instance.getGuis().getCustomItemMaterialMD("list", key), instance.getGuis().getCustomItemCustomModelData("list", key)));
-            } else {
-                inv.setItem(instance.getGuis().getCustomItemSlot("list", key), instance.getGuis().createItem(instance.getGuis().getCustomItemMaterial("list", key),
-                        title, custom_lore));
+                used_lore.add(s);
             }
         }
-        
-        instance.executeEntitySync(player, () -> player.openInventory(inv));
+        return used_lore;
     }
 
     /**
@@ -220,26 +217,26 @@ public class ClaimListGui implements InventoryHolder {
      * @return The members of the claim.
      */
     public String getMembers(Claim claim) {
-        Set<String> members = claim.getMembers();
+        Set<String> members = instance.getMain().convertUUIDSetToStringSet(claim.getMembers());
         if (members.isEmpty()) {
             return instance.getLanguage().getMessage("claim-list-no-member");
         }
-        StringBuilder factionsList = new StringBuilder();
+        StringBuilder membersList = new StringBuilder();
         int i = 0;
         for (String membre : members) {
+        	if(membre == null) continue;
             Player p = Bukkit.getPlayer(membre);
             String fac = p != null ? "§a" + membre : "§c" + membre;
-            factionsList.append(fac);
+            membersList.append(fac);
             if (i < members.size() - 1) {
-                factionsList.append("§7, ");
+            	membersList.append("§7, ");
             }
             if ((i + 1) % 4 == 0 && i < members.size() - 1) {
-                factionsList.append("\n");
+            	membersList.append("\n");
             }
             i++;
         }
-        String result = factionsList.toString();
-        return result;
+        return membersList.toString();
     }
     
     /**
@@ -249,54 +246,36 @@ public class ClaimListGui implements InventoryHolder {
      * @return A string representing the bans of the claim.
      */
     public String getBans(Claim claim) {
-        Set<String> members = claim.getBans();
-        if (members.isEmpty()) {
+        Set<String> bans = instance.getMain().convertUUIDSetToStringSet(claim.getBans());
+        if (bans.isEmpty()) {
             return instance.getLanguage().getMessage("claim-list-no-ban");
         }
-        StringBuilder membersList = new StringBuilder();
+        StringBuilder bansList = new StringBuilder();
         int i = 0;
-        for (String member : members) {
-            Player player = Bukkit.getPlayer(member);
-            String memberName = player != null ? "§a" + member : "§c" + member;
-            membersList.append(memberName);
-            if (i < members.size() - 1) {
-                membersList.append("§7, ");
+        for (String ban : bans) {
+        	if(ban == null) continue;
+            Player player = Bukkit.getPlayer(ban);
+            String banName = player != null ? "§a" + ban : "§c" + ban;
+            bansList.append(banName);
+            if (i < bans.size() - 1) {
+            	bansList.append("§7, ");
             }
-            if ((i + 1) % 4 == 0 && i < members.size() - 1) {
-                membersList.append("\n");
+            if ((i + 1) % 4 == 0 && i < bans.size() - 1) {
+            	bansList.append("\n");
             }
             i++;
         }
-        return membersList.toString();
+        return bansList.toString();
     }
 
     /**
-     * Creates the back page item.
+     * Creates an item for the back page slot.
      *
-     * @param page The current page.
-     * @return The back page item.
+     * @param page The page number.
+     * @return The created back page item.
      */
     private ItemStack backPage(int page) {
-        ItemStack item = null;
-        if (instance.getGuis().getItemCheckCustomModelData("list", "back-page-list")) {
-            CustomStack customStack = CustomStack.getInstance(instance.getGuis().getItemMaterialMD("list", "back-page-list"));
-            if (customStack == null) {
-                instance.getPlugin().getLogger().info("Error custom item loading : "
-                        + instance.getGuis().getItemMaterialMD("list", "back-page-list"));
-                instance.getPlugin().getLogger().info("Using STONE instead");
-                item = new ItemStack(Material.STONE, 1);
-            } else {
-                item = customStack.getItemStack();
-            }
-        } else {
-            Material material = instance.getGuis().getItemMaterial("list", "back-page-list");
-            if (material == null) {
-                instance.getPlugin().getLogger().info("Error material loading, check list.yml");
-                instance.getPlugin().getLogger().info("Using STONE instead");
-                material = Material.STONE;
-            }
-            item = new ItemStack(material, 1);
-        }
+        ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
@@ -315,27 +294,8 @@ public class ClaimListGui implements InventoryHolder {
      * @param claim The target claim
      * @return The back page main item.
      */
-    private ItemStack backPage2(Claim claim) {
-        ItemStack item = null;
-        if (instance.getGuis().getItemCheckCustomModelData("list", "back-page-main")) {
-            CustomStack customStack = CustomStack.getInstance(instance.getGuis().getItemMaterialMD("list", "back-page-main"));
-            if (customStack == null) {
-                instance.getPlugin().getLogger().info("Error custom item loading : "
-                        + instance.getGuis().getItemMaterialMD("list", "back-page-main"));
-                instance.getPlugin().getLogger().info("Using STONE instead");
-                item = new ItemStack(Material.STONE, 1);
-            } else {
-                item = customStack.getItemStack();
-            }
-        } else {
-            Material material = instance.getGuis().getItemMaterial("list", "back-page-main");
-            if (material == null) {
-                instance.getPlugin().getLogger().info("Error material loading, check list.yml");
-                instance.getPlugin().getLogger().info("Using STONE instead");
-                material = Material.STONE;
-            }
-            item = new ItemStack(material, 1);
-        }
+    private ItemStack backPageMain(Claim claim) {
+        ItemStack item = new ItemStack(Material.DARK_OAK_DOOR);
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
@@ -349,32 +309,13 @@ public class ClaimListGui implements InventoryHolder {
     }
 
     /**
-     * Creates the next page item.
+     * Creates an item for the next page slot.
      *
-     * @param page The current page.
-     * @return The next page item.
+     * @param page The page number.
+     * @return The created next page item.
      */
     private ItemStack nextPage(int page) {
-        ItemStack item = null;
-        if (instance.getGuis().getItemCheckCustomModelData("list", "next-page-list")) {
-            CustomStack customStack = CustomStack.getInstance(instance.getGuis().getItemMaterialMD("list", "next-page-list"));
-            if (customStack == null) {
-                instance.getPlugin().getLogger().info("Error custom item loading : "
-                        + instance.getGuis().getItemMaterialMD("list", "next-page-list"));
-                instance.getPlugin().getLogger().info("Using STONE instead");
-                item = new ItemStack(Material.STONE, 1);
-            } else {
-                item = customStack.getItemStack();
-            }
-        } else {
-            Material material = instance.getGuis().getItemMaterial("list", "next-page-list");
-            if (material == null) {
-                instance.getPlugin().getLogger().info("Error material loading, check list.yml");
-                instance.getPlugin().getLogger().info("Using STONE instead");
-                material = Material.STONE;
-            }
-            item = new ItemStack(material, 1);
-        }
+        ItemStack item = new ItemStack(Material.ARROW);
         ItemMeta meta = item.getItemMeta();
 
         if (meta != null) {
@@ -393,15 +334,8 @@ public class ClaimListGui implements InventoryHolder {
      * @param filter The filter.
      * @return The filter item.
      */
-    private ItemStack createFilterItem(String filter) {
-        ItemStack item;
-        if (instance.getGuis().getItemCheckCustomModelData("list", "filter")) {
-            CustomStack customStack = CustomStack.getInstance(instance.getGuis().getItemMaterialMD("list", "filter"));
-            item = customStack != null ? customStack.getItemStack() : new ItemStack(Material.STONE, 1);
-        } else {
-            Material material = instance.getGuis().getItemMaterial("list", "filter");
-            item = new ItemStack(material != null ? material : Material.STONE, 1);
-        }
+    private ItemStack filter(String filter) {
+        ItemStack item = new ItemStack(Material.END_CRYSTAL);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             String loreFilter = instance.getLanguage().getMessage("filter-list-lore");
