@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -240,7 +241,7 @@ public class Claim {
      * @return The permission value
      */
     public boolean getPermission(String permission, String role) {
-    	return this.permissions.getOrDefault(role == null ? "natural" : role, new LinkedHashMap<>()).getOrDefault(permission, false);
+    	return this.permissions.getOrDefault(role == null ? "natural" : role.toLowerCase(), new LinkedHashMap<>()).getOrDefault(permission, false);
     }
     
     /**

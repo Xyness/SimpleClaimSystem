@@ -12,9 +12,14 @@ reload-complete: "§aTải lại hoàn thành"
 # > Bossbar messages
 
 bossbar-protected-area-message: "§fBạn đang ở trong một §ekhu vực được bảo vệ§f !"
-bossbar-owner-message: "§fBạn đang ở trong lãnh thổ của §e%owner% §b(%name%)"
+bossbar-owner-message: "§fBạn đang ở trong lãnh thổ của bạn §e%owner% §b(%name%)"
 bossbar-member-message: "§fBạn đang ở trong lãnh thổ của §e%owner% §b(%name%)"
 bossbar-visitor-message: "§fBạn đang đến thăm lãnh thổ của §e%owner% §b(%name%)"
+
+bossbar-protected-area-for-sale-message: "§f§eKhu vực được bảo vệ§f - §6§l RAO BÁN §b/claim buy §a(%price%%money-symbol%)"
+bossbar-owner-for-sale-message: "§eLãnh thổ của bạn §f- §b%name%§f - §6§lRAO BÁN §7/claim cancel §a(%price%%money-symbol%)"
+bossbar-member-for-sale-message: "§fLãnh thổ §b%name%§f của §e%owner%§f - §6§lRAO BÁN §b/claim buy §a(%price%%money-symbol%)"
+bossbar-visitor-for-sale-message: "§fLãnh thổ §b%name%§f của §e%owner%§f - §6§lRAO BÁN §b/claim buy §a(%price%%money-symbol%)"
 
 
 # > Players messages
@@ -25,70 +30,70 @@ already-member: "§c%player% đã có quyền truy cập vào lãnh thổ của 
 add-member-success: "§e%player%§f Đã thêm thành công vào §e%claim-name%§f."
 error: "§cĐã xảy ra lỗi, vui lòng liên hệ với quản trị viên."
 not-member: "§c%player% không phải là thành viên từ lãnh thổ này."
-cant-remove-owner: "§cBạn không thể loại bỏ chủ sở hữu của lãnh thổ này (bạn)."
+cant-remove-owner: "§cBạn không thể tự xóa chính mình (baka...)."
 remove-member-success: "§e%player%§f đã loại bỏ thành công §e%claim-name%§f."
 create-error-protected-area: "§cBạn đang ở trong một khu vực được bảo vệ của máy chủ."
-create-already-yours: "§cBạn đã ở trong lãnh thổ của bạn."
-create-already-claim: "§cBạn đang ở trong lãnh thổ của %player%."
+create-already-yours: "§cBạn đã ở trong ranh giới của bạn."
+create-already-claim: "§cBạn đang ở trong ranh giới của %player%."
 create-protected-area-success: "§aBạn đã tạo ra một khu vực được bảo vệ.\n§fSử dụng §e/parea settings§f Để định cấu hình khu vực này."
 create-protected-area-radius-success: "§aBạn đã tạo ra khu vực được bảo vệ §b(%number% chunks)§a.\n§fSử dụng §e/parea settings %claim-name%§f Để định cấu hình khu vực này."
-create-claim-success: "§aBây giờ bạn là chủ sở hữu của lãnh thổ này.\n§fSử dụng §e/claim settings§f Để cấu hình lãnh thổ của bạn."
-create-claim-radius-success: "§aBây giờ bạn là chủ sở hữu của lãnh thổ này §b(%number% chunks)§a.\n§fSử dụng §e/claim settings %claim-name%§f Để cấu hình lãnh thổ của bạn."
-cant-radius-claim-already-claim: "§cMột số thông cáo trong bán kính này thuộc về ai đó."
-delete-all-claims-success: "§fHủy chiếm tất cả thành công."
-territory-delete-success: "§aXóa bỏ lãnh thổ thành công."
-territory-delete-error: "§cMột số khu chiếm đóng không thể bị xóa (%number%/%number-max%), Điều này có thể là do nó không thuộc về bạn."
-cant-claim-anymore: "§cBạn đã đạt được số lượng chiếm đóng tối đa."
-cant-radius-claim: "§cBạn không thể sử dụng bán kính này cho các chiếm đóng của mình."
+create-claim-success: "§aBây giờ bạn là lãnh chúa của lãnh thổ này.\n§fSử dụng §e/claim settings§f Để cấu hình lãnh thổ của bạn."
+create-claim-radius-success: "§aBây giờ bạn là lãnh chúa của lãnh thổ này §b(%number% chunks)§a.\n§fSử dụng §e/claim settings %claim-name%§f Để cấu hình lãnh thổ của bạn."
+cant-radius-claim-already-claim: "§cKhu vực trong bán kính này đã được chiếm đóng bởi một ai đó."
+delete-all-claims-success: "§fTất cả các khu vực lãnh thổ của bạn đã bị xóa thành công."
+territory-delete-success: "§akhu vực lãnh thở đã xóa thành công."
+territory-delete-error: "§cMột số khu vực không thể bị xóa (%number%/%number-max%), Điều này có thể là do nó không thuộc về bạn."
+cant-claim-anymore: "§cBạn đã đạt được số lượng chiếm đóng tối đa cho mỗi người chơi."
+cant-radius-claim: "§cBạn không thể sử dụng bán kính này cho các khu vực của mình."
 world-disabled: "§cChiếm đóng bị vô hiệu hóa trên thế giới '%world%'."
 name-change-ask: "§fSử dụng §e/claim setname <claim-name> <new-name>§f thay đổi."
 name-change-success: "§fTên mới của lãnh thổ : §e%name%§f."
-loc-change-success: "§fVị trí sinh sản mới của lãnh thổ : §e%coords%§f."
-claim-confirmation-ask: "§fBấm để xác nhận lãnh thổ của bạn "
+loc-change-success: "§fVị trí đại sảnh mới của lãnh thổ : §e%coords%§f."
+claim-confirmation-ask: "§fBấm để xác nhận khu vực lãnh thổ của bạn "
 claim-confirmation-button: "§a[Xác nhận]"
-error-name-exists: "§cKhu vực chiếm đóng '%name%' đã tồn tại."
+error-name-exists: "§cKhu vực lãnh thổ '%name%' đã tồn tại."
 error-name-space: "§cTên mới không được chứa khoảng trắng."
-teleportation-in-progress: "§fDịch chuyển trong §e%delay% giây§f, Xin đừng di chuyển."
+teleportation-in-progress: "§fDịch chuyển tức thời trong §e%delay% seconds§f, Xin đừng di chuyển."
 teleportation-canceled-moving: "§cDịch chuyển tức thời bị hủy vì bạn đã di chuyển."
-apply-all-settings-success: "§eCác thiết lập§f đã được áp dụng đến§e tất cả lãnh thổ của bạn§f."
+apply-all-settings-success: "§eCác thiết lập§f đã được áp dụng cho§e tất cả lãnh thổ§f."
 apply-all-admin-settings-success: "§eCác thiết lập§f đã được áp dụng cho§e Tất cả các khu vực được bảo vệ§f."
-error-claim-visitors-deny: "§cKhu vực này không cho phép khách truy cập."
-error-not-right-claim: "§cBạn phải ở trong khu vực tương ứng."
-claim-player-not-found: "§cKhu vực này không tồn tại."
+error-claim-visitors-deny: "§cKhu vực lãnh thổ này không cho phép khách truy cập."
+error-not-right-claim: "§cBạn phải ở trong hu vực lãnh thổ tương ứng."
+claim-player-not-found: "§cKhu vực lãnh thổ này không tồn tại."
 cmd-no-permission: "§cBạn không có quyền truy cập vào lệnh này."
-max-chunks-per-claim-must-be-positive: "§cĐã đạt giới hạn số lượng khối đã chiếm."
+max-chunks-per-claim-must-be-positive: "§cGiới hạn mảnh đất phải lớn hơn 0."
 max-chunks-per-claim-must-be-number: "§cGiới hạn khối phải là một số."
-claim-limit-must-be-positive: "§cGiới hạn khu vực phải thuộc về bạn."
-claim-limit-must-be-number: "§cGiới hạn khu vực phải là một số."
-claim-limit-radius-must-be-positive: "§cGiới hạn bán kính khu vực phải lớn hơn 0."
-claim-limit-radius-must-be-number: "§cGiới hạn bán kính lãnh thổ phải là một số."
-teleportation-delay-must-be-positive: "§cĐộ trễ dịch chuyển tức thời phải rõ ràng."
+claim-limit-must-be-positive: "§cGiới hạn chiếm đất phải lớn hơn 0."
+claim-limit-must-be-number: "§cGiới hạn yêu cầu phải là một số."
+claim-limit-radius-must-be-positive: "§cGiới hạn chiếm đất trong bán kính phải lớn hơn 0."
+claim-limit-radius-must-be-number: "§cGiới hạn bán kính yêu cầu phải là một số."
+teleportation-delay-must-be-positive: "§cĐộ trễ dịch chuyển tức thời phải lớn hơn 0."
 teleportation-delay-must-be-number: "§cĐộ trễ dịch chuyển tức thời phải là một số."
-set-player-teleportation-delay-success: "§e%player%§f Sự chậm trễ dịch chuyển tức thời là bây giờ là §e%amount%s§f."
-set-player-max-claim-success: "§e%player%§f có thể có tối đa §e%amount% lãnh thổ§f."
-set-player-max-radius-claim-success: "§e%player%§f có thể chiếm đóng trong bán kính §e%amount%§f."
-worldguard-cannot-claim-in-region: "§cBạn không thể chiếm trong khu vực này."
-claim-set-description-success: "§fMiêu tả về §e%name%§f Đặt thành :\n§7%description%"
+set-player-teleportation-delay-success: "§e%player%§f Trì hoãn dịch chuyển tức thời §e%amount%s§f."
+set-player-max-claim-success: "§e%player%§f có thể có tối đa §e%amount% khu vực lãnh thổ§f."
+set-player-max-radius-claim-success: "§e%player%§f có tối đa khu vực lãnh thổ trong bán kính §e%amount%§f."
+worldguard-cannot-claim-in-region: "§cBạn không thể chiếm đóng trong khu vực này."
+claim-set-description-success: "§fThông diệp của §e%name%§f Đặt thành :\n§7%description%"
 claim-price-must-be-number: "§cGiá bán của bạn phải là một số chính xác."
-claim-for-sale-success: "§fKhu vực của bạn §e%name%§f hiện đang được bán cho §e%price%%money-symbol%§f."
-claim-in-sale-cancel: "§fkhu vực của bạn §e%name%§f không được bán nữa."
-claim-is-not-in-sale: "§cKhu vực này không được bán."
+claim-for-sale-success: "§fKhu vực lãnh thổ của §e%name%§f hiện đang được bán cho §e%price%%money-symbol%§f."
+claim-in-sale-cancel: "§fKhu vực lãnh thổ của §e%name%§f không được bán nữa."
+claim-is-not-in-sale: "§cKhu vực lãnh thổ này không được bán."
 buy-but-not-enough-money: "§cBạn không có đủ tiền."
-buy-claim-success: "§fBạn đã mua lãnh thổ §e%name%§f từ §e%owner%§f cho §e%price%%money-symbol%§f."
-economy-disabled: "§cNền kinh tế cho các lãnh thổ bị vô hiệu hóa."
-sell-claim-price-syntax: "§cGiá phải nằm giữa 0%money-symbol% Và %max-price%%money-symbol%."
-the-claim-does-not-exists-anymore: "§ckhu vực bạn đang cố gắng truy cập không còn tồn tại."
-claim-has-been-sold: "§fLãnh thổ của bạn §e%name%§f đã được bán cho §e%buyer%§f."
-autoclaim-off: "§fTự động chiếm đóng đã tắt."
-autoclaim-on: "§fTự động chiếm đóng đã bật."
+buy-claim-success: "§fBạn đã mua khu vực lãnh thổ với tên §e%name%§f từ §e%owner%§f với giá §e%price%%money-symbol%§f."
+economy-disabled: "§cNền kinh tế cho các khu vực lãnh thổ bị vô hiệu hóa."
+sell-claim-price-syntax: "§cGiá phải nằm trong khoảng từ %money-symbol% và %max-price%%money-symbol%."
+the-claim-does-not-exists-anymore: "§cKhu vực lãnh thổ bạn đang cố gắng truy cập không còn tồn tại."
+claim-has-been-sold: "§fKhu vực lãnh thổ của §e%name%§f đã được bán cho §e%buyer%§f."
+autoclaim-off: "§fTự chiếm đóng đã tắt."
+autoclaim-on: "§fTự động chiếm đóng đang bật."
 group-does-not-exists: "§cNhóm này không tồn tại."
-set-group-teleportation-delay-success: "§fNhóm §e%group%§f Sự chậm trễ dịch chuyển tức thời là bây giờ là §e%amount%s§f."
-set-group-max-claim-success: "§fNhóm §e%group%§f có thể có tối đa §e%amount% chiếm đóng§f."
+set-group-teleportation-delay-success: "§fNhóm §e%group%§f sẽ bị chậm dịch chuyển §e%amount%s§f."
+set-group-max-claim-success: "§fNhóm §e%group%§f có thể có tối đa §e%amount% khu vực lãnh thổ§f."
 set-group-max-radius-claim-success: "§fNhóm §e%group%§f có thể chiếm đóng trong bán kính §e%amount%§f."
-forceunclaim-success: "§fkhu vực của §e%owner%§f đã méo còn nữa."
-setowner-success: "§e%owner%§f là lãnh đạo mới của chúng ta."
-setowner-all-success: "§e%owner%§f lãnh chủa mới của §eVùng đất§f."
-setowner-claim-success: "§e%owner%§f Là lãnh chúa mới của lãnh thổ §e%claim-name%§f."
+forceunclaim-success: "§fCác khu vực của §e%owner%§f đã buộc bị hủy chiếm đóng."
+setowner-success: "§e%owner%§f là lãnh chúa mới, nơi khu vực bạn đang đứng."
+setowner-all-success: "§e%owner%§f bây giờ là lãnh chúa mới của §eTất cả khu vực lãnh thổ§f."
+setowner-claim-success: "§e%owner%§f Bây giờ là lãnh chúa mới của khu vực §e%claim-name%§f."
 setting-changed-via-command: "§fCài đặt §e%setting%§f Đặt thành §e%value%§f."
 setting-must-be-boolean: "§cGiá trị của cài đặt này phải đúng hoặc sai."
 setting-must-be-protection-message: "§cGiá trị của cài đặt này phải là : ACTION_BAR, TITLE, SUBTITLE or CHAT."
@@ -96,12 +101,12 @@ max-sell-price-must-be-positive: "§cGiá bán tối đa phải là > 0."
 max-sell-price-must-be-number: "§cGiá bán tối đa phải là một số."
 bossbar-color-incorrect: "§cMàu bossbar này không tồn tại."
 bossbar-style-incorrect: "§cPhong cách bossbar này không tồn tại."
-mat-incorrect: "§cVật liệu này không tồn tại."
-entity-incorrect: "§cLoại thực thể này không tồn tại."
+mat-incorrect: "§cVật liệu này khum tồn tại."
+entity-incorrect: "§cLoại mobs này không tồn tại."
 setting-list-changed-via-command: "§fVật liệu §e%material%§f thêm vào §e%setting%§f."
 setting-list-changeda-via-command: "§fVật liệu §e%material%§f bị loại khỏi §e%setting%§f."
 setting-incorrect: "§cCài đặt này không tồn tại."
-material-already-in-list: "§cNguyên liệu này đã có trong danh sách."
+material-already-in-list: "§cVật liệu này đã có trong danh sách."
 material-not-in-list: "§cVật liệu này không có trong danh sách."
 entity-already-in-list: "§cVật liệu này đã có trong danh sách."
 entity-not-in-list: "§cVật liệu này không có trong danh sách."
@@ -109,191 +114,180 @@ setting-list-changed-via-command-entity: "§fThực thể §e%entity%§f thêm v
 setting-list-changeda-via-command-entity: "§fThực thể §e%entity%§f bị loại khỏi §e%setting%§f."
 world-already-in-list: "§cThế giới này đã có trong danh sách."
 world-not-in-list: "§cThế giới này không có trong danh sách."
-world-list-changed-via-command: "§fThế giới §e%name%§f thêm vào §eThế giới bị vô hiệu hóa§f."
-world-list-changeda-via-command: "§fThế giới §e%name%§f bị loại khỏi §eThế giới bị vô hiệu hóa§f."
-cant-add-member-anymore: "§cBạn đã đạt được số lượng thành viên tối đa cho mỗi lãnh thổ."
-you-cannot-use-this-name: "§cBạn không thể chiếm đóng mới trong khi khu vực đang chiếm đóng."
+world-list-changed-via-command: "§fThế giới §e%name%§f thêm vào §eVô hiệu hóa thế giới§f."
+world-list-changeda-via-command: "§fThế giới §e%name%§f bị loại khỏi §ekích hoạt thế giới§f."
+cant-add-member-anymore: "§cBạn đã đạt được số lượng thành viên tối đa cho mỗi khu vực lãnh thổ."
+you-cannot-use-this-name: "§cBạn không thể sử dụng chiếm đóng trong tên lãnh thổ mới của mình."
 incorrect-characters-name: "§cBạn phải sử dụng tên chỉ với các chữ cái và số."
 incorrect-characters-description: "§cBạn phải sử dụng một mô tả chỉ với các chữ cái và số."
-claim-not-an-admin-claim: "§cKhu vực này không phải là một khu vực được bảo vệ."
-not-using-database: "§cCơ sở dữ liệu bị vô hiệu hóa config.yml."
-member-limit-must-be-positive: "§cGiới hạn thành viên phải tích cực."
+claim-not-an-admin-claim: "§cKhu vực lãnh thổ này không phải là một khu vực được bảo vệ."
+not-using-database: "§cCơ sở dữ liệu bị vô hiệu hóa trong config.yml."
+member-limit-must-be-positive: "§cGiới hạn thành viên phải lớn hơn 0."
 member-limit-must-be-number: "§cGiới hạn thành viên phải là một số."
-set-player-member-limit-success: "§e%player%§f có thể có tối đa §e%amount% Thành viên cho mỗi chiếm đóng§f."
-set-group-member-limit-success: "§fNhóm §e%group%§f có thể có tối đa §e%amount% Thành viên cho mỗi lãnh thổ§f."
-claim-was-sold: "§fMảnh đất của bạn §e%name%§f đã được mua bởi §e%buyer%§f vì §e%price%%money-symbol%§f."
-target-does-not-have-claim: "§cNgười chơi '%name%' không có mảnh đất."
-you-paid-claim: "§fBạn đã trả tiền §e%price%%money-symbol%§f để chiếm đóng."
-buy-but-not-enough-money-claim: "§cBạn không có đủ tiền. Bạn hiện đang có %missing-price%%money-symbol%."
-claim-cost-must-be-positive: "§cChi phí chiếm đất phải là lớn hơn."
-claim-cost-must-be-number: "§cChi phí chiếm đất phải là một số."
-set-player-claim-cost-success: "§e%player%§f đã thanh toán §e%amount%§f để mua đất."
-set-player-max-chunks-per-claim-success: "§e%player%§f có thể có §e%amount%§f Chunks cho mỗi khu vực."
-set-group-claim-cost-success: "§fNhóm §e%group%§f sẽ thanh toán §e%amount%§f Cho chiếm đóng."
-set-group-max-chunks-per-claim-success: "§e%group%§f có thể có §e%amount%§f Mảnh đất cho mỗi khu vực."
-claim-cost-multiplier-must-be-positive: "§cHệ số nhân chi phí chiếm đóng phải xác thực."
-claim-cost-multiplier-must-be-number: "§cHệ số nhân chi phí chiếm đóng phải là một số."
-set-player-claim-cost-multiplier-success: "§fHệ số nhân §e%amount%§fsẽ được sử dụng cho chi phí chiếm đóng cho §e%player%§f."
-set-group-claim-cost-multiplier-success: "§fHệ số nhân §e%amount%§f sẽ được sử dụng cho chi phí chiếm đóng cho nhóm §e%group%§f."
-automap-on: "§fBản đồ tự động bật."
-automap-off: "§fBản đồ tự động tắt."
-player-has-no-claim: "§cBạn không có bất kỳ vùng đất nào."
-player-never-played: "§cNgười chơi '%player%' chưa bao giờ chơi trên máy chủ này."
+set-player-member-limit-success: "§e%player%§f có thể có tối đa §e%amount% Thành viên cho mỗi khu vực lãnh thổ§f."
+set-group-member-limit-success: "§fNhóm §e%group%§f có thể có tối đa §e%amount% Thành viên cho mỗi khu vực lãnh thổ§f."
+claim-was-sold: "§fKhu vực lãnh thổ của §e%name%§f đã được mua bởi §e%buyer%§f với giá §e%price%%money-symbol%§f."
+target-does-not-have-claim: "§cNgười chơi %name% không có khu vực lãnh thổ."
+you-paid-claim: "§fBạn đã trả tiền §e%price%%money-symbol%§f cho khu vực lãnh thổ này."
+buy-but-not-enough-money-claim: "§cBạn không có đủ tiền. Bạn đang thiếu hụt %missing-price%%money-symbol%."
+claim-cost-must-be-positive: "§cChi phí chiếm đất phải lớn hơn 0."
+claim-cost-must-be-number: "§cChi phí chiếm đóng phải là một số."
+set-player-claim-cost-success: "§e%player%§f sẽ thanh toán §e%amount%§f cho khu vực lãnh thổ này."
+set-player-max-chunks-per-claim-success: "§e%player%§f bạn có §e%amount%§f mãnh đất cho mỗi khu vực."
+set-group-claim-cost-success: "§fNhóm §e%group%§f sẽ thanh toán §e%amount%§f cho mỗi khu vực chiếm đóng."
+set-group-max-chunks-per-claim-success: "§e%group%§f bạn có §e%amount%§f cho mỗi mãnh đất trong lãnh thổ."
+claim-cost-multiplier-must-be-positive: "§cHệ số nhân chiếm đóng khu vực cầu phải lớn hơn 0."
+claim-cost-multiplier-must-be-number: "§cHệ số nhân chiếm đóng khu vực phải là một số."
+set-player-claim-cost-multiplier-success: "§fHệ số nhân §e%amount%§f sẽ được sử dụng cho giá trị chiếm đóng của §e%player%§f."
+set-group-claim-cost-multiplier-success: "§fHệ số nhân §e%amount%§f sẽ được sử dụng cho giả trị chiếm đóng cho nhóm §e%group%§f."
+automap-on: "§fTự động bật bản đồ - Bật."
+automap-off: "§fTự động bật bản đồ - Tắt."
+player-has-no-claim: "§cBạn không có bất khu vực lãnh thổ nào."
+player-never-played: "§cNgười chơi %player% chưa bao giờ chơi trên máy chủ này."
 cant-add-yourself: "§cBạn không thể thêm chính mình."
-claim-for-sale-success-broadcast: "§e%player%§f bán mảnh đất của hắn ta §e%name%§f cho §e%price%%money-symbol%§f."
-claim-name-too-long: "§cTên này quá dài."
-claim-description-too-long: "§cMô tả này quá dài."
-player-not-online: "§cNgười chơi '%player%' không trực tuyến."
-cant-buy-your-own-claim: "§cBạn không thể mua mảnh đất của riêng bạn."
-claim-name-length-must-be-positive: "§cĐộ dài của tên mảnh đất phải rõ ràng."
-claim-name-length-must-be-number: "Độ dài của tên mảnh đất phải là một số."
-claim-description-length-must-be-positive: "§cĐộ dài của mô tả mảnh đất phải lớn hơn 0."
-claim-description-length-must-be-number: "§cĐộ dài của mô tả mảnh đất phải là một số."
-set-max-length-claim-name-success: "§fĐộ dài của tên mảnh đất bây giờ là §e%amount% kí tự§f."
-set-max-length-claim-description-success: "§fĐộ dài của mô tả mảnh đất bây giờ là §e%amount% ký tự§f."
-player-does-not-have-claim: "§cNgười chơi này không có đất."
-player-teleport-to-other-claim-aclaim: "§fBạn đã được dịch chuyển tức thời đến lãnh thổ §e%name%§f của §e%player%§f."
-player-unclaim-other-claim-aclaim: "§fBạn đã xóa khu vực §e%name%§f của §e%player%§f."
-player-claim-unclaimed-by-admin: "§fLãnh thổ của bạn §e%name%§f đã bị xóa bởi §c%player%§f."
-player-unclaim-other-all-claim-aclaim: "§fBạn đã xóa §etất cả lãnh thổ§f của §e%player%§f."
-player-all-claim-unclaimed-by-admin: "§eTất cả lãnh thổ§f đã bị xóa bởi §c%player%§f."
-player-banned: "§cBạn đã bị cấm khỏi lãnh thổ này"
-cant-ban-yourself: "§cBạn không thể tự cấm chính mình."
-add-ban-success: "§e%player%§f hiện đang bị cấm khỏi khu vực lãnh thổ của §e%claim-name%§f."
-add-ban-all-success: "§e%player%§f hiện bị cấm từ tất cả các lãnh thổ của bạn."
-remove-ban-success: "§e%player%§f không còn bị cấm vận khi vào lãnh thổ của §e%claim-name%§f."
-remove-ban-all-success: "§e%player%§f đã được hủy bỏ cấm vận trên toàn bộ lãnh thổ."
-not-banned: "§c%player% không còn bị cấm vận trên lãnh thổ"
-automap-world-disabled: "§cAuo-map đã bị cấm trên thế giới '%world%'. Tắt."
-autoclaim-world-disabled: "§cTự động chiếm đất đã bị vô hiệu hóa trên '%world%'. Tắt."
+claim-for-sale-success-broadcast: "§e%player%§f Đang rao bán lãnh thổ với tên §e%name%§f và giá trị là §e%price%%money-symbol%§f."
+claim-name-too-long: "§cTên quá dài."
+claim-description-too-long: "§cThông điêp lãnh thổ quá dài."
+player-not-online: "§cNgười chơi %player% không trực tuyến."
+cant-buy-your-own-claim: "§cBạn không thể mua khu vực lãnh thổ của riêng bạn."
+claim-name-length-must-be-positive: "§cĐộ dài của tên khu vực lãnh thổ phải lớn hơn 0."
+claim-name-length-must-be-number: "Độ dài của tên khu vực lãnh thổ phải lớn hơn 0 kí tự."
+claim-description-length-must-be-positive: "§cĐộ dài thông điệp của khu vực lãnh thổ phải lớn hơn 0."
+claim-description-length-must-be-number: "§cĐộ dài thông điệp khu vực lãnh thổ phải là một số."
+set-max-length-claim-name-success: "§fĐộ dài của tên khu vực lãnh thổ bây giờ là §e%amount% kí tự§f."
+set-max-length-claim-description-success: "§fĐộ dài của thông điệp khu vực lãnh thổ bây giờ là §e%amount% kí tự§f."
+player-does-not-have-claim: "§cNgười chơi này không cókhu vực lãnh thổ."
+player-teleport-to-other-claim-aclaim: "§fBạn đã được dịch chuyến đến khu vực lãnh thổ §e%name%§f của lãnh chúa §e%player%§f."
+player-unclaim-other-claim-aclaim: "§fBạn đã xóa khu vực lãnh thổ với tên §e%name%§f của lãnh chúa §e%player%§f."
+player-claim-unclaimed-by-admin: "§fKhu vực lãnh thổ với tên §e%name%§f đã bị xóa bởi §c%player%§f."
+player-unclaim-other-all-claim-aclaim: "§fBạn đã xóa §eTất cả các lãnh thổ§f của §e%player%§f."
+player-all-claim-unclaimed-by-admin: "§eTất cả khu vực lãnh thổ §f đã bị xóa bởi §c%player%§f."
+player-banned: "§cBạn bị cấm đi lại trong lãnh thổ này"
+cant-ban-yourself: "§cbạn khum thể tự cấm chính mình."
+add-ban-success: "§e%player%§f Đã bị cấm đi lại trong khu vực §e%claim-name%§f."
+add-ban-all-success: "§e%player%§f đã bị cấm đi lại trong tất cả lãnh thổ."
+remove-ban-success: "§e%player%§f đã được cho phép đi lại trong khu vực lãnh thổ §e%claim-name%§f."
+remove-ban-all-success: "§e%player%§f không còn bị cấm vận trong tất cả các khu vực lãnh thổ."
+not-banned: "§c%player% không còn bị cấm vận nữa."
+automap-world-disabled: "§cTự động xem map đã bị tắt trong thế giới %world%"
+autoclaim-world-disabled: "§cTự động chiếm đóng đã bị tắt trong thế giới %world%."
 no-admin-claim: "§cKhông có khu vực được bảo vệ."
-remove-all-claim-player: "§c%owner%§f đã loại bỏ bạn khỏi §cTất cả lãnh thổ§f."
-remove-claim-player: "§c%owner%§f đã đá bạn khỏi lãnh thổ của hắn ta §c%claim-name%§f."
-add-all-claim-player: "§a%owner%§f thêm bạn vào §aTrên tất cả lãnh thổ của hắn ta§f."
-add-claim-player: "§a%owner%§f Thêm bạn vào lãnh thổ của §a%claim-name%§f."
-remove-all-claim-protected-area-player: "§fBạn đã bị đá từ §cTất cả khu vực được bảo vệ§f."
-remove-claim-protected-area-player: "§fBạn đã bị xóa bỏ từ các khu vực được bảo vệ §c%claim-name%§f."
-add-all-claim-protected-area-player: "§fBạn được thêm vào §aTất cả khu vực được bảo vệ§f."
+remove-all-claim-player: "§c%owner%§f đã loại bỏ bạn khỏi §ctất cả khu vực lãnh thổ§f."
+remove-claim-player: "§c%owner%§f loại bạn khỏi khu vực lãnh thổ của hắn ta §c%claim-name%§f."
+add-all-claim-player: "§a%owner%§f đã thêm bạn vào §atất cả khu vực lãnh thổ§f."
+add-claim-player: "§a%owner%§f đã cho phép bạn cai trị vùng đất §a%claim-name%§f."
+remove-all-claim-protected-area-player: "§fBạn đã bị xóa khỏi §cTất cả các khu vực được bảo vệ§f."
+remove-claim-protected-area-player: "§fBạn đã bị xóa khỏi khu vực được bảo vệ §c%claim-name%§f."
+add-all-claim-protected-area-player: "§fBạn đã được thêm vào §aTất cả các khu vực được bảo vệ§f."
 add-claim-protected-area-player: "§fBạn đã được thêm vào khu vực được bảo vệ §a%claim-name%§f."
 cant-transfer-ownership-yourself: "§cBạn không thể chuyển quyền sở hữu cho chính mình."
-fly-disabled-on-this-server: "§cFly trong lãnh thổ bị vô hiệu hóa trên máy chủ này."
-fly-enabled: "§fBay được bật."
-fly-disabled: "§fbayđã bị tắt."
+fly-disabled-on-this-server: "§cTự động bay trong lãnh thổ đã bị vô hiệu hóa trên máy chủ này."
+fly-enabled: "§fBay - Bật."
+fly-disabled: "§fBay - Tắt."
 autofly-enabled: "§fTự động bay - Bật."
 autofly-disabled: "§fTự động bay - Tắt."
 cant-fly-in-this-claim: "§cBạn không thể bay trong lãnh thổ này."
-reset-of-player-claims-settings-successful: "§eTất cả các cài đặt cho tất cả người chơi trong lãnh thổ§f đã được đặt lại."
+reset-of-player-claims-settings-successful: "§eTất cả các cài đặt cho tất cả các lãnh thổ của người chơi§f đã được đặt lại."
 reset-of-admin-claims-settings-successful: "§eTất cả các cài đặt cho tất cả các khu vực được bảo vệ§f đã được đặt lại."
-claims-are-now-merged: "§fHai vùng đất bây giờ là §dhợp nhất§f vào một lãnh thổ §e%claim-name%§f."
-cant-merge-same-claim: "§cBạn không thể hợp nhất cùng một vùng đất."
-cant-claim-with-so-many-chunks: "§cBạn không thể chiếm lãnh thổ với quá nhiều khối."
-apply-all-settings-success-aclaim: "§eCác thiết lập§f đã được áp dụng cho§e Tấ cả lãnh thổ§f của §e%player%§f."
-remove-member-success-aclaim: "§e%player%§f bị loại bỏ thành công khỏi vùng đất §e%claim-name%§f của §e%owner%§f."
-remove-ban-success-aclaim: "§e%player%§f không còn bị cấm vận trong lãnh thổ §e%claim-name%§f của quốc vương §e%owner%§f."
-claim-in-sale-cancel-aclaim: "§fCác lãnh thổ §e%name%§f của quốc vương §e%player%§f không được bán nữa."
+claims-are-now-merged: "§fHai khu vực bây giờ là §dHợp nhất§f vào một §e%claim-name%§f."
+cant-merge-same-claim: "§cBạn không thể hợp nhất cùng một khu vực chiếm đóng."
+cant-claim-with-so-many-chunks: "§cBạn khum thể chiếm đóng khu vực với quá nhiều khối."
+apply-all-settings-success-aclaim: "§eCác thiết lập§f đã được áp dụng cho§e Tất cả khu vực lãnh thổ§f của §e%player%§f."
+remove-member-success-aclaim: "§e%player%§f successfully removed from the claim §e%claim-name%§f của §e%owner%§f."
+remove-ban-success-aclaim: "§e%player%§f đã được đi lại tự do trong khu vực lãnh thổ §e%claim-name%§f của lãnh chúa §e%owner%§f."
+claim-in-sale-cancel-aclaim: "§fKhu vực lãnh thổ với tên §e%name%§f của §e%player%§f không được bán nữa."
 protected-area-title: "khu vực được bảo vệ"
-all-your-claims-title: "Tất cả lãnh thổ"
-purge-started-manualy: "§fThanh lọc bắt đầu! Kiểm tra kết quả trong bảng điều khiển."
-banned-all-claim-protected-area-player: "§fBạn đã bị cấm §cTất cả các khu vực được bảo vệ§f."
-banned-all-claim-player: "§c%owner%§f cấm vận bạn §cTrên tất cả lãnh thổ§f."
-unbanned-all-claim-protected-area-player: "§fbạn được tự do trên §aTất cả các khu vực được bảo vệ§f."
-unbanned-all-claim-player: "§a%owner%§f bạn được tự do §aTất cả lãnh thổ§f."
-unbanned-claim-player: "§cQuốc vương §a%owner%§f đã cho phép bạn được tự do đi lại trên lãnh thổ §a%claim-name%§f."
+all-your-claims-title: "Tất cả các khu vực lãnh thổ của bạn"
+banned-all-claim-protected-area-player: "§fBạn đã bị cấm trong §cTất cả các khu vực được bảo vệ§f."
+banned-all-claim-player: "§c%owner%§f cấm bạn từ §cTất cả khu vực lãnh thổ§f."
+unbanned-all-claim-protected-area-player: "§fBạn đã không được bảo vệ từ §aTất cả các khu vực được bảo vệ§f."
+unbanned-all-claim-player: "§a%owner%§f cho phép bạn đi lại trong §atất cả khu vực lãnh thổ§f."
+unbanned-claim-player: "§a%owner%§f đã hủy cấm vận bạn trong khu vực lãnh thổ §a%claim-name%§f."
 banned-claim-protected-area-player: "§fBạn đã bị cấm ở khu vực được bảo vệ §c%claim-name%§f."
-banned-claim-player: "§c%owner%§f cấm bạn đi lại trên lãnh thổ của hắn ta, nó là §c%claim-name%§f."
-unbanned-claim-protected-area-player: "§fbạn đã được đi lại tự do trên khu vực được bảo vệ, khu vực đó là §a%claim-name%§f."
-chunks-must-be-from-same-world: "§cCác lãnh thổ phải đến từ cùng một thế giới."
-database-must-be-five-settings: "§cCơ sở dữ liệu lãnh thổ 5 tham số:\n§c<HOSTNAME>;<PORT>;<DATABASE>;<USERNAME>;<PASSWORD>"
-database-connection-error: "§cLỗi khi cố gắng kết nối với cơ sở dữ liệu.\n§cKiểm tra thông tin đăng nhập, chúng nên theo thứ tự này:\n§c<HOSTNAME>;<PORT>;<DATABASE>;<USERNAME>;<PASSWORD>"
+banned-claim-player: "§c%owner%§f cấm bạn khỏi lãnh thổ của hắn ta với tên là §c%claim-name%§f."
+unbanned-claim-protected-area-player: "§fBạn sẽ khum được bảo vệ trong khu vực §a%claim-name%§f."
+chunks-must-be-from-same-world: "§cCác chiếm đóng phải đến từ cùng một thế giới."
+database-must-be-five-settings: "§cCơ sở dữ liệu yêu cầu 5 tham số:\n§c<HOSTNAME>;<PORT>;<DATABASE>;<USERNAME>;<PASSWORD>"
+database-connection-error: "§cLỗi khi cố gắng kết nối với cơ sở dữ liệu.\n§cKiểm tra thông tin đăng nhập, Họ nên theo thứ tự này:\n§c<HOSTNAME>;<PORT>;<DATABASE>;<USERNAME>;<PASSWORD>"
 database-connection-successful: "§aKết nối cơ sở dữ liệu thành công. Bạn chỉ cần tải lại."
-database-connection-successful-button: "§b[Nhấn vào đây để tải lại để sử dụng cơ sở dữ liệu mới]"
-database-setup-how-to: "§fGửi cuộc trò chuyện, thông tin kết nối như thế này:\n§b<HOSTNAME>§f;§b<PORT>§f;§b<DATABASE>§f;§b<USERNAME>§f;§b<PASSWORD>"
-auto-purge-setup-how-to: "§fGửi cuộc trò chuyện, các cài đặt tự động thanh toán như thế này :\n§b<FREQUENCY>§f;§b<TIME-WITHOUT-LOGIN>"
-auto-purge-must-be-two-settings: "§cTự động thanh toán, lãnh thổ 2 tham số:\n§c<FREQUENCY>;<TIME-WITHOUT-LOGIN>"
-vault-required: "§cBạn cần vault plugin, để thiết lập nền kinh tế."
-economy-setup-how-to: "§fGửi cuộc trò chuyện, giá bán tối đa mới như thế này :\n§b<MAX-SELL-PRICE>"
-map-setup-how-to: "§fGửi cuộc trò chuyện, các cài đặt như thế này :\n§b<CLAIM-BORDER-COLOR>§f;§b<CLAIM-FILL-COLOR>§f;§b<CLAIM-HOVER-TEXT>"
-map-must-be-three-settings: "§cBản đồ lãnh thổ 3 tham số:\n§c<CLAIM-BORDER-COLOR>;<CLAIM-FILL-COLOR>;<CLAIM-HOVER-TEXT>"
+database-connection-successful-button: "§b[Nhấn vào đây để tải lại và sử dụng cơ sở dữ liệu mới]"
+database-setup-how-to: "§fGửi cuộc trò chuyện thông tin kết nối như thế này :\n§b<HOSTNAME>§f;§b<PORT>§f;§b<DATABASE>§f;§b<USERNAME>§f;§b<PASSWORD>"
+auto-purge-setup-how-to: "§fGửi cuộc trò chuyện các cài đặt tự động thanh toán như thế này :\n§b<FREQUENCY>§f;§b<TIME-WITHOUT-LOGIN>"
+auto-purge-must-be-two-settings: "§cTự động thanh toán yêu cầu 2 tham số:\n§c<FREQUENCY>;<TIME-WITHOUT-LOGIN>"
+vault-required: "§cYêu cầu cài đặt Vault để có thể sử dụng."
+economy-setup-how-to: "§fGửi cuộc trò chuyện giá bán tối đa mới như thế này :\n§b<MAX-SELL-PRICE>"
+map-setup-how-to: "§fGửi cuộc trò chuyện các cài đặt như thế này :\n§b<CLAIM-BORDER-COLOR>§f;§b<CLAIM-FILL-COLOR>§f;§b<CLAIM-HOVER-TEXT>"
+map-must-be-three-settings: "§cBản đồ yêu cầu 3 tham số:\n§c<CLAIM-BORDER-COLOR>;<CLAIM-FILL-COLOR>;<CLAIM-HOVER-TEXT>"
 map-new-settings: "§fCài đặt bản đồ mới:\n%settings%"
 money-symbol: "$"
 delete-claim-protected-area: "§aKhu vực được bảo vệ đã xóa thành công."
 delete-claim-all-protected-areas: "§aTất cả các khu vực được bảo vệ đã xóa thành công."
-delete-chunk-success: "§aKinh đô §f%chunk% §ađã xóa thành công khỏi vùng đất §f%claim-name%§a."
+delete-chunk-success: "§aMảnh đất §f%chunk% §ađã xóa thành công khỏi §f%claim-name%§a."
 cannot-remove-only-remaining-chunk-gui: "§cBạn không thể xóa phần duy nhất còn lại"
 cannot-remove-only-remaining-chunk: "§cBạn không thể xóa phần duy nhất còn lại."
 world-does-not-exist: "§cThế giới này không tồn tại."
-error-delete-chunk: "§cMột lỗi đã xảy ra, kiểm tra thế giới và tọa độ của chunk. Nếu không, liên hệ với một quản trị viên."
-one-chunk-must-be-adjacent: "§cÍt nhất một khối phải liền kề với cái mới."
-one-chunk-of-claim-must-be-adjacent: "§cÍt nhất một phần của lãnh thổ mới phải liền kề với một phần của vùng đất mục tiêu."
+error-delete-chunk: "§cMột lỗi đã xảy ra, kiểm tra thế giới và tọa độ của mảnh cấm vậnt. Nếu không, liên hệ với một quản trị viên."
+one-chunk-must-be-adjacent: "§cChiếm đóng đất phải sát nhau."
+one-chunk-of-claim-must-be-adjacent: "§cBạn phải chiếm đóng liền kề với lãnh thổ."
 add-chunk-already-owner: |
-  §fĐây đã là một trong những vùng đất của bạn.
+  §fĐây đã là một trong những khu vực lãnh thổ của bạn.
   §fSử dụng §d/claim merge %claim-name% %claim-name-1%§f để hợp nhất chúng.
-add-chunk-not-owner: "§cMảnh đất đã có chủ!."
-add-chunk-already-in-claim: "§cMãnh đất này đã thuộc về lãnh thổ của bạn, nó là '%claim-name%'."
-add-chunk-successful: "§fVùng đất §a%chunk%§f đã được thêm vào lãnh thổ §e%claim-name%§f."
+add-chunk-not-owner: "§cMảnh đất này đã thuộc về một khu vực lãnh thổ."
+add-chunk-already-in-claim: "§cMảnh đất là đã là của bạn với tên %claim-name%."
+add-chunk-successful: "§fMảnh đất §a%chunk%§f Đã thêm vào với tên §e%claim-name%§f."
 add-chunk-already-owner-protected-area: |
   §fĐây đã là một khu vực được bảo vệ.
   §fSử dụng §d/parea merge %claim-name% %claim-name-1%§f để hợp nhất chúng.
-add-chunk-already-in-claim-protected-area: "§cMãnh đất này đã thuộc về khu vực được bảo vệ '%claim-name%'."
-group-must-be-nine-settings: "§cNhóm lãnh thổ 9 tham số:\n§c<GROUP-NAME>;<PERMISSION>;<MAX-CLAIMS>;<MAX-RADIUS-CLAIMS>;<TELEPORTATION-DELAY>;<MAX-MEMBERS>;<CLAIM-COST>;<CLAIM-COST-MULTIPLIER>;<MAX-CHUNKS-PER-CLAIM>;<CLAIM-DISTANCE>;<MAX-CHUNKS-TOTAL>"
-group-values-must-be-number: "§cCác giá trị nhóm phải là một số cho tất cả chúng."
-player-must-be-eight-settings: "§cNgười chơi lãnh thổ 8 tham số:\n§c<PLAYER-NAME>;<MAX-CLAIMS>;<MAX-RADIUS-CLAIMS>;<TELEPORTATION-DELAY>;<MAX-MEMBERS>;<CLAIM-COST>;<CLAIM-COST-MULTIPLIER>;<MAX-CHUNKS-PER-CLAIM>;<CLAIM-DISTANCE>;<MAX-CHUNKS-TOTAL>"
-player-values-must-be-number: "§cCác giá trị người chơi phải là một số cho tất cả chúng."
-group-setup-how-to: "§fGửi cuộc trò chuyện, các giá trị nhóm như thế này :\n§b<GROUP-NAME>§f;§b<PERMISSION>§f;§b<MAX-CLAIMS>§f;§b<MAX-RADIUS-CLAIMS>§f;§b<TELEPORTATION-DELAY>§f;§b<MAX-MEMBERS>§f;§b<CLAIM-COST>§f;§b<CLAIM-COST-MULTIPLIER>§f;§b<MAX-CHUNKS-PER-CLAIM>§f;§b<CLAIM-DISTANCE>§f;§b<MAX-CHUNKS-TOTAL>"
-player-setup-how-to: "§fGửi cuộc trò chuyện, các giá trị người chơi như thế này :\n§b<PLAYER-NAME>§f;§b<MAX-CLAIMS>§f;§b<MAX-RADIUS-CLAIMS>§f;§b<TELEPORTATION-DELAY>§f;§b<MAX-MEMBERS>§f;§b<CLAIM-COST>§f;§b<CLAIM-COST-MULTIPLIER>§f;§b<MAX-CHUNKS-PER-CLAIM>§f;§b<CLAIM-DISTANCE>§f;§b<MAX-CHUNKS-TOTAL>"
-group2-setup-how-to: "§fGửi trong cuộc trò chuyện, nhóm bạn muốn xóa."
-player2-setup-how-to: "§fGửi cuộc trò chuyện, mà người chơi bạn muốn xóa."
-group-does-not-exist: "§cNhóm '%group%' không tồn tại."
-player-does-not-exist: "§cNgười chơi '%player%' không tồn tại."
-you-can-not-delete-default-group: "§cBạn không thể xóa nhóm mặc định."
-chunk-are-loading: "§fTính toán và tải của §b%chunks-count% mãnh đất§f.."
-chunk-while-loading: "§fTải khu vực: §a%loaded-chunks%§2/%chunks-count%§f."
-griefprevention-needed: "§cBạn cần GriefPrevention Để nhập vùng đất từ plugin này."
-player-not-in-the-claim: "§cNgười chơi '%player%' không có trong lãnh thổ của bạn %claim-name%."
-player-not-in-the-protected-area: "§cNgười chơi '%player%' không ở trong khu vực được bảo vệ %claim-name%."
-kicked-from-claim: "§fBạn đã bị đuổi khỏi lãnh thổ của §c%claim-name%§f của §c%player%§f."
-kicked-from-protected-area: "§fBạn đã bị đá từ khu vực được bảo vệ, nó là §c%claim-name%§f."
-kick-success: "§fBạn đá §e%player%§f từ lãnh thổ của bạn, nó là §e%claim-name%§f."
-kick-success-protected-area: "§fBạn đá §e%player%§f từ khu vực được bảo vệ, no là §e%claim-name%§f"
-player-not-in-any-claim: "§cNgười chơi '%player%' không có trong bất kỳ lãnh thổ nào của bạn."
-player-not-in-any-protected-areas: "§cNgười chơi '%player%' không ở trong bất kỳ khu vực được bảo vệ nào."
-kick-success-all-claims: "§fBạn cấm vận người chơi §e%player%§f từ §etrên tất cả lãnh thổ§f."
-kicked-from-all-claims: "§fBạn đã bị cấm vận §ctrên tất cả lãnh thổ§f của §c%player%§f."
+add-chunk-already-in-claim-protected-area: "§cMảnh đất này đã thuộc về khu vực được bảo vệ %claim-name%."
+chunk-are-loading: "§fĐang tính toán giá trị của §b%chunks-count% §f.."
+chunk-while-loading: "§fTải mảnh đất: §a%loaded-chunks%§2/%chunks-count%§f."
+griefprevention-needed: "§cBạn cần tải GriefPrevention Để nhập chiếm đóng từ plugin này."
+player-not-in-the-claim: "§cNgười chơi %player% không có trong lãnh thổ của bạn %claim-name%."
+player-not-in-the-protected-area: "§cNgười chơi %player% không ở trong khu vực được bảo vệ %claim-name%."
+kicked-from-claim: "§fBạn đã bị cấm vận từ §c%claim-name%§f của lãnh chúa §c%player%§f."
+kicked-from-protected-area: "§fBạn đã bị cấm vận từ khu vực được bảo vệ §c%claim-name%§f."
+kick-success: "§fBạn cấm vận §e%player%§f ra khỏi §e%claim-name%§f."
+kick-success-protected-area: "§fBạn cấm vận §e%player%§f từ khu vực được bảo vệ §e%claim-name%§f"
+player-not-in-any-claim: "§cNgười chơi %player% không có trong bất kỳ khu vực lãnh thổ nào của bạn."
+player-not-in-any-protected-areas: "§cNgười chơi %player% không ở trong bất kỳ khu vực được bảo vệ nào."
+kick-success-all-claims: "§fBạn cấm vận §e%player%§f từ §eTất cả các lãnh thổ của bạn§f."
+kicked-from-all-claims: "§fBạn đã bị cấm vận từ §cTất cả các khu vực lãnh thổ§f của lãnh chúa §c%player%§f."
 kick-success-all-protected-areas: "§fBạn cấm vận §e%player%§f từ §eTất cả các khu vực được bảo vệ§f."
-kicked-from-all-protected-areas: "§fBạn đã bị cấm vận §cTất cả các khu vực được bảo vệ§f."
-cannot-claim-because-claim-near: "§cBạn không thể chiếm đóng vì quá gần một khu vực."
-set-player-max-chunks-total-success: "§e%player%§f có tất cả §e%amount%§f mãnh đất."
-max-chunks-total-must-be-positive: "§cTổng giới hạn mảnh đất phải lớn hơn 0."
-max-chunks-total-must-be-number: "§cGiới hạn tổng số phần phải là một số."
+kicked-from-all-protected-areas: "§fBạn đã bị cấm vận từ §cTất cả các khu vực được bảo vệ§f."
+cannot-claim-because-claim-near: "§cBạn không thể chiếm đất vì có ai đó đã chiếm gần đó."
+set-player-max-chunks-total-success: "§e%player%§f có tất cả §e%amount%§f mảnh đất."
+max-chunks-total-must-be-positive: "§cGiới hạn tổng số mảnh đất phải lớn hơn 0."
+max-chunks-total-must-be-number: "§cGiới hạn tổng số mảnh đất phải có kí tự lớn hơn 0."
 set-player-claim-distance-success: "§e%player%§f có thể chiếm đóng với khoảng cách §e%amount%§f khối."
-claim-distance-must-be-positive: "§cKhoảng cách chiếm đất phải lớn hơn 0."
-claim-distance-must-be-number: "§cKhoảng cách chiếm đất phải là một số."
-set-group-max-chunks-total-success: "§e%group%§f có tổng số lãnh thổ là §e%amount%§f mảnh dắt."
-set-group-claim-distance-success: "§e%group%§f có thể chiếmđất với khoảng cách §e%amount%§f mảnh đất."
+claim-distance-must-be-positive: "§cKhoảng cách chiếm đóng phải lớn hơn 0."
+claim-distance-must-be-number: "§cKhoảng cách chiếm đóng phải có kí tự lớn hơn 0."
+set-group-max-chunks-total-success: "§e%group%§f có thể có tổng số §e%amount%§f khối."
+set-group-claim-distance-success: "§e%group%§f có thể chiếm đóng với khoảng cách §e%amount%§f khối."
+can-not-buy-your-own-claim: "§cBạn không thể mua mảnh đất của riêng bạn."
 
 
 # > Deny messages
 
 destroy: "§cBạn không thể phá hủy trong lãnh thổ này"
 build: "§cBạn không thể xây dựng trong lãnh thổ này"
-buttons: "§cBạn không thể sử dụng các nút bấm trong lãnh thổ này"
-trapdoors: "§cBạn không thể sử dụng cửa sập bẫy trong lãnh thổ này"
+buttons: "§cBạn không thể sử dụng các nút trong lãnh thổ này"
+trapdoors: "§cBạn không thể sử dụng cửa bẫy trong lãnh thổ này"
 doors: "§cBạn không thể sử dụng cửa trong lãnh thổ này"
 fencegates: "§cBạn không thể sử dụng cổng hàng rào trong lãnh thổ này"
-levers: "§cBạn không thể sử dụng cần gạt trong lãnh thổ này"
-repeaters: "§cBạn không thể sử dụng các bộ lặp đá đỏ trong lãnh thổ này"
-comparators: "§cBạn không thể sử dụng các mạch so sánh trong lãnh thổ này"
+levers: "§cBạn không thể sử dụng đòn bẩy trong lãnh thổ này"
+repeaters: "§cBạn không thể sử dụng các bộ lặp trong lãnh thổ này"
+comparators: "§cBạn không thể sử dụng các bộ so sánh trong lãnh thổ này"
 bells: "§cBạn không thể sử dụng chuông trong lãnh thổ này"
-interactblocks: "§cBạn không thể phá khối hoặc đặt khối trong lãnh thổ này"
-items: "§cBạn không thể sử dụng vật phẩm này trong lãnh thổ nàyy"
+interactblocks: "§cBạn không thể phá/đặt khối trong lãnh thổ này"
+items: "§cBạn không thể sử dụng mục này trong lãnh thổ này"
 plates: "§cBạn không thể sử dụng các tấm áp lực trong lãnh thổ này"
 tripwires: "§cBạn không thể kích hoạt chìa khóa trong lãnh thổ này"
-entities: "§cBạn không thể đánh mobs này"
-damages: "§cBạn không thể đánh nhau trong lãnh thổ này"
+entities: "§cBạn không thể đánh mobs trong lãnh thổ này"
+damages: "§cBạn khum thể đánh nhau ở đây"
 teleportations: "§cBạn không thể dịch chuyển đến lãnh thổ này"
 visitors: "§cBạn không thể ghé thăm lãnh thổ này"
 pvp: "§cBạn không thể PvP trong lãnh thổ này"
-claim-fly-disabled-on-damage: "§cKhu vực bay bị vô hiệu hóa vì bạn đã nhận được thiệt hại"
+claim-fly-disabled-on-damage: "§cYêu cầu bay bị vô hiệu hóa vì bạn bị dính sát thương"
 
 
 # > Enter/Leave messages
@@ -302,69 +296,95 @@ claim-fly-disabled-on-damage: "§cKhu vực bay bị vô hiệu hóa vì bạn �
 # Use %name% for claim's name
 
 enter-protected-area: "§fBạn đã bước vào §ekhu vực được bảo vệ"
+enter-protected-area-for-sale: "§fBạn đã bước vào §ekhu vực được bảo vệ§f - §6§l RAO BÁN §b/claim buy §a(%price%%money-symbol%)"
 leave-protected-area: "§fBạn đã rời khỏi §ekhu vực được bảo vệ"
-enter-territory: "§fBạn vào lãnh thổ của §e%owner%"
-leave-territory: "§fBạn rời khỏi lãnh thổ của §e%owner%"
+
+enter-territory: "§fBạn vào lãnh thổ của §e%owner%§f"
+enter-territory-for-sale: "§fBạn đã bước vào lãnh thổ của lãnh chúa §e%owner%§f - §6§lRAO BÁN §b/claim buy §a(%price%%money-symbol%)"
+leave-territory: "§fBạn rời khỏi lãnh thổ của §e%owner%§f"
+
 enter-protected-area-title: ""
-enter-protected-area-subtitle: "§fbãn đã vào §ekhu vực được bảo vệ"
+enter-protected-area-subtitle: "§fBạn đã bước vào §ekhu vực được bảo vệ"
+enter-protected-area-for-sale-title: "§6§lRAO BÁN"
+enter-protected-area-for-sale-subtitle: "§fBạn đã bước vào §ekhu vực được bảo vệ§f - §b/claim buy §a(%price%%money-symbol%)"
 leave-protected-area-title: ""
-leave-protected-area-subtitle: "§fbạn đã rời khỏi §ekhu vực được bảo vệ"
+leave-protected-area-subtitle: "§fBạn đã rời khỏi §ekhu vực được bảo vệ"
+
 enter-territory-title: "§e%owner%"
 enter-territory-subtitle: "§fBạn vào lãnh thổ của"
+enter-territory-for-sale-title: "§e%owner%"
+enter-territory-for-sale-subtitle: "§fLãnh thổ §6§lRAO BÁN §b/claim buy §a(%price%%money-symbol%)"
 leave-territory-title: "§e%owner%"
 leave-territory-subtitle: "§fBạn rời khỏi lãnh thổ của"
-enter-protected-area-chat: "§fBạn đã vào §ekhu vực được bảo vệ"
-leave-protected-area-chat: "§fbạn rời khỏi §ekhu vực được bảo vệ"
-enter-territory-chat: "§fBạn vào lãnh thổ của §e%owner%"
-leave-territory-chat: "§fBạn rời khỏi lãnh thổ của §e%owner%"
+
+enter-protected-area-chat: "§fBạn đã bước vào §ekhu vực được bảo vệ§f."
+enter-protected-area-for-sale-chat: |
+  §fBạn đã bước vào §ekhu vực được bảo vệ§f.
+  §6§lRAO BÁN §b/claim buy §a(%price%%money-symbol%)
+leave-protected-area-chat: "§fBạn đã rời khỏi §ekhu vực được bảo vệ§f."
+
+enter-territory-chat: "§fBạn vào lãnh thổ của §e%owner%§f."
+enter-territory-for-sale-chat: |
+  §fBạn vào lãnh thổ của §e%owner%§f.
+  §fLãnh thổ này là §6§lFOR SALE §b/claim buy §a(%price%%money-symbol%)
+leave-territory-chat: "§fBạn rời khỏi lãnh thổ của §e%owner%§f."
 
 
 # > Gui messages
 # Use \n for new line only for lores messages
 
+gui-bans-title: "Cấm: %name% (Page %page%)"
+gui-chunks-title: "Đất: %name% (Page %page%)"
+gui-list-title: "Đất của tôi (Page %page%)"
+gui-main-title: "%name%"
+gui-members-title: "Các thành viên: %name% (Page %page%)"
+gui-settings-new-title: "Cài đặt: %name% (%role%)"
+gui-claims-title: "Chiếm đóng (Page %page%)"
+gui-claims-owner-title: "Các chiếm đóng: %owner% (Page %page%)"
+
 gui-button-no-permission: "§cBạn không có sự cho phép"
 
-to-unban: " Không còn cấm vận"
-to-remove-chunk: " Xóa nó khỏi mảnh đất"
-to-teleport: " Dịch chuyển"
-to-remove: " xóa bỏ"
-to-manage: " Quản lý"
-to-remove-member: " Để loại bỏ thành viên này"
-to-use-setting: " Để sử dụng cài đặt này"
-to-buy: " mua"
+to-unban: " Nhấp - Mở cấm vận"
+to-remove-chunk: " Nhấp - Xóa mảnh đất"
+to-teleport: " Nhấp - Dịch chuyển"
+to-remove: " Nhấp - Xóa bỏ"
+to-manage: " Nhấp - Quản lý"
+to-remove-member: " Nhấp - Xóa thành viên"
+to-use-setting: " Nhấp - Để sử dụng"
+to-buy: " Nhấp - Mua"
 
 owner-claim-title: "§e%owner%"
-owner-claim-lore: "§7Lãnh thổ: §b%claim-amount%"
+owner-claim-lore: "§7Các chiếm đóng: §b%claim-amount%"
 owner-claim-access: "§7▸ §fHiển thị các lãnh thổ của họ"
 
 access-all-claim-title: "§e%name% §b(Lãnh thổ của %owner%)"
 access-all-claim-lore: "§7%description%\n \n§7Các thành viên:\n%members%\n \n"
-access-all-claim-lore-deny-visitors: "§cLãnh thổ này không cho phép khách truy cập"
-access-all-claim-lore-allow-visitors: "§7▸ §fNhấp chuột trái để dịch chuyển tức thời"
-all-claim-buyable-price: "§7Mảnh đất đang được rao bán!\n§7Giá trị: §6%price%%money-symbol%\n \n" # Visible only if in sale
-all-claim-is-buyable: "§7▸ §fShift-Trái nhấp để mua" # Visible only if in sale
+access-all-claim-lore-deny-visitors: "§ckhu vực này không cho phép khách truy cập"
+access-all-claim-lore-allow-visitors: "§7▸ §fChuột Trái để dịch chuyển tức thời"
+all-claim-buyable-price: "§7khu vực được bán!\n§7Giá: §6%price%%money-symbol%\n \n" # Visible only if in sale
+all-claim-is-buyable: "§7▸ §fS.Trái.Click để mua  nó" # Visible only if in sale
 
 access-claim-title: "§e%name% §b(%coords%)"
-access-claim-lore: "§7%description%\n \n§7Các thành viên:\n%members%\n \n§7Người chơi bị cấm:\n%bans%\n \n"
-access-claim-not-owner-lore: "§7Lãnh chúa: §4%owner%\n§7%description%\n \n§7Các thành viên:\n%members%\n \n§7Người chơi bị cấm:\n%bans%\n \n"
+access-claim-lore: "§7%description%\n \n§7Các thành viên:\n%members%\n \n§7Người chơi bị cấm vận:\n%bans%\n \n"
+access-claim-not-owner-lore: "§7Lãnh chúa: §4%owner%\n§7%description%\n \n§7Các thành viên:\n%members%\n \n§7Người chơi bị cấm vận:\n%bans%\n \n"
 
-access-claim-clickable-tp: "§7▸ §fLeft-click Để dịch chuyển tức thời"
-access-claim-clickable-remove: "§7▸ §fShift-left-click để loại bỏ"
-access-claim-clickable-manage: "§7▸ §fRight-click để quản lý"
+access-claim-clickable-tp: "§7▸ §fChuột trái - Dịch chuyển"
+access-claim-clickable-remove: "§7▸ §fS.Trái - Xóa bỏ"
+access-claim-clickable-manage: "§7▸ §fChuột phải - Quản lý"
 access-claim-clickable-removemember: "§7▸ §fLoại bỏ thành viên này"
-access-claim-clickable-removechunk: "§7▸ §fLoại bỏ mãnh đất này"
+access-claim-clickable-removechunk: "§7▸ §fLoại bỏ mảnh đất này"
 
-teleportation-success: "§fBạn đã được dịch chuyển tức thời đển spawn của lãnh thổ."
+teleportation-success: "§fBạn đã được dịch chuyển tức thời để đại sảnh của lãnh thổ."
 claim-list-no-member: "§8Không có thành viên"
 claim-list-no-ban: "§8Không có người chơi bị cấm"
-my-claims-buyable-price: "§7Bạn đã rao bán mãnh đất!\n§7Giá trị: §6%price%%money-symbol%\n \n" # Visible only if in sale
+my-claims-buyable-price: "§7Mảnh đất đang bán của bạn!\n§7Giá: §6%price%%money-symbol%\n \n" # Visible only if in sale
 
-territory-access-lore-new: "§7Có quyền đi vào lãnh thổ của bạn"
+territory-access-lore-new: "§7Có quyền truy cập vào lãnh thổ của bạn"
 player-banned-lore: "§7Bị cấm khỏi lãnh thổ của bạn"
-unban-this-player-button: "§7▸§f Hủy cấm vận người chơi này"
+unban-this-player-button: "§7▸§f Cho phép người chơi này"
 player-member-title: "§e%player%"
 player-ban-title: "§4%player%"
-owner-territory-lore: "§dChủ sở hữu lãnh thổ"
+owner-territory-lore: "§dLãnh chúa của vùng đất"
 
 previous-page-title: "§eTrang trước"
 previous-page-lore: "§7Đi tới trang %page%\n§7▸ §fBấm để truy cập"
@@ -372,55 +392,55 @@ previous-page-lore: "§7Đi tới trang %page%\n§7▸ §fBấm để truy cập
 next-page-title: "§eTrang tiếp theo"
 next-page-lore: "§7Đi tới trang %page%\n§7▸ §fBấm để truy cập"
 
-previous-page-claims-lore: "§7Quay lại danh sách lãnh thổ"
+previous-page-claims-lore: "§7Trở lại danh sách chiếm đóng"
 
 back-page-main-title: "§6Trang chính"
 back-page-main-lore: "§7Quay lại menu chính của %claim-name%\n§7▸ §fBấm để truy cập"
 
 status-disabled: "§cVô hiệu hóa ✘"
 status-enabled: "§aKích hoạt ✔"
-choice-disabled: "§7▸ §fBấm vào để §nBật"
-choice-enabled: "§7▸ §fBấm vào để §nTắte"
+choice-disabled: "§7▸ §fNhấp §nTắt"
+choice-enabled: "§7▸ §fNhấp §nBật"
 choice-setting-disabled: "§cCài đặt này không thể được sửa đổi"
 
-apply-all-claims-title: "§eÁp dụng cài đặt cho tất cả các chiếm đóng"
-apply-all-claims-lore: "§7Áp dụng các cài đặt này cho tất cả các lãnh thổ của tôi\n§7▸ §fBấm để thực hiện"
+apply-all-claims-title: "§eÁp dụng cài đặt cho tất cả các khu vực chiếm đóng"
+apply-all-claims-lore: "§7Áp dụng các cài đặt này cho tất cả các chiếm đóng của tôi\n§7▸ §fBấm để thực hiện"
 
-visitors-title: "§eKhách §7(%status%§7)"
-visitors-lore: "§7Người chơi có thể dịch chuyển tức thời cho lãnh thổ của bạn với /claims"
+enterteleport-title: "§eNhập/Dịch chuyển §7(%status%§7)"
+enterteleport-lore: "§7Người chơi có thể nhập vào yêu cầu của bạn và dịch chuyển tức thời thông qua /claims"
 
 build-title: "§eXây dựng §7(%status%§7)"
 build-lore: "§7Cho phép khách truy cập xây dựng"
 
-destroy-title: "§ePhá hủy §7(%status%§7)"
-destroy-lore: "§7Cho phép du khách phá hủy"
+destroy-title: "§eHủy hoại §7(%status%§7)"
+destroy-lore: "§7Cho phép người lạ phá hủy lãnh thổ"
 
-buttons-title: "§eSử dụng các nút §7(%status%§7)"
-buttons-lore: "§7Cho phép khách truy cập sử dụng các nút bấm"
+buttons-title: "§eSử dụng nút bấm §7(%status%§7)"
+buttons-lore: "§7Cho phé kẻ lạ mặt sài nút bấm trong lãnh thổ"
 
-items-title: "§eMặt hàng sử dụng §7(%status%§7)"
-items-lore: "§7Cho phép khách truy cập sử dụng các mặt hàng"
+items-title: "§eSử dụng vật phẩm §7(%status%§7)"
+items-lore: "§7Cho phép kẻ lạ mặt sử dụng rương"
 
-interactblocks-title: "§eKhối tương tác §7(%status%§7)"
-interactblocks-lore: "§7Cho phép khách truy cập tương tác với các khối (rương ..)"
+interactblocks-title: "§ePhá vỡ/đặt khối §7(%status%§7)"
+interactblocks-lore: "§7Cho phép khách truy cập thao tác với các khối (rương ..)"
 
 levers-title: "§eSử dụng cần gạt §7(%status%§7)"
 levers-lore: "§7Cho phép khách truy cập sử dụng cần gạt"
 
-plates-title: "§eSử dụng các tấm áp lực §7(%status%§7)"
-plates-lore: "§7Cho phép khách truy cập sử dụng các tấm áp lực"
+plates-title: "§eSử dụng các tấm cảm biến áp lực §7(%status%§7)"
+plates-lore: "§7Cho phép khách truy cập sử dụng các tấm cảm biến áp lực"
 
 doors-title: "§eMở cửa §7(%status%§7)"
 doors-lore: "§7Cho phép khách truy cập mở cửa"
 
 trapdoors-title: "§eCửa bẫy mở §7(%status%§7)"
-trapdoors-lore: "§7Cho phép khách truy cập mở cửa bẫy"
+trapdoors-lore: "§7Cho phép khách truy cập mở cửa sập bẫy"
 
 fencegates-title: "§eCổng hàng rào mở §7(%status%§7)"
 fencegates-lore: "§7Cho phép du khách mở cổng hàng rào"
 
 tripwires-title: "§eSử dụng chìa khóa §7(%status%§7)"
-tripwires-lore: "§7Cho phép ngừ lạ sử dụng chìa khóa"
+tripwires-lore: "§7Cho phép khách truy cập kích hoạt chìa khóa bẫy"
 
 repeaterscomparators-title: "§eSử dụng bộ lặp/so sánh §7(%status%§7)"
 repeaterscomparators-lore: "§7Cho phép khách truy cập sử dụng bộ lặp/so sánh"
@@ -438,19 +458,19 @@ liquids-title: "§eChất lỏng §7(%status%§7)"
 liquids-lore: "§7Các chất lỏng bên ngoài có thể chảy vào lãnh thổ"
 
 redstone-title: "§eĐá đỏ §7(%status%§7)"
-redstone-lore: "§7Đá đỏ bên ngoài có thể ảnh hưởng đến lãnh thổ không?\n§7(pistons, dispenser, etc)."
+redstone-lore: "§7Đá đỏ bên ngoài có thể ảnh hưởng đến lãnh thổ\n§7(pistons, dispenser, etc)."
 
-frostwalker-title: "§eBước đi trên băng §7(%status%§7)"
+frostwalker-title: "§eChân lạnh §7(%status%§7)"
 frostwalker-lore: "§7Du khách có thể đóng băng nước với một enchant không"
 
 firespread-title: "§eCháy lan §7(%status%§7)"
 firespread-lore: "§7Ngọn lửa có thể lan rộng trong lãnh thổ"
 
 teleportations-title: "§eDịch chuyển tức thời tự nhiên §7(%status%§7)"
-teleportations-lore: "§7Cho phép khách truy cập dịch chuyển tức thời một cách tự nhiên (enderpearl,\n§7chorus fruit, ...)"
+teleportations-lore: "§7Cho phép khách truy cập dịch chuyển tức thời một cách tự nhiên (enderpearl,\n§7chorus fruit, etc)"
 
-damages-title: "§eThiệt hại thực thể §7(%status%§7)"
-damages-lore: "§7Cho phép khách truy cập gây sát thương cho các thực thể"
+damages-title: "§eGiết mobs §7(%status%§7)"
+damages-lore: "§7Cho phép khách truy cập gây sát thương cho mobs"
 
 pvp-title: "§ePvP §7(%status%§7)"
 pvp-lore: "§7Cho phép người chơi PVP"
@@ -467,61 +487,67 @@ fly-lore: "§7Cho phép du khách bay"
 manage-members-title: "§aCác thành viên"
 manage-members-lore: "§7Quản lý thành viên"
 
-manage-bans-title: "§cCấm"
+manage-bans-title: "§cCấm vận"
 manage-bans-lore: "§7Quản lý người chơi bị cấm"
 
-manage-chunks-title: "§6Mảnh đát"
+manage-chunks-title: "§6Mảnh đất"
 manage-chunks-lore: "§7Quản lý các mảnh đất"
 
 manage-settings-title: "§3Cài đặt"
 manage-settings-lore: "§7Quản lý cài đặt"
 
-unclaim-title: "§4Hủy Chiếm đóng"
-unclaim-lore: "§7Xóa khu vực này?"
+unclaim-title: "§4Hủy chiếm đóng"
+unclaim-lore: "§7Xóa bỏ chiếm đóng?"
 
-teleport-claim-title: "§5Dịch chuyển tức thời"
-teleport-claim-lore: "§7Dịch chuyển tức thời để spawn của lãnh thổ"
+teleport-claim-title: "§5Dịch chuyển"
+teleport-claim-lore: "§7Dịch chuyển đến đại sảnh vùng đất"
 
 claim-info-title: "§6%claim-name% §7(%description%)"
 claim-info-lore: |
   §7Mảnh đất: §b%chunks-count%
   §7
-  §7Các thành viên: §a%members-count%
-  §7Cấm: §c%bans-count%
+  §7Thành viên: §a%members-count%
+  §7Cấm vận: §c%bans-count%
   §7
   §7%sale-status%
   §7
-  §7Muốn xem những khu vực khác của bạn?
+  §7Muốn xem những vùng đất khác của bạn?
   
-claim-info-lore-sale-status-true: "§a✔ Khu vực đang bán §7(%price%%money-symbol%)"
-claim-info-lore-sale-status-false: "§c✘ Khu vực không bán"
+claim-info-lore-sale-status-true: "§a✔ Vùng đất đang bán §7(%price%%money-symbol%)"
+claim-info-lore-sale-status-false: "§c✘ Vùng đất khum dc bán"
   
 chunk-title: "§6Chunk-%number% §7(%coords%)"
-chunk-lore: "§7Chỗ này là một phần của khu vực"
+chunk-lore: "§7Mảnh đất này đã thuộc về lảnh thổ của bạn"
 
 access-button: "§7▸ §fBấm để thực hiện"
 
-filter-title: "§eFilter"
-filter-new-lore: "§7Thay đổi bộ lọc\n%status_color_1%➲ Tát cả chủ sỡ hữu\n%status_color_2%➲ Chủ sở hữu có khu vực bán đất\n%status_color_3%➲ Online owners\n%status_color_4%➲ Chủ sỡ hữu không trực tuyến\n§7▸ §fBấm để thay đổi"
-filter-owner-lore: "§7Thay đổi bộ lọc\n%status_color_1%➲ Tất cả khu vực\n%status_color_2%➲ Giảm giá trên khu vực\n§7▸ §fBấm để thay đổi"
-filter-list-lore: "§7Thay đổi bộ lọc\n%status_color_1%➲ Lãnh thổ của tôi\n%status_color_2%➲ Chiếm đóng thành viên\n§7▸ §fBấm để thay đổi"
+filter-title: "§eLọc"
+filter-new-lore: "§7Thay đổi bộ lọc\n%status_color_1%➲ Tất cả các lãnh chúa\n%status_color_2%➲ Lãnh chúa đang bán đất\n%status_color_3%➲ Lãnh chúa đang trực tuyến\n%status_color_4%➲ Lãnh chúa không trực tuyến\n§7▸ §fBấm để thay đổi"
+filter-owner-lore: "§7Thay đổi bộ lọc\n%status_color_1%➲ Tất cả lãnh thổ\n%status_color_2%➲ Mảnh đất đang bán\n§7▸ §fBấm để thay đổi"
+filter-list-lore: "§7Thay đổi bộ lọc\n%status_color_1%➲ Lãnh thổ\n%status_color_2%➲ Người chơi chiếm đất\n§7▸ §fBấm để thay đổi"
 status_color_active_filter: "§a"
 status_color_inactive_filter: "§8"
+
+role-title: "§eTước vị"
+role-lore: "§7Thay đổi chức vị\n%status_color_1%➲ Lãng khách\n%status_color_2%➲ Thường dân\n%status_color_3%➲ Thiên phú\n§7▸ §fBấm để thay đổi"
+role-members: "Thường dân"
+role-visitors: "Lãng khách"
+role-natural: "Thiên phú"
 
 
 # > Placeholders messages
 
-claim_name-if-no-claim: "§cKhông chiếm đóng"
-claim_owner-if-no-claim: "§cKhông có"
-claim_description-if-no-claim: "§cKhông có"
-claim_sale_price-if-no-claim: "§cKhông có"
-claim_is_in_sale-if-no-claim: "§cKhông có"
-claim_sale_price-if-not-in-sale: "§cKhông bán"
+claim_name-if-no-claim: "§cChưa chiếm"
+claim_owner-if-no-claim: "§cKhum có"
+claim_description-if-no-claim: "§cKhum có"
+claim_sale_price-if-no-claim: "§cKhum có"
+claim_is_in_sale-if-no-claim: "§cKhum có"
+claim_sale_price-if-not-in-sale: "§ckhum dc bán"
 claim_members_count-if-no-claim: "0"
 claim_members_online-if-no-claim: "0"
-claim_spawn-if-no-claim: "§cKhông có"
-claim_setting-if-no-claim: "§cKhông có"
-claim_distance-if-zero: "§cKhông có"
+claim_spawn-if-no-claim: "§cKhum có"
+claim_setting-if-no-claim: "§cKhum có"
+claim_distance-if-zero: "§cKhum có"
 
 
 # > Map messages
@@ -529,7 +555,7 @@ claim_distance-if-zero: "§cKhông có"
 map-coords-message: "§7Phối hợp: %coords% (%direction%)"
 map-actual-claim-name-message: "§b%name%"
 map-actual-claim-name-message-owner: "§7(§4%owner%§7)"
-map-no-claim-name-message: "§cKhông chiếm đóng"
+map-no-claim-name-message: "§cTrống"
 map-claim-relation-member: "§a"
 map-claim-relation-visitor: "§7"
 map-no-claim-color: "§f"
@@ -537,19 +563,19 @@ map-cursor: "⬛"
 map-cursor-color: "§6"
 map-symbol-no-claim: "⬛"
 map-symbol-claim: "⬛"
-map-direction-south: "Phía nam (South)"
-map-direction-north: "Phía bắc (North)"
-map-direction-east: "Phía đông (east)"
-map-direction-west: "Hướng Tây (west)"
-map-legend-you: "%cursor-color%⬛Bạn"
-map-legend-free: "%no-claim-color%⬛ Miễn phí chiếm đóng"
-map-legend-yours: "%claim-relation-member%⬛ Lãnh thổ của bạn"
-map-legend-other: "%claim-relation-visitor%⬛ Những người khác chiếm đóng"
+map-direction-south: "Phía nam"
+map-direction-north: "Phía bắc"
+map-direction-east: "Phía đông"
+map-direction-west: "Hướng Tây"
+map-legend-you: "%cursor-color%⬛ Đang đứng"
+map-legend-free: "%no-claim-color%⬛ Vùng hoang sơ"
+map-legend-yours: "%claim-relation-member%⬛ Đất của bạn"
+map-legend-other: "%claim-relation-visitor%⬛ Vùng đất khác"
 
 
 # > Claims messages
 
-default-description: "§7Không có mô tả"
+default-description: "§7Khum có thông diêp"
 
 
 # > Help messages
@@ -559,252 +585,171 @@ help-separator: "§e§m                                                         
 help-command:
   claim-claim: |
     §bCú pháp : §f/claim [<radius>]
-    §bThông điệp : §fChiếm đóng một số khu vực
+    §bThông điệp : §fChiếm mảnh đất
   claim-see: |
     §bCú pháp : §f/claim see [<player>]
-    §bThông điệp : §fLàm cho các hạt xuất hiện xung quanh khối mà bạn đang ở trong/người chơi chiếm đóng
+    §bThông điệp : §fLàm cho các hạt xuất hiện xung quanh khối bạn đang đứng/người chơi chiếm đóng
   claim-list: |
-    §bSyntax : §f/claim list
-    §bDescription : §fOpen the gui with the list of your claims
+    §bCú pháp : §f/claim list
+    §bThông điệp : §fMở danh sách chiếm đóng
   claim-members: |
     §bCú pháp : §f/claim members [<claim-name>]
-    §bThông điệp : §fMở GUI với các thành viên của lãnh thổ bạn đang ở/được chiếm đóng
+    §bThông điệp : §fMở GUI với các thành viên của khu vực bạn đang đứng/chiếm đóng
   claim-settings: |
     §bCú pháp : §f/claim settings [<claim-name>]
-    §bThông điệp : §fMở GUI bằng các cài đặt của khu vực bạn đang ở/đưa ra chiếm đóng
+    §bThông điệp : §fMở GUI bằng các cài đặt của khu vực bạn đang đứng/đã chiếm đóng
   claim-setspawn: |
     §bCú pháp : §f/claim setspawn
-    §bThông điệp : §fXác định sự sinh sản mới của khu vực bạn đang ở
+    §bThông điệp : §fĐặt điểm dịch chuyển cho vùng đất bạn đang đứng
   claim-autoclaim: |
     §bCú pháp : §f/claim autoclaim
-    §bThông điệp : §fBật hoặc tắt chiếm đóng tự động khi bạn thay đổi chunk
+    §bThông điệp : §fBật hoặc tắt yêu cầu tự động khi bạn thay đổi mảnh đất
   claim-automap: |
     §bCú pháp : §f/claim map/automap
-    §bThông điệp : §fXem bản đồ khu vực / tự động khi bạn thay đổi chunk
+    §bThông điệp : §fXem bản đồ lãnh thổ / tự động khi bạn thay đổi mảnh đất
   claim-autofly: |
     §bCú pháp : §f/claim fly/autofly
-    §bThông điệp : §fBật tự động bay / tự động khi bạn thay đổi chunk
+    §bThông điệp : §fBật tắt tự động bay trong lãnh thổ
   claim-tp: |
-    §bSyntax : §f/claim tp <claim-name>
-    §bDescription : §fTeleport to one of your claims
+    §bCú pháp : §f/claim tp <claim-name>
+    §bThông điệp : §fDịch chuyển vào lãnh thổ
   claim-setname: |
     §bCú pháp : §f/claim setname <old-claim-name> <new-claim-name>
-    §bThông điệp : §fThay đổi tên của khu vực đã cho
+    §bThông điệp : §fThay đổi tên của vùng đất
   claim-add: |
     §bCú pháp : §f/claim add [<*|claim-name>] <player>
-    §bThông điệp : §fThêm người chơi vào khu vực/tất cả các khu vực của bạn
+    §bThông điệp : §fThêm người chơi vào vùng đất/tất cả vùng đất của bạn
   claim-remove: |
     §bCú pháp : §f/claim remove [<*|claim-name>] <player>
-    §bThông điệp : §fXóa người chơi khỏi chiếm đóng/tất cả các khu vực của bạn
+    §bThông điệp : §fXóa người chơi khỏi vùng đất/tất cả vùng đất bạn đang sở hữu
   claim-setdesc: |
     §bCú pháp : §f/claim setdesc <claim-name> <description>
-    §bThông điệp : §fThay đổi mô tả của khu vực đã cho
+    §bThông điệp : §fĐặt thông điệp cho vùng đất
   claim-chat: |
     §bCú pháp : §f/claim chat <claim-name>
-    §bThông điệp : §fThay đổi chế độ trò chuyện của bạn
+    §bThông điệp : §fThay đổi chế độ chat
   claim-ban: |
     §bCú pháp : §f/claim ban [<*|claim-name>] <player>
-    §bThông điệp : §fCấm người chơi khỏi khu vực lãnh thổ của bạn
+    §bThông điệp : §fCấm vận người chơi khỏi vùng đất
   claim-unban: |
     §bCú pháp : §f/claim unban [<*|claim-name>] <player>
-    §bThông điệp : §fMở khóa cho một người chơi trong khu vực
+    §bThông đệp : §fHủy cấm vận người chơi
   claim-bans: |
     §bCú pháp : §f/claim bans [<claim-name>]
-    §bThông điệp : §fMở GUI cấm của một khu bực
+    §bThông đệp : §fMở GUI cấm vận và chiếm đóng
   claim-owner: |
     §bCú pháp : §f/claim owner [<*|claim-name>] <player>
-    §bThông điệp : §fChuyển quyền sở hữu (các) khu đất cho người chơi
+    §bThông đệp : §fChuyển quyền sở hữu (các) mảnh đất cho người chơi
   claim-merge: |
     §bCú pháp : §f/claim merge <claim-name-1> <claim-name-2>
-    §bThông điệp : §fHợp nhất hai lãnh thổ thành một
+    §bThông đệp : §fHợp nhất hai mảnh đất thành một
   claim-sell: |
     §bCú pháp : §f/claim sell <claim-name> <price>
-    §bThông điệp : §fĐặt lãnh thổ bán đất
+    §bThông đệp : §fBán đất
   claim-cancel: |
     §bCú pháp : §f/claim cancel <claim-name>
-    §bThông điệp : §fHủy bán đất khu vực đã cho
+    §bThông đệp : §fHủy bỏ bán đất
   claim-kick: |
     §bCú pháp : §f/claim kick [<*|claim-name>] <player>
-    §bThông điệp : §fĐá một người chơi khỏi lãnh thổ
+    §bThông đệp : §fCấm người chơi khỏi vùng đất
+  claim-addchunk: |
+    §bCú pháp : §f/claim addchunk <claim-name>
+    §bThông đệp : §fThêm mảnh đất vào lãnh thổ chính
+  claim-delchunk: |
+    §bCú pháp : §f/claim delchunk <claim-name> <chunk>
+    §bThông đệp : §fXóa một mảnh đất trong vùng đất của bạn
+  claim-main: |
+    §bCú pháp : §f/claim main <claim-name>
+    §bThông đệp : §fMở menu lãnh thổ
   unclaim-unclaim: |
     %help-separator%
     §bCú pháp : §f/unclaim [<claim-name|*>]
-    §bThông điệp :§fHủy chiếm đóng một số khu vực lãnh thổ
+    §bThông đệp :§fHủy chiếm đất
     %help-separator%
   claims-claims: |
     §bCú pháp : §f/claims
-    §bThông điệp : §fMở GUI với tất cả các khu vực chiếm đóng
+    §bThông đệp : §fMở menu chiếm đóng
   parea-setdesc: |
     §bCú pháp : §f/parea setdesc <claim_name> <description>
-    §bDescription : §fSet the description of a protected area
+    §bThông đệp : §fĐặt thông diệp cho khu vực dc bảo vệ
   parea-settings: |
-    §bSyntax : §f/parea settings <claim_name>
-    §bThông điệp : §fMở GUI cài đặt cho một khu vực được bảo vệ
+    §bCú pháp : §f/parea settings <claim_name>
+    §bThông đệp : §fMở GUI cài đặt cho một khu vực được bảo vệ
   parea-setname: |
     §bCú pháp : §f/parea setname <claim_name> <new_name>
-    §bThông điệp : §fĐặt tên của một khu vực được bảo vệ
+    §bThông đệp : §fĐặt tên của một khu vực được bảo vệ
   parea-members: |
     §bCú pháp : §f/parea members <claim_name>
-    §bThông điệp : §fQuản lý các thành viên của một khu vực được bảo vệ
+    §bThông đệp : §fQuản lý các thành viên của một khu vực được bảo vệ
   parea-tp: |
     §bCú pháp : §f/parea tp <claim_name>
-    §bThông điệp : §fDịch chuyển đến một khu vực được bảo vệ
+    §bThông đệp : §fDịch chuyển đến một khu vực được bảo vệ
   parea-list: |
     §bCú pháp : §f/parea list
-    §bThông điệp : §fLiệt kê tất cả các khu vực được bảo vệ
+    §bThông đệp : §fLiệt kê tất cả các khu vực được bảo vệ
   parea-ban: |
     §bCú pháp : §f/parea ban <claim_name> <player>
-    §bThông điệp : §fCấm người chơi khỏi khu vực được bảo vệ
+    §bThông đệp : §fCấm người chơi khỏi khu vực được bảo vệ
   parea-unban: |
     §bCú pháp : §f/parea unban <claim_name> <player>
-    §bThông điệp : §fUnban một người chơi từ một khu vực được bảo vệ
+    §bThông đệp : §fHủy bỏ cấm vận một người chơi từ một khu vực được bảo vệ
   parea-bans: |
     §bCú pháp : §f/parea bans <claim_name>
-    §bThông điệp : §fLiệt kê tất cả những người chơi bị cấm trong một khu vực được bảo vệ
+    §bThông đệp : §fDanh sách bị cấm trong khu vực bảo vệ
   parea-add: |
     §bCú pháp : §f/parea add <claim_name> <player>
-    §bThông điệp : §fThêm một người chơi vào một khu vực được bảo vệ
+    §bThông đệp : §fThêm một người chơi vào một khu vực được bảo vệ
   parea-remove: |
     §bCú pháp : §f/parea remove <claim_name> <player>
-    §bThông điệp : §fXóa người chơi khỏi khu vực được bảo vệ
+    §bThông đệp : §fXóa người chơi khỏi khu vực được bảo vệ
   parea-unclaim: |
     §bCú pháp : §f/parea unclaim <claim_name>
-    §bThông điệp : §fHủy chiếm đóng một khu vực được bảo vệ
+    §bThông đệp : §fHủy bỏ cấm vận một khu vực được bảo vệ
   parea-main: |
     §bCú pháp : §f/parea main
-    §bThông điệp : §fMở GUI chính
+    §bThông đệp : §fMở GUI chính
   parea-merge: |
     §bCú pháp : §f/parea merge <claim1> <claim2>
-    §bThông điệp : §fHợp nhất hai khu vực được bảo vệ
+    §bThông đệp : §fHợp nhất hai khu vực được bảo vệ
   parea-addchunk: |
     §bCú pháp : §f/parea addchunk <claim_name> <chunk>
-    §bThông điệp : §fThêm một đoạn vào một khu vực được bảo vệ
+    §bThông đệp : §fThêm một mảnh đất vào một khu vực được bảo vệ
   parea-delchunk: |
     §bCú pháp : §f/parea delchunk <claim_name> <chunk>
-    §bThông điệp : §fXóa một đoạn khỏi một khu vực được bảo vệ
+    §bThông đệp : §fXóa một mảnh đất một khu vực được bảo vệ
   parea-kick: |
     §bCú pháp : §f/parea kick <*|claim-name> <player>
-    §bThông điệp : §fĐá một người chơi từ một khu vực được bảo vệ
+    §bThông đệp : §fCấm vận một người chơi từ một khu vực được bảo vệ
   scs-transfer: |
     §bCú pháp : §f/scs transfer
-    §bThông điệp : §fChuyển đổi khu vực db đến khoảng cách db
+    §bThông đệp : §fChuyển đổi local db sang distant db
   scs-player: |
-    §bCú pháp : §f/scs player <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|set-claim-distance|set-max-chunks-total|tp|unclaim|main|list> <args>
-    §bThông điệp : §fQuản lý cài đặt và lãnh thổ người chơi
+    §bCú pháp : §f/scs player <tp|unclaim|main|list> <player> [<claim>]
+    §bThông đệp : §fQuản lý yêu cầu của người chơi
+  scs-cplayer: |
+    §bCú pháp : §f/scs cplayer <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|set-claim-distance|set-max-chunks-total> <args>
+    §bThông đệp : §fQuản lý cài đặt người chơi
   scs-group: |
-    §bCú pháp : §f/scs group <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|set-claim-distance|set-max-chunks-total|tp|unclaim|main|list> <args>
-    §bThông điệp : §fQuản lý cài đặt nhóm và khu vực
+    §bCú pháp : §f/scs group <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|set-claim-distance|set-max-chunks-total> <args>
+    §bThông đệp : §fQuản lý cài đặt nhóm và yêu cầu
   scs-forceunclaim: |
     §bCú pháp : §f/scs forceunclaim <claim>
-    §bThông điệp : §fTác động hủy chiếm đóng một khu vực
+    §bThông đệp : §fBắt buộc hủy chiếm đóng
   scs-setowner: |
     §bCú pháp : §f/scs setowner <claim> <player>
-    §bThông điệp : §fĐặt chủ sở hữu của một lãnh thổ
+    §bThông đệp : §fĐặt lãnh chúa cho vùng đất
   scs-set-lang: |
     §bCú pháp : §f/scs set-lang <language>
-    §bThông điệp : §fĐặt ngôn ngữ cho plugin
-  scs-set-actionbar: |
-    §bCú pháp : §f/scs set-actionbar <true|false>
-    §bThông điệp : §fBật hoặc tắt thông báo thanh hành động
-  scs-set-auto-claim: |
-    §bCú pháp : §f/scs set-auto-claim <true|false>
-    §bThông điệp : §fBật hoặc tắt lãnh thổ tự động
-  scs-set-title-subtitle: |
-    §bCú pháp : §f/scs set-title-subtitle <true|false>
-    §bThông điệp : §fBật hoặc vô hiệu hóa thông báo tiêu đề và phụ đề
-  scs-set-economy: |
-    §bCú pháp : §f/scs set-economy <true|false>
-    §bThông điệp : §fBật hoặc vô hiệu hóa tích hợp kinh tế
-  scs-set-claim-confirmation: |
-    §bCú pháp : §f/scs set-claim-confirmation <true|false>
-    §bThông điệp : §fBật hoặc vô hiệu hóa xác nhận lãnh thổ
-  scs-set-claim-particles: |
-    §bCú pháp : §f/scs set-claim-particles <true|false>
-    §bThông điệp : §fBật hoặc vô hiệu hóa các hoạt ảnh lãnh thổ
-  scs-set-max-sell-price: |
-    §bCú pháp : §f/scs set-max-sell-price <amount>
-    §bThông điệp : §fĐặt giá bán tối đa cho các lãnh thổ
-  scs-set-bossbar: |
-    §bCú pháp : §f/scs set-bossbar <true|false>
-    §bThông điệp : §fBật hoặc vô hiệu hóa thông báo BOSSBAR
-  scs-set-bossbar-color: |
-    §bCú pháp : §f/scs set-bossbar-color <color>
-    §bThông điệp : §fĐặt màu thanh bossbar
-  scs-set-bossbar-style: |
-    §bCú pháp : §f/scs set-bossbar-style <style>
-    §bThông điệp : §fĐặt phong cách Bossbar
-  scs-set-teleportation: |
-    §bCú pháp : §f/scs set-teleportation <true|false>
-    §bThông điệp: §fBật hoặc tắt dịch chuyển tức thời
-  scs-set-teleportation-moving: |
-    §bCú pháp : §f/scs set-teleportation-moving <true|false>
-    §bThông điệp : §fBật hoặc tắt dịch chuyển tức thời trong khi di chuyển
-  scs-add-blocked-interact-block: |
-    §bCú pháp : §f/scs add-blocked-interact-block <material>
-    §bThông điệp : §fThêm một khối tương tác bị chặn
-  scs-add-blocked-entity: |
-    §bCú pháp : §f/scs add-blocked-entity <entity>
-    §bThông điệp : §fThêm một thực thể bị chặn
-  scs-add-blocked-item: |
-    §bCú pháp : §f/scs add-blocked-item <material>
-    §bThông điệp : §fThêm một mục bị chặn
-  scs-remove-blocked-interact-block: |
-    §bCú pháp : §f/scs remove-blocked-interact-block <material>
-    §bThông điệp : §fLoại bỏ một khối tương tác bị chặn
-  scs-remove-blocked-entity: |
-    §bCú pháp : §f/scs remove-blocked-entity <entity>
-    §bThông điệp : §fLoại bỏ một thực thể bị chặn
-  scs-remove-blocked-item: |
-    §bCú pháp : §f/scs remove-blocked-item <material>
-    §bThông điệp : §fXóa một vật phẩm bị chặn
-  scs-add-disabled-world: |
-    §bCú pháp : §f/scs add-disabled-world <world>
-    §bThông điệp : §fThêm hoặc tắt thế giới
-  scs-remove-disabled-world: |
-    §bCú pháp : §f/scs remove-disabled-world <world>
-    §bThông điệp : §fLoại bỏ một thế giới khuyết tật
-  scs-set-status-setting: |
-    §bCú pháp : §f/scs set-status-setting <setting> <true|false>
-    §bThông điệp : §fĐặt cài đặt trạng thái
-  scs-set-default-value: |
-    §bCú pháp : §f/scs set-default-value <setting> <true|false>
-    §bThông điệp : §fĐặt giá trị mặc định
-  scs-set-max-length-claim-description: |
-    §bCú pháp : §f/scs set-max-length-claim-description <length>
-    §bThông điệp : §fĐặt độ dài tối đa cho các mô tả chiếm đóng khu vực
-  scs-set-max-length-claim-name: |
-    §bCú pháp : §f/scs set-max-length-claim-name <length>
-    §bThông điệp : §fSet the max length for claim names
-  scs-set-claims-visitors-off-visible: |
-    §bSyntax : §f/scs set-claims-visitors-off-visible <true|false>
-    §bThông điệp : §fSet visibility for claims with visitors off
-  scs-set-claim-cost: |
-    §bCú pháp : §f/scs set-claim-cost <amount>
-    §bThông điệp : §fĐặt chi phí cho việc chiếm đóng đất đai
-  scs-set-claim-cost-multiplier: |
-    §bCú pháp : §f/scs set-claim-cost-multiplier <amount>
-    §bThông điệp : §fĐặt hệ số nhân chi phí cho đất chiếm đóng
-  scs-set-chat: |
-    §bCú pháp : §f/scs set-chat <true|false>
-    §bThông điệp : §fBật hoặc tắt thông báo trò chuyện
-  scs-set-protection-message: |
-    §bCú pháp : §f/scs set-protection-message <ACTION_BAR|BOSSBAR|TITLE|SUBTITLE|CHAT>
-    §bThông điệp : §fĐặt loại thông báo bảo vệ
-  scs-set-claim-fly-message-auto-fly: |
-    §bCú pháp : §f/scs set-claim-fly-message-auto-fly <true|false>
-    §bThông điệp : §fBật hoặc tắt các tin nhắn tự động bay trong các khu vực chiếm đóng
-  scs-set-claim-fly-disabled-on-damage: |
-    §bCú pháp : §f/scs set-claim-fly-disabled-on-damage <true|false>
-    §bThông điệp : §fBật hoặc vô hiệu hóa bay vô hiệu hóa thiệt hại trong các khu vực chiếm đóng
+    §bThông đệp : §fĐặt ngôn ngữ cho plugin
   scs-reset-all-player-claims-settings: |
     §bCú pháp : §f/scs reset-all-player-claims-settings
-    §bThông điệp : §fĐặt lại tất cả các cài đặt lãnh thổ người chơi theo mặc định
+    §bThông đệp : §fĐặt lại tất cả các cài đặt vùng đất người chơi theo mặc định
   scs-reset-all-admin-claims-settings: |
-    §bSyntax : §f/scs reset-all-admin-claims-settings
-    §bThông điệp : §fĐặt lại tất cả các cài đặt lãnh thổ của quản trị viên về mặc định
+    §bCú pháp : §f/scs reset-all-admin-claims-settings
+    §bThông đệp : §fĐặt lại tất cả các cài đặt vùng đất quản trị viên về mặc định
   scs-admin: |
     §bCú pháp : §f/scs admin
-    §bThông điệp : §fMở GUI quản trị viên
+    §bThông đệp : §fMở GUI quản trị viên
   next-page: §7Page %page% - Bấm để truy cập trang tiếp theo
   previous-page: §7Page %page% - Bấm để truy cập trang trước
   
@@ -816,7 +761,7 @@ sub-arg-not-found: |
   
 available-args: |
   %help-separator%
-  §fArgs available:
+  §fArgs có sẵn:
   §7%args%§f.
   %help-separator%
 
@@ -824,5 +769,5 @@ available-args: |
 # > Private chat messages
 
 chat-format: "§b[Truyền Tin]§e %player%§7: §f%message%"
-talking-now-in-claim: "§fBây giờ bạn đang nói trong §eChat trong lãnh thổ§f."
-talking-now-in-public: "§fBây giờ bạn đang nói trong §atrò chuyện công khai§f."
+talking-now-in-claim: "§fBây giờ bạn đang nói trong §eNội bộ§f."
+talking-now-in-public: "§fBây giờ bạn đang nói trong §aCông khai§f."

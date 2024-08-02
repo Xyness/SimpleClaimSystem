@@ -824,7 +824,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     		Chunk chunk = player.getLocation().getChunk();
     		Claim claim = instance.getMain().getClaim(chunk);
             if (claim == null) {
-            	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
+            	player.sendMessage(instance.getLanguage().getMessage("free-territory"));
                 return;
             }
     		String owner = claim.getOwner();
@@ -840,7 +840,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     		Chunk chunk = player.getLocation().getChunk();
     		Claim claim = instance.getMain().getClaim(chunk);
             if (claim == null) {
-            	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
+            	player.sendMessage(instance.getLanguage().getMessage("free-territory"));
                 return;
             }
     		String owner = claim.getOwner();
@@ -860,7 +860,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     		Chunk chunk = player.getLocation().getChunk();
     		Claim claim = instance.getMain().getClaim(chunk);
             if (claim == null) {
-            	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
+            	player.sendMessage(instance.getLanguage().getMessage("free-territory"));
                 return;
             }
     		String owner = claim.getOwner();
@@ -876,7 +876,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     		Chunk chunk = player.getLocation().getChunk();
     		Claim claim = instance.getMain().getClaim(chunk);
             if (claim == null) {
-            	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
+            	player.sendMessage(instance.getLanguage().getMessage("free-territory"));
                 return;
             }
     		String owner = claim.getOwner();

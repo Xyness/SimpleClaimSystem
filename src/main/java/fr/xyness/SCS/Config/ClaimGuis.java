@@ -77,9 +77,9 @@ public class ClaimGuis {
         guis_items_perms_clicked_slots.get("natural").put(10, "Explosions");
         guis_items_perms_clicked_slots.get("natural").put(11, "Liquids");
         guis_items_perms_clicked_slots.get("natural").put(12, "Redstone");
-        guis_items_perms_clicked_slots.get("natural").put(14, "Pvp");
+        guis_items_perms_clicked_slots.get("natural").put(14, "Firespread");
         guis_items_perms_clicked_slots.get("natural").put(15, "Monsters");
-        guis_items_perms_clicked_slots.get("natural").put(16, "Firespread");
+        guis_items_perms_clicked_slots.get("natural").put(16, "Pvp");
     }
     
     /** Set of settings names */
