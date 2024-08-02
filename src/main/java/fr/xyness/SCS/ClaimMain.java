@@ -1490,8 +1490,7 @@ public class ClaimMain {
                                 try {
                                     uuid = UUID.fromString(m);
                                 } catch (IllegalArgumentException e) {
-                                    uuid = Bukkit.getPlayerUniqueId(m);
-                                    if (uuid == null) uuid = Bukkit.getOfflinePlayer(m).getUniqueId();
+                                    uuid = Bukkit.getOfflinePlayer(m).getUniqueId();
                                     isToUpdate[0] = true;
                                 }
                                 members.add(uuid);
@@ -1508,8 +1507,7 @@ public class ClaimMain {
                                 try {
                                     uuid = UUID.fromString(m);
                                 } catch (IllegalArgumentException e) {
-                                    uuid = Bukkit.getPlayerUniqueId(m);
-                                    if (uuid == null) uuid = Bukkit.getOfflinePlayer(m).getUniqueId();
+                                    uuid = Bukkit.getOfflinePlayer(m).getUniqueId();
                                     isToUpdate[0] = true;
                                 }
                                 bans.add(uuid);
