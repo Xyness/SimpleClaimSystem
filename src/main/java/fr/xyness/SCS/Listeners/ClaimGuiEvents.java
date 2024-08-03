@@ -522,6 +522,9 @@ public class ClaimGuiEvents implements Listener {
         if(clickedSlot >= 0 && clickedSlot <= 44) {
             if(event.getClick() == ClickType.LEFT) {
             	if(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) {
+            		Claim claim = cPlayer.getMapClaim(clickedSlot);
+            		if(claim == null) return;
+            		if(!claim.getPermissionForPlayer("GuiTeleport",player) && !claim.getOwner().equals(player.getName())) return;
 	            	player.closeInventory();
 		        	instance.getMain().goClaim(player, cPlayer.getMapLoc(clickedSlot));
 		        	return;
@@ -659,7 +662,7 @@ public class ClaimGuiEvents implements Listener {
         	Claim claim = cPlayer.getMapClaim(clickedSlot);
         	if(event.getClick() == ClickType.LEFT) {
         		if(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) {
-		            if(!claim.getPermissionForPlayer("EnterTeleport",player) && !claim.getOwner().equals(player.getName())) return;
+		            if(!claim.getPermissionForPlayer("GuiTeleport",player) && !claim.getOwner().equals(player.getName())) return;
 	            	player.closeInventory();
 		        	instance.getMain().goClaim(player, cPlayer.getMapLoc(clickedSlot));
 		        	return;
