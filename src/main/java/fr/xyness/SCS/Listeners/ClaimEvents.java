@@ -946,14 +946,14 @@ public class ClaimEvents implements Listener {
         Entity entity = event.getEntered();
         if (entity instanceof Player) {
             Player player = (Player) entity;
+            if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
             Entity vehicle = event.getVehicle();
             EntityType vehicleType = vehicle.getType();
             if(!instance.getSettings().isRestrictedEntityType(vehicleType)) return;
         	Chunk chunk = vehicle.getLocation().getChunk();
             if (instance.getMain().checkIfClaimExists(chunk)) {
             	Claim claim = instance.getMain().getClaim(chunk);
-            	if(!claim.getPermissionForPlayer("Entities", player)) return;
-            	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+            	if(claim.getPermissionForPlayer("Entities", player)) return;
                 event.setCancelled(true);
                 instance.getMain().sendMessage(player,instance.getLanguage().getMessage("entities"), instance.getSettings().getSetting("protection-message"));
             }
