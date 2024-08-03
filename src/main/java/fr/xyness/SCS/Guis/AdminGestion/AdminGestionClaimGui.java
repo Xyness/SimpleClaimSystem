@@ -50,7 +50,7 @@ public class AdminGestionClaimGui implements InventoryHolder {
      * A map containing the key-to-material mappings.
      */
     private static final Map<String, Material> keyToMaterialMap = new HashMap<>();
-
+    
     static {
         keyToSlotMap.put("Build", 1);
         keyToSlotMap.put("Destroy", 2);
