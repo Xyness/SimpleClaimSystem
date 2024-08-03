@@ -14,7 +14,6 @@ SimpleClaimSystem is a plugin allowing you to protect your constructions, it wor
 |        Plugin        |     Link     |
 |:--------------------:|:------------:|
 | PlaceholderAPI       | [Download](https://www.spigotmc.org/resources/placeholderapi.6245/)    |
-| ItemsAdder           | [Download](https://www.spigotmc.org/resources/itemsadder.73355/)    |
 | GriefPrevention      | [Download](https://www.spigotmc.org/resources/griefprevention.1884/)    |
 | Vault                | [Download](https://www.spigotmc.org/resources/vault.34315/)    |
 | Dynmap               | [Download](https://www.spigotmc.org/resources/dynmap.274/)    |
