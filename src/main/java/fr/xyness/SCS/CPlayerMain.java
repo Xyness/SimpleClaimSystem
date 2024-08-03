@@ -1,7 +1,11 @@
 package fr.xyness.SCS;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -195,7 +199,7 @@ public class CPlayerMain {
                 String textures = getSkinURLWithoutDelay(uuid_mojang);
                 ItemStack playerHead = createPlayerHeadWithTexture(uuid_mojang, textures);
                 playersHead.put(playerName, playerHead);
-                playersHashedTexture.put(playerName, textures);
+                playersHashedTexture.put(playerName, textures == null ? "none" : textures);
 
                 // Update database
                 try (Connection connection = instance.getDataSource().getConnection()) {
@@ -214,8 +218,8 @@ public class CPlayerMain {
                         preparedStatement.setString(1, uuid.toString());
                         preparedStatement.setString(2, uuid_mojang);
                         preparedStatement.setString(3, playerName);
-                        preparedStatement.setString(4, serializeItemStack(playerHead));
-                        preparedStatement.setString(5, textures);
+                        preparedStatement.setString(4, "");
+                        preparedStatement.setString(5, textures == null ? "none" : textures);
                         preparedStatement.executeUpdate();
                     } catch (SQLException e) {
                         e.printStackTrace();
@@ -275,7 +279,8 @@ public class CPlayerMain {
             String uuid_mojang = getUUIDFromMojang(playerName);
             if (uuid_mojang != null) {
                 String textures = getSkinURLWithoutDelay(uuid_mojang);
-
+                if (textures == null) return;
+                
                 // Check if the texture is the same
                 if (textures.equals(playersHashedTexture.getOrDefault(playerName, ""))) return;
 
@@ -289,11 +294,10 @@ public class CPlayerMain {
                 try (Connection connection = instance.getDataSource().getConnection()) {
 
                     // Update database
-                    String updateQuery = "UPDATE scs_players SET player_head = ?, player_textures = ? WHERE uuid_server = ?";
+                    String updateQuery = "UPDATE scs_players SET player_textures = ? WHERE uuid_server = ?";
                     try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-                        preparedStatement.setString(1, serializeItemStack(head));
-                        preparedStatement.setString(2, textures);
-                        preparedStatement.setString(3, uuid.toString());
+                        preparedStatement.setString(1, textures);
+                        preparedStatement.setString(2, uuid.toString());
                         preparedStatement.executeUpdate();
                     } catch (SQLException e) {
                         e.printStackTrace();
@@ -330,15 +334,7 @@ public class CPlayerMain {
                     	String playerName = resultSet.getString("player_name");
                     	String textures = resultSet.getString("player_textures");
                     	if(!playersHead.containsKey(playerName)) {
-                        	ItemStack playerHead = null;
-                        	try {
-    							playerHead = deserializeItemStack(resultSet.getString("player_head"));
-    						} catch (IOException e) {
-    							e.printStackTrace();
-    						} catch (InvalidConfigurationException e) {
-    							e.printStackTrace();
-    						}
-                        	if(playerHead == null) playerHead = createPlayerHeadWithTexture(uuid_mojang,textures);
+                        	ItemStack playerHead = createPlayerHeadWithTexture(uuid_mojang,textures);
                         	playersHead.put(playerName, playerHead);
                     	}
                     	playersHashedTexture.put(playerName, textures);
@@ -397,7 +393,7 @@ public class CPlayerMain {
         ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1);
         SkullMeta meta = (SkullMeta) head.getItemMeta();
 
-        if (meta != null && uuid != null && !uuid.isBlank()) {
+        if (meta != null && uuid != null && !uuid.isBlank() && texture != null && !texture.isBlank() && !texture.equals("none")) {
             PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString(uuid));
             if(texture != null) {
                 try {
@@ -592,32 +588,6 @@ public class CPlayerMain {
             result.add(new ArrayList<>(list.subList(i, Math.min(list.size(), i + size))));
         }
         return result;
-    }
-    
-    /**
-     * Serializes an ItemStack to a YAML string.
-     *
-     * @param itemStack The ItemStack to serialize.
-     * @return A YAML string representing the serialized ItemStack.
-     */
-    public String serializeItemStack(ItemStack itemStack) {
-        YamlConfiguration yaml = new YamlConfiguration();
-        yaml.set("item", itemStack);
-        return yaml.saveToString();
-    }
-    
-    /**
-     * Deserializes an ItemStack from a YAML string.
-     *
-     * @param yamlString The YAML string to deserialize.
-     * @return The deserialized ItemStack.
-     * @throws IOException If an I/O error occurs during deserialization.
-     * @throws InvalidConfigurationException If the configuration is invalid.
-     */
-    public ItemStack deserializeItemStack(String yamlString) throws IOException, InvalidConfigurationException {
-        YamlConfiguration yaml = new YamlConfiguration();
-        yaml.loadFromString(yamlString);
-        return yaml.getItemStack("item");
     }
     
     /**

@@ -1544,11 +1544,12 @@ public class ClaimMain {
                         for (Map.Entry<String, String> entry : permList.entrySet()) {
                         	String key = entry.getKey();
                         	String perm = entry.getValue();
+                        	
                         	int defaultLength = instance.getSettings().getDefaultValuesCode(key).length();
                         	
+                        	StringBuilder permCompleted = new StringBuilder(perm);
                         	if (perm.length() != defaultLength) {
                                 int diff = defaultLength - perm.length();
-                                StringBuilder permCompleted = new StringBuilder(perm);
                                 
                                 if (diff < 0) {
                                     for (int i = 0; i < perm.length() - diff; i++) {
@@ -1570,9 +1571,9 @@ public class ClaimMain {
                         	}
                         	
                         	if(final_perm.toString().isBlank()) {
-                        		final_perm.append(key+":"+perm);
+                        		final_perm.append(key+":"+permCompleted.toString());
                         	} else {
-                        		final_perm.append(";"+key+":"+perm);
+                        		final_perm.append(";"+key+":"+permCompleted.toString());
                         	}
                         	
                         }

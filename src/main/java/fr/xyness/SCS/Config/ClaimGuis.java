@@ -30,48 +30,58 @@ public class ClaimGuis {
     
     static {
     	guis_items_perms_clicked_slots.put("visitors", new HashMap<>());
-        guis_items_perms_clicked_slots.get("visitors").put(10, "Build");
-        guis_items_perms_clicked_slots.get("visitors").put(11, "Destroy");
-        guis_items_perms_clicked_slots.get("visitors").put(12, "Buttons");
-        guis_items_perms_clicked_slots.get("visitors").put(13, "Items");
-        guis_items_perms_clicked_slots.get("visitors").put(14, "InteractBlocks");
-        guis_items_perms_clicked_slots.get("visitors").put(15, "Levers");
-        guis_items_perms_clicked_slots.get("visitors").put(16, "Plates");
-        guis_items_perms_clicked_slots.get("visitors").put(19, "Doors");
-        guis_items_perms_clicked_slots.get("visitors").put(20, "Trapdoors");
-        guis_items_perms_clicked_slots.get("visitors").put(21, "Fencegates");
-        guis_items_perms_clicked_slots.get("visitors").put(22, "Tripwires");
-        guis_items_perms_clicked_slots.get("visitors").put(23, "RepeatersComparators");
-        guis_items_perms_clicked_slots.get("visitors").put(24, "Bells");
-        guis_items_perms_clicked_slots.get("visitors").put(25, "Entities");
-        guis_items_perms_clicked_slots.get("visitors").put(28, "Frostwalker");
-        guis_items_perms_clicked_slots.get("visitors").put(29, "Teleportations");
-        guis_items_perms_clicked_slots.get("visitors").put(30, "Damages");
-        guis_items_perms_clicked_slots.get("visitors").put(32, "EnterTeleport");
-        guis_items_perms_clicked_slots.get("visitors").put(33, "Fly");
-        guis_items_perms_clicked_slots.get("visitors").put(34, "Weather");
+        guis_items_perms_clicked_slots.get("visitors").put(1, "Build");
+        guis_items_perms_clicked_slots.get("visitors").put(2, "Destroy");
+        guis_items_perms_clicked_slots.get("visitors").put(3, "Buttons");
+        guis_items_perms_clicked_slots.get("visitors").put(4, "Items");
+        guis_items_perms_clicked_slots.get("visitors").put(5, "InteractBlocks");
+        guis_items_perms_clicked_slots.get("visitors").put(6, "Levers");
+        guis_items_perms_clicked_slots.get("visitors").put(7, "Plates");
+        guis_items_perms_clicked_slots.get("visitors").put(10, "Doors");
+        guis_items_perms_clicked_slots.get("visitors").put(11, "Trapdoors");
+        guis_items_perms_clicked_slots.get("visitors").put(12, "Fencegates");
+        guis_items_perms_clicked_slots.get("visitors").put(13, "Tripwires");
+        guis_items_perms_clicked_slots.get("visitors").put(14, "RepeatersComparators");
+        guis_items_perms_clicked_slots.get("visitors").put(15, "Bells");
+        guis_items_perms_clicked_slots.get("visitors").put(16, "Entities");
+        guis_items_perms_clicked_slots.get("visitors").put(19, "Teleportations");
+        guis_items_perms_clicked_slots.get("visitors").put(20, "Damages");
+        guis_items_perms_clicked_slots.get("visitors").put(21, "Fly");
+        guis_items_perms_clicked_slots.get("visitors").put(22, "Frostwalker");
+        guis_items_perms_clicked_slots.get("visitors").put(23, "Weather");
+        guis_items_perms_clicked_slots.get("visitors").put(24, "GuiTeleport");
+        guis_items_perms_clicked_slots.get("visitors").put(25, "Portals");
+        guis_items_perms_clicked_slots.get("visitors").put(30, "Enter");
+        guis_items_perms_clicked_slots.get("visitors").put(31, "ItemsPickup");
+        guis_items_perms_clicked_slots.get("visitors").put(32, "ItemsDrop");
+        
         
     	guis_items_perms_clicked_slots.put("members", new HashMap<>());
-        guis_items_perms_clicked_slots.get("members").put(10, "Build");
-        guis_items_perms_clicked_slots.get("members").put(11, "Destroy");
-        guis_items_perms_clicked_slots.get("members").put(12, "Buttons");
-        guis_items_perms_clicked_slots.get("members").put(13, "Items");
-        guis_items_perms_clicked_slots.get("members").put(14, "InteractBlocks");
-        guis_items_perms_clicked_slots.get("members").put(15, "Levers");
-        guis_items_perms_clicked_slots.get("members").put(16, "Plates");
-        guis_items_perms_clicked_slots.get("members").put(19, "Doors");
-        guis_items_perms_clicked_slots.get("members").put(20, "Trapdoors");
-        guis_items_perms_clicked_slots.get("members").put(21, "Fencegates");
-        guis_items_perms_clicked_slots.get("members").put(22, "Tripwires");
-        guis_items_perms_clicked_slots.get("members").put(23, "RepeatersComparators");
-        guis_items_perms_clicked_slots.get("members").put(24, "Bells");
-        guis_items_perms_clicked_slots.get("members").put(25, "Entities");
-        guis_items_perms_clicked_slots.get("members").put(28, "Frostwalker");
-        guis_items_perms_clicked_slots.get("members").put(29, "Teleportations");
-        guis_items_perms_clicked_slots.get("members").put(30, "Damages");
-        guis_items_perms_clicked_slots.get("members").put(32, "EnterTeleport");
-        guis_items_perms_clicked_slots.get("members").put(33, "Fly");
-        guis_items_perms_clicked_slots.get("members").put(34, "Weather");
+    	guis_items_perms_clicked_slots.get("members").put(1, "Build");
+    	guis_items_perms_clicked_slots.get("members").put(2, "Destroy");
+    	guis_items_perms_clicked_slots.get("members").put(3, "Buttons");
+    	guis_items_perms_clicked_slots.get("members").put(4, "Items");
+    	guis_items_perms_clicked_slots.get("members").put(5, "InteractBlocks");
+    	guis_items_perms_clicked_slots.get("members").put(6, "Levers");
+    	guis_items_perms_clicked_slots.get("members").put(7, "Plates");
+    	guis_items_perms_clicked_slots.get("members").put(10, "Doors");
+    	guis_items_perms_clicked_slots.get("members").put(11, "Trapdoors");
+    	guis_items_perms_clicked_slots.get("members").put(12, "Fencegates");
+    	guis_items_perms_clicked_slots.get("members").put(13, "Tripwires");
+    	guis_items_perms_clicked_slots.get("members").put(14, "RepeatersComparators");
+    	guis_items_perms_clicked_slots.get("members").put(15, "Bells");
+    	guis_items_perms_clicked_slots.get("members").put(16, "Entities");
+    	guis_items_perms_clicked_slots.get("members").put(19, "Teleportations");
+    	guis_items_perms_clicked_slots.get("members").put(20, "Damages");
+    	guis_items_perms_clicked_slots.get("members").put(21, "Fly");
+    	guis_items_perms_clicked_slots.get("members").put(22, "Frostwalker");
+    	guis_items_perms_clicked_slots.get("members").put(23, "Weather");
+    	guis_items_perms_clicked_slots.get("members").put(24, "GuiTeleport");
+    	guis_items_perms_clicked_slots.get("members").put(25, "Portals");
+    	guis_items_perms_clicked_slots.get("members").put(30, "Enter");
+    	guis_items_perms_clicked_slots.get("members").put(31, "ItemsPickup");
+    	guis_items_perms_clicked_slots.get("members").put(32, "ItemsDrop");
+
         
         guis_items_perms_clicked_slots.put("natural", new HashMap<>());
         guis_items_perms_clicked_slots.get("natural").put(10, "Explosions");
@@ -104,12 +114,12 @@ public class ClaimGuis {
     	
     	// Set settings_name
     	settings_name.put("members", Set.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", "Trapdoors",
-            "Fencegates","Tripwires","RepeatersComparators","Bells","Entities","Frostwalker","Teleportations","Damages","EnterTeleport",
-            "Weather","Fly"));
+            "Fencegates","Tripwires","RepeatersComparators","Bells","Entities","Frostwalker","Teleportations","Damages","Enter", "GuiTeleport",
+            "Weather","Fly", "Portals", "ItemsPickup", "ItemsDrop"));
     	
     	settings_name.put("visitors", Set.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", "Trapdoors",
-                "Fencegates","Tripwires","RepeatersComparators","Bells","Entities","Frostwalker","Teleportations","Damages","EnterTeleport",
-                "Weather","Fly"));
+                "Fencegates","Tripwires","RepeatersComparators","Bells","Entities","Frostwalker","Teleportations","Damages","Enter", "GuiTeleport",
+                "Weather","Fly", "Portals", "ItemsPickup", "ItemsDrop"));
     	
     	settings_name.put("natural", Set.of("Explosions","Liquids","Redstone","Firespread","Monsters","Pvp"));
     }
