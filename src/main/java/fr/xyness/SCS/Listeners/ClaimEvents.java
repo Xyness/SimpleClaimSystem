@@ -6,7 +6,6 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -58,17 +57,12 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
-import org.bukkit.event.weather.LightningStrikeEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.projectiles.ProjectileSource;
 
 import fr.xyness.SCS.CPlayer;
-import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.Claim;
-import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
-import fr.xyness.SCS.Config.ClaimLanguage;
-import fr.xyness.SCS.Config.ClaimSettings;
 
 /**
  * Event listener for claim-related events.
@@ -132,6 +126,7 @@ public class ClaimEvents implements Listener {
 	@EventHandler
 	public void onPlayerDamage(EntityDamageEvent event) {
 		if(!(event.getEntity() instanceof Player)) return;
+		if(!instance.getSettings().getBooleanSetting("claim-fly-disabled-on-damage")) return;
 		Player player = (Player) event.getEntity();
 		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
     	if(cPlayer != null && cPlayer.getClaimFly()) {
