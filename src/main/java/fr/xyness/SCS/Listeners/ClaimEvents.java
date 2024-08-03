@@ -358,6 +358,7 @@ public class ClaimEvents implements Listener {
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
+			return;
 		}
 		if(!instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
 			event.setCancelled(true);
