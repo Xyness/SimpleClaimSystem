@@ -48,11 +48,14 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.event.weather.LightningStrikeEvent;
@@ -186,6 +189,63 @@ public class ClaimEvents implements Listener {
 			if(!(entity instanceof Monster)) return;
 			if(!claim.getPermission("Monsters", "Natural")) {
 				event.setCancelled(true);
+				return;
+			}
+		}
+    }
+    
+    /**
+     * Handles player drop items events to prevent player dropping in claims.
+     * @param event the drop items event.
+     */
+    @EventHandler
+    public void onPlayerDropItem(PlayerDropItemEvent event) {
+    	Chunk chunk = event.getItemDrop().getLocation().getChunk();
+    	Player player = event.getPlayer();
+    	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+		if(instance.getMain().checkIfClaimExists(chunk)) {
+			Claim claim = instance.getMain().getClaim(chunk);
+			if(!claim.getPermissionForPlayer("ItemsDrop", player)) {
+				event.setCancelled(true);
+				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("itemsdrop"), instance.getSettings().getSetting("protection-message"));
+				return;
+			}
+		}
+    }
+    
+    /**
+     * Handles player pickup items events to prevent player pickuping in claims.
+     * @param event the pickup items event.
+     */
+    @EventHandler
+    public void onPlayerPickupItem(PlayerAttemptPickupItemEvent event) {
+    	Chunk chunk = event.getItem().getLocation().getChunk();
+    	Player player = event.getPlayer();
+    	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+		if(instance.getMain().checkIfClaimExists(chunk)) {
+			Claim claim = instance.getMain().getClaim(chunk);
+			if(!claim.getPermissionForPlayer("ItemsPickup", player)) {
+				event.setCancelled(true);
+				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("itemspickup"), instance.getSettings().getSetting("protection-message"));
+				return;
+			}
+		}
+    }
+    
+    /**
+     * Handles player portal events to prevent player using portals in claims.
+     * @param event the portal event.
+     */
+    @EventHandler
+    public void onPlayerUsePortal(PlayerPortalEvent event) {
+    	Chunk chunk = event.getFrom().getChunk();
+    	Player player = event.getPlayer();
+    	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+		if(instance.getMain().checkIfClaimExists(chunk)) {
+			Claim claim = instance.getMain().getClaim(chunk);
+			if(!claim.getPermissionForPlayer("Portals", player)) {
+				event.setCancelled(true);
+				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("portals"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
 		}
@@ -805,6 +865,7 @@ public class ClaimEvents implements Listener {
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
+			return;
         }
         if(instance.getMain().canPermCheck(chunk, "Firespread", "Natural")) return;
         event.setCancelled(true);

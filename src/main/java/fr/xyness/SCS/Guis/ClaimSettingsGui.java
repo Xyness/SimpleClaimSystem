@@ -40,26 +40,30 @@ public class ClaimSettingsGui implements InventoryHolder {
     private static final Map<String, Material> keyToMaterialMap = new HashMap<>();
 
     static {
-        keyToSlotMap.put("Build", 10);
-        keyToSlotMap.put("Destroy", 11);
-        keyToSlotMap.put("Buttons", 12);
-        keyToSlotMap.put("Items", 13);
-        keyToSlotMap.put("InteractBlocks", 14);
-        keyToSlotMap.put("Levers", 15);
-        keyToSlotMap.put("Plates", 16);
-        keyToSlotMap.put("Doors", 19);
-        keyToSlotMap.put("Trapdoors", 20);
-        keyToSlotMap.put("Fencegates", 21);
-        keyToSlotMap.put("Tripwires", 22);
-        keyToSlotMap.put("RepeatersComparators", 23);
-        keyToSlotMap.put("Bells", 24);
-        keyToSlotMap.put("Entities", 25);
-        keyToSlotMap.put("Frostwalker", 28);
-        keyToSlotMap.put("Teleportations", 29);
-        keyToSlotMap.put("Damages", 30);
-        keyToSlotMap.put("EnterTeleport", 32);
-        keyToSlotMap.put("Fly", 33);
-        keyToSlotMap.put("Weather", 34);
+        keyToSlotMap.put("Build", 1);
+        keyToSlotMap.put("Destroy", 2);
+        keyToSlotMap.put("Buttons", 3);
+        keyToSlotMap.put("Items", 4);
+        keyToSlotMap.put("InteractBlocks", 5);
+        keyToSlotMap.put("Levers", 6);
+        keyToSlotMap.put("Plates", 7);
+        keyToSlotMap.put("Doors", 10);
+        keyToSlotMap.put("Trapdoors", 11);
+        keyToSlotMap.put("Fencegates", 12);
+        keyToSlotMap.put("Tripwires", 13);
+        keyToSlotMap.put("RepeatersComparators", 14);
+        keyToSlotMap.put("Bells", 15);
+        keyToSlotMap.put("Entities", 16);
+        keyToSlotMap.put("Teleportations", 19);
+        keyToSlotMap.put("Damages", 20);
+        keyToSlotMap.put("Fly", 21);
+        keyToSlotMap.put("Frostwalker", 22);
+        keyToSlotMap.put("Weather", 23);
+        keyToSlotMap.put("GuiTeleport", 24);
+        keyToSlotMap.put("Portals", 25);
+        keyToSlotMap.put("Enter", 30);
+        keyToSlotMap.put("ItemsPickup", 31);
+        keyToSlotMap.put("ItemsDrop", 32);
         
         keyToSlotMap.put("Explosions", 10);
         keyToSlotMap.put("Liquids", 11);
@@ -90,10 +94,14 @@ public class ClaimSettingsGui implements InventoryHolder {
         keyToMaterialMap.put("Teleportations", Material.ENDER_PEARL);
         keyToMaterialMap.put("Damages", Material.APPLE);
         keyToMaterialMap.put("Monsters", Material.STRING);
-        keyToMaterialMap.put("EnterTeleport", Material.COMPASS);
+        keyToMaterialMap.put("GuiTeleport", Material.COMPASS);
         keyToMaterialMap.put("Fly", Material.ELYTRA);
         keyToMaterialMap.put("Pvp", Material.DIAMOND_SWORD);
         keyToMaterialMap.put("Weather", Material.SNOWBALL);
+        keyToMaterialMap.put("Portals", Material.END_PORTAL_FRAME);
+        keyToMaterialMap.put("Enter", Material.BIRCH_DOOR);
+        keyToMaterialMap.put("ItemsPickup", Material.HOPPER);
+        keyToMaterialMap.put("ItemsDrop", Material.FEATHER);
     }
     
     /** Inventory for the GUI. */

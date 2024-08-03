@@ -1,7 +1,6 @@
 package fr.xyness.SCS.Listeners;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
@@ -21,8 +20,6 @@ import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.SimpleClaimSystem;
 
-import org.bukkit.boss.BossBar;
-
 /**
  * This class handles events related to players entering and leaving claims.
  * It implements the Listener interface to handle various player events.
@@ -34,9 +31,8 @@ public class ClaimEventsEnterLeave implements Listener {
     // *  Variables  *
     // ***************
     
-	
-    /** A map to store the BossBars for each player. */
-    private Map<Player, BossBar> bossBars = new HashMap<>();
+    /** Set of players when they are rejected from a claim */
+	private Set<Player> playersRejected = new HashSet<>();
     
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
@@ -86,11 +82,13 @@ public class ClaimEventsEnterLeave implements Listener {
         String playerName = player.getName();
         Claim claim = instance.getMain().getClaim(chunk);
         if (instance.getMain().checkBan(claim, playerName) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
+        	playersRejected.add(player);
             instance.getMain().teleportPlayer(player, Bukkit.getWorlds().get(0).getSpawnLocation());
             return;
         }
         
-        if (!claim.getPermissionForPlayer("EnterTeleport",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
+        if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
+        	playersRejected.add(player);
         	instance.getMain().teleportPlayer(player, Bukkit.getWorlds().get(0).getSpawnLocation());
             return;
         }
@@ -109,7 +107,7 @@ public class ClaimEventsEnterLeave implements Listener {
         player.resetPlayerWeather();
         instance.getPlayerMain().removeCPlayer(player.getUniqueId());
         instance.getMain().clearDataForPlayer(player);
-        if (bossBars.containsKey(player)) bossBars.remove(player);
+        if(playersRejected.contains(player)) playersRejected.remove(player);
     }
 
     /**
@@ -124,6 +122,10 @@ public class ClaimEventsEnterLeave implements Listener {
         if (!instance.getMain().checkIfClaimExists(to)) return;
 
         Player player = event.getPlayer();
+        if (playersRejected.contains(player)) {
+        	playersRejected.remove(player);
+        	return;
+        }
         UUID playerId = player.getUniqueId();
         String playerName = player.getName();
         CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
@@ -139,8 +141,8 @@ public class ClaimEventsEnterLeave implements Listener {
 	            return;
 	        }
 	        
-	        if (!claim.getPermissionForPlayer("EnterTeleport",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
-	            cancelTeleport(event, player, "visitors");
+	        if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
+	            cancelTeleport(event, player, "enter");
 	            return;
 	        }
 	
@@ -220,14 +222,16 @@ public class ClaimEventsEnterLeave implements Listener {
         Claim claim = instance.getMain().getClaim(to);
         if(claim != null) {
 	        if (instance.getMain().checkBan(claim, playerName) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
+	        	playersRejected.add(player);
 	        	instance.getMain().teleportPlayer(player, event.getFrom());
 	            instance.getMain().sendMessage(player, instance.getLanguage().getMessage("player-banned"), instance.getSettings().getSetting("protection-message"));
 	            return;
 	        }
-	        if (!claim.getPermissionForPlayer("EnterTeleport",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.visitors")) {
+	        if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
+	        	playersRejected.add(player);
 	        	instance.getMain().teleportPlayer(player, event.getFrom());
-	        	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("visitors"), instance.getSettings().getSetting("protection-message"));
-	            return;
+	        	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("enter"), instance.getSettings().getSetting("protection-message"));
+	        	return;
 	        }
 	        
 	        if (cPlayer.getClaimAutofly() && (ownerTO.equals(playerName) || claim.getPermissionForPlayer("Fly",player)) && !instance.isFolia()) {

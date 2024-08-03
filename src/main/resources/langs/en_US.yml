@@ -285,7 +285,11 @@ tripwires: "§cYou cannot trigger tripwires in this territory"
 entities: "§cYou cannot interact with this entity"
 damages: "§cYou cannot deal damages in this territory"
 teleportations: "§cYou cannot teleport to this territory"
-visitors: "§cYou cannot visit this territory"
+enter: "§cYou cannot enter into this territory"
+guiteleport: "§cYou cannot teleport to this territory"
+portals: "§cYou cannot use portals in this territory"
+itemspickup: "§cYou cannot pickup items in this territory"
+itemsdrop: "§cYou cannot drop items in this territoty"
 pvp: "§cYou cannot pvp in this territory"
 claim-fly-disabled-on-damage: "§cClaim fly disabled because you received damage"
 
@@ -406,50 +410,47 @@ choice-setting-disabled: "§cThis setting cannot be modified"
 apply-all-claims-title: "§eApply settings to all claims"
 apply-all-claims-lore: "§7Apply these settings to all my claims\n§7▸ §fClick to perform"
 
-enterteleport-title: "§eEnter/Teleport §7(%status%§7)"
-enterteleport-lore: "§7Can players enter physically into your claim, and teleport via /claims"
-
 build-title: "§eBuild §7(%status%§7)"
-build-lore: "§7Allow visitors to build"
+build-lore: "§7Allow to build"
 
 destroy-title: "§eDestroy §7(%status%§7)"
-destroy-lore: "§7Allow visitors to destroy"
+destroy-lore: "§7Allow to destroy"
 
 buttons-title: "§eUse buttons §7(%status%§7)"
-buttons-lore: "§7Allow visitors to use buttons"
+buttons-lore: "§7Allow to use buttons"
 
 items-title: "§eUse items §7(%status%§7)"
-items-lore: "§7Allow visitors to use items"
+items-lore: "§7Allow to use items"
 
 interactblocks-title: "§eInteract blocks §7(%status%§7)"
-interactblocks-lore: "§7Allow visitors to interact with blocks (chest..)"
+interactblocks-lore: "§7Allow to interact with blocks (chest..)"
 
 levers-title: "§eUse levers §7(%status%§7)"
-levers-lore: "§7Allow visitors to use levers"
+levers-lore: "§7Allow to use levers"
 
 plates-title: "§eUse pressure plates §7(%status%§7)"
-plates-lore: "§7Allow visitors to use pressure plates"
+plates-lore: "§7Allow to use pressure plates"
 
 doors-title: "§eOpen doors §7(%status%§7)"
-doors-lore: "§7Allow visitors to open doors"
+doors-lore: "§7Allow to open doors"
 
 trapdoors-title: "§eOpen trap doors §7(%status%§7)"
-trapdoors-lore: "§7Allow visitors to open trap doors"
+trapdoors-lore: "§7Allow to open trap doors"
 
 fencegates-title: "§eOpen fence gates §7(%status%§7)"
-fencegates-lore: "§7Allow visitors to open fence gates"
+fencegates-lore: "§7Allow to open fence gates"
 
 tripwires-title: "§eTrigger tripwires §7(%status%§7)"
-tripwires-lore: "§7Allow visitors to trigger tripwires"
+tripwires-lore: "§7Allow to trigger tripwires"
 
 repeaterscomparators-title: "§eUse repeaters/comparators §7(%status%§7)"
-repeaterscomparators-lore: "§7Allow visitors to use repeaters/comparators"
+repeaterscomparators-lore: "§7Allow to use repeaters/comparators"
 
 bells-title: "§eUse bells §7(%status%§7)"
-bells-lore: "§7Allow visitors to use bells"
+bells-lore: "§7Allow to use bells"
 
 entities-title: "§eInteract with entities §7(%status%§7)"
-entities-lore: "§7Allow visitors to interact with entities"
+entities-lore: "§7Allow to interact with entities"
 
 explosions-title: "§eExplosions §7(%status%§7)"
 explosions-lore: "§7Allow explosions of any type"
@@ -467,10 +468,10 @@ firespread-title: "§eFire spread §7(%status%§7)"
 firespread-lore: "§7Can the fire spread in the territory"
 
 teleportations-title: "§eNatural teleportations §7(%status%§7)"
-teleportations-lore: "§7Allow visitors to teleport naturally (enderpearl,\n§7chorus fruit, etc)"
+teleportations-lore: "§7Allow to teleport naturally (enderpearl,\n§7chorus fruit, etc)"
 
 damages-title: "§eEntity damage §7(%status%§7)"
-damages-lore: "§7Allow visitors to deal damage to entities"
+damages-lore: "§7Allow to deal damage to entities"
 
 pvp-title: "§ePvP §7(%status%§7)"
 pvp-lore: "§7Allow players to pvp"
@@ -479,10 +480,25 @@ monsters-title: "§eMonsters §7(%status%§7)"
 monsters-lore: "§7Allow spawning monsters"
 
 weather-title: "§eWeather §7(%status%§7)"
-weather-lore: "§7Allow raining/snowing/thundering"
+weather-lore: "§7Allow raining/snowing/thundering for players"
 
 fly-title: "§eFly §7(%status%§7)"
-fly-lore: "§7Allow visitors to fly"
+fly-lore: "§7Allow to fly"
+
+guiteleport-title: "§eTeleport via GUI §7(%status%§7)"
+guiteleport-lore: "§7Allow to use /claims to teleport"
+
+enter-title: "§eEnter §7(%status%§7)"
+enter-lore: "§7Allow to enter physically into the claim"
+
+portals-title: "§eUse portals §7(%status%§7)"
+portals-lore: "§7Allow to use portals"
+
+itemspickup-title: "§eItems pickup §7(%status%§7)"
+itemspickup-lore: "§7Allow to pickup the items on the ground"
+
+itemsdrop-title: "§eItems drop §7(%status%§7)"
+itemsdrop-lore: "§7Allow to drop items on the ground"
 
 manage-members-title: "§aMembers"
 manage-members-lore: "§7Manage members"

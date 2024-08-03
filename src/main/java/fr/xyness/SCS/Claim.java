@@ -252,6 +252,7 @@ public class Claim {
      * @return The permission value
      */
     public boolean getPermissionForPlayer(String permission, Player player) {
+    	if (this.owner.equals(player.getName())) return true;
     	return this.permissions.getOrDefault(isMember(player.getUniqueId()) ? "members" : "visitors", new LinkedHashMap<>()).getOrDefault(permission, false);
     }
     

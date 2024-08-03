@@ -16,6 +16,11 @@ bossbar-owner-message: "§fYou are in your territory §e%owner% §b(%name%)"
 bossbar-member-message: "§fYou are in the territory of §e%owner% §b(%name%)"
 bossbar-visitor-message: "§fYou're visiting the territory of §e%owner% §b(%name%)"
 
+bossbar-protected-area-for-sale-message: "§f§eProtected area§f - §6§l FOR SALE §b/claim buy §a(%price%%money-symbol%)"
+bossbar-owner-for-sale-message: "§eYour territory §f- §b%name%§f - §6§lFOR SALE §7/claim cancel §a(%price%%money-symbol%)"
+bossbar-member-for-sale-message: "§fTerritory §b%name%§f of §e%owner%§f - §6§lFOR SALE §b/claim buy §a(%price%%money-symbol%)"
+bossbar-visitor-for-sale-message: "§fTerritory §b%name%§f of §e%owner%§f - §6§lFOR SALE §b/claim buy §a(%price%%money-symbol%)"
+
 
 # > Players messages
 
@@ -193,7 +198,6 @@ remove-ban-success-aclaim: "§e%player%§f is now unbanned from the claim §e%cl
 claim-in-sale-cancel-aclaim: "§fThe claim §e%name%§f of §e%player%§f is not in sale anymore."
 protected-area-title: "protected areas"
 all-your-claims-title: "all your claims"
-purge-started-manualy: "§fPurge started! Check the results in the console."
 banned-all-claim-protected-area-player: "§fYou have been banned from §call protected areas§f."
 banned-all-claim-player: "§c%owner%§f banned you from §call his claims§f."
 unbanned-all-claim-protected-area-player: "§fYou have been unbanned from §aall protected areas§f."
@@ -215,7 +219,7 @@ economy-setup-how-to: "§fSend in the chat the new max sell price like this :\n�
 map-setup-how-to: "§fSend in the chat the settings like this :\n§b<CLAIM-BORDER-COLOR>§f;§b<CLAIM-FILL-COLOR>§f;§b<CLAIM-HOVER-TEXT>"
 map-must-be-three-settings: "§cThe map requires 3 parameters:\n§c<CLAIM-BORDER-COLOR>;<CLAIM-FILL-COLOR>;<CLAIM-HOVER-TEXT>"
 map-new-settings: "§fNew map settings:\n%settings%"
-money-symbol: "\\$" # keep the \\
+money-symbol: "$"
 delete-claim-protected-area: "§aProtected area deleted successfully."
 delete-claim-all-protected-areas: "§aAll protected areas deleted successfully."
 delete-chunk-success: "§aChunk §f%chunk% §adeleted successfully from §f%claim-name%§a."
@@ -235,17 +239,6 @@ add-chunk-already-owner-protected-area: |
   §fThis is already a protected area.
   §fUse §d/parea merge %claim-name% %claim-name-1%§f to merge them.
 add-chunk-already-in-claim-protected-area: "§cThis chunk already belongs to the protected area '%claim-name%'."
-group-must-be-nine-settings: "§cThe group requires 9 parameters:\n§c<GROUP-NAME>;<PERMISSION>;<MAX-CLAIMS>;<MAX-RADIUS-CLAIMS>;<TELEPORTATION-DELAY>;<MAX-MEMBERS>;<CLAIM-COST>;<CLAIM-COST-MULTIPLIER>;<MAX-CHUNKS-PER-CLAIM>;<CLAIM-DISTANCE>;<MAX-CHUNKS-TOTAL>"
-group-values-must-be-number: "§cThe group values must be a number for all of them."
-player-must-be-eight-settings: "§cThe player requires 8 parameters:\n§c<PLAYER-NAME>;<MAX-CLAIMS>;<MAX-RADIUS-CLAIMS>;<TELEPORTATION-DELAY>;<MAX-MEMBERS>;<CLAIM-COST>;<CLAIM-COST-MULTIPLIER>;<MAX-CHUNKS-PER-CLAIM>;<CLAIM-DISTANCE>;<MAX-CHUNKS-TOTAL>"
-player-values-must-be-number: "§cThe player values must be a number for all of them."
-group-setup-how-to: "§fSend in the chat the group values like this :\n§b<GROUP-NAME>§f;§b<PERMISSION>§f;§b<MAX-CLAIMS>§f;§b<MAX-RADIUS-CLAIMS>§f;§b<TELEPORTATION-DELAY>§f;§b<MAX-MEMBERS>§f;§b<CLAIM-COST>§f;§b<CLAIM-COST-MULTIPLIER>§f;§b<MAX-CHUNKS-PER-CLAIM>§f;§b<CLAIM-DISTANCE>§f;§b<MAX-CHUNKS-TOTAL>"
-player-setup-how-to: "§fSend in the chat the player values like this :\n§b<PLAYER-NAME>§f;§b<MAX-CLAIMS>§f;§b<MAX-RADIUS-CLAIMS>§f;§b<TELEPORTATION-DELAY>§f;§b<MAX-MEMBERS>§f;§b<CLAIM-COST>§f;§b<CLAIM-COST-MULTIPLIER>§f;§b<MAX-CHUNKS-PER-CLAIM>§f;§b<CLAIM-DISTANCE>§f;§b<MAX-CHUNKS-TOTAL>"
-group2-setup-how-to: "§fSend in the chat the group you want to delete."
-player2-setup-how-to: "§fSend in the chat the player you want to delete."
-group-does-not-exist: "§cThe group '%group%' does not exist."
-player-does-not-exist: "§cThe player '%player%' does not exist."
-you-can-not-delete-default-group: "§cYou can not delete the default group."
 chunk-are-loading: "§fCalculation and loading of §b%chunks-count% chunks§f.."
 chunk-while-loading: "§fChunks loaded: §a%loaded-chunks%§2/%chunks-count%§f."
 griefprevention-needed: "§cYou need GriefPrevention to import claims from this plugin."
@@ -270,6 +263,7 @@ claim-distance-must-be-positive: "§cThe claim distance must be positive."
 claim-distance-must-be-number: "§cThe claim distance must be a number."
 set-group-max-chunks-total-success: "§e%group%§f can have a total of §e%amount%§f chunks."
 set-group-claim-distance-success: "§e%group%§f can claim with a distance of §e%amount%§f chunks."
+can-not-buy-your-own-claim: "§cYou can not buy your own claim."
 
 
 # > Deny messages
@@ -291,7 +285,11 @@ tripwires: "§cYou cannot trigger tripwires in this territory"
 entities: "§cYou cannot interact with this entity"
 damages: "§cYou cannot deal damages in this territory"
 teleportations: "§cYou cannot teleport to this territory"
-visitors: "§cYou cannot visit this territory"
+enter: "§cYou cannot enter into this territory"
+guiteleport: "§cYou cannot teleport to this territory"
+portals: "§cYou cannot use portals in this territory"
+itemspickup: "§cYou cannot pickup items in this territory"
+itemsdrop: "§cYou cannot drop items in this territoty"
 pvp: "§cYou cannot pvp in this territory"
 claim-fly-disabled-on-damage: "§cClaim fly disabled because you received damage"
 
@@ -302,31 +300,66 @@ claim-fly-disabled-on-damage: "§cClaim fly disabled because you received damage
 # Use %name% for claim's name
 
 enter-protected-area: "§fYou enter a §eprotected area"
+enter-protected-area-for-sale: "§fYou enter a §eprotected area§f - §6§l FOR SALE §b/claim buy §a(%price%%money-symbol%)"
 leave-protected-area: "§fYou leave a §eprotected area"
-enter-territory: "§fYou enter the territory of §e%owner%"
-leave-territory: "§fYou leave the territory of §e%owner%"
+
+enter-territory: "§fYou enter the territory of §e%owner%§f"
+enter-territory-for-sale: "§fYou enter the territory of §e%owner%§f - §6§lFOR SALE §b/claim buy §a(%price%%money-symbol%)"
+leave-territory: "§fYou leave the territory of §e%owner%§f"
+
 enter-protected-area-title: ""
 enter-protected-area-subtitle: "§fYou enter a §eprotected area"
+enter-protected-area-for-sale-title: "§6§lFOR SALE"
+enter-protected-area-for-sale-subtitle: "§fYou enter a §eprotected area§f - §b/claim buy §a(%price%%money-symbol%)"
 leave-protected-area-title: ""
 leave-protected-area-subtitle: "§fYou leave a §eprotected area"
+
 enter-territory-title: "§e%owner%"
 enter-territory-subtitle: "§fYou enter the territory of"
+enter-territory-for-sale-title: "§e%owner%"
+enter-territory-for-sale-subtitle: "§fTerritory §6§lFOR SALE §b/claim buy §a(%price%%money-symbol%)"
 leave-territory-title: "§e%owner%"
 leave-territory-subtitle: "§fYou leave the territory of"
-enter-protected-area-chat: "§fYou enter a §eprotected area"
-leave-protected-area-chat: "§fYou leave a §eprotected area"
-enter-territory-chat: "§fYou enter the territory of §e%owner%"
-leave-territory-chat: "§fYou leave the territory of §e%owner%"
+
+enter-protected-area-chat: "§fYou enter a §eprotected area§f."
+enter-protected-area-for-sale-chat: |
+  §fYou enter a §eprotected area§f.
+  §6§lFOR SALE §b/claim buy §a(%price%%money-symbol%)
+leave-protected-area-chat: "§fYou leave a §eprotected area§f."
+
+enter-territory-chat: "§fYou enter the territory of §e%owner%§f."
+enter-territory-for-sale-chat: |
+  §fYou enter the territory of §e%owner%§f.
+  §fThis territory is §6§lFOR SALE §b/claim buy §a(%price%%money-symbol%)
+leave-territory-chat: "§fYou leave the territory of §e%owner%§f."
 
 
 # > Gui messages
 # Use \n for new line only for lores messages
 
+gui-bans-title: "Bans: %name% (Page %page%)"
+gui-chunks-title: "Chunks: %name% (Page %page%)"
+gui-list-title: "My claims (Page %page%)"
+gui-main-title: "%name%"
+gui-members-title: "Members: %name% (Page %page%)"
+gui-settings-new-title: "Settings: %name% (%role%)"
+gui-claims-title: "Claims (Page %page%)"
+gui-claims-owner-title: "Claims: %owner% (Page %page%)"
+
 gui-button-no-permission: "§cYou don't have the permission"
+
+to-unban: " to unban"
+to-remove-chunk: " to remove this chunk"
+to-teleport: " to teleport"
+to-remove: " to remove"
+to-manage: " to manage"
+to-remove-member: " to remove this member"
+to-use-setting: " to use this setting"
+to-buy: " to buy"
 
 owner-claim-title: "§e%owner%"
 owner-claim-lore: "§7Claims: §b%claim-amount%"
-owner-claim-access: "§7▸ §fDisplay his claims"
+owner-claim-access: "§7▸ §fDisplay their claims"
 
 access-all-claim-title: "§e%name% §b(Territory of %owner%)"
 access-all-claim-lore: "§7%description%\n \n§7Members:\n%members%\n \n"
@@ -377,50 +410,47 @@ choice-setting-disabled: "§cThis setting cannot be modified"
 apply-all-claims-title: "§eApply settings to all claims"
 apply-all-claims-lore: "§7Apply these settings to all my claims\n§7▸ §fClick to perform"
 
-visitors-title: "§eVisitors §7(%status%§7)"
-visitors-lore: "§7Can players teleport to your claim with /claims"
-
 build-title: "§eBuild §7(%status%§7)"
-build-lore: "§7Allow visitors to build"
+build-lore: "§7Allow to build"
 
 destroy-title: "§eDestroy §7(%status%§7)"
-destroy-lore: "§7Allow visitors to destroy"
+destroy-lore: "§7Allow to destroy"
 
 buttons-title: "§eUse buttons §7(%status%§7)"
-buttons-lore: "§7Allow visitors to use buttons"
+buttons-lore: "§7Allow to use buttons"
 
 items-title: "§eUse items §7(%status%§7)"
-items-lore: "§7Allow visitors to use items"
+items-lore: "§7Allow to use items"
 
 interactblocks-title: "§eInteract blocks §7(%status%§7)"
-interactblocks-lore: "§7Allow visitors to interact with blocks (chest..)"
+interactblocks-lore: "§7Allow to interact with blocks (chest..)"
 
 levers-title: "§eUse levers §7(%status%§7)"
-levers-lore: "§7Allow visitors to use levers"
+levers-lore: "§7Allow to use levers"
 
 plates-title: "§eUse pressure plates §7(%status%§7)"
-plates-lore: "§7Allow visitors to use pressure plates"
+plates-lore: "§7Allow to use pressure plates"
 
 doors-title: "§eOpen doors §7(%status%§7)"
-doors-lore: "§7Allow visitors to open doors"
+doors-lore: "§7Allow to open doors"
 
 trapdoors-title: "§eOpen trap doors §7(%status%§7)"
-trapdoors-lore: "§7Allow visitors to open trap doors"
+trapdoors-lore: "§7Allow to open trap doors"
 
 fencegates-title: "§eOpen fence gates §7(%status%§7)"
-fencegates-lore: "§7Allow visitors to open fence gates"
+fencegates-lore: "§7Allow to open fence gates"
 
 tripwires-title: "§eTrigger tripwires §7(%status%§7)"
-tripwires-lore: "§7Allow visitors to trigger tripwires"
+tripwires-lore: "§7Allow to trigger tripwires"
 
 repeaterscomparators-title: "§eUse repeaters/comparators §7(%status%§7)"
-repeaterscomparators-lore: "§7Allow visitors to use repeaters/comparators"
+repeaterscomparators-lore: "§7Allow to use repeaters/comparators"
 
 bells-title: "§eUse bells §7(%status%§7)"
-bells-lore: "§7Allow visitors to use bells"
+bells-lore: "§7Allow to use bells"
 
 entities-title: "§eInteract with entities §7(%status%§7)"
-entities-lore: "§7Allow visitors to interact with entities"
+entities-lore: "§7Allow to interact with entities"
 
 explosions-title: "§eExplosions §7(%status%§7)"
 explosions-lore: "§7Allow explosions of any type"
@@ -438,10 +468,10 @@ firespread-title: "§eFire spread §7(%status%§7)"
 firespread-lore: "§7Can the fire spread in the territory"
 
 teleportations-title: "§eNatural teleportations §7(%status%§7)"
-teleportations-lore: "§7Allow visitors to teleport naturally (enderpearl,\n§7chorus fruit, etc)"
+teleportations-lore: "§7Allow to teleport naturally (enderpearl,\n§7chorus fruit, etc)"
 
 damages-title: "§eEntity damage §7(%status%§7)"
-damages-lore: "§7Allow visitors to deal damage to entities"
+damages-lore: "§7Allow to deal damage to entities"
 
 pvp-title: "§ePvP §7(%status%§7)"
 pvp-lore: "§7Allow players to pvp"
@@ -450,10 +480,25 @@ monsters-title: "§eMonsters §7(%status%§7)"
 monsters-lore: "§7Allow spawning monsters"
 
 weather-title: "§eWeather §7(%status%§7)"
-weather-lore: "§7Allow raining/snowing/thundering"
+weather-lore: "§7Allow raining/snowing/thundering for players"
 
 fly-title: "§eFly §7(%status%§7)"
-fly-lore: "§7Allow visitors to fly"
+fly-lore: "§7Allow to fly"
+
+guiteleport-title: "§eTeleport via GUI §7(%status%§7)"
+guiteleport-lore: "§7Allow to use /claims to teleport"
+
+enter-title: "§eEnter §7(%status%§7)"
+enter-lore: "§7Allow to enter physically into the claim"
+
+portals-title: "§eUse portals §7(%status%§7)"
+portals-lore: "§7Allow to use portals"
+
+itemspickup-title: "§eItems pickup §7(%status%§7)"
+itemspickup-lore: "§7Allow to pickup the items on the ground"
+
+itemsdrop-title: "§eItems drop §7(%status%§7)"
+itemsdrop-lore: "§7Allow to drop items on the ground"
 
 manage-members-title: "§aMembers"
 manage-members-lore: "§7Manage members"
@@ -498,6 +543,12 @@ filter-owner-lore: "§7Change filter\n%status_color_1%➲ All claims\n%status_co
 filter-list-lore: "§7Change filter\n%status_color_1%➲ My claims\n%status_color_2%➲ Member claims\n§7▸ §fClick to change"
 status_color_active_filter: "§a"
 status_color_inactive_filter: "§8"
+
+role-title: "§eRole"
+role-lore: "§7Change the target role\n%status_color_1%➲ Visitors\n%status_color_2%➲ Members\n%status_color_3%➲ Natural\n§7▸ §fClick to change"
+role-members: "Members"
+role-visitors: "Visitors"
+role-natural: "Natural"
 
 
 # > Placeholders messages
@@ -617,6 +668,15 @@ help-command:
   claim-kick: |
     §bSyntax : §f/claim kick [<*|claim-name>] <player>
     §bDescription : §fKick a player physically from a claim
+  claim-addchunk: |
+    §bSyntax : §f/claim addchunk <claim-name>
+    §bDescription : §fAdd a chunk to a claim
+  claim-delchunk: |
+    §bSyntax : §f/claim delchunk <claim-name> <chunk>
+    §bDescription : §fRemove a chunk from a claim, use chunk arg as world;x;z
+  claim-main: |
+    §bSyntax : §f/claim main <claim-name>
+    §bDescription : §fOpen the main menu of a claim
   unclaim-unclaim: |
     %help-separator%
     §bSyntax : §f/unclaim [<claim-name|*>]
@@ -680,10 +740,13 @@ help-command:
     §bSyntax : §f/scs transfer
     §bDescription : §fTransfer local db to distant db
   scs-player: |
-    §bSyntax : §f/scs player <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|set-claim-distance|set-max-chunks-total|tp|unclaim|main|list> <args>
-    §bDescription : §fManage player settings and claims
+    §bSyntax : §f/scs player <tp|unclaim|main|list> <player> [<claim>]
+    §bDescription : §fManage player claims
+  scs-cplayer: |
+    §bSyntax : §f/scs cplayer <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|set-claim-distance|set-max-chunks-total> <args>
+    §bDescription : §fManage player settings
   scs-group: |
-    §bSyntax : §f/scs group <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|set-claim-distance|set-max-chunks-total|tp|unclaim|main|list> <args>
+    §bSyntax : §f/scs group <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|set-claim-distance|set-max-chunks-total> <args>
     §bDescription : §fManage group settings and claims
   scs-forceunclaim: |
     §bSyntax : §f/scs forceunclaim <claim>
@@ -694,99 +757,6 @@ help-command:
   scs-set-lang: |
     §bSyntax : §f/scs set-lang <language>
     §bDescription : §fSet the language for the plugin
-  scs-set-actionbar: |
-    §bSyntax : §f/scs set-actionbar <true|false>
-    §bDescription : §fEnable or disable actionbar notifications
-  scs-set-auto-claim: |
-    §bSyntax : §f/scs set-auto-claim <true|false>
-    §bDescription : §fEnable or disable auto-claim
-  scs-set-title-subtitle: |
-    §bSyntax : §f/scs set-title-subtitle <true|false>
-    §bDescription : §fEnable or disable title and subtitle notifications
-  scs-set-economy: |
-    §bSyntax : §f/scs set-economy <true|false>
-    §bDescription : §fEnable or disable economy integration
-  scs-set-claim-confirmation: |
-    §bSyntax : §f/scs set-claim-confirmation <true|false>
-    §bDescription : §fEnable or disable claim confirmation
-  scs-set-claim-particles: |
-    §bSyntax : §f/scs set-claim-particles <true|false>
-    §bDescription : §fEnable or disable claim particles
-  scs-set-max-sell-price: |
-    §bSyntax : §f/scs set-max-sell-price <amount>
-    §bDescription : §fSet the maximum sell price for claims
-  scs-set-bossbar: |
-    §bSyntax : §f/scs set-bossbar <true|false>
-    §bDescription : §fEnable or disable bossbar notifications
-  scs-set-bossbar-color: |
-    §bSyntax : §f/scs set-bossbar-color <color>
-    §bDescription : §fSet the bossbar color
-  scs-set-bossbar-style: |
-    §bSyntax : §f/scs set-bossbar-style <style>
-    §bDescription : §fSet the bossbar style
-  scs-set-teleportation: |
-    §bSyntax : §f/scs set-teleportation <true|false>
-    §bDescription : §fEnable or disable teleportation
-  scs-set-teleportation-moving: |
-    §bSyntax : §f/scs set-teleportation-moving <true|false>
-    §bDescription : §fEnable or disable teleportation while moving
-  scs-add-blocked-interact-block: |
-    §bSyntax : §f/scs add-blocked-interact-block <material>
-    §bDescription : §fAdd a blocked interact block
-  scs-add-blocked-entity: |
-    §bSyntax : §f/scs add-blocked-entity <entity>
-    §bDescription : §fAdd a blocked entity
-  scs-add-blocked-item: |
-    §bSyntax : §f/scs add-blocked-item <material>
-    §bDescription : §fAdd a blocked item
-  scs-remove-blocked-interact-block: |
-    §bSyntax : §f/scs remove-blocked-interact-block <material>
-    §bDescription : §fRemove a blocked interact block
-  scs-remove-blocked-entity: |
-    §bSyntax : §f/scs remove-blocked-entity <entity>
-    §bDescription : §fRemove a blocked entity
-  scs-remove-blocked-item: |
-    §bSyntax : §f/scs remove-blocked-item <material>
-    §bDescription : §fRemove a blocked item
-  scs-add-disabled-world: |
-    §bSyntax : §f/scs add-disabled-world <world>
-    §bDescription : §fAdd a disabled world
-  scs-remove-disabled-world: |
-    §bSyntax : §f/scs remove-disabled-world <world>
-    §bDescription : §fRemove a disabled world
-  scs-set-status-setting: |
-    §bSyntax : §f/scs set-status-setting <setting> <true|false>
-    §bDescription : §fSet a status setting
-  scs-set-default-value: |
-    §bSyntax : §f/scs set-default-value <setting> <true|false>
-    §bDescription : §fSet a default value
-  scs-set-max-length-claim-description: |
-    §bSyntax : §f/scs set-max-length-claim-description <length>
-    §bDescription : §fSet the max length for claim descriptions
-  scs-set-max-length-claim-name: |
-    §bSyntax : §f/scs set-max-length-claim-name <length>
-    §bDescription : §fSet the max length for claim names
-  scs-set-claims-visitors-off-visible: |
-    §bSyntax : §f/scs set-claims-visitors-off-visible <true|false>
-    §bDescription : §fSet visibility for claims with visitors off
-  scs-set-claim-cost: |
-    §bSyntax : §f/scs set-claim-cost <amount>
-    §bDescription : §fSet the cost for claiming land
-  scs-set-claim-cost-multiplier: |
-    §bSyntax : §f/scs set-claim-cost-multiplier <amount>
-    §bDescription : §fSet the cost multiplier for claiming land
-  scs-set-chat: |
-    §bSyntax : §f/scs set-chat <true|false>
-    §bDescription : §fEnable or disable chat notifications
-  scs-set-protection-message: |
-    §bSyntax : §f/scs set-protection-message <ACTION_BAR|BOSSBAR|TITLE|SUBTITLE|CHAT>
-    §bDescription : §fSet the type of protection message
-  scs-set-claim-fly-message-auto-fly: |
-    §bSyntax : §f/scs set-claim-fly-message-auto-fly <true|false>
-    §bDescription : §fEnable or disable auto-fly messages in claims
-  scs-set-claim-fly-disabled-on-damage: |
-    §bSyntax : §f/scs set-claim-fly-disabled-on-damage <true|false>
-    §bDescription : §fEnable or disable fly disable on damage in claims
   scs-reset-all-player-claims-settings: |
     §bSyntax : §f/scs reset-all-player-claims-settings
     §bDescription : §fReset all player claim settings to default

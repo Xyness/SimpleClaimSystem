@@ -244,20 +244,24 @@ status-settings:
   Firespread: true
   Teleportations: true
   Damages: true
-  EnterTeleport: true
   Pvp: true
   Monsters: true
   Weather: true
   Fly: true
+  GuiTeleport: true
+  Portals: true
+  Enter: true
+  ItemsPickup: true
+  ItemsDrop: true
 
 # List of default values for the settings
 default-values-settings:
   Members:
-    Build: false
-    Destroy: false
+    Build: true
+    Destroy: true
     Buttons: true
     Items: true
-    InteractBlocks: false
+    InteractBlocks: true
     Levers: true
     Plates: true
     Doors: true
@@ -266,13 +270,17 @@ default-values-settings:
     Tripwires: true
     RepeatersComparators: true
     Bells: true
-    Entities: false
-    Frostwalker: false
-    Teleportations: false
-    Damages: false
-    EnterTeleport: true
+    Entities: true
+    Frostwalker: true
+    Teleportations: true
+    Damages: true
     Fly: true
     Weather: false
+    GuiTeleport: true
+    Portals: true
+    Enter: true
+    ItemsPickup: true
+    ItemsDrop: true
   Visitors:
     Build: false
     Destroy: false
@@ -291,9 +299,13 @@ default-values-settings:
     Frostwalker: false
     Teleportations: false
     Damages: false
-    EnterTeleport: false
     Fly: false
     Weather: true
+    GuiTeleport: true
+    Portals: false
+    Enter: true
+    ItemsPickup: false
+    ItemsDrop: false
   Natural:
     Explosions: false
     Liquids: false
