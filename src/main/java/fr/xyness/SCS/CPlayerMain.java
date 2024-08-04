@@ -216,7 +216,7 @@ public class CPlayerMain {
 
                     try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
                         preparedStatement.setString(1, uuid.toString());
-                        preparedStatement.setString(2, uuid_mojang);
+                        preparedStatement.setString(2, uuid_mojang == null ? "none" : uuid_mojang);
                         preparedStatement.setString(3, playerName);
                         preparedStatement.setString(4, "");
                         preparedStatement.setString(5, textures == null ? "none" : textures);
@@ -235,6 +235,7 @@ public class CPlayerMain {
 
             // Check if the player has changed name (premium players)
             if (!oldName.equals(playerName)) {
+            	
                 // Log this
                 instance.getLogger().info(oldName + " changed his name to " + playerName + " (" + uuid.toString() + "), new name saved.");
                 playersUUID.remove(oldName);

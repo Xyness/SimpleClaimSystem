@@ -47,13 +47,13 @@ import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
@@ -213,7 +213,7 @@ public class ClaimEvents implements Listener {
      * @param event the pickup items event.
      */
     @EventHandler
-    public void onPlayerPickupItem(PlayerAttemptPickupItemEvent event) {
+    public void onPlayerPickupItem(PlayerPickupItemEvent event) {
     	Chunk chunk = event.getItem().getLocation().getChunk();
     	Player player = event.getPlayer();
     	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
