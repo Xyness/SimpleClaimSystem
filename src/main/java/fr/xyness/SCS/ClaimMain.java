@@ -1021,7 +1021,7 @@ public class ClaimMain {
                 while (rs.next()) {
                     int id = rs.getInt("id");
                     String uuid = rs.getString("uuid");
-                    String owner_uuid = uuid.equals("aucun") ? "none" : uuid;
+                    String owner_uuid = uuid.equals("aucun") ? SERVER_UUID.toString() : uuid;
                     String owner_name = rs.getString("name").equals("admin") ? "*" : rs.getString("name");
                     String claim_name = rs.getString("claim_name");
                     String claim_description = rs.getString("claim_description");
@@ -1199,8 +1199,8 @@ public class ClaimMain {
                     while (rs.next()) {
         	   
                     	int id = rs.getInt("id");
-		        	    String owner_uuid = rs.getString("uuid");
 		        	    String owner_name = rs.getString("name");
+		        	    String owner_uuid = owner_name.equals("*") ? SERVER_UUID.toString() : rs.getString("uuid");
 		        	    String claim_name = rs.getString("claim_name");
 		        	    String claim_description = rs.getString("claim_description");
 		        	    String world_name = rs.getString("World");

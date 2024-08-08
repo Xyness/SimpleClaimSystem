@@ -391,6 +391,9 @@ public class SimpleClaimSystem extends JavaPlugin {
                 		    + "player_head TEXT NOT NULL, "
                 		    + "player_textures TEXT NOT NULL)";
                 		stmt.executeUpdate(sql);
+                		
+                		sql = "UPDATE scs_claims_1 SET owner_uuid = '" + ClaimMain.SERVER_UUID.toString() + "' WHERE owner_uuid = 'none';";
+                		stmt.executeUpdate(sql);
                 } catch (SQLException e) {
                     info(ChatColor.RED + "Error creating tables, using local db.");
                     configC = "false";
@@ -445,6 +448,8 @@ public class SimpleClaimSystem extends JavaPlugin {
                 		    "player_head TEXT NOT NULL, " +
                 		    "player_textures TEXT NOT NULL)";
                     stmt.executeUpdate(sql);
+            		sql = "UPDATE scs_claims_1 SET owner_uuid = '" + ClaimMain.SERVER_UUID.toString() + "' WHERE owner_uuid = 'none';";
+            		stmt.executeUpdate(sql);
                 } catch (SQLException e) {
                     info(ChatColor.RED + "Error creating tables, disabling plugin.");
                     return false;
