@@ -3,7 +3,6 @@ package fr.xyness.SCS.Commands;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -13,28 +12,20 @@ import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.boss.BarColor;
-import org.bukkit.boss.BarStyle;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.SimpleClaimSystem;
-import fr.xyness.SCS.Guis.ClaimBansGui;
-import fr.xyness.SCS.Guis.ClaimMembersGui;
-import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimMainGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimsOwnerGui;
-import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimsProtectedAreasGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionMainGui;
 
 /**
