@@ -264,6 +264,7 @@ claim-distance-must-be-number: "§cThe claim distance must be a number."
 set-group-max-chunks-total-success: "§e%group%§f can have a total of §e%amount%§f chunks."
 set-group-claim-distance-success: "§e%group%§f can claim with a distance of §e%amount%§f chunks."
 can-not-buy-your-own-claim: "§cYou can not buy your own claim."
+claim-already-in-sale: "§cThis claim is already in sale."
 
 
 # > Deny messages

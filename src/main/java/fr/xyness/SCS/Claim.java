@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -25,6 +24,9 @@ public class Claim {
 	
 	/** The id associated with this claim */
 	private int id;
+	
+	/** The UUID of the owner */
+	private UUID uuid_owner;
 	
     /** The chunks associated with this claim */
     private Set<Chunk> chunks;
@@ -65,7 +67,8 @@ public class Claim {
     /**
      * Main constructor initializing all fields.
      * 
-     * @param chunk The chunk associated with this claim
+     * @param uuid_owner The UUID of the owner
+     * @param chunks The chunks associated with this claim
      * @param owner The owner of the claim
      * @param members Members who have access to the claim
      * @param location Location of the claim
@@ -76,8 +79,9 @@ public class Claim {
      * @param price Price of the claim if for sale
      * @param bans Banned members from the claim
      */
-    public Claim(Set<Chunk> chunks, String owner, Set<UUID> members, Location location, String name, String description, Map<String,LinkedHashMap<String, Boolean>> permissions, boolean sale, Double price, Set<UUID> bans, int id) {
-        this.chunks = chunks;
+    public Claim(UUID uuid_owner, Set<Chunk> chunks, String owner, Set<UUID> members, Location location, String name, String description, Map<String,LinkedHashMap<String, Boolean>> permissions, boolean sale, Double price, Set<UUID> bans, int id) {
+    	this.uuid_owner = uuid_owner;
+    	this.chunks = chunks;
         this.owner = owner;
         this.members = new HashSet<>(members);
         this.location = location;
@@ -104,6 +108,13 @@ public class Claim {
      * @param id The new id
      */
     public void setId(int id) { this.id = id; }
+    
+    /**
+     * Sets the UUID of the owner
+     * 
+     * @param uuid_owner The new UUID
+     */
+    public void setUUID(UUID uuid_owner) { this.uuid_owner = uuid_owner; }
     
     /**
      * Sets the chunk for this claim.
@@ -183,6 +194,13 @@ public class Claim {
      * @return The id
      */
     public int getId() { return this.id; }
+    
+    /**
+     * Gets the UUID of the owner
+     * 
+     * @return The id
+     */
+    public UUID getUUID() { return this.uuid_owner; }
     
     /**
      * Gets the chunk associated with this claim.

@@ -107,7 +107,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private JavaPlugin plugin;
     
     /** The version of the plugin */
-    private String Version = "1.11.1.2";
+    private String Version = "1.11.1.3";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -366,30 +366,31 @@ public class SimpleClaimSystem extends JavaPlugin {
             try (Connection connection = dataSource.getConnection()) {
                 info("Database connection successful.");
                 try (Statement stmt = connection.createStatement()) {
-                	String sql = "CREATE TABLE IF NOT EXISTS scs_claims_1 " +
-                		    "(id INT AUTO_INCREMENT PRIMARY KEY, " +
-                		    "id_claim INT NOT NULL, " +
-                		    "owner_uuid VARCHAR(36) NOT NULL, " +
-                		    "owner_name VARCHAR(36) NOT NULL, " +
-                		    "claim_name VARCHAR(255) NOT NULL, " +
-                		    "claim_description VARCHAR(255) NOT NULL, " +
-                		    "chunks TEXT NOT NULL, " +
-                		    "world_name VARCHAR(255) NOT NULL, " +
-                		    "location VARCHAR(255) NOT NULL, " +
-                		    "members TEXT NOT NULL, " +
-                		    "permissions VARCHAR(510) NOT NULL, " +
-                		    "for_sale TINYINT(1) NOT NULL DEFAULT 0, " +
-                		    "sale_price DOUBLE NOT NULL DEFAULT 0, " +
-                		    "bans TEXT NOT NULL DEFAULT '')";
-                    stmt.executeUpdate(sql);
-                	sql = "CREATE TABLE IF NOT EXISTS scs_players " +
-                		    "(id INTEGER PRIMARY KEY AUTOINCREMENT, " +
-                		    "uuid_server VARCHAR(36) NOT NULL UNIQUE, " +
-                		    "uuid_mojang VARCHAR(36) NOT NULL, " + 
-                		    "player_name VARCHAR(36) NOT NULL, " +
-                		    "player_head TEXT NOT NULL, " +
-                		    "player_textures TEXT NOT NULL)";
-                    stmt.executeUpdate(sql);
+                	String sql = "CREATE TABLE IF NOT EXISTS scs_claims_1 ("
+                		    + "id INT AUTO_INCREMENT PRIMARY KEY, "
+                		    + "id_claim INT NOT NULL, "
+                		    + "owner_uuid VARCHAR(36) NOT NULL, "
+                		    + "owner_name VARCHAR(36) NOT NULL, "
+                		    + "claim_name VARCHAR(255) NOT NULL, "
+                		    + "claim_description VARCHAR(255) NOT NULL, "
+                		    + "chunks TEXT NOT NULL, "
+                		    + "world_name VARCHAR(255) NOT NULL, "
+                		    + "location VARCHAR(255) NOT NULL, "
+                		    + "members TEXT NOT NULL, "
+                		    + "permissions VARCHAR(510) NOT NULL, "
+                		    + "for_sale TINYINT(1) NOT NULL DEFAULT 0, "
+                		    + "sale_price DOUBLE NOT NULL DEFAULT 0, "
+                		    + "bans TEXT NOT NULL)";
+                		stmt.executeUpdate(sql);
+
+                		sql = "CREATE TABLE IF NOT EXISTS scs_players ("
+                		    + "id INT AUTO_INCREMENT PRIMARY KEY, " 
+                		    + "uuid_server VARCHAR(36) NOT NULL UNIQUE, "
+                		    + "uuid_mojang VARCHAR(36) NOT NULL, "
+                		    + "player_name VARCHAR(36) NOT NULL, "
+                		    + "player_head TEXT NOT NULL, "
+                		    + "player_textures TEXT NOT NULL)";
+                		stmt.executeUpdate(sql);
                 } catch (SQLException e) {
                     info(ChatColor.RED + "Error creating tables, using local db.");
                     configC = "false";

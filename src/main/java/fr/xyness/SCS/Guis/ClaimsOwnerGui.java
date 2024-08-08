@@ -85,7 +85,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
     	
 	    	// Get player data
 	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
-	        int claimsCount = cPlayer.getClaimsCount();
+	        int claimsCount = instance.getMain().getPlayerClaims(owner).size();
 	        Set<Claim> claims = getClaims(filter, owner);
 	        
 	        // Update player data (gui)

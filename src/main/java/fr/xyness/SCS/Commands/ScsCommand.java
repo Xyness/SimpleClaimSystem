@@ -846,7 +846,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 int new_amount = cTarget.getMaxRadiusClaims()+amount;
                 config.set("players."+name+".max-radius-claims", new_amount);
-                cTarget.setMaxClaims(new_amount);
+                cTarget.setMaxRadiusClaims(new_amount);
                 try {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-radius-claim-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
@@ -867,11 +867,11 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 try {
                     amount = Integer.parseInt(args[3]);
                     if(amount < 0) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("member-limit-radius-must-be-positive"));
+                    	sender.sendMessage(instance.getLanguage().getMessage("member-limit-must-be-positive"));
                         return;
                     }
                 } catch (NumberFormatException e) {
-                	sender.sendMessage(instance.getLanguage().getMessage("member-limit-radius-must-be-number"));
+                	sender.sendMessage(instance.getLanguage().getMessage("member-limit-must-be-number"));
                     return;
                 }
                 
@@ -879,10 +879,76 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 int new_amount = cTarget.getMaxRadiusClaims()+amount;
                 config.set("players."+name+".max-members", new_amount);
-                cTarget.setMaxClaims(new_amount);
+                cTarget.setMaxMembers(new_amount);
                 try {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-player-member-limit-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+                return;
+        	}
+        	if(args[1].equalsIgnoreCase("add-chunks-per-claim")) {
+    			Player target = Bukkit.getPlayer(args[2]);
+    			if(target == null) {
+    				sender.sendMessage(instance.getLanguage().getMessage("player-not-online"));
+    				return;
+    			}
+    			String name = target.getName();
+    			CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
+                int amount;
+                try {
+                    amount = Integer.parseInt(args[3]);
+                    if(amount < 0) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-per-claim-must-be-positive"));
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-per-claim-must-be-number"));
+                    return;
+                }
+                
+                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                int new_amount = cTarget.getMaxRadiusClaims()+amount;
+                config.set("players."+name+".max-chunks-per-claim", new_amount);
+                cTarget.setMaxChunksPerClaim(new_amount);
+                try {
+                	config.save(configFile);
+                	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-chunks-per-claim-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+                return;
+        	}
+        	if(args[1].equalsIgnoreCase("add-chunks-total")) {
+    			Player target = Bukkit.getPlayer(args[2]);
+    			if(target == null) {
+    				sender.sendMessage(instance.getLanguage().getMessage("player-not-online"));
+    				return;
+    			}
+    			String name = target.getName();
+    			CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
+                int amount;
+                try {
+                    amount = Integer.parseInt(args[3]);
+                    if(amount < 0) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-total-must-be-positive"));
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-total-must-be-number"));
+                    return;
+                }
+                
+                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                int new_amount = cTarget.getMaxRadiusClaims()+amount;
+                config.set("players."+name+".max-chunks-total", new_amount);
+                cTarget.setMaxChunksTotal(new_amount);
+                try {
+                	config.save(configFile);
+                	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-chunks-total-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -1153,7 +1219,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 break;
             case "group":
             case "cplayer":
-                completions.addAll(List.of("add-limit", "add-radius", "add-members", "set-limit", "set-radius", "set-delay",
+                completions.addAll(List.of("add-limit", "add-radius", "add-members", "add-chunks-per-claim", "add-chunks-total", "set-limit", "set-radius", "set-delay",
                         "set-members", "set-claim-cost", "set-claim-cost-multiplier", "set-max-chunks-per-claim",
                         "set-claim-distance", "set-max-chunks-total"));
                 break;
