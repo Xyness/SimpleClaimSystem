@@ -762,9 +762,19 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 	player.sendMessage(instance.getLanguage().getMessage("cant-transfer-ownership-yourself"));
                     return;
                 }
-                final String tName = targetName;
-            	instance.getMain().getPlayerClaims(playerName).forEach(c -> instance.getMain().setOwner(tName, c));
-            	player.sendMessage(instance.getLanguage().getMessage("setowner-all-success").replace("%owner%", tName));
+                String message = instance.getLanguage().getMessage("setowner-all-success").replace("%owner%", targetName);
+            	instance.getMain().setOwner(targetName, instance.getMain().getPlayerClaims(playerName), playerName)
+	            	.thenAccept(success -> {
+	            		if (success) {
+	            			player.sendMessage(message);
+	            		} else {
+	            			player.sendMessage(instance.getLanguage().getMessage("error"));
+	            		}
+	            	})
+	                .exceptionally(ex -> {
+	                    ex.printStackTrace();
+	                    return null;
+	                });
                 return;
             }
             Claim claim = instance.getMain().getClaimByName(args[1], player);
@@ -812,6 +822,10 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             if (claim == null) {
             	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
                 return;
+            }
+            if (claim.getSale()) {
+            	player.sendMessage(instance.getLanguage().getMessage("claim-already-in-sale"));
+            	return;
             }
             try {
                 Double price = Double.parseDouble(args[2]);
@@ -1326,6 +1340,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             player.sendMessage(instance.getLanguage().getMessage("claim-is-not-in-sale"));
+            return;
         }
         instance.getMain().getHelp(player, args[0], "claim");
     }

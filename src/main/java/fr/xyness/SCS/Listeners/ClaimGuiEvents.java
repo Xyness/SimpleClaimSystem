@@ -200,13 +200,15 @@ public class ClaimGuiEvents implements Listener {
         if(claim == null || role == null) return;
         
         if(clickedSlot == 50) {
-        	player.closeInventory();
         	instance.getMain().applyAllSettings(claim)
         		.thenAccept(success -> {
         			if (success) {
-        				player.sendMessage(instance.getLanguage().getMessage("apply-all-settings-success"));
+        				instance.executeEntitySync(player, () -> {
+            				player.closeInventory();
+            				player.sendMessage(instance.getLanguage().getMessage("apply-all-settings-success"));
+        				});
         			} else {
-        				player.sendMessage(instance.getLanguage().getMessage("error"));
+        				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
         			}
         		})
                 .exceptionally(ex -> {
@@ -252,8 +254,7 @@ public class ClaimGuiEvents implements Listener {
                             	meta.setLore(lore);
                             	clickedItem.setItemMeta(meta);
                 			} else {
-                                player.closeInventory();
-                                player.sendMessage(instance.getLanguage().getMessage("error"));
+                				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
                 			}
                 		})
                         .exceptionally(ex -> {
@@ -271,8 +272,7 @@ public class ClaimGuiEvents implements Listener {
                         	meta.setLore(lore);
                         	clickedItem.setItemMeta(meta);
                 		} else {
-                            player.closeInventory();
-                            player.sendMessage(instance.getLanguage().getMessage("error"));
+                			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
                 		}
                 	})
                     .exceptionally(ex -> {
@@ -329,16 +329,15 @@ public class ClaimGuiEvents implements Listener {
         	instance.getMain().removeClaimMember(claim, targetName)
         		.thenAccept(success -> {
         			if (success) {
-        				player.sendMessage(message);
         	            int page = cPlayer.getGuiPage();
         	        	new ClaimMembersGui(player,claim,page,instance);
+        	        	instance.executeEntitySync(player, () -> player.sendMessage(message));
                         Player target = Bukkit.getPlayer(targetName);
                         if(target != null && target.isOnline()) {
-                        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replace("%claim-name%", claim.getName()).replace("%owner%", playerName));
+                        	instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replace("%claim-name%", claim.getName()).replace("%owner%", playerName)));
                         }
         			} else {
-        				player.closeInventory();
-        				player.sendMessage(instance.getLanguage().getMessage("error"));
+        				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
         			}
         		})
                 .exceptionally(ex -> {
@@ -391,11 +390,11 @@ public class ClaimGuiEvents implements Listener {
         	instance.getMain().removeClaimChunk(claim, chunk)
     		.thenAccept(success -> {
     			if (success) {
-    				player.sendMessage(instance.getLanguage().getMessage("delete-chunk-success").replace("%chunk%", "["+chunk+"]").replace("%claim-name%", claim.getName()));
+    				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("delete-chunk-success").replace("%chunk%", "["+chunk+"]").replace("%claim-name%", claim.getName())));
     	            int page = cPlayer.getGuiPage();
     	        	new ClaimChunksGui(player,claim,page,instance);
     			} else {
-    				player.sendMessage(instance.getLanguage().getMessage("error"));
+    				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
     			}
     		})
             .exceptionally(ex -> {
@@ -450,16 +449,15 @@ public class ClaimGuiEvents implements Listener {
         	instance.getMain().removeClaimBan(claim, targetName)
         		.thenAccept(success -> {
         			if (success) {
-        				player.sendMessage(message);
+        				instance.executeEntitySync(player, () -> player.sendMessage(message));
         	            int page = cPlayer.getGuiPage();
         	        	new ClaimBansGui(player,claim,page,instance);
                         Player target = Bukkit.getPlayer(targetName);
         		        if (target != null && target.isOnline()) {
-        		        	target.sendMessage(instance.getLanguage().getMessage("unbanned-claim-player").replace("%owner%", playerName).replace("%claim-name%", claim.getName()));
+        		        	instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("unbanned-claim-player").replace("%owner%", playerName).replace("%claim-name%", claim.getName())));
         		        }
         			} else {
-        				player.closeInventory();
-        				player.sendMessage(instance.getLanguage().getMessage("error"));
+        				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
         			}
         		})
                 .exceptionally(ex -> {
@@ -525,7 +523,7 @@ public class ClaimGuiEvents implements Listener {
             		Claim claim = cPlayer.getMapClaim(clickedSlot);
             		if(claim == null) return;
             		if(!claim.getPermissionForPlayer("GuiTeleport",player) && !claim.getOwner().equals(player.getName())) return;
-	            	player.closeInventory();
+            		player.closeInventory();
 		        	instance.getMain().goClaim(player, cPlayer.getMapLoc(clickedSlot));
 		        	return;
             	}
@@ -543,12 +541,11 @@ public class ClaimGuiEvents implements Listener {
             	instance.getMain().deleteClaim(claim)
             		.thenAccept(success -> {
             			if (success) {
-            				player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
+            				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("territory-delete-success")));
                         	int page = cPlayer.getGuiPage();
                             new ClaimListGui(player,page,cPlayer.getFilter(),instance);
             			} else {
-            				player.closeInventory();
-            				player.sendMessage(instance.getLanguage().getMessage("error"));
+            				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
             			}
             		})
                     .exceptionally(ex -> {
@@ -663,7 +660,7 @@ public class ClaimGuiEvents implements Listener {
         	if(event.getClick() == ClickType.LEFT) {
         		if(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) {
 		            if(!claim.getPermissionForPlayer("GuiTeleport",player) && !claim.getOwner().equals(player.getName())) return;
-	            	player.closeInventory();
+		            instance.executeEntitySync(player, () -> player.closeInventory());
 		        	instance.getMain().goClaim(player, cPlayer.getMapLoc(clickedSlot));
 		        	return;
         		}
@@ -690,16 +687,18 @@ public class ClaimGuiEvents implements Listener {
             			instance.getMain().sellChunk(player, claim)
             				.thenAccept(success -> {
             					if (success) {
-	            	                player.sendMessage(instance.getLanguage().getMessage("buy-claim-success").replace("%name%", old_name).replace("%price%", String.valueOf(price)).replace("%owner%", old_owner.equalsIgnoreCase("*") ? "protected areas" : old_owner).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
-	            	                player.closeInventory();
+            						instance.executeEntitySync(player, () -> {
+    	            	                player.sendMessage(instance.getLanguage().getMessage("buy-claim-success").replace("%name%", old_name).replace("%price%", String.valueOf(price)).replace("%owner%", old_owner.equalsIgnoreCase("*") ? "protected areas" : old_owner).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+    	            	                player.closeInventory();
+            						});
 	            	                if(!old_owner.equalsIgnoreCase("*")) {
 	                	                Player target = Bukkit.getPlayer(old_owner);
 	                	                if(target != null && target.isOnline()) {
-	                	                	target.sendMessage(instance.getLanguage().getMessage("claim-was-sold").replace("%name%", old_name).replace("%buyer%", playerName).replace("%price%", String.valueOf(price)).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+	                	                	instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("claim-was-sold").replace("%name%", old_name).replace("%buyer%", playerName).replace("%price%", String.valueOf(price)).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
 	                	                }
 	            	                }
             					} else {
-            						player.sendMessage(instance.getLanguage().getMessage("error"));
+            						instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
             					}
             				})
                             .exceptionally(ex -> {
@@ -810,13 +809,13 @@ public class ClaimGuiEvents implements Listener {
 	    			.thenAccept(success -> {
 	    				if(success) {
 	        				new AdminGestionClaimsGui(player,1,filter,instance);
-	        				player.sendMessage(instance.getLanguage().getMessage("player-unclaim-other-all-claim-aclaim").replace("%player%", target));
+	        				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("player-unclaim-other-all-claim-aclaim").replace("%player%", target)));
 	        				Player pTarget = Bukkit.getPlayer(target);
 	        				if(pTarget != null) {
-	        					pTarget.sendMessage(instance.getLanguage().getMessage("player-all-claim-unclaimed-by-admin").replace("%player%", player.getName()));
+	        					instance.executeEntitySync(pTarget, () -> pTarget.sendMessage(instance.getLanguage().getMessage("player-all-claim-unclaimed-by-admin").replace("%player%", player.getName())));
 	        				}
 	    				} else {
-	    					player.sendMessage(instance.getLanguage().getMessage("error"));
+	    					instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
 	    				}
 	    			})
 	    			.exceptionally(ex -> {
@@ -888,14 +887,14 @@ public class ClaimGuiEvents implements Listener {
         		instance.getMain().deleteClaim(claim)
 				.thenAccept(success -> {
 					if (success) {
-        				player.sendMessage(instance.getLanguage().getMessage("player-unclaim-other-claim-aclaim").replace("%name%", claim_name).replace("%player%", owner));
+						instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("player-unclaim-other-claim-aclaim").replace("%name%", claim_name).replace("%player%", owner)));
         				Player target = Bukkit.getPlayer(owner);
         				if(target != null) {
-        					target.sendMessage(instance.getLanguage().getMessage("player-claim-unclaimed-by-admin").replace("%name%", claim_name).replace("%player%", player.getName()));
+        					instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("player-claim-unclaimed-by-admin").replace("%name%", claim_name).replace("%player%", player.getName())));
         				}
         				new AdminGestionClaimsOwnerGui(player,cPlayer.getGuiPage(),cPlayer.getFilter(),owner,instance);
 					} else {
-						player.sendMessage(instance.getLanguage().getMessage("error"));
+						instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
 					}
 				})
 		        .exceptionally(ex -> {
@@ -933,7 +932,7 @@ public class ClaimGuiEvents implements Listener {
         	instance.getMain().applyAllSettings(claim)
         		.thenAccept(success -> {
         			if (success) {
-                		player.sendMessage(instance.getLanguage().getMessage("apply-all-settings-success-aclaim").replace("%player%", claim.getOwner()));
+        				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("apply-all-settings-success-aclaim").replace("%player%", claim.getOwner())));
                 		String target = cPlayer.getOwner();
                     	if(target.equals("*")) {
                     		new AdminGestionClaimsProtectedAreasGui(player,1,cPlayer.getFilter(), instance);
@@ -941,8 +940,7 @@ public class ClaimGuiEvents implements Listener {
                     	}
                     	new AdminGestionClaimsOwnerGui(player,1,cPlayer.getFilter(),target, instance);
         			} else {
-        				player.closeInventory();
-        				player.sendMessage(instance.getLanguage().getMessage("error"));
+        				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
         			}
         		})
                 .exceptionally(ex -> {
@@ -983,8 +981,7 @@ public class ClaimGuiEvents implements Listener {
                             	meta.setLore(lore);
                             	clickedItem.setItemMeta(meta);
                 			} else {
-                                player.closeInventory();
-                                player.sendMessage(instance.getLanguage().getMessage("error"));
+                				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
                 			}
                 		})
                         .exceptionally(ex -> {
@@ -1002,8 +999,7 @@ public class ClaimGuiEvents implements Listener {
                         	meta.setLore(lore);
                         	clickedItem.setItemMeta(meta);
                 		} else {
-                            player.closeInventory();
-                            player.sendMessage(instance.getLanguage().getMessage("error"));
+                			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
                 		}
                 	})
                     .exceptionally(ex -> {
@@ -1062,16 +1058,15 @@ public class ClaimGuiEvents implements Listener {
     		instance.getMain().removeClaimMember(claim, targetName)
     			.thenAccept(success -> {
     				if (success) {
-    					player.sendMessage(message);
+    					instance.executeEntitySync(player, () -> player.sendMessage(message));
                         int page = cPlayer.getGuiPage();
                     	new AdminGestionClaimMembersGui(player,claim,page,instance);
             			Player target = Bukkit.getPlayer(targetName);
             			if(target != null && target.isOnline()) {
-            				target.sendMessage(targetMessage);
+            				instance.executeEntitySync(target, () -> target.sendMessage(targetMessage));
             			}
     				} else {
-    					player.closeInventory();
-    					player.sendMessage(instance.getLanguage().getMessage("error"));
+    					instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
     				}
     			})
                 .exceptionally(ex -> {
@@ -1129,16 +1124,15 @@ public class ClaimGuiEvents implements Listener {
     		instance.getMain().removeClaimBan(claim, targetName)
     			.thenAccept(success -> {
     				if (success) {
-    					player.sendMessage(message);
+    					instance.executeEntitySync(player, () -> player.sendMessage(message));
                         int page = cPlayer.getGuiPage();
                     	new AdminGestionClaimBansGui(player,claim,page,instance);
             			Player target = Bukkit.getPlayer(targetName);
             			if(target != null && target.isOnline()) {
-            				target.sendMessage(targetMessage);
+            				instance.executeEntitySync(target, () -> target.sendMessage(targetMessage));
             			}
     				} else {
-    					player.closeInventory();
-    					player.sendMessage(instance.getLanguage().getMessage("error"));
+    					instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
     				}
     			})
                 .exceptionally(ex -> {
@@ -1202,10 +1196,10 @@ public class ClaimGuiEvents implements Listener {
         		instance.getMain().deleteClaim(claim)
         			.thenAccept(success -> {
         				if (success) {
-        					player.sendMessage(instance.getLanguage().getMessage("delete-claim-protected-area"));
+        					instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("delete-claim-protected-area")));
         					new AdminGestionClaimsProtectedAreasGui(player,cPlayer.getGuiPage(),cPlayer.getFilter(),instance);
         				} else {
-        					player.sendMessage(instance.getLanguage().getMessage("error"));
+        					instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
         				}
         			})
         	        .exceptionally(ex -> {
@@ -1327,11 +1321,11 @@ public class ClaimGuiEvents implements Listener {
         	instance.getMain().removeClaimChunk(claim, chunk)
         		.thenAccept(success -> {
         			if (success) {
-        				player.sendMessage(instance.getLanguage().getMessage("delete-chunk-success").replace("%chunk%", "["+chunk+"]").replace("%claim-name%", claim.getName()));
+        				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("delete-chunk-success").replace("%chunk%", "["+chunk+"]").replace("%claim-name%", claim.getName())));
         	            int page = cPlayer.getGuiPage();
         	        	new AdminGestionClaimChunksGui(player,claim,page,instance);
         			} else {
-        				player.sendMessage(instance.getLanguage().getMessage("error"));
+        				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
         			}
         		})
                 .exceptionally(ex -> {
