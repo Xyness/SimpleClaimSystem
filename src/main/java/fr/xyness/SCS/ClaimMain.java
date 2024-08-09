@@ -411,7 +411,11 @@ public class ClaimMain {
      */
     public Map<String, Integer> getClaimsOwnersGui() {
     	Map<String,Integer> players = new HashMap<>();
-    	playerClaims.keySet().stream().forEach(UUID -> players.put(instance.getPlayerMain().getPlayerName(UUID), playerClaims.get(UUID).size()));
+    	playerClaims.keySet().stream().forEach(UUID -> {
+    		if(!UUID.equals(SERVER_UUID)) {
+    			players.put(instance.getPlayerMain().getPlayerName(UUID), playerClaims.get(UUID).size());
+    		}
+    	});
         return players;
     }
     
@@ -488,7 +492,7 @@ public class ClaimMain {
                 .flatMap(Set::stream) // Flatten the list of sets into a single stream of claims
                 .filter(claim -> {
                     Player player = Bukkit.getPlayer(claim.getOwner());
-                    return player != null && player.isOnline();
+                    return player != null && player.isOnline() && !claim.getUUID().equals(SERVER_UUID);
                 })
                 .collect(Collectors.toConcurrentMap(
                         Claim::getOwner, // Key: owner name
@@ -506,6 +510,7 @@ public class ClaimMain {
     public Map<String, Integer> getClaimsOwnersWithSales() {
         return playerClaims.entrySet()
                 .stream()
+                .filter(entry -> !entry.getKey().equals(SERVER_UUID))
                 .filter(entry -> entry.getValue().stream().anyMatch(Claim::getSale))
                 .collect(Collectors.toMap(
                         entry -> {
@@ -527,7 +532,7 @@ public class ClaimMain {
                 .flatMap(Set::stream) // Flatten the list of sets into a single stream of claims
                 .filter(claim -> {
                     Player player = Bukkit.getPlayer(claim.getOwner());
-                    return player == null;
+                    return player == null && !claim.getUUID().equals(SERVER_UUID);
                 })
                 .collect(Collectors.toConcurrentMap(
                         Claim::getOwner, // Key: owner name
@@ -1753,7 +1758,7 @@ public class ClaimMain {
 
                             // Add claim to owner
                             if (owner != null) {
-                                if(owner.equals("*")) owners.put(owner, uuid_owner.toString());
+                                if(!owner.equals("*")) owners.put(owner, uuid_owner.toString());
                                 playerClaims.computeIfAbsent(uuid_owner, k -> ConcurrentHashMap.newKeySet()).add(claim);
                             }
 
