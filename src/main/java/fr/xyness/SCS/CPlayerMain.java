@@ -1,11 +1,6 @@
 package fr.xyness.SCS;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
@@ -32,8 +27,6 @@ import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
@@ -41,7 +34,6 @@ import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -151,11 +143,12 @@ public class CPlayerMain {
             String name = entry.getKey();
             String uuid_mojang = entry.getValue();
             String uuid_server = owners.get(name);
+            
+            UUID uuid_server_real = UUID.fromString(uuid_server);
+            playersName.put(uuid_server_real, name);
+            playersUUID.put(name, uuid_server_real);
 
             if (uuid_server != null) {
-                UUID uuid_server_real = UUID.fromString(uuid_server);
-                playersName.put(uuid_server_real, name);
-                playersUUID.put(name, uuid_server_real);
 
                 getSkinURL(uuid_mojang).thenAccept(textures -> {
                     ItemStack playerHead;
@@ -171,6 +164,7 @@ public class CPlayerMain {
                     return null;
                 });
             } else {
+            	playersHashedTexture.put(name, "none");
                 playersHead.put(name, new ItemStack(Material.PLAYER_HEAD));
             }
         }
