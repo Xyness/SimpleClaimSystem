@@ -1,6 +1,7 @@
 package fr.xyness.SCS.Listeners;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -42,6 +43,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
+import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
@@ -58,6 +60,8 @@ import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
 
 import fr.xyness.SCS.CPlayer;
@@ -77,6 +81,38 @@ public class ClaimEvents implements Listener {
 	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
+    
+    // Potions effect to cancel for 1.18
+    private final List<PotionEffectType> NEGATIVE_EFFECTS_1_18 = Arrays.asList(
+        PotionEffectType.HARM,
+        PotionEffectType.POISON,
+        PotionEffectType.WITHER,
+        PotionEffectType.SLOW,
+        PotionEffectType.WEAKNESS,
+        PotionEffectType.BLINDNESS,
+        PotionEffectType.HUNGER,
+        PotionEffectType.SLOW_DIGGING,
+        PotionEffectType.LEVITATION,
+        PotionEffectType.CONFUSION
+    );
+    
+    // Potions effect to cancel for > 1.19
+    private final List<PotionEffectType> NEGATIVE_EFFECTS_1_19_PLUS = Arrays.asList(
+        PotionEffectType.HARM,
+        PotionEffectType.POISON,
+        PotionEffectType.WITHER,
+        PotionEffectType.SLOW,
+        PotionEffectType.WEAKNESS,
+        PotionEffectType.BLINDNESS,
+        PotionEffectType.HUNGER,
+        PotionEffectType.SLOW_DIGGING,
+        PotionEffectType.LEVITATION,
+        PotionEffectType.CONFUSION,
+        PotionEffectType.DARKNESS
+    );
+    
+    /** Bukkit version */
+    private final String bukkitVersion = Bukkit.getVersion();
     
     
     // ******************
@@ -118,6 +154,37 @@ public class ClaimEvents implements Listener {
 			}
 		}
 	}
+	
+	/**
+	 * Handles player damage events by splash potion (to prevent pvp)
+	 * 
+	 * @param event the potion splash event
+	 */
+    @EventHandler
+    public void onPotionSplash(PotionSplashEvent event) {
+	    if(event.getEntity() instanceof Player) {
+	    	Player damager = (Player) event.getEntity();
+	    	if(damager.hasPermission("scs.bypass")) return;
+	    	List<PotionEffectType> NEGATIVE_EFFECTS = getPotionList();
+	        for (PotionEffect effect : event.getPotion().getEffects()) {
+	            if (NEGATIVE_EFFECTS.contains(effect.getType())) {
+	                for (Entity entity : event.getAffectedEntities()) {
+	                    if (entity.getType() == EntityType.PLAYER) {
+	                    	Player player = (Player) entity;
+	                    	Chunk chunk = player.getLocation().getChunk();
+	                    	Claim claim = instance.getMain().getClaim(chunk);
+	                    	if(claim != null) {
+	            	            if(!claim.getPermission("Pvp", "Natural")) {
+	            	                instance.getMain().sendMessage(damager, instance.getLanguage().getMessage("pvp"), instance.getSettings().getSetting("protection-message"));
+	            	                event.setIntensity(player, 0.0);
+	            	            }
+	                    	}
+	                    }
+	                }
+	            }
+	        }
+	    }
+    }
 	
 	/**
 	 * Handles player damage events to disable claim fly on damage.
@@ -1034,6 +1101,18 @@ public class ClaimEvents implements Listener {
             event.setCancelled(true);
             instance.getMain().sendMessage(player, instance.getLanguage().getMessage("damages"), instance.getSettings().getSetting("protection-message"));
         }
+    }
+    
+    /**
+     * Gets the potion list depending on the bukkit version
+     * 
+     * @return The potion list
+     */
+    private List<PotionEffectType> getPotionList(){
+    	if(bukkitVersion.contains("1.18")) {
+    		return NEGATIVE_EFFECTS_1_18;
+    	}
+    	return NEGATIVE_EFFECTS_1_19_PLUS;
     }
     
 }

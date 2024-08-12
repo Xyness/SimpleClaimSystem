@@ -79,9 +79,8 @@ public class ClaimEventsEnterLeave implements Listener {
         
         if (!instance.getMain().checkIfClaimExists(chunk)) return;
 
-        String playerName = player.getName();
         Claim claim = instance.getMain().getClaim(chunk);
-        if (instance.getMain().checkBan(claim, playerName) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
+        if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
         	playersRejected.add(player);
             instance.getMain().teleportPlayer(player, Bukkit.getWorlds().get(0).getSpawnLocation());
             return;
@@ -127,7 +126,6 @@ public class ClaimEventsEnterLeave implements Listener {
         	return;
         }
         UUID playerId = player.getUniqueId();
-        String playerName = player.getName();
         CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
         if(cPlayer == null) return;
         
@@ -136,7 +134,7 @@ public class ClaimEventsEnterLeave implements Listener {
         
         Claim claim = instance.getMain().getClaim(to);
         if(claim != null) {
-	        if (instance.getMain().checkBan(claim, playerName) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
+	        if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
 	            cancelTeleport(event, player, "player-banned");
 	            return;
 	        }
@@ -221,7 +219,7 @@ public class ClaimEventsEnterLeave implements Listener {
 
         Claim claim = instance.getMain().getClaim(to);
         if(claim != null) {
-	        if (instance.getMain().checkBan(claim, playerName) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
+	        if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
 	        	playersRejected.add(player);
 	        	instance.getMain().teleportPlayer(player, event.getFrom());
 	            instance.getMain().sendMessage(player, instance.getLanguage().getMessage("player-banned"), instance.getSettings().getSetting("protection-message"));
