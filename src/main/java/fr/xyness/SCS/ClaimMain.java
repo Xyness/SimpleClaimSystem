@@ -606,6 +606,7 @@ public class ClaimMain {
     public Set<String> convertUUIDSetToStringSet(Set<UUID> uuids) {
         return uuids.stream()
                 .map(uuid -> instance.getPlayerMain().getPlayerName(uuid))
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet());
     }
     
@@ -2232,19 +2233,20 @@ public class ClaimMain {
      * @return true if the player name is a member of the claim, false otherwise
      */
     public boolean checkMembre(Claim claim, String targetName) {
-        return claim != null && claim.getMembers().stream().anyMatch(member -> instance.getPlayerMain().getPlayerName(member).equalsIgnoreCase(targetName));
+        return claim != null && claim.getMembers().stream()
+                .map(ban -> instance.getPlayerMain().getPlayerName(ban))
+                .anyMatch(playerName -> playerName != null && playerName.equalsIgnoreCase(targetName));
     }
     
     /**
      * Checks if a player is banned from a claim.
      *
-     * @param chunk  the chunk to check
+     * @param claim  the claim to check
      * @param player the player to check
      * @return true if the player is banned from the claim, false otherwise
      */
-    public boolean checkBan(Chunk chunk, Player player) {
-        Claim claim = listClaims.get(chunk);
-        return claim != null && claim.getBans().contains(player.getUniqueId());
+    public boolean checkBan(Claim claim, Player player) {
+    	return claim == null ? false : claim.getBans().contains(player.getUniqueId());
     }
 
     /**
@@ -2255,7 +2257,9 @@ public class ClaimMain {
      * @return true if the player name is banned from the claim, false otherwise
      */
     public boolean checkBan(Claim claim, String targetName) {
-        return claim != null && claim.getBans().stream().anyMatch(ban -> instance.getPlayerMain().getPlayerName(ban).equalsIgnoreCase(targetName));
+        return claim != null && claim.getBans().stream()
+            .map(ban -> instance.getPlayerMain().getPlayerName(ban))
+            .anyMatch(playerName -> playerName != null && playerName.equalsIgnoreCase(targetName));
     }
 
     /**
