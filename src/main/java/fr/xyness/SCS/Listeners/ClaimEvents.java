@@ -22,6 +22,7 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -144,6 +145,7 @@ public class ClaimEvents implements Listener {
 		Player player = event.getPlayer();
 		String playerName = player.getName();
 		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+		if(cPlayer == null) return;
 		if(cPlayer.getClaimChat()) {
 			event.setCancelled(true);
 			String msg = instance.getLanguage().getMessage("chat-format").replace("%player%",playerName).replace("%message%", event.getMessage());
@@ -160,31 +162,39 @@ public class ClaimEvents implements Listener {
 	 * 
 	 * @param event the potion splash event
 	 */
-    @EventHandler
-    public void onPotionSplash(PotionSplashEvent event) {
-	    if(event.getEntity() instanceof Player) {
-	    	Player damager = (Player) event.getEntity();
-	    	if(damager.hasPermission("scs.bypass")) return;
-	    	List<PotionEffectType> NEGATIVE_EFFECTS = getPotionList();
-	        for (PotionEffect effect : event.getPotion().getEffects()) {
-	            if (NEGATIVE_EFFECTS.contains(effect.getType())) {
-	                for (Entity entity : event.getAffectedEntities()) {
-	                    if (entity.getType() == EntityType.PLAYER) {
-	                    	Player player = (Player) entity;
-	                    	Chunk chunk = player.getLocation().getChunk();
-	                    	Claim claim = instance.getMain().getClaim(chunk);
-	                    	if(claim != null) {
-	            	            if(!claim.getPermission("Pvp", "Natural")) {
-	            	                instance.getMain().sendMessage(damager, instance.getLanguage().getMessage("pvp"), instance.getSettings().getSetting("protection-message"));
-	            	                event.setIntensity(player, 0.0);
-	            	            }
-	                    	}
+	@EventHandler
+	public void onPotionSplash(PotionSplashEvent event) {
+
+	    if (event.getEntity() instanceof ThrownPotion) {
+	        ThrownPotion thrownPotion = (ThrownPotion) event.getEntity();
+
+	        if (thrownPotion.getShooter() instanceof Player) {
+	            Player damager = (Player) thrownPotion.getShooter();
+
+	            if (damager.hasPermission("scs.bypass")) return;
+	            List<PotionEffectType> NEGATIVE_EFFECTS = getPotionList();
+
+	            for (PotionEffect effect : thrownPotion.getEffects()) {
+	                if (NEGATIVE_EFFECTS.contains(effect.getType())) {
+	                    for (Entity entity : event.getAffectedEntities()) {
+	                        if (entity.getType() == EntityType.PLAYER) {
+	                            Player player = (Player) entity;
+	                            Chunk chunk = player.getLocation().getChunk();
+	                            Claim claim = instance.getMain().getClaim(chunk);
+
+	                            if (claim != null) {
+	                                if (!claim.getPermission("Pvp", "Natural")) {
+	                                    instance.getMain().sendMessage(damager, instance.getLanguage().getMessage("pvp"), instance.getSettings().getSetting("protection-message"));
+	                                    event.setIntensity(player, 0.0);
+	                                }
+	                            }
+	                        }
 	                    }
 	                }
 	            }
 	        }
 	    }
-    }
+	}
 	
 	/**
 	 * Handles player damage events to disable claim fly on damage.
