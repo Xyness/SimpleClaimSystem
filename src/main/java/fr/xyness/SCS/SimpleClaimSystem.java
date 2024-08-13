@@ -754,28 +754,6 @@ public class SimpleClaimSystem extends JavaPlugin {
         // Check Folia
         checkFolia();
         
-        // Check GriefPrevention
-        if (Bukkit.getPluginManager().getPlugin("GriefPrevention") != null) {
-            claimSettingsInstance.addSetting("griefprevention", "true");
-        } else {
-            claimSettingsInstance.addSetting("griefprevention", "false");
-        }
-        
-        // Check PlaceholderAPI
-        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
-            claimSettingsInstance.addSetting("placeholderapi", "true");
-            new ClaimPlaceholdersExpansion(this).register();
-        } else {
-            claimSettingsInstance.addSetting("placeholderapi", "false");
-        }
-        
-        // Check WorldGuard
-        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
-            claimSettingsInstance.addSetting("worldguard", "true");
-        } else {
-            claimSettingsInstance.addSetting("worldguard", "false");
-        }
-        
         // Check Vault
         boolean check_vault = false;
         if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
@@ -788,30 +766,6 @@ public class SimpleClaimSystem extends JavaPlugin {
             }
         } else {
             claimSettingsInstance.addSetting("vault", "false");
-        }
-        
-        // Check Dynmap
-        Plugin dynmap = Bukkit.getPluginManager().getPlugin("dynmap");
-        if (dynmap != null) {
-            claimSettingsInstance.addSetting("dynmap", "true");
-        } else {
-            claimSettingsInstance.addSetting("dynmap", "false");
-        }
-        
-        // Check Bluemap
-        Plugin bluemap = Bukkit.getPluginManager().getPlugin("bluemap");
-        if (bluemap != null) {
-            claimSettingsInstance.addSetting("bluemap", "true");
-        } else {
-            claimSettingsInstance.addSetting("bluemap", "false");
-        }
-        
-        // Check Pl3xmap
-        Plugin pl3xmap = Bukkit.getPluginManager().getPlugin("pl3xmap");
-        if (pl3xmap != null) {
-            claimSettingsInstance.addSetting("pl3xmap", "true");
-        } else {
-            claimSettingsInstance.addSetting("pl3xmap", "false");
         }
 
         // Check "langs" folder
