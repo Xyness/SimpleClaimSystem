@@ -1622,7 +1622,8 @@ public class ClaimMain {
                         max_i++;
 
                         // General data
-                        UUID uuid_owner = UUID.fromString(resultSet.getString("owner_uuid"));
+                        String uuid_string = resultSet.getString("owner_uuid");
+                        UUID uuid_owner = (uuid_string.equals("none") || uuid_string.equals("aucun")) ? SERVER_UUID : UUID.fromString(uuid_string);
                         String permissions = resultSet.getString("permissions");
                         String name = resultSet.getString("claim_name");
                         String description = resultSet.getString("claim_description");

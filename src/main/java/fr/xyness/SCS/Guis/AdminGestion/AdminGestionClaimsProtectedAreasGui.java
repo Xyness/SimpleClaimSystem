@@ -4,6 +4,8 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.*;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -292,6 +294,8 @@ public class AdminGestionClaimsProtectedAreasGui implements InventoryHolder {
             if (name != null) meta.setDisplayName(name);
             if (lore != null) meta.setLore(lore);
             meta = instance.getGuis().setItemFlag(meta);
+            AttributeModifier modifier = new AttributeModifier(UUID.randomUUID(), "generic.armor", 0, AttributeModifier.Operation.ADD_NUMBER);
+            meta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);
             item.setItemMeta(meta);
         }
         return item;

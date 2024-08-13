@@ -388,7 +388,7 @@ public class CPlayerMain {
         ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1);
         SkullMeta meta = (SkullMeta) head.getItemMeta();
 
-        if (meta != null && uuid != null && !uuid.isBlank() && texture != null && !texture.isBlank() && !texture.equals("none")) {
+        if (meta != null && uuid != null && !uuid.isBlank() && texture != null && !texture.isBlank() && !texture.equals("none") && !uuid.equals("none")) {
             PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString(uuid));
             if(texture != null) {
                 try {
