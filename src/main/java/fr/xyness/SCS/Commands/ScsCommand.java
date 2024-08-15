@@ -431,7 +431,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".claim-distance", amount);
                 if(target != null && target.isOnline()) {
@@ -473,7 +473,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".max-chunks-total", amount);
                 if(target != null && target.isOnline()) {
@@ -515,7 +515,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".max-chunks-per-claim", amount);
                 if(target != null && target.isOnline()) {
@@ -557,7 +557,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".claim-cost", amount);
                 if(target != null && target.isOnline()) {
@@ -598,7 +598,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".claim-cost-multiplier", amount);
                 if(target != null && target.isOnline()) {
@@ -639,7 +639,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".max-members", amount);
                 if(target != null && target.isOnline()) {
@@ -680,7 +680,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".max-claims", amount);
                 if(target != null && target.isOnline()) {
@@ -721,7 +721,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".max-radius-claims", amount);
                 if(target != null && target.isOnline()) {
@@ -763,7 +763,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".teleportation-delay", amount);
                 if(target != null && target.isOnline()) {
@@ -800,7 +800,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 int new_amount = cTarget.getMaxClaims()+amount;
                 config.set("players."+name+".max-claims", new_amount);
@@ -833,7 +833,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 int new_amount = cTarget.getMaxRadiusClaims()+amount;
                 config.set("players."+name+".max-radius-claims", new_amount);
@@ -866,7 +866,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 int new_amount = cTarget.getMaxRadiusClaims()+amount;
                 config.set("players."+name+".max-members", new_amount);
@@ -899,7 +899,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 int new_amount = cTarget.getMaxRadiusClaims()+amount;
                 config.set("players."+name+".max-chunks-per-claim", new_amount);
@@ -932,7 +932,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 int new_amount = cTarget.getMaxRadiusClaims()+amount;
                 config.set("players."+name+".max-chunks-total", new_amount);
@@ -967,7 +967,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("groups."+args[2]+".claim-distance", amount);
                 instance.getSettings().getGroupsSettings().get(args[2]).put("claim-distance", amount);
@@ -992,7 +992,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("groups."+args[2]+".max-chunks-total", amount);
                 instance.getSettings().getGroupsSettings().get(args[2]).put("max-chunks-total", amount);
@@ -1017,7 +1017,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("groups."+args[2]+".max-chunks-per-claim", amount);
                 instance.getSettings().getGroupsSettings().get(args[2]).put("max-chunks-per-claim", amount);
@@ -1042,7 +1042,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("groups."+args[2]+".claim-cost", amount);
                 instance.getSettings().getGroupsSettings().get(args[2]).put("claim-cost", amount);
@@ -1067,7 +1067,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("groups."+args[2]+".claim-cost-multiplier", amount);
                 instance.getSettings().getGroupsSettings().get(args[2]).put("claim-cost-multiplier", amount);
@@ -1092,7 +1092,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("groups."+args[2]+".max-members", amount);
                 instance.getSettings().getGroupsSettings().get(args[2]).put("max-members", amount);
@@ -1117,7 +1117,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("groups."+args[2]+".max-claims", amount);
                 instance.getSettings().getGroupsSettings().get(args[2]).put("max-claims", amount);
@@ -1142,7 +1142,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("groups."+args[2]+".max-radius-claims", amount);
                 instance.getSettings().getGroupsSettings().get(args[2]).put("max-radius-claims", amount);
@@ -1167,7 +1167,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
                 
-                File configFile = new File(instance.getPlugin().getDataFolder(), "config.yml");
+                File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("groups."+args[2]+".teleportation-delay", amount);
                 instance.getSettings().getGroupsSettings().get(args[2]).put("teleportation-delay", amount);

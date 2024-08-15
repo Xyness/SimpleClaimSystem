@@ -44,6 +44,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
+import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
@@ -140,7 +141,7 @@ public class ClaimEvents implements Listener {
 	 * Handles player chat events for claim chat.
 	 * @param event the player chat event.
 	 */
-	@EventHandler(priority = EventPriority.LOW)
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPlayerChat(AsyncPlayerChatEvent event) {
 		Player player = event.getPlayer();
 		String playerName = player.getName();
@@ -158,8 +159,29 @@ public class ClaimEvents implements Listener {
 	}
 	
 	/**
+	 * Handles player glide event for Elytra.
+	 * @param event the EntityToggleGlideEvent.
+	 */
+    @EventHandler
+    public void onPlayerToggleGlide(EntityToggleGlideEvent event) {
+        if (event.getEntity() instanceof Player) {
+            if (event.isGliding()) {
+            	Player player = (Player) event.getEntity();
+            	if (player.hasPermission("scs.bypass")) return;
+            	Chunk chunk = player.getLocation().getChunk();
+                Claim claim = instance.getMain().getClaim(chunk);
+                if (claim != null) {
+                    if (!claim.getPermissionForPlayer("Elytra", player)) {
+                    	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra"), instance.getSettings().getSetting("protection-message"));
+                    	event.setCancelled(true);
+                    }
+                }
+            }
+        }
+    }
+	
+	/**
 	 * Handles player damage events by splash potion (to prevent pvp)
-	 * 
 	 * @param event the potion splash event
 	 */
 	@EventHandler
@@ -407,6 +429,11 @@ public class ClaimEvents implements Listener {
 			if(!claim.getPermissionForPlayer("Destroy", player)) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
+				return;
+			}
+			if(instance.getSettings().getSpecialBlocks().contains(event.getBlock().getType()) && !claim.getPermissionForPlayer("SpecialBlocks", player)) {
+				event.setCancelled(true);
+				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("specialblocks"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
 		}

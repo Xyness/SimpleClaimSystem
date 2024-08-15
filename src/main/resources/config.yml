@@ -253,6 +253,8 @@ status-settings:
   Enter: true
   ItemsPickup: true
   ItemsDrop: true
+  SpecialBlocks: true
+  Elytra: true
 
 # List of default values for the settings
 default-values-settings:
@@ -281,6 +283,8 @@ default-values-settings:
     Enter: true
     ItemsPickup: true
     ItemsDrop: true
+    SpecialBlocks: false
+    Elytra: true
   Visitors:
     Build: false
     Destroy: false
@@ -306,6 +310,8 @@ default-values-settings:
     Enter: true
     ItemsPickup: false
     ItemsDrop: false
+    SpecialBlocks: false
+    Elytra: false
   Natural:
     Explosions: false
     Liquids: false
@@ -455,3 +461,8 @@ blocked-entities:
 - PIG
 - STRIDER
 - LLAMA
+
+# List of blocked containers for the settings "Destroy special blocks"
+# https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+special-blocks:
+- SPAWNER

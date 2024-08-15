@@ -345,7 +345,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 	player.sendMessage(instance.getLanguage().getMessage("incorrect-characters-name"));
                 	return;
                 }
-                if (instance.getMain().checkName(playerName, args[2])) {
+                if (instance.getMain().checkName(player.getUniqueId(), args[2])) {
                 	Claim claim = instance.getMain().getClaimByName(args[1], player);
                 	instance.getMain().setClaimName(claim, args[2])
                 		.thenAccept(success -> {

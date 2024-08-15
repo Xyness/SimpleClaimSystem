@@ -21,6 +21,7 @@ import org.bukkit.entity.Player;
 
 import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.Claim;
+import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Guis.ClaimMainGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimBansGui;
@@ -473,12 +474,12 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     		return;
     	}
     	if(args[0].equalsIgnoreCase("setname")) {
-			if (!instance.getMain().checkName("*",args[1])) {
+			if (!instance.getMain().checkName(ClaimMain.SERVER_UUID,args[1])) {
                 if (args[2].contains("claim-") || !args[2].matches("^[a-zA-Z0-9]+$")) {
                 	player.sendMessage(instance.getLanguage().getMessage("you-cannot-use-this-name"));
                     return;
                 }
-        		if(instance.getMain().checkName("*",args[2])) {
+        		if(instance.getMain().checkName(ClaimMain.SERVER_UUID,args[2])) {
         			Claim claim = instance.getMain().getProtectedAreaByName(args[1]);
                 	instance.getMain().setClaimName(claim, args[2])
             		.thenAccept(success -> {
@@ -512,7 +513,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 				player.sendMessage(instance.getLanguage().getMessage("you-cannot-use-this-name"));
 				return;
 			}
-    		if(instance.getMain().checkName("*",args[1])) {
+    		if(instance.getMain().checkName(ClaimMain.SERVER_UUID,args[1])) {
             	instance.getMain().setClaimName(claim, args[1])
         		.thenAccept(success -> {
         			if (success) {

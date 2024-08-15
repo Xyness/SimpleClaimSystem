@@ -95,7 +95,7 @@ public class ClaimPl3xMap implements EventListener {
                     }
                 }
             }
-            instance.getPlugin().getLogger().info("Claims added to Pl3xMap.");
+            instance.getLogger().info("Claims added to Pl3xMap.");
         });
     }
 

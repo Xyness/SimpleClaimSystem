@@ -33,6 +33,9 @@ public class ClaimSettings {
     /** List of restricted entity types. */
     private List<EntityType> restrictedEntityType = new ArrayList<>();
     
+    /** List of special blocks. */
+    private List<Material> specialBlocks = new ArrayList<>();
+    
     /** Default values for settings. */
     private Map<String,LinkedHashMap<String, Boolean>> defaultValues = new HashMap<>();
     
@@ -341,6 +344,15 @@ public class ClaimSettings {
     public List<EntityType> getRestrictedEntityType() {
         return restrictedEntityType;
     }
+    
+    /**
+     * Gets the list of special blocks.
+     *
+     * @return The list of special blocks.
+     */
+    public List<Material> getSpecialBlocks() {
+        return specialBlocks;
+    }
 
     /**
      * Sets the default values.
@@ -399,6 +411,20 @@ public class ClaimSettings {
                         .map(EntityType::fromName)
                         .filter(Objects::nonNull)
                         .peek(restrictedEntityType::add)
+                        .count();
+    }
+    
+    /**
+     * Sets the special blocks.
+     *
+     * @param mat The list of material names to restrict.
+     * @return The number of restricted blocks added.
+     */
+    public int setSpecialBlocks(List<String> mat) {
+        return (int) mat.stream()
+                        .map(Material::matchMaterial)
+                        .filter(Objects::nonNull)
+                        .peek(specialBlocks::add)
                         .count();
     }
 

@@ -4,6 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Connection;
@@ -19,6 +20,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.io.FileReader;
+import java.io.IOException;
 
 import org.bukkit.*;
 import org.bukkit.boss.BarColor;
@@ -28,6 +31,13 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -187,7 +197,7 @@ public class ClaimMain {
                 if (activeFoliaTasks.containsKey(player)) {
                     activeFoliaTasks.get(player).cancel();
                 }
-                ScheduledTask task = Bukkit.getAsyncScheduler().runAtFixedRate(instance.getPlugin(), subtask -> {
+                ScheduledTask task = Bukkit.getAsyncScheduler().runAtFixedRate(instance, subtask -> {
                     countdownTask.run();
                     if (!player.isOnline()) {
                         subtask.cancel();
@@ -217,7 +227,7 @@ public class ClaimMain {
                             instance.getBossBars().activeBossBar(player, player.getLocation().getChunk());
                         }
                     }
-                }.runTaskTimer(instance.getPlugin(), 0L, 2L);
+                }.runTaskTimer(instance, 0L, 2L);
                 activeTasks.put(player, task);
             }
         };
@@ -720,7 +730,7 @@ public class ClaimMain {
 
         Runnable teleportTask = createTeleportTask(player, loc, originalLocation, delay);
         if (instance.isFolia()) {
-            Bukkit.getAsyncScheduler().runAtFixedRate(instance.getPlugin(), task -> {
+            Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
                 teleportTask.run();
                 if (!playerLocations.containsKey(player)) task.cancel();
             }, 0, 500, TimeUnit.MILLISECONDS);
@@ -730,7 +740,7 @@ public class ClaimMain {
                     teleportTask.run();
                     if (!playerLocations.containsKey(player)) this.cancel();
                 }
-            }.runTaskTimer(instance.getPlugin(), 0L, 10L);
+            }.runTaskTimer(instance, 0L, 10L);
         }
     }
 
@@ -791,13 +801,13 @@ public class ClaimMain {
     /**
      * Checks if the given claim name is already used.
      *
-     * @param owner the owner of the claim
+     * @param ownerId the owner's uuid of the claim
      * @param name  the name of the claim
      * @return true if the name is already used, false otherwise
      */
-    public boolean checkName(String owner, String name) {
-        return playerClaims.getOrDefault(owner, new HashSet<>()).stream()
-                .noneMatch(claim -> claim.getName().equals(name));
+    public boolean checkName(UUID ownerId, String name) {
+        return playerClaims.getOrDefault(ownerId, new HashSet<>()).stream()
+                .noneMatch(claim -> claim.getName().toLowerCase().equals(name.toLowerCase()));
     }
 
     /**
@@ -1294,12 +1304,7 @@ public class ClaimMain {
                     }
                 }
             }
-            
-			String query = "DROP TABLE scs_claims;";
-			try (Statement statement = connection.createStatement()) {
-			    statement.executeUpdate(query);
-			}
-            instance.getPlugin().getLogger().info(getNumberSeparate(String.valueOf(count)) + " claims converted.");
+            instance.getLogger().info(getNumberSeparate(String.valueOf(count)) + " claims converted.");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -1373,7 +1378,7 @@ public class ClaimMain {
     public void transferClaims() {
     	instance.executeAsync(() -> {;
             HikariConfig localConfig = new HikariConfig();
-            localConfig.setJdbcUrl("jdbc:sqlite:plugins/SimpleClaimSystem/claims.db");
+            localConfig.setJdbcUrl("jdbc:sqlite:plugins/SimpleClaimSystem/storage.db");
             localConfig.setDriverClassName("org.sqlite.JDBC");
             try (HikariDataSource localDataSource = new HikariDataSource(localConfig);
                  Connection localConn = localDataSource.getConnection();
@@ -1393,8 +1398,8 @@ public class ClaimMain {
                     count++;
                 }
                 insertStmt.executeBatch();
-                instance.getPlugin().getLogger().info(getNumberSeparate(String.valueOf(count)) + " claims transferred.");
-                instance.getPlugin().getLogger().info("Safe reloading..");
+                instance.getLogger().info(getNumberSeparate(String.valueOf(count)) + " claims transferred.");
+                instance.getLogger().info("Safe reloading..");
                 instance.executeSync(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "scs reload"));
             } catch (SQLException e) {
                 e.printStackTrace();
@@ -1723,11 +1728,11 @@ public class ClaimMain {
                             // Preload chunks
                             if (instance.getSettings().getBooleanSetting("preload-chunks")) {
                                 if (instance.isFolia()) {
-                                    chunks.forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), world, c.getX(), c.getZ(), () -> c.load(true)));
+                                    chunks.forEach(c -> Bukkit.getRegionScheduler().execute(instance, world, c.getX(), c.getZ(), () -> c.load(true)));
                                 } else {
                                     List<CompletableFuture<Void>> loadFutures = chunks.stream()
                                         .map(chunk -> CompletableFuture.runAsync(() -> {
-                                            Bukkit.getScheduler().callSyncMethod(instance.getPlugin(), (Callable<Void>) () -> {
+                                            Bukkit.getScheduler().callSyncMethod(instance, (Callable<Void>) () -> {
                                                 chunk.load(true);
                                                 return null;
                                             });
@@ -1742,11 +1747,11 @@ public class ClaimMain {
                             // Keep chunks loaded
                             if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
                                 if (instance.isFolia()) {
-                                    chunks.forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), world, c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
+                                    chunks.forEach(c -> Bukkit.getRegionScheduler().execute(instance, world, c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
                                 } else {
                                     List<CompletableFuture<Void>> keepLoadedFutures = chunks.stream()
                                         .map(chunk -> CompletableFuture.runAsync(() -> {
-                                            Bukkit.getScheduler().callSyncMethod(instance.getPlugin(), (Callable<Void>) () -> {
+                                            Bukkit.getScheduler().callSyncMethod(instance, (Callable<Void>) () -> {
                                                 chunk.setForceLoaded(true);
                                                 return null;
                                             });
@@ -1848,7 +1853,7 @@ public class ClaimMain {
 		        String description = instance.getLanguage().getMessage("default-description");
 		        String locationString = getLocationString(player.getLocation());
 		        Map<String,LinkedHashMap<String, Boolean>> perms = new LinkedHashMap<>(instance.getSettings().getDefaultValues());
-		        Claim newClaim = new Claim(playerId, Set.of(chunk), playerName, Set.of(playerId), player.getLocation(), claimName, description, perms, false, 0.0, new HashSet<>(),id);
+		        Claim newClaim = new Claim(playerId, new HashSet<>(Set.of(chunk)), playerName, new HashSet<>(Set.of(playerId)), player.getLocation(), claimName, description, perms, false, 0.0, new HashSet<>(),id);
 		
 		        // Add claim to claims list and player claims list
 		        listClaims.put(chunk, newClaim);
@@ -1860,9 +1865,9 @@ public class ClaimMain {
 		        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
 		        if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
-	            		Bukkit.getRegionScheduler().execute(instance.getPlugin(), chunk.getWorld(), chunk.getX(), chunk.getZ(), () -> chunk.setForceLoaded(true));
+	            		Bukkit.getRegionScheduler().execute(instance, chunk.getWorld(), chunk.getX(), chunk.getZ(), () -> chunk.setForceLoaded(true));
 	            	} else {
-	            		Bukkit.getScheduler().callSyncMethod(instance.getPlugin(), (Callable<Void>) () -> {
+	            		Bukkit.getScheduler().callSyncMethod(instance, (Callable<Void>) () -> {
 	            			chunk.setForceLoaded(true);
 	            			return null;
 	            		});
@@ -1937,9 +1942,9 @@ public class ClaimMain {
 		        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
 		        if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
-	            		Bukkit.getRegionScheduler().execute(instance.getPlugin(), chunk.getWorld(), chunk.getX(), chunk.getZ(), () -> chunk.setForceLoaded(true));
+	            		Bukkit.getRegionScheduler().execute(instance, chunk.getWorld(), chunk.getX(), chunk.getZ(), () -> chunk.setForceLoaded(true));
 	            	} else {
-	            		Bukkit.getScheduler().callSyncMethod(instance.getPlugin(), (Callable<Void>) () -> {
+	            		Bukkit.getScheduler().callSyncMethod(instance, (Callable<Void>) () -> {
 	            			chunk.setForceLoaded(true);
 	            			return null;
 	            		});
@@ -2040,9 +2045,9 @@ public class ClaimMain {
 	            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
 	            if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
-	            		chunks.stream().forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
+	            		chunks.stream().forEach(c -> Bukkit.getRegionScheduler().execute(instance, c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
 	            	} else {
-	            		Bukkit.getScheduler().callSyncMethod(instance.getPlugin(), (Callable<Void>) () -> {
+	            		Bukkit.getScheduler().callSyncMethod(instance, (Callable<Void>) () -> {
 	            			instance.executeSync(() -> chunks.stream().forEach(c -> c.setForceLoaded(true)));
 	            			return null;
 	            		});
@@ -2119,9 +2124,9 @@ public class ClaimMain {
 	            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
 	            if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
-	            		chunks.stream().forEach(c -> Bukkit.getRegionScheduler().execute(instance.getPlugin(), c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
+	            		chunks.stream().forEach(c -> Bukkit.getRegionScheduler().execute(instance, c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
 	            	} else {
-	            		Bukkit.getScheduler().callSyncMethod(instance.getPlugin(), (Callable<Void>) () -> {
+	            		Bukkit.getScheduler().callSyncMethod(instance, (Callable<Void>) () -> {
 	            			instance.executeSync(() -> chunks.stream().forEach(c -> c.setForceLoaded(true)));
 	            			return null;
 	            		});
@@ -2133,7 +2138,7 @@ public class ClaimMain {
 		        // Update database
 	            try (Connection connection = instance.getDataSource().getConnection();
 	                    PreparedStatement stmt = connection.prepareStatement(
-	                    		"INSERT INTO scs_claims_1 (id_claim, owner_uuid, owner_name, claim_name, claim_description, chunks, world_name, location, members, permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+	                    		"INSERT INTO scs_claims_1 (id_claim, owner_uuid, owner_name, claim_name, claim_description, chunks, world_name, location, members, permissions, bans) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 	                   stmt.setInt(1, id);
 	            	   stmt.setString(2, SERVER_UUID.toString());
 	            	   stmt.setString(3, "*");
@@ -2335,50 +2340,59 @@ public class ClaimMain {
      * @param claim        the claim to update the permission for
      * @param permission   the permission to update
      * @param value 	   the new value of the permission
+     * @param role         the role for which the permission is updated
      * @return true if the permission was updated successfully, false otherwise
      */
     public CompletableFuture<Boolean> updatePerm(Claim claim, String permission, boolean value, String role) {
-    	return CompletableFuture.supplyAsync(() -> {
+        return CompletableFuture.supplyAsync(() -> {
             try {
-            	// Get data
-            	String owner = claim.getOwner();
-            	
-            	// Update permission
-		        claim.getPermissions().get(role == null ? "natural" : role.toLowerCase()).put(permission, value);
-		
-		        // Check if permission is Weather, then update weather for players in the chunks
-		        if (permission.equals("Weather")) updateWeatherChunk(claim);
-		        // Check if permission is Fly, then update fly for players in the chunks
-		        if (permission.equals("Fly")) updateFlyChunk(claim);
-		        
-	            // Get uuid of the owner
-	            String uuid = owner.equals("*") ? "none" : instance.getPlayerMain().getPlayerUUID(owner).toString();
-		
-	            // Build the perms string
-		        String permissions = claim.getPermissions().entrySet().stream()
-		                .map(entry -> entry.getKey() + ":" + entry.getValue().entrySet().stream()
-		                        .map(subEntry -> subEntry.getValue() ? "1" : "0")
-		                        .collect(Collectors.joining()))
-		                .collect(Collectors.joining(";"));
-		        
-		        // Updata database
-		        String updateQuery = "UPDATE scs_claims_1 SET permissions = ? WHERE owner_uuid = ? AND claim_name = ?";
-		        try (Connection connection = instance.getDataSource().getConnection();
-		             PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-		            preparedStatement.setString(1, permissions);
-		            preparedStatement.setString(2, uuid);
-		            preparedStatement.setString(3, claim.getName());
-		            preparedStatement.executeUpdate();
-		            return true;
-		        } catch (SQLException e) {
-		            e.printStackTrace();
-		            return false;
-		        }
-	        } catch (Exception e) {
-	            e.printStackTrace();
-	            return false;
-	        }
-    	});
+                // Get the owner's name
+                String owner = claim.getOwner();
+                
+                // Get the current permissions map for the specified role
+                String roleKey = (role == null ? "natural" : role.toLowerCase());
+                LinkedHashMap<String, Boolean> currentPermissions = claim.getPermissions().get(roleKey);
+                
+                // Clone the current permissions map to avoid affecting other claims
+                LinkedHashMap<String, Boolean> newPermissions = new LinkedHashMap<>(currentPermissions);
+                newPermissions.put(permission, value);
+                
+                // Update the permissions map in the claim with the cloned and updated map
+                claim.getPermissions().put(roleKey, newPermissions);
+
+                // Check if permission is Weather, then update weather for players in the chunks
+                if (permission.equals("Weather")) updateWeatherChunk(claim);
+                // Check if permission is Fly, then update fly for players in the chunks
+                if (permission.equals("Fly")) updateFlyChunk(claim);
+                
+                // Get the UUID of the owner
+                String uuid = owner.equals("*") ? SERVER_UUID.toString() : instance.getPlayerMain().getPlayerUUID(owner).toString();
+        
+                // Build the perms string
+                String permissions = claim.getPermissions().entrySet().stream()
+                        .map(entry -> entry.getKey() + ":" + entry.getValue().entrySet().stream()
+                                .map(subEntry -> subEntry.getValue() ? "1" : "0")
+                                .collect(Collectors.joining()))
+                        .collect(Collectors.joining(";"));
+                
+                // Update the database
+                String updateQuery = "UPDATE scs_claims_1 SET permissions = ? WHERE owner_uuid = ? AND claim_name = ?";
+                try (Connection connection = instance.getDataSource().getConnection();
+                     PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+                    preparedStatement.setString(1, permissions);
+                    preparedStatement.setString(2, uuid);
+                    preparedStatement.setString(3, claim.getName());
+                    preparedStatement.executeUpdate();
+                    return true;
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        });
     }
     
     /**
@@ -2392,7 +2406,6 @@ public class ClaimMain {
     	return CompletableFuture.supplyAsync(() -> {
             try {
             	// Get data
-            	String owner = claim.getOwner();
             	UUID uuid = claim.getUUID();
             	
 	        	// Update perms
@@ -3725,7 +3738,7 @@ public class ClaimMain {
         futureLocations.thenAccept(particleLocations -> {
 	        if (instance.isFolia()) {
 	            final int[] counter = {0};
-	            Bukkit.getAsyncScheduler().runAtFixedRate(instance.getPlugin(), task -> {
+	            Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
 	                if (counter[0] >= 10) {
 	                    task.cancel();
 	                }
@@ -3746,7 +3759,7 @@ public class ClaimMain {
 	                    particleLocations.stream().forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
 	                    counter++;
 	                }
-	            }.runTaskTimerAsynchronously(instance.getPlugin(), 0, 10L);
+	            }.runTaskTimerAsynchronously(instance, 0, 10L);
 	        }
         });
     }
@@ -3908,7 +3921,7 @@ public class ClaimMain {
         Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(0, 255, 0), 1.5f);
         if (instance.isFolia()) {
             final int[] counter = {0};
-            Bukkit.getAsyncScheduler().runAtFixedRate(instance.getPlugin(), task -> {
+            Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
                 if (counter[0] >= 10) {
                     task.cancel();
                 }
@@ -3960,7 +3973,7 @@ public class ClaimMain {
 
                 counter++;
             }
-        }.runTaskTimerAsynchronously(instance.getPlugin(), 0, 10L);
+        }.runTaskTimerAsynchronously(instance, 0, 10L);
     }
 
     /**
@@ -4127,7 +4140,7 @@ public class ClaimMain {
             legendMap.put(3, "  " + instance.getLanguage().getMessage("map-legend-other").replace("%claim-relation-visitor%", instance.getLanguage().getMessage("map-claim-relation-visitor")));
 
             if(instance.isFolia()) {
-                Bukkit.getRegionScheduler().run(instance.getPlugin(), player.getLocation(), task -> {
+                Bukkit.getRegionScheduler().run(instance, player.getLocation(), task -> {
                 	IntStream.rangeClosed(-4, 4).forEach(dz -> {
                         IntStream.rangeClosed(-10, 10).forEach(dx -> {
                             int[] offset = adjustDirection(dx, dz, direction);

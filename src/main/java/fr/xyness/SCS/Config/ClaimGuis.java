@@ -54,9 +54,11 @@ public class ClaimGuis {
         guis_items_perms_clicked_slots.get("visitors").put(23, "Weather");
         guis_items_perms_clicked_slots.get("visitors").put(24, "GuiTeleport");
         guis_items_perms_clicked_slots.get("visitors").put(25, "Portals");
+        guis_items_perms_clicked_slots.get("visitors").put(29, "Elytra");
         guis_items_perms_clicked_slots.get("visitors").put(30, "Enter");
         guis_items_perms_clicked_slots.get("visitors").put(31, "ItemsPickup");
         guis_items_perms_clicked_slots.get("visitors").put(32, "ItemsDrop");
+        guis_items_perms_clicked_slots.get("visitors").put(33, "SpecialBlocks");
         
         
     	guis_items_perms_clicked_slots.put("members", new HashMap<>());
@@ -81,9 +83,11 @@ public class ClaimGuis {
     	guis_items_perms_clicked_slots.get("members").put(23, "Weather");
     	guis_items_perms_clicked_slots.get("members").put(24, "GuiTeleport");
     	guis_items_perms_clicked_slots.get("members").put(25, "Portals");
+    	guis_items_perms_clicked_slots.get("members").put(29, "Elytra");
     	guis_items_perms_clicked_slots.get("members").put(30, "Enter");
     	guis_items_perms_clicked_slots.get("members").put(31, "ItemsPickup");
     	guis_items_perms_clicked_slots.get("members").put(32, "ItemsDrop");
+    	guis_items_perms_clicked_slots.get("members").put(33, "SpecialBlocks");
 
         
         guis_items_perms_clicked_slots.put("natural", new HashMap<>());
@@ -118,11 +122,11 @@ public class ClaimGuis {
     	// Set settings_name
     	settings_name.put("members", Set.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", "Trapdoors",
             "Fencegates","Tripwires","RepeatersComparators","Bells","Entities","Frostwalker","Teleportations","Damages","Enter", "GuiTeleport",
-            "Weather","Fly", "Portals", "ItemsPickup", "ItemsDrop"));
+            "Weather","Fly", "Portals", "ItemsPickup", "ItemsDrop", "SpecialBlocks", "Elytra"));
     	
     	settings_name.put("visitors", Set.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", "Trapdoors",
                 "Fencegates","Tripwires","RepeatersComparators","Bells","Entities","Frostwalker","Teleportations","Damages","Enter", "GuiTeleport",
-                "Weather","Fly", "Portals", "ItemsPickup", "ItemsDrop"));
+                "Weather","Fly", "Portals", "ItemsPickup", "ItemsDrop", "SpecialBlocks", "Elytra"));
     	
     	settings_name.put("natural", Set.of("Explosions","Liquids","Redstone","Firespread","Monsters","Pvp"));
     }
@@ -132,13 +136,6 @@ public class ClaimGuis {
     // *  Others Methods  *
     // ********************
     
-    
-    /**
-     * Clears all stored GUI settings and actions.
-     */
-    public void clearAll() {
-        guis_items_perms_clicked_slots.clear();
-    }
     
     /**
      * Splits the lore into lines.
@@ -164,14 +161,7 @@ public class ClaimGuis {
      * @return The created ItemStack.
      */
     public ItemStack createItem(Material material, String name, List<String> lore) {
-        ItemStack item = null;
-        if (material == null) {
-            instance.getPlugin().getLogger().info("Error material loading, check list.yml");
-            instance.getPlugin().getLogger().info("Using STONE instead");
-            item = new ItemStack(Material.STONE, 1);
-        } else {
-            item = new ItemStack(material, 1);
-        }
+        ItemStack item = new ItemStack(material == null ? Material.STONE : material, 1);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(name);
@@ -234,8 +224,11 @@ public class ClaimGuis {
      * @return The ItemMeta with the flags set.
      */
     public ItemMeta setItemFlag(ItemMeta meta) {
-        if (!Bukkit.getVersion().contains("1.21")) {
+    	String version = Bukkit.getVersion();
+        if (!version.contains("1.21")) {
             meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
+        } else if (version.contains("1.20") || version.contains("1.21")) {
+        	meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
         }
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_DYE, ItemFlag.HIDE_PLACED_ON, ItemFlag.HIDE_UNBREAKABLE);
         return meta;

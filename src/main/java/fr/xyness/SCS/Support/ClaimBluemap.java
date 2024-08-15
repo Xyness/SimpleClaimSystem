@@ -76,7 +76,7 @@ public class ClaimBluemap {
 				});
 			}
 		});
-		instance.getPlugin().getLogger().info("Claims added to BlueMap.");
+		instance.getLogger().info("Claims added to BlueMap.");
 	}
 	
 	
