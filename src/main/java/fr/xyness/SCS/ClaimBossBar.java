@@ -220,7 +220,7 @@ public class ClaimBossBar {
         };
 
         if (instance.isFolia()) {
-            Bukkit.getRegionScheduler().run(instance.getPlugin(), chunk.getWorld(), chunk.getX(), chunk.getZ(), task -> bossBarTask.run());
+            Bukkit.getRegionScheduler().run(instance, chunk.getWorld(), chunk.getX(), chunk.getZ(), task -> bossBarTask.run());
         } else {
             bossBarTask.run();
         }

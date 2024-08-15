@@ -290,9 +290,11 @@ enter: "§cYou cannot enter into this territory"
 guiteleport: "§cYou cannot teleport to this territory"
 portals: "§cYou cannot use portals in this territory"
 itemspickup: "§cYou cannot pickup items in this territory"
-itemsdrop: "§cYou cannot drop items in this territoty"
+itemsdrop: "§cYou cannot drop items in this territory"
 pvp: "§cYou cannot pvp in this territory"
 claim-fly-disabled-on-damage: "§cClaim fly disabled because you received damage"
+elytra: "§cYou cannot use elytra in this territory."
+specialblocks: "§cYou cannot destroy this block is this territory."
 
 
 # > Enter/Leave messages
@@ -500,6 +502,12 @@ itemspickup-lore: "§7Allow to pickup the items on the ground"
 
 itemsdrop-title: "§eItems drop §7(%status%§7)"
 itemsdrop-lore: "§7Allow to drop items on the ground"
+
+elytra-title: "§eElytra §7(%status%§7)"
+elytra-lore: "§7Allow use elytra"
+
+specialblocks-title: "§eDestroy special blocks §7(%status%§7)"
+specialblocks-lore: "§7Allow to destroy the special blocks"
 
 manage-members-title: "§aMembers"
 manage-members-lore: "§7Manage members"

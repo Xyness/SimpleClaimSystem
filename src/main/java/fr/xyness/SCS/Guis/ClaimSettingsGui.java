@@ -61,9 +61,11 @@ public class ClaimSettingsGui implements InventoryHolder {
         keyToSlotMap.put("Weather", 23);
         keyToSlotMap.put("GuiTeleport", 24);
         keyToSlotMap.put("Portals", 25);
+        keyToSlotMap.put("Elytra", 29);
         keyToSlotMap.put("Enter", 30);
         keyToSlotMap.put("ItemsPickup", 31);
         keyToSlotMap.put("ItemsDrop", 32);
+        keyToSlotMap.put("SpecialBlocks", 33);
         
         keyToSlotMap.put("Explosions", 10);
         keyToSlotMap.put("Liquids", 11);
@@ -95,13 +97,15 @@ public class ClaimSettingsGui implements InventoryHolder {
         keyToMaterialMap.put("Damages", Material.APPLE);
         keyToMaterialMap.put("Monsters", Material.STRING);
         keyToMaterialMap.put("GuiTeleport", Material.COMPASS);
-        keyToMaterialMap.put("Fly", Material.ELYTRA);
+        keyToMaterialMap.put("Fly", Material.PRISMARINE_SHARD);
         keyToMaterialMap.put("Pvp", Material.DIAMOND_SWORD);
         keyToMaterialMap.put("Weather", Material.SNOWBALL);
         keyToMaterialMap.put("Portals", Material.END_PORTAL_FRAME);
         keyToMaterialMap.put("Enter", Material.BIRCH_DOOR);
         keyToMaterialMap.put("ItemsPickup", Material.HOPPER);
         keyToMaterialMap.put("ItemsDrop", Material.FEATHER);
+        keyToMaterialMap.put("Elytra", Material.ELYTRA);
+        keyToMaterialMap.put("SpecialBlocks", Material.SPAWNER);
     }
     
     /** Inventory for the GUI. */

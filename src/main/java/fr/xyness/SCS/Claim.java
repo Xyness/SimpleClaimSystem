@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -98,7 +99,7 @@ public class Claim {
     // *********************
     // *  Others Methods   *
     // *********************
-    
+
     
     // Setters
     
@@ -270,7 +271,7 @@ public class Claim {
      * @return The permission value
      */
     public boolean getPermissionForPlayer(String permission, Player player) {
-    	if (this.owner.equals(player.getName())) return true;
+    	if (this.owner.equals(player.getName()) && !permission.equalsIgnoreCase("weather")) return true;
     	return this.permissions.getOrDefault(isMember(player.getUniqueId()) ? "members" : "visitors", new LinkedHashMap<>()).getOrDefault(permission, false);
     }
     

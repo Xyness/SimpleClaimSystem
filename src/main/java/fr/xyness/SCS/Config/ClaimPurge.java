@@ -101,11 +101,11 @@ public class ClaimPurge {
         int ticks = minutes * 60 * 20;
 
         if (instance.isFolia()) {
-            ScheduledTaskPurge = Bukkit.getAsyncScheduler().runAtFixedRate(instance.getPlugin(), task -> {
+            ScheduledTaskPurge = Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
                 purgeClaims();
             }, minutes, minutes, TimeUnit.MINUTES);
         } else {
-            BukkitTaskPurge = Bukkit.getScheduler().runTaskTimerAsynchronously(instance.getPlugin(), new Runnable() {
+            BukkitTaskPurge = Bukkit.getScheduler().runTaskTimerAsynchronously(instance, new Runnable() {
                 @Override
                 public void run() {
                     purgeClaims();
@@ -141,7 +141,7 @@ public class ClaimPurge {
             }
             sb.append(".");
         }
-        instance.getPlugin().getLogger().info("Auto-purge: " + sb.toString());
+        instance.getLogger().info("Auto-purge: " + sb.toString());
     }
     
     /**
