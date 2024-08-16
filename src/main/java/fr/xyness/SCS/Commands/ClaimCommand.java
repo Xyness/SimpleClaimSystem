@@ -1756,7 +1756,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	                                return;
 	                            }
 	                            isOnCreate.add(player);
-	                            String AnswerA = instance.getLanguage().getMessage("claim-confirmation-button");
+	                            String AnswerA = instance.getLanguage().getMessage("claim-confirmation-button").replace("%price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round(price * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
 	                            TextComponent AnswerA_C = new TextComponent(AnswerA);
 	                            AnswerA_C.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(instance.getLanguage().getMessage("claim-confirmation-button")).create()));
 	                            AnswerA_C.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim " + String.valueOf(radius)));
@@ -1899,7 +1899,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         } else {
                             isOnCreate.add(player);
                             if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, Set.of(player.getLocation().getChunk()), false, false);
-                            String confirmationMessage = instance.getLanguage().getMessage("claim-confirmation-ask");
+                            String confirmationMessage = instance.getLanguage().getMessage("claim-confirmation-ask").replace("%price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round(price * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));;
                             TextComponent confirmationComponent = new TextComponent(confirmationMessage);
 
                             String buttonText = instance.getLanguage().getMessage("claim-confirmation-button");

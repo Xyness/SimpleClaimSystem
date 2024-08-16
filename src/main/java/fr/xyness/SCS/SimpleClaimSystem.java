@@ -20,7 +20,6 @@ import java.util.Set;
 import java.util.UUID;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.command.CommandSender;
@@ -105,7 +104,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.2.1";
+    private String Version = "1.11.2.2";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -603,6 +602,10 @@ public class SimpleClaimSystem extends JavaPlugin {
         String barColor = getConfig().getString("announce-sale.bossbar-settings.color").toUpperCase();
         try {
         	BarColor color = BarColor.valueOf(barColor);
+        	if(color == null) {
+                info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
+                barColor = "YELLOW";
+        	}
         } catch (IllegalArgumentException e) {
             info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
             barColor = "YELLOW";
@@ -610,6 +613,10 @@ public class SimpleClaimSystem extends JavaPlugin {
         String barStyle = getConfig().getString("announce-sale.bossbar-settings.style").toUpperCase();
         try {
         	BarStyle style = BarStyle.valueOf(barStyle);
+        	if(style == null) {
+            	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
+            	barStyle = "SOLID";
+        	}
         } catch (IllegalArgumentException e) {
         	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
         	barStyle = "SOLID";
@@ -627,6 +634,10 @@ public class SimpleClaimSystem extends JavaPlugin {
         barColor = getConfig().getString("bossbar-settings.color").toUpperCase();
         try {
         	BarColor color = BarColor.valueOf(barColor);
+        	if(color == null) {
+                info(ChatColor.RED + "Invalid bossbar color, using default color YELLOW.");
+                barColor = "YELLOW";
+        	}
         } catch (IllegalArgumentException e) {
             info(ChatColor.RED + "Invalid bossbar color, using default color YELLOW.");
             barColor = "YELLOW";
@@ -634,6 +645,10 @@ public class SimpleClaimSystem extends JavaPlugin {
         barStyle = getConfig().getString("bossbar-settings.style").toUpperCase();
         try {
         	BarStyle style = BarStyle.valueOf(barStyle);
+        	if(style == null) {
+            	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
+            	barStyle = "SOLID";
+        	}
         } catch (IllegalArgumentException e) {
         	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
         	barStyle = "SOLID";
@@ -1053,6 +1068,10 @@ public class SimpleClaimSystem extends JavaPlugin {
         String barColor = getConfig().getString("announce-sale.bossbar-settings.color").toUpperCase();
         try {
         	BarColor color = BarColor.valueOf(barColor);
+        	if(color == null) {
+                info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
+                barColor = "YELLOW";
+        	}
         } catch (IllegalArgumentException e) {
             info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
             barColor = "YELLOW";
@@ -1060,6 +1079,10 @@ public class SimpleClaimSystem extends JavaPlugin {
         String barStyle = getConfig().getString("announce-sale.bossbar-settings.style").toUpperCase();
         try {
         	BarStyle style = BarStyle.valueOf(barStyle);
+        	if(style == null) {
+            	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
+            	barStyle = "SOLID";
+        	}
         } catch (IllegalArgumentException e) {
         	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
         	barStyle = "SOLID";
@@ -1077,6 +1100,10 @@ public class SimpleClaimSystem extends JavaPlugin {
         barColor = getConfig().getString("bossbar-settings.color").toUpperCase();
         try {
         	BarColor color = BarColor.valueOf(barColor);
+        	if(color == null) {
+                info(ChatColor.RED + "Invalid bossbar color, using default color YELLOW.");
+                barColor = "YELLOW";
+        	}
         } catch (IllegalArgumentException e) {
             info(ChatColor.RED + "Invalid bossbar color, using default color YELLOW.");
             barColor = "YELLOW";
@@ -1084,6 +1111,10 @@ public class SimpleClaimSystem extends JavaPlugin {
         barStyle = getConfig().getString("bossbar-settings.style").toUpperCase();
         try {
         	BarStyle style = BarStyle.valueOf(barStyle);
+        	if(style == null) {
+                info(ChatColor.RED + "Invalid bossbar color, using default color YELLOW.");
+                barColor = "YELLOW";
+        	}
         } catch (IllegalArgumentException e) {
         	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
         	barStyle = "SOLID";
@@ -1451,7 +1482,7 @@ public class SimpleClaimSystem extends JavaPlugin {
                 if (!Version.equalsIgnoreCase(response)) {
                     updateMessage = "§4[SCS] §cUpdate available : §l" + response + " §7(You have "+Version+")";
                     isUpdateAvailable = true;
-                    return "Update available : "+response;
+                    return "§cUpdate available : §4"+response;
                 } else {
                     isUpdateAvailable = false;
                     return "You are using the latest version";

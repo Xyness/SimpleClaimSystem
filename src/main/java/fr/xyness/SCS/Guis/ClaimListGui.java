@@ -110,7 +110,7 @@ public class ClaimListGui implements InventoryHolder {
 	        inv.setItem(53, filter(filter));
 	
 	        // Prepare lore
-	        Set<Claim> claims = new HashSet<>(filter.equals("owner") ? instance.getMain().getPlayerClaims(playerName) : instance.getMain().getClaimsWhereMemberNotOwner(playerName));
+	        Set<Claim> claims = new HashSet<>(filter.equals("owner") ? instance.getMain().getPlayerClaims(playerName) : instance.getMain().getClaimsWhereMemberNotOwner(player));
 	        List<String> lore = new ArrayList<>(instance.getGuis().getLore(filter.equals("owner") ? instance.getLanguage().getMessage("access-claim-lore") : instance.getLanguage().getMessage("access-claim-not-owner-lore")));
 	        String lore_tp = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")
 	                ? instance.getLanguage().getMessage("access-claim-clickable-tp")

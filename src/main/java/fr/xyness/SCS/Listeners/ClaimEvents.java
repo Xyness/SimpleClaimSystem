@@ -274,7 +274,7 @@ public class ClaimEvents implements Listener {
      * Handles creature spawn events to prevent monster spawning in claims.
      * @param event the creature spawn event.
      */
-    @EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
     public void onCreatureSpawn(CreatureSpawnEvent event) {
 		Chunk chunk = event.getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
@@ -443,7 +443,7 @@ public class ClaimEvents implements Listener {
      * Handles vehicle damage events to prevent destruction of vehicles in claims.
      * @param event the vehicle damage event.
      */
-	@EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
 	public void onVehicleDamage(VehicleDamageEvent event){
 		Entity damager = event.getAttacker();
 		Chunk chunk = event.getVehicle().getLocation().getChunk();
@@ -509,7 +509,7 @@ public class ClaimEvents implements Listener {
      * Handles hanging place events to prevent hanging items in claims.
      * @param event the hanging place event.
      */
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onHangingPlace(HangingPlaceEvent event) {
 		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
@@ -529,7 +529,7 @@ public class ClaimEvents implements Listener {
      * Handles hanging break events to prevent hanging items from being broken by physics in claims.
      * @param event the hanging break event.
      */
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onHangingBreak(HangingBreakEvent event) {
 		Chunk chunk = event.getEntity().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
@@ -543,7 +543,7 @@ public class ClaimEvents implements Listener {
      * Handles hanging break by entity events to prevent hanging items from being broken by players in claims.
      * @param event the hanging break by entity event.
      */
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
     public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
 		if(event.isCancelled()) return;
         if (event.getEntity().getType() == EntityType.PAINTING) {
@@ -592,7 +592,7 @@ public class ClaimEvents implements Listener {
      * Handles bucket empty events to prevent liquid placement in claims.
      * @param event the bucket empty event.
      */
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
     public void onBucketUse(PlayerBucketEmptyEvent event) {
 		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
@@ -612,7 +612,7 @@ public class ClaimEvents implements Listener {
      * Handles bucket fill events to prevent liquid removal in claims.
      * @param event the bucket fill event.
      */
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
     public void onBucketUse(PlayerBucketFillEvent event) {
 		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
@@ -632,7 +632,7 @@ public class ClaimEvents implements Listener {
      * Handles entity place events to prevent entity placement in claims.
      * @param event the entity place event.
      */
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	public void onEntityPlace(EntityPlaceEvent event) {
 		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
@@ -652,7 +652,7 @@ public class ClaimEvents implements Listener {
      * Handles player interact events to prevent interactions with blocks and items in claims.
      * @param event the player interact event.
      */
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
 		Player player = event.getPlayer();
 		if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
@@ -753,7 +753,7 @@ public class ClaimEvents implements Listener {
      * Handles player interact entity events to prevent entity interactions in claims.
      * @param event the player interact entity event.
      */
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity(PlayerInteractAtEntityEvent event) {
         Chunk chunk = event.getRightClicked().getLocation().getChunk();
         if(instance.getMain().checkIfClaimExists(chunk)) {
@@ -789,7 +789,7 @@ public class ClaimEvents implements Listener {
      * Handles secondary player interact entity events to prevent entity interactions in claims.
      * @param event the player interact entity event.
      */
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity2(PlayerInteractEntityEvent event) {
         Chunk chunk = event.getRightClicked().getLocation().getChunk();
         if(instance.getMain().checkIfClaimExists(chunk)) {
@@ -987,7 +987,7 @@ public class ClaimEvents implements Listener {
      * Handles entity damage by entity events to prevent damage to armor stands, item frames, and glow item frames in claims.
      * @param event the entity damage by entity event.
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onEntityDamageByEntity2(EntityDamageByEntityEvent event) {
     	Entity entity = event.getEntity();
     	if(entity instanceof ArmorStand || entity instanceof ItemFrame || entity instanceof GlowItemFrame) {
@@ -1015,7 +1015,7 @@ public class ClaimEvents implements Listener {
      * Handles entity damage by entity events to prevent damage to non-player, non-monster, non-armor stand, non-item frame entities in claims.
      * @param event the entity damage by entity event.
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         Entity entity = event.getEntity();
         Chunk chunk = entity.getLocation().getChunk();
@@ -1041,7 +1041,7 @@ public class ClaimEvents implements Listener {
      * Handles vehicle enter events to prevent players from entering restricted vehicles in claims.
      * @param event the vehicle enter event.
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onVehicleEnter(VehicleEnterEvent event) {
         Entity entity = event.getEntered();
         if (entity instanceof Player) {
@@ -1064,7 +1064,7 @@ public class ClaimEvents implements Listener {
      * Handles block change events to prevent trampling of farmland in claims.
      * @param event the entity change block event.
      */
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onBlockChange(EntityChangeBlockEvent event) {
         Entity entity = event.getEntity();
         Block block = event.getBlock();

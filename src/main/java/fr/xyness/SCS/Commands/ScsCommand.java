@@ -962,7 +962,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 
                 File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                int new_amount = cTarget.getMaxRadiusClaims()+amount;
+                int new_amount = cTarget.getMaxMembers()+amount;
                 config.set("players."+name+".max-members", new_amount);
                 cTarget.setMaxMembers(new_amount);
                 try {
@@ -995,7 +995,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 
                 File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                int new_amount = cTarget.getMaxRadiusClaims()+amount;
+                int new_amount = cTarget.getMaxChunksPerClaim()+amount;
                 config.set("players."+name+".max-chunks-per-claim", new_amount);
                 cTarget.setMaxChunksPerClaim(new_amount);
                 try {
@@ -1028,7 +1028,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 
                 File configFile = new File(instance.getDataFolder(), "config.yml");
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                int new_amount = cTarget.getMaxRadiusClaims()+amount;
+                int new_amount = cTarget.getMaxChunksTotal()+amount;
                 config.set("players."+name+".max-chunks-total", new_amount);
                 cTarget.setMaxChunksTotal(new_amount);
                 try {
