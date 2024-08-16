@@ -92,6 +92,8 @@ set-group-max-claim-success: "§fGroup §e%group%§f can have maximum §e%amount
 set-group-max-radius-claim-success: "§fGroup §e%group%§f can claim in a radius of §e%amount%§f."
 forceunclaim-success: "§fThe claim of §e%owner%§f has been unclaimed."
 setowner-success: "§e%owner%§f is now the new owner of the claim you're standing at."
+setowner-all-other-success: "§e%owner%§f is now the new owner of §eall the claims§f of §e%old-owner%§f."
+setowner-claim-other-success: "§e%owner%§f is now the new owner of the claim §e%claim-name%§f of §e%old-owner%§f."
 setowner-all-success: "§e%owner%§f is now the new owner of §eall your claims§f."
 setowner-claim-success: "§e%owner%§f is now the new owner of your claim §e%claim-name%§f."
 setting-changed-via-command: "§fSetting §e%setting%§f set to §e%value%§f."

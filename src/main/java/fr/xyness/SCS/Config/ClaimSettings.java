@@ -76,6 +76,7 @@ public class ClaimSettings {
         restrictedItems.clear();
         restrictedInteractBlocks.clear();
         restrictedEntityType.clear();
+        specialBlocks.clear();
         defaultValues.clear();
         enabledSettings.clear();
         settings.clear();
@@ -170,39 +171,6 @@ public class ClaimSettings {
      */
     public void addDisabledWorld(String world) {
     	disabledWorlds.add(world);
-    }
-
-    /**
-     * Gets the set of restricted containers as strings.
-     *
-     * @return The set of restricted containers as strings.
-     */
-    public Set<String> getRestrictedContainersString() {
-        return restrictedInteractBlocks.stream()
-                                       .map(Material::toString)
-                                       .collect(Collectors.toSet());
-    }
-
-    /**
-     * Gets the set of restricted entities as strings.
-     *
-     * @return The set of restricted entities as strings.
-     */
-    public Set<String> getRestrictedEntitiesString() {
-        return restrictedEntityType.stream()
-                                   .map(EntityType::toString)
-                                   .collect(Collectors.toSet());
-    }
-
-    /**
-     * Gets the set of restricted items as strings.
-     *
-     * @return The set of restricted items as strings.
-     */
-    public Set<String> getRestrictedItemsString() {
-        return restrictedItems.stream()
-                              .map(Material::toString)
-                              .collect(Collectors.toSet());
     }
 
     /**

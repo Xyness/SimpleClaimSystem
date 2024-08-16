@@ -1717,7 +1717,7 @@ public class ClaimMain {
                         i[0]++;
 
                         Runnable task = () -> {
-                            Claim claim = new Claim(uuid_owner, chunks, owner, members, location, name, description, perms, sale, price, bans, id);
+                            Claim claim = new Claim(uuid_owner, new HashSet<>(chunks), owner, new HashSet<>(members), location, name, description, new LinkedHashMap<>(perms), sale, price, new HashSet<>(bans), id);
 
                             // Add chunks
                             chunks.forEach(c -> listClaims.put(c, claim));
@@ -3251,6 +3251,8 @@ public class ClaimMain {
 	            int id = findFreeId(playerId);
 	            String new_name = "claim-" + String.valueOf(id);
 	            claim.setName(new_name);
+	            claim.setId(id);
+	            claim.setUUID(playerId);
 	            
 	            // Add the new owner to members if not member, and remove the old owner
 	            Set<UUID> members = new HashSet<>(claim.getMembers());
@@ -3323,6 +3325,8 @@ public class ClaimMain {
 		                CPlayer cOwner = instance.getPlayerMain().getCPlayer(uuid);
 		                cOwner.setClaimsCount(cOwner.getClaimsCount() - 1);
 		            }
+	            } else {
+	            	uuid = SERVER_UUID;
 	            }
 	            
 	            // Delete old owner claim
@@ -3342,9 +3346,13 @@ public class ClaimMain {
 	            claim.setOwner(playerName);
 	            
 	            // Set the new name of the bought claim
-	            int id = findFreeId(uuid);
+	            int id = findFreeId(uuidNewOwner);
 	            String new_name = "claim-" + String.valueOf(id);
 	            claim.setName(new_name);
+
+	            // Set new id and uuid
+	            claim.setId(id);
+	            claim.setUUID(uuidNewOwner);
 	            
 	            // Add the new owner to members if not member, and remove the old owner
 	            Set<UUID> members = new HashSet<>(claim.getMembers());
@@ -3356,7 +3364,7 @@ public class ClaimMain {
 	            String members_string = getMemberString(claim);
 	            
 	            // Add the claim to the new owner
-	            playerClaims.getOrDefault(playerName, new HashSet<>()).add(claim);
+	            playerClaims.computeIfAbsent(uuidNewOwner, k -> new HashSet<>()).add(claim);
 	            
 	            // Update the bossbars, and maps
 	        	Set<Chunk> chunks = claim.getChunks();
@@ -3367,14 +3375,15 @@ public class ClaimMain {
 	            
 	            // Updata database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims_1 SET id_claim = ?, owner_uuid = ?, members = ?, claim_name = ?, for_sale = false, sale_price = 0 WHERE owner_uuid = ? AND claim_name = ?";
+	                String updateQuery = "UPDATE scs_claims_1 SET id_claim = ?, owner_uuid = ?, owner_name = ?, members = ?, claim_name = ?, for_sale = false, sale_price = 0 WHERE owner_uuid = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                	preparedStatement.setInt(1, id);
 	                    preparedStatement.setString(2, uuid_new_owner);
-	                    preparedStatement.setString(3, members_string);
-	                    preparedStatement.setString(4, new_name);
-	                    preparedStatement.setString(5, uuid.toString());
-	                    preparedStatement.setString(6, old_name);
+	                    preparedStatement.setString(3, playerName);
+	                    preparedStatement.setString(4, members_string);
+	                    preparedStatement.setString(5, new_name);
+	                    preparedStatement.setString(6, uuid.toString());
+	                    preparedStatement.setString(7, old_name);
 	                    preparedStatement.executeUpdate();
 	                }
 	                return true;
@@ -3397,19 +3406,20 @@ public class ClaimMain {
      * @param claims the claims
      * @param owner The owner of the claims
      */
-    public CompletableFuture<Boolean> setOwner(String playerName, Set<Claim> claims, String owner) {
+    public CompletableFuture<Boolean> setOwner(String newOwner, Set<Claim> claims, String oldOwner) {
         return CompletableFuture.supplyAsync(() -> {
             try {
 	            
 	            // Set uuid of the old owner, and update his claims count if online
-	            String uuid = "";
-	            UUID uuid_real = instance.getPlayerMain().getPlayerUUID(owner);
-	            if(!owner.equals("*")) {
-		            Player ownerP = Bukkit.getPlayer(owner);
+	            UUID uuid_real = instance.getPlayerMain().getPlayerUUID(oldOwner);
+	            if(!oldOwner.equals("*")) {
+		            Player ownerP = Bukkit.getPlayer(oldOwner);
 		            if (ownerP != null && ownerP.isOnline()) {
 		                CPlayer cOwner = instance.getPlayerMain().getCPlayer(uuid_real);
 		                cOwner.setClaimsCount(cOwner.getClaimsCount() - claims.size());
 		            }
+	            } else {
+	            	uuid_real = SERVER_UUID;
 	            }
 	            
 	            // Delete old owner claim
@@ -3417,9 +3427,9 @@ public class ClaimMain {
 	            if (playerClaims.get(uuid_real).isEmpty()) playerClaims.remove(uuid_real);
 	            
 	            // Update the claims count of new owner if online, and set the new owner to him
-	            UUID uuidNewOwner = instance.getPlayerMain().getPlayerUUID(playerName);
+	            UUID uuidNewOwner = instance.getPlayerMain().getPlayerUUID(newOwner);
 	            String uuid_new_owner = uuidNewOwner.toString();
-	            Player player = Bukkit.getPlayer(playerName);
+	            Player player = Bukkit.getPlayer(newOwner);
 	            if (player != null && player.isOnline()) {
 	                CPlayer cTarget = instance.getPlayerMain().getCPlayer(uuidNewOwner);
 	                cTarget.setClaimsCount(cTarget.getClaimsCount() + claims.size());
@@ -3427,16 +3437,20 @@ public class ClaimMain {
 	            
 	            // Updata database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
-	                String updateQuery = "UPDATE scs_claims_1 SET id_claim = ?, owner_uuid = ?, members = ?, claim_name = ?, for_sale = false, sale_price = 0 WHERE owner_uuid = ? AND claim_name = ?";
+	                String updateQuery = "UPDATE scs_claims_1 SET id_claim = ?, owner_uuid = ?, owner_name = ?, members = ?, claim_name = ?, for_sale = false, sale_price = 0 WHERE owner_uuid = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                	
 	                	for(Claim claim : claims) {
 	                		
-	                		int id = findFreeId(uuid_real);
+	                		int id = findFreeId(uuidNewOwner);
 	                		String old_name = claim.getName();
 	                		
 	                		// Set the new owner to him
-	        	            claim.setOwner(playerName);
+	        	            claim.setOwner(newOwner);
+	        	            
+	        	            // Set new id and uuid
+	        	            claim.setUUID(uuidNewOwner);
+	        	            claim.setId(id);
 	        	            
 	        	            // Set the new name of the bought claim
 	        	            String new_name = "claim-" + String.valueOf(id);
@@ -3447,11 +3461,11 @@ public class ClaimMain {
 	        	            if (!members.contains(uuidNewOwner)) {
 	        	                members.add(uuidNewOwner);
 	        	            }
-	        	            members.remove(UUID.fromString(uuid));
+	        	            members.remove(uuid_real);
 	        	            claim.setMembers(members);
 	        	            String members_string = getMemberString(claim);
 	        	            
-	        	            // Add the claim to the new owner
+	        	            // Add claim
 	        	            playerClaims.computeIfAbsent(uuidNewOwner, k -> new HashSet<>()).add(claim);
 	        	            
 	        	            // Update the bossbars, and maps
@@ -3462,11 +3476,12 @@ public class ClaimMain {
 	        	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(claim);
 	        	        	
 		                	preparedStatement.setInt(1, id);
-		                    preparedStatement.setString(2, uuid_new_owner);
-		                    preparedStatement.setString(3, members_string);
-		                    preparedStatement.setString(4, new_name);
-		                    preparedStatement.setString(5, uuid);
-		                    preparedStatement.setString(6, old_name);
+		                	preparedStatement.setString(2, uuid_new_owner);
+		                    preparedStatement.setString(3, newOwner);
+		                    preparedStatement.setString(4, members_string);
+		                    preparedStatement.setString(5, new_name);
+		                    preparedStatement.setString(6, uuid_real.toString());
+		                    preparedStatement.setString(7, old_name);
 		                    preparedStatement.addBatch();
 	                	}
 	                	

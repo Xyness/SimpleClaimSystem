@@ -1,5 +1,5 @@
 name: SimpleClaimSystem
-version: 1.11.2
+version: 1.11.2.1
 main: fr.xyness.SCS.SimpleClaimSystem
 authors: [Xyness]
 softdepend: [PlaceholderAPI, WorldGuard, Vault, dynmap, bluemap, pl3xmap, GriefPrevention]

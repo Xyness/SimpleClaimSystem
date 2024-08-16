@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -87,6 +88,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 if (args[1].equalsIgnoreCase("unclaim")) {
                     completions.add("*");
                 }
+            } else if (args.length == 4) {
+            	completions.addAll(getFourCompletions(sender, args));
             }
             return completions;
         });
@@ -320,6 +323,97 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     private void handleArgFour(CommandSender sender, String[] args) {
     	if(sender instanceof Player) {
     		Player player = (Player) sender;
+    		if(args[0].equalsIgnoreCase("setowner")) {
+                Player target = Bukkit.getPlayer(args[1]);
+                String targetName = "";
+                UUID uuid = null;
+                if (target == null) {
+                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[1]);
+                    if (otarget == null || !otarget.hasPlayedBefore()) {
+                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[1]));
+                        return;
+                    }
+                    targetName = otarget.getName();
+                    uuid = otarget.getUniqueId();
+                } else {
+                    targetName = target.getName();
+                    uuid = target.getUniqueId();
+                }
+    			if(!instance.getMain().getClaimsOwners().contains(targetName)) {
+    				player.sendMessage(instance.getLanguage().getMessage("player-does-not-have-claim"));
+    				return;
+    			}
+    			if(args[2].equals("*")) {
+    				
+        			// Check new owner
+                    Player newOwner = Bukkit.getPlayer(args[3]);
+                    String ownerName = "";
+                    if (newOwner == null) {
+                        OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[3]);
+                        if (otarget == null || !otarget.hasPlayedBefore()) {
+                        	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[3]));
+                            return;
+                        }
+                        ownerName = otarget.getName();
+                    } else {
+                        ownerName = newOwner.getName();
+                    }
+                    
+                    // Set the new owner
+                    final String newOwnerName = ownerName;
+                    final String finaltargetName = targetName;
+            		instance.getMain().setOwner(ownerName, instance.getMain().getPlayerClaims(targetName), targetName)
+	        			.thenAccept(success -> {
+	        				if (success) {
+	        					sender.sendMessage(instance.getLanguage().getMessage("setowner-all-other-success").replace("%owner%", newOwnerName).replace("%old-owner%", finaltargetName));
+	        				}
+	        			})
+	                    .exceptionally(ex -> {
+	                        return null;
+	                    });
+            		
+            		return;
+    				
+    			} else {
+    				
+    				// Check if the claim exists
+        			if(!instance.getMain().getClaimsNameFromOwner(targetName).contains(args[2])) {
+        				player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
+        				return;
+        			}
+        			
+        			// Check new owner
+                    Player newOwner = Bukkit.getPlayer(args[3]);
+                    String ownerName = "";
+                    if (newOwner == null) {
+                        OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[3]);
+                        if (otarget == null || !otarget.hasPlayedBefore()) {
+                        	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[3]));
+                            return;
+                        }
+                        ownerName = otarget.getName();
+                    } else {
+                        ownerName = newOwner.getName();
+                    }
+        			
+                    // Set the new owner
+                    final String newOwnerName = ownerName;
+                    final String finaltargetName = targetName;
+        			Claim claim = instance.getMain().getClaimByName(args[2], uuid);
+            		instance.getMain().setOwner(ownerName, claim)
+	        			.thenAccept(success -> {
+	        				if (success) {
+	        					sender.sendMessage(instance.getLanguage().getMessage("setowner-claim-other-success").replace("%owner%", newOwnerName)
+	        							.replace("%old-owner%", finaltargetName)
+	        							.replace("%claim-name%", claim.getName()));
+	        				}
+	        			})
+	                    .exceptionally(ex -> {
+	                        return null;
+	                    });
+    			}
+    			return;
+    		}
     		if(args[0].equalsIgnoreCase("player")) {
     			if(args[1].equalsIgnoreCase("main")) {
         			if(!instance.getMain().getClaimsOwners().contains(args[2])) {
@@ -1241,9 +1335,37 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                     completions.addAll(new HashSet<>(instance.getMain().getClaimsOwners()));
                 }
                 break;
+            case "cplayer":
+            	completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
+            	break;
             case "group":
                 completions.addAll(instance.getSettings().getGroups());
                 break;
+            case "setowner":
+            	completions.add("*");
+            	completions.addAll(instance.getMain().getClaimsNameFromOwner(args[1]));
+            	break;
+            default:
+                break;
+        }
+        return completions;
+    }
+    
+    /**
+     * Provides four completions for the third argument based on the first, second and third arguments.
+     *
+     * @param sender the sender of the command
+     * @param args the arguments of the command
+     * @return a list of possible tertiary completions
+     */
+    private List<String> getFourCompletions(CommandSender sender, String[] args) {
+        List<String> completions = new ArrayList<>();
+        String command = args[0].toLowerCase();
+
+        switch (command) {
+            case "setowner":
+            	completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
+            	break;
             default:
                 break;
         }
