@@ -2106,11 +2106,10 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         
         if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim."+arg)) return completions;
         Claim claim = instance.getMain().getClaimByName(arg1, player);
-        if(claim == null) return completions;
 
         switch (arg.toLowerCase()) {
             case "remove":
-                if (!arg1.equals("*")) {
+                if (!arg1.equals("*") && claim != null) {
                     completions.addAll(instance.getMain().convertUUIDSetToStringSet(claim.getMembers()));
                 }
                 completions.remove(playerName);
@@ -2120,7 +2119,9 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 completions.remove(arg1);
                 break;
             case "unban":
-                completions.addAll(instance.getMain().convertUUIDSetToStringSet(claim.getBans()));
+            	if(claim != null) {
+            		completions.addAll(instance.getMain().convertUUIDSetToStringSet(claim.getBans()));
+            	}
                 break;
             case "add":
             case "ban":
