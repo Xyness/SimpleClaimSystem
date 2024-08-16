@@ -4,14 +4,12 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.EOFException;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -20,8 +18,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.io.FileReader;
-import java.io.IOException;
 
 import org.bukkit.*;
 import org.bukkit.boss.BarColor;
@@ -31,13 +27,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonIOException;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
@@ -555,12 +544,14 @@ public class ClaimMain {
     /**
      * Gets the claims where the specified player is a member but not the owner.
      *
-     * @param playerName the name of the player
+     * @param player the player
      * @return a set of claims where the player is a member but not the owner
      */
-    public Set<Claim> getClaimsWhereMemberNotOwner(String playerName) {
+    public Set<Claim> getClaimsWhereMemberNotOwner(Player player) {
+    	UUID playerId = player.getUniqueId();
+    	String playerName = player.getName();
         return listClaims.entrySet().stream()
-                .filter(entry -> !entry.getValue().getOwner().equals(playerName) && entry.getValue().getMembers().contains(playerName))
+                .filter(entry -> !entry.getValue().getOwner().equals(playerName) && entry.getValue().getMembers().contains(playerId))
                 .map(Map.Entry::getValue)
                 .collect(Collectors.toSet());
     }
@@ -1391,7 +1382,7 @@ public class ClaimMain {
 
                 int count = 0;
                 while (rs.next()) {
-                    for (int i = 1; i <= 11; i++) {
+                    for (int i = 1; i <= 12; i++) {
                         insertStmt.setObject(i, rs.getObject(i));
                     }
                     insertStmt.addBatch();
@@ -3138,7 +3129,6 @@ public class ClaimMain {
             	UUID uuid = claim.getUUID();
 	        	String defaultValue = instance.getSettings().getDefaultValuesCode("all");
 	        	Map<String,LinkedHashMap<String,Boolean>> perm = new LinkedHashMap<>(instance.getSettings().getDefaultValues());
-	        	String owner = claim.getOwner();
 	        	
 	        	// Update perms
 	            claim.setPermissions(perm);
