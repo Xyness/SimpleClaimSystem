@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
@@ -89,6 +90,33 @@ public class CPlayerMain {
 
     /** Tracks the number of requests sent to calculate the scheduling delay for the next request */
     private int requestCount = 0;
+    
+    /** Pattern for matching claim permissions */
+    public static final Pattern CLAIM_PATTERN = Pattern.compile("scs\\.claim\\.(\\d+)");
+    
+    /** Pattern for matching radius permissions */
+    public static final Pattern RADIUS_PATTERN = Pattern.compile("scs\\.radius\\.(\\d+)");
+    
+    /** Pattern for matching delay permissions */
+    public static final Pattern DELAY_PATTERN = Pattern.compile("scs\\.delay\\.(\\d+)");
+    
+    /** Pattern for matching cost permissions */
+    public static final Pattern COST_PATTERN = Pattern.compile("scs\\.cost\\.(\\d+)");
+    
+    /** Pattern for matching multiplier permissions */
+    public static final Pattern MULTIPLIER_PATTERN = Pattern.compile("scs\\.multiplier\\.(\\d+)");
+    
+    /** Pattern for matching member permissions */
+    public static final Pattern MEMBERS_PATTERN = Pattern.compile("scs\\.members\\.(\\d+)");
+    
+    /** Pattern for matching chunks permissions */
+    public static final Pattern CHUNKS_PATTERN = Pattern.compile("scs\\.chunks\\.(\\d+)");
+    
+    /** Pattern for matching distance permissions */
+    public static final Pattern DISTANCE_PATTERN = Pattern.compile("scs\\.distance\\.(\\d+)");
+    
+    /** Pattern for matching chunks total permissions */
+    public static final Pattern CHUNKS_TOTAL_PATTERN = Pattern.compile("scs\\.chunks-total\\.(\\d+)");
     
     
     // ******************
@@ -636,6 +664,17 @@ public class CPlayerMain {
     }
     
     /**
+     * Update a player setting ("players" in config.yml)
+     * 
+     * @param playerId The UUID of player
+     * @param key The key of the setting
+     * @param value The value of the setting
+     */
+    public void updatePlayerConfigSettings(UUID playerId, String key, Double value) {
+    	playersConfigSettings.computeIfAbsent(playerId, k -> new HashMap<>()).put(key, value);
+    }
+    
+    /**
      * Checks if a player can add a member to their claim.
      * 
      * @param player The player
@@ -690,6 +729,16 @@ public class CPlayerMain {
     }
     
     /**
+     * Returns the player config from "players" section in config.yml
+     * 
+     * @param uuid The target uuid
+     * @return The player config
+     */
+    public Map<String,Double> getPlayerConfig(UUID uuid){
+    	return playersConfigSettings.get(uuid);
+    }
+    
+    /**
      * Sets the permissions of a player when he joins the server.
      * 
      * @param player The player
@@ -697,56 +746,7 @@ public class CPlayerMain {
     public void addPlayerPermSetting(Player player) {
         instance.executeAsync(() -> {
         	UUID playerId = player.getUniqueId();
-            Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
-            LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
-            Map<String, Double> groupPlayerSettings = new HashMap<>();
-            groupPlayerSettings.put("max-claims", groupsSettings.get("default").get("max-claims"));
-            groupPlayerSettings.put("max-radius-claims", groupsSettings.get("default").get("max-radius-claims"));
-            groupPlayerSettings.put("teleportation-delay", groupsSettings.get("default").get("teleportation-delay"));
-            groupPlayerSettings.put("max-members", groupsSettings.get("default").get("max-members"));
-            groupPlayerSettings.put("claim-cost", groupsSettings.get("default").get("claim-cost"));
-            groupPlayerSettings.put("claim-cost-multiplier", groupsSettings.get("default").get("claim-cost-multiplier"));
-            groupPlayerSettings.put("max-chunks-per-claim", groupsSettings.get("default").get("max-chunks-per-claim"));
-            groupPlayerSettings.put("claim-distance", groupsSettings.get("default").get("claim-distance"));
-            groupPlayerSettings.put("max-chunks-total", groupsSettings.get("default").get("max-chunks-total"));
-            for (String group : groups.keySet()) {
-                if (checkPermPlayer(player, groups.get(group))) {
-                    groupPlayerSettings.put("max-claims", groupsSettings.get(group).get("max-claims"));
-                    groupPlayerSettings.put("max-radius-claims", groupsSettings.get(group).get("max-radius-claims"));
-                    groupPlayerSettings.put("teleportation-delay", groupsSettings.get(group).get("teleportation-delay"));
-                    groupPlayerSettings.put("max-members", groupsSettings.get(group).get("max-members"));
-                    groupPlayerSettings.put("claim-cost", groupsSettings.get(group).get("claim-cost"));
-                    groupPlayerSettings.put("claim-cost-multiplier", groupsSettings.get(group).get("claim-cost-multiplier"));
-                    groupPlayerSettings.put("max-chunks-per-claim", groupsSettings.get("default").get("max-chunks-per-claim"));
-                    groupPlayerSettings.put("claim-distance", groupsSettings.get("default").get("claim-distance"));
-                    groupPlayerSettings.put("max-chunks-total", groupsSettings.get("default").get("max-chunks-total"));
-                    break;
-                }
-            }
-
-            if (!playersConfigSettings.containsKey(playerId)) {
-                players.put(playerId, new CPlayer(player, instance.getMain().getPlayerClaimsCount(playerId),
-                    (int) Math.round(groupPlayerSettings.get("max-claims")),
-                    (int) Math.round(groupPlayerSettings.get("max-radius-claims")),
-                    (int) Math.round(groupPlayerSettings.get("teleportation-delay")),
-                    (int) Math.round(groupPlayerSettings.get("max-members")),
-                    groupPlayerSettings.get("claim-cost"),
-                    groupPlayerSettings.get("claim-cost-multiplier"),
-                    (int) Math.round(groupPlayerSettings.get("max-chunks-per-claim")),
-                    (int) Math.round(groupPlayerSettings.get("claim-distance")),
-                    (int) Math.round(groupPlayerSettings.get("max-chunks-total"))));
-            } else {
-                players.put(playerId, new CPlayer(player, instance.getMain().getPlayerClaimsCount(playerId),
-                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("max-claims", groupPlayerSettings.get("max-claims"))),
-                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("max-radius-claims", groupPlayerSettings.get("max-radius-claims"))),
-                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("teleportation-delay", groupPlayerSettings.get("teleportation-delay"))),
-                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("max-members", groupPlayerSettings.get("max-members"))),
-                    playersConfigSettings.get(playerId).getOrDefault("claim-cost", groupPlayerSettings.get("claim-cost")),
-                    playersConfigSettings.get(playerId).getOrDefault("claim-cost-multiplier", groupPlayerSettings.get("claim-cost-multiplier")),
-                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("max-chunks-per-claim", groupPlayerSettings.get("max-chunks-per-claim"))),
-                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("claim-distance", groupPlayerSettings.get("claim-distance"))),
-                    (int) Math.round(playersConfigSettings.get(playerId).getOrDefault("max-chunks-total", groupPlayerSettings.get("max-chunks-total")))));
-            }
+            players.put(playerId, new CPlayer(player, playerId, instance.getMain().getPlayerClaimsCount(playerId),instance));
         });
     }
 }

@@ -6,7 +6,16 @@
 # > Console messages
 
 command-only-by-players: "§cThis command can only be used by players."
-reload-complete: "§aReload completed"
+reload-attempt: |
+  §6Reload attempt.. Please wait.
+  §7You can continue what you were doing.
+reload-complete: "§aReload completed."
+reload-not-complete: "§cReload failed."
+config-reload-attempt: |
+  §6Config reload attempt.. Please wait.
+  §7You can continue what you were doing.
+config-reload-complete: "§aConfig reload completed."
+config-reload-not-complete: "§cConfig reload failed."
 
 
 # > Bossbar messages

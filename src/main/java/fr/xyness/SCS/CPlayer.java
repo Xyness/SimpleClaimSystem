@@ -1,14 +1,14 @@
 package fr.xyness.SCS;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Set;
+import java.util.UUID;
 import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.permissions.PermissionAttachmentInfo;
 
 /**
  * This class handles CPlayer object
@@ -24,38 +24,14 @@ public class CPlayer {
     /** The player associated with this CPlayer instance */
     private Player player;
     
+    /** The uuid of player */
+    private UUID playerId;
+    
     /** The name of the player */
     private String playerName;
     
     /** The number of claims the player has */
     private Integer claims_count;
-    
-    /** The maximum number of claims the player can have */
-    private Integer max_claims;
-    
-    /** The maximum radius for claims */
-    private Integer max_radius_claims;
-    
-    /** The teleportation delay for the player */
-    private Integer teleportation_delay;
-    
-    /** The maximum number of members per player's claim */
-    private Integer max_members;
-    
-    /** The cost of a claim */
-    private Double claim_cost;
-    
-    /** The multiplier for the claim cost */
-    private Double claim_cost_multiplier;
-    
-    /** The max chunks per claim */
-    private Integer max_chunks_per_claim;
-    
-    /** The distance for claim */
-    private Integer claim_distance;
-    
-    /** The max chunks total */
-    private Integer max_chunks_total;
     
     /** Whether the player has claim chat enabled */
     private Boolean claim_chat;
@@ -93,32 +69,8 @@ public class CPlayer {
     /** The owner for the GUI */
     private String owner;
     
-    /** Pattern for matching claim permissions */
-    private static final Pattern CLAIM_PATTERN = Pattern.compile("scs\\.claim\\.(\\d+)");
-    
-    /** Pattern for matching radius permissions */
-    private static final Pattern RADIUS_PATTERN = Pattern.compile("scs\\.radius\\.(\\d+)");
-    
-    /** Pattern for matching delay permissions */
-    private static final Pattern DELAY_PATTERN = Pattern.compile("scs\\.delay\\.(\\d+)");
-    
-    /** Pattern for matching cost permissions */
-    private static final Pattern COST_PATTERN = Pattern.compile("scs\\.cost\\.(\\d+)");
-    
-    /** Pattern for matching multiplier permissions */
-    private static final Pattern MULTIPLIER_PATTERN = Pattern.compile("scs\\.multiplier\\.(\\d+)");
-    
-    /** Pattern for matching member permissions */
-    private static final Pattern MEMBERS_PATTERN = Pattern.compile("scs\\.members\\.(\\d+)");
-    
-    /** Pattern for matching chunks permissions */
-    private static final Pattern CHUNKS_PATTERN = Pattern.compile("scs\\.chunks\\.(\\d+)");
-    
-    /** Pattern for matching distance permissions */
-    private static final Pattern DISTANCE_PATTERN = Pattern.compile("scs\\.distance\\.(\\d+)");
-    
-    /** Pattern for matching chunks total permissions */
-    private static final Pattern CHUNKS_TOTAL_PATTERN = Pattern.compile("scs\\.chunks-total\\.(\\d+)");
+    /** Instance of SimpleClaimSystem */
+    private final SimpleClaimSystem instance;
     
     
     // ******************
@@ -129,39 +81,28 @@ public class CPlayer {
     /**
      * Constructor initializing all fields.
      * 
-     * @param player The player associated with this CPlayer instance
-     * @param claims_count The number of claims the player has
-     * @param max_claims The maximum number of claims the player can have
-     * @param max_radius_claims The maximum radius for claims
-     * @param teleportation_delay The teleportation delay for the player
-     * @param max_members The maximum number of members per player's claim
-     * @param claim_cost The cost of a claim
-     * @param claim_cost_multiplier The multiplier for the claim cost
+     * @param player       The player associated with this CPlayer instance.
+     * @param playerId     The UUID of the player.
+     * @param claims_count The number of claims the player has.
+     * @param instance     Instance of SimpleClaimSystem.
      */
-    public CPlayer(Player player, Integer claims_count, Integer max_claims, Integer max_radius_claims, Integer teleportation_delay, Integer max_members, Double claim_cost, Double claim_cost_multiplier, Integer max_chunks_per_claim, Integer claim_distance, Integer max_chunks_total) {
+    public CPlayer(Player player, UUID playerId, Integer claims_count, SimpleClaimSystem instance) {
         this.player = player;
+        this.playerId = playerId;
         this.playerName = player.getName();
         this.claims_count = claims_count;
-        this.max_claims = max_claims;
-        this.max_radius_claims = max_radius_claims;
-        this.teleportation_delay = teleportation_delay;
-        this.max_members = max_members;
-        this.claim_cost = claim_cost;
-        this.claim_cost_multiplier = claim_cost_multiplier;
         this.gui_page = 0;
         this.claim_chat = false;
         this.claim_automap = false;
         this.claim_autoclaim = false;
         this.claim_autofly = false;
         this.claim_fly = false;
-        this.max_chunks_per_claim = max_chunks_per_claim;
-        this.claim_distance = claim_distance;
-        this.max_chunks_total = max_chunks_total;
+        this.instance = instance;
     }
     
     
     // ********************
-    // *  Other Methods   *
+    // *  Other methods   *
     // ********************
     
     
@@ -187,69 +128,6 @@ public class CPlayer {
      * @param claims_count The new claims count
      */
     public void setClaimsCount(Integer claims_count) { this.claims_count = claims_count; }
-    
-    /**
-     * Sets the player's max claims.
-     * 
-     * @param max_claims The new max claims
-     */
-    public void setMaxClaims(Integer max_claims) { this.max_claims = max_claims; }
-    
-    /**
-     * Sets the player's max radius claims.
-     * 
-     * @param max_radius_claims The new max radius claims
-     */
-    public void setMaxRadiusClaims(Integer max_radius_claims) { this.max_radius_claims = max_radius_claims; }
-    
-    /**
-     * Sets the player's teleportation delay.
-     * 
-     * @param teleportation_delay The new teleportation delay
-     */
-    public void setTeleportationDelay(Integer teleportation_delay) { this.teleportation_delay = teleportation_delay; }
-    
-    /**
-     * Sets the player's max members per claim.
-     * 
-     * @param max_members The new max members
-     */
-    public void setMaxMembers(Integer max_members) { this.max_members = max_members; }
-    
-    /**
-     * Sets the player's claim cost.
-     * 
-     * @param claim_cost The new claim cost
-     */
-    public void setClaimCost(Double claim_cost) { this.claim_cost = claim_cost; }
-    
-    /**
-     * Sets the player's claim cost multiplier.
-     * 
-     * @param claim_cost_multiplier The new claim cost multiplier
-     */
-    public void setClaimCostMultiplier(Double claim_cost_multiplier) { this.claim_cost_multiplier = claim_cost_multiplier; }
-    
-    /**
-     * Sets the player's max chunks per claim.
-     * 
-     * @param max_chunks_per_claim The new max chunks per claim
-     */
-    public void setMaxChunksPerClaim(Integer max_chunks_per_claim) { this.max_chunks_per_claim = max_chunks_per_claim; }
-    
-    /**
-     * Sets the player's claim distance.
-     * 
-     * @param claim_distance The new claim distance
-     */
-    public void setClaimDistance(Integer claim_distance) { this.claim_distance = claim_distance; }
-    
-    /**
-     * Sets the player's max chunks total.
-     * 
-     * @param max_chunks_total The new max chunks total
-     */
-    public void setMaxChunksTotal(Integer max_chunks_total) { this.max_chunks_total = max_chunks_total; }
     
     /**
      * Sets the player's GUI page.
@@ -455,19 +333,32 @@ public class CPlayer {
      */
     public Integer getMaxClaims() {
         if (player.hasPermission("scs.admin")) return 0;
+        
+        Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
+        if (playerConfig != null && playerConfig.containsKey("max-claims")) {
+            return (int) Math.round(playerConfig.get("max-claims"));
+        }
 
-        Set<String> permissions = player.getEffectivePermissions().parallelStream()
-            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
-            .collect(Collectors.toSet());
-
-        int maxClaims = permissions.parallelStream()
-            .map(CLAIM_PATTERN::matcher)
+        int n = player.getEffectivePermissions().stream()
+            .map(PermissionAttachmentInfo::getPermission)
+            .map(CPlayerMain.CLAIM_PATTERN::matcher)
             .filter(Matcher::find)
             .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
             .max().orElse(-1);
-        
-        if(maxClaims == -1) return max_claims;
-        return maxClaims;
+
+        if (n == -1) {
+            
+            Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
+            LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
+            n = (int) Math.round(groupsSettings.get("default").get("max-claims"));
+            for (Map.Entry<String, String> entry : groups.entrySet()) {
+                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-claims")));
+                }
+            }
+        }
+
+        return n;
     }
     
     /**
@@ -477,19 +368,277 @@ public class CPlayer {
      */
     public Integer getMaxRadiusClaims() {
         if (player.hasPermission("scs.admin")) return 0;
+        
+        Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
+        if (playerConfig != null && playerConfig.containsKey("max-radius-claims")) {
+            return (int) Math.round(playerConfig.get("max-radius-claims"));
+        }
 
-        Set<String> permissions = player.getEffectivePermissions().parallelStream()
-            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
-            .collect(Collectors.toSet());
-
-        int maxClaims = permissions.parallelStream()
-            .map(RADIUS_PATTERN::matcher)
+        int n = player.getEffectivePermissions().stream()
+            .map(PermissionAttachmentInfo::getPermission)
+            .map(CPlayerMain.RADIUS_PATTERN::matcher)
             .filter(Matcher::find)
             .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
             .max().orElse(-1);
+
+        if (n == -1) {
+
+            Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
+            LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
+            n = (int) Math.round(groupsSettings.get("default").get("max-radius-claims"));
+            for (Map.Entry<String, String> entry : groups.entrySet()) {
+                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-radius-claims")));
+                }
+            }
+        }
+
+        return n;
+    }
+    
+    /**
+     * Gets the teleportation delay for the player.
+     * 
+     * @return The teleportation delay
+     */
+    public int getDelay() {
+        if (player.hasPermission("scs.admin")) return 0;
         
-        if(maxClaims == -1) return max_radius_claims;
-        return maxClaims;
+        Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
+        if (playerConfig != null && playerConfig.containsKey("teleportation-delay")) {
+            return (int) Math.round(playerConfig.get("teleportation-delay"));
+        }
+
+        int n = player.getEffectivePermissions().stream()
+            .map(PermissionAttachmentInfo::getPermission)
+            .map(CPlayerMain.DELAY_PATTERN::matcher)
+            .filter(Matcher::find)
+            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
+            .max().orElse(-1);
+
+        if (n == -1) {
+
+            Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
+            LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
+            n = (int) Math.round(groupsSettings.get("default").get("teleportation-delay"));
+            for (Map.Entry<String, String> entry : groups.entrySet()) {
+                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("teleportation-delay")));
+                }
+            }
+        }
+
+        return n;
+    }
+    
+    /**
+     * Gets the maximum number of members per claim for the player.
+     * 
+     * @return The maximum number of members
+     */
+    public int getMaxMembers() {
+        if (player.hasPermission("scs.admin")) return 0;
+        
+        Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
+        if (playerConfig != null && playerConfig.containsKey("max-members")) {
+            return (int) Math.round(playerConfig.get("max-members"));
+        }
+
+        int n = player.getEffectivePermissions().stream()
+            .map(PermissionAttachmentInfo::getPermission)
+            .map(CPlayerMain.MEMBERS_PATTERN::matcher)
+            .filter(Matcher::find)
+            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
+            .max().orElse(-1);
+
+        if (n == -1) {
+
+            Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
+            LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
+            n = (int) Math.round(groupsSettings.get("default").get("max-members"));
+            for (Map.Entry<String, String> entry : groups.entrySet()) {
+                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-members")));
+                }
+            }
+        }
+
+        return n;
+    }
+    
+    /**
+     * Gets the cost of a claim for the player.
+     * 
+     * @return The claim cost
+     */
+    public double getCost() {
+        if (player.hasPermission("scs.admin")) return 0;
+        
+        Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
+        if (playerConfig != null && playerConfig.containsKey("claim-cost")) {
+            return (int) Math.round(playerConfig.get("claim-cost"));
+        }
+
+        int n = player.getEffectivePermissions().stream()
+            .map(PermissionAttachmentInfo::getPermission)
+            .map(CPlayerMain.COST_PATTERN::matcher)
+            .filter(Matcher::find)
+            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
+            .max().orElse(-1);
+
+        if (n == -1) {
+
+            Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
+            LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
+            n = (int) Math.round(groupsSettings.get("default").get("claim-cost"));
+            for (Map.Entry<String, String> entry : groups.entrySet()) {
+                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("claim-cost")));
+                }
+            }
+        }
+
+        return n;
+    }
+    
+    /**
+     * Gets the claim cost multiplier for the player.
+     * 
+     * @return The claim cost multiplier
+     */
+    public double getMultiplier() {
+        if (player.hasPermission("scs.admin")) return 0;
+        
+        Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
+        if (playerConfig != null && playerConfig.containsKey("claim-cost-multiplier")) {
+            return (int) Math.round(playerConfig.get("claim-cost-multiplier"));
+        }
+
+        int n = player.getEffectivePermissions().stream()
+            .map(PermissionAttachmentInfo::getPermission)
+            .map(CPlayerMain.MULTIPLIER_PATTERN::matcher)
+            .filter(Matcher::find)
+            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
+            .max().orElse(-1);
+
+        if (n == -1) {
+
+            Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
+            LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
+            n = (int) Math.round(groupsSettings.get("default").get("claim-cost-multiplier"));
+            for (Map.Entry<String, String> entry : groups.entrySet()) {
+                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("claim-cost-multiplier")));
+                }
+            }
+        }
+
+        return n;
+    }
+    
+    /**
+     * Gets the maximum number of chunks per claim for the player
+     * 
+     * @return The maximum number of chunks
+     */
+    public int getMaxChunksPerClaim() {
+        if (player.hasPermission("scs.admin")) return 0;
+        
+        Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
+        if (playerConfig != null && playerConfig.containsKey("max-chunks-per-claim")) {
+            return (int) Math.round(playerConfig.get("max-chunks-per-claim"));
+        }
+
+        int n = player.getEffectivePermissions().stream()
+            .map(PermissionAttachmentInfo::getPermission)
+            .map(CPlayerMain.CHUNKS_PATTERN::matcher)
+            .filter(Matcher::find)
+            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
+            .max().orElse(-1);
+
+        if (n == -1) {
+
+            Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
+            LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
+            n = (int) Math.round(groupsSettings.get("default").get("max-chunks-per-claim"));
+            for (Map.Entry<String, String> entry : groups.entrySet()) {
+                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-chunks-per-claim")));
+                }
+            }
+        }
+
+        return n;
+    }
+    
+    /**
+     * Gets the claim distance
+     * 
+     * @return The claim distance
+     */
+    public int getClaimDistance() {
+        if (player.hasPermission("scs.admin")) return 0;
+        
+        Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
+        if (playerConfig != null && playerConfig.containsKey("claim-distance")) {
+            return (int) Math.round(playerConfig.get("claim-distance"));
+        }
+
+        int n = player.getEffectivePermissions().stream()
+            .map(PermissionAttachmentInfo::getPermission)
+            .map(CPlayerMain.DISTANCE_PATTERN::matcher)
+            .filter(Matcher::find)
+            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
+            .max().orElse(-1);
+
+        if (n == -1) {
+
+            Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
+            LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
+            n = (int) Math.round(groupsSettings.get("default").get("claim-distance"));
+            for (Map.Entry<String, String> entry : groups.entrySet()) {
+                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("claim-distance")));
+                }
+            }
+        }
+
+        return n;
+    }
+    
+    /**
+     * Gets the max chunks total
+     * 
+     * @return The max chunks total
+     */
+    public int getMaxChunksTotal() {
+        if (player.hasPermission("scs.admin")) return 0;
+        
+        Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
+        if (playerConfig != null && playerConfig.containsKey("max-chunks-total")) {
+            return (int) Math.round(playerConfig.get("max-chunks-total"));
+        }
+
+        int n = player.getEffectivePermissions().stream()
+            .map(PermissionAttachmentInfo::getPermission)
+            .map(CPlayerMain.CHUNKS_TOTAL_PATTERN::matcher)
+            .filter(Matcher::find)
+            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
+            .max().orElse(-1);
+
+        if (n == -1) {
+
+            Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
+            LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
+            n = (int) Math.round(groupsSettings.get("default").get("max-chunks-total"));
+            for (Map.Entry<String, String> entry : groups.entrySet()) {
+                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-chunks-total")));
+                }
+            }
+        }
+
+        return n;
     }
     
     /**
@@ -499,20 +648,7 @@ public class CPlayer {
      */
     public boolean canClaim() {
         if (player.hasPermission("scs.admin")) return true;
-
-        Set<String> permissions = player.getEffectivePermissions().parallelStream()
-            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
-            .collect(Collectors.toSet());
-
-        int maxClaims = permissions.parallelStream()
-            .map(CLAIM_PATTERN::matcher)
-            .filter(Matcher::find)
-            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
-        
-        if (maxClaims > claims_count) return true;
-        if (maxClaims == -1) maxClaims = max_claims;
-
+        int maxClaims = getMaxClaims();
         return maxClaims > claims_count || maxClaims == 0;
     }
     
@@ -524,20 +660,7 @@ public class CPlayer {
      */
     public boolean canClaimWithNumber(int n) {
         if (player.hasPermission("scs.admin")) return true;
-
-        Set<String> permissions = player.getEffectivePermissions().parallelStream()
-            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
-            .collect(Collectors.toSet());
-
-        int maxChunks = permissions.parallelStream()
-            .map(CHUNKS_PATTERN::matcher)
-            .filter(Matcher::find)
-            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
-        
-        if (maxChunks >= n) return true;
-        if (maxChunks == -1) maxChunks = max_chunks_per_claim;
-
+        int maxChunks = getMaxChunksPerClaim();
         return maxChunks >= n || maxChunks == 0;
     }
     
@@ -549,19 +672,7 @@ public class CPlayer {
      */
     public boolean canClaimTotalWithNumber(int total) {
         if (player.hasPermission("scs.admin")) return true;
-
-        Set<String> permissions = player.getEffectivePermissions().parallelStream()
-            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
-            .collect(Collectors.toSet());
-
-        int maxChunks = permissions.parallelStream()
-            .map(CHUNKS_TOTAL_PATTERN::matcher)
-            .filter(Matcher::find)
-            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
-        
-        if (maxChunks == -1) maxChunks = max_chunks_total;
-
+        int maxChunks = getMaxChunksTotal();
         return maxChunks >= total || maxChunks == 0;
     }
     
@@ -573,175 +684,8 @@ public class CPlayer {
      */
     public boolean canRadiusClaim(int r) {
         if (player.hasPermission("scs.admin")) return true;
-
-        Set<String> permissions = player.getEffectivePermissions().parallelStream()
-            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
-            .collect(Collectors.toSet());
-
-        int radius = permissions.parallelStream()
-            .map(RADIUS_PATTERN::matcher)
-            .filter(Matcher::find)
-            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
-        
-        if (radius >= r) return true;
-        if (radius == -1) radius = max_radius_claims;
-
+        int radius = getMaxRadiusClaims();
         return radius >= r || radius == 0;
-    }
-    
-    /**
-     * Gets the teleportation delay for the player.
-     * 
-     * @return The teleportation delay
-     */
-    public int getDelay() {
-        if (player.hasPermission("scs.admin")) return 0;
-
-        Set<String> permissions = player.getEffectivePermissions().parallelStream()
-            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
-            .collect(Collectors.toSet());
-
-        int delay = permissions.parallelStream()
-            .map(DELAY_PATTERN::matcher)
-            .filter(Matcher::find)
-            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
-        
-        if (delay == -1) return teleportation_delay;
-        return delay;
-    }
-    
-    /**
-     * Gets the cost of a claim for the player.
-     * 
-     * @return The claim cost
-     */
-    public double getCost() {
-        if (player.hasPermission("scs.admin")) return 0.0;
-
-        Set<String> permissions = player.getEffectivePermissions().parallelStream()
-            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
-            .collect(Collectors.toSet());
-
-        Double cost = permissions.parallelStream()
-            .map(COST_PATTERN::matcher)
-            .filter(Matcher::find)
-            .mapToDouble(matcher -> Double.parseDouble(matcher.group(1)))
-            .max().orElse(-1);
-        
-        if (cost == -1) return claim_cost;
-        return cost;
-    }
-    
-    /**
-     * Gets the claim cost multiplier for the player.
-     * 
-     * @return The claim cost multiplier
-     */
-    public double getMultiplier() {
-        if (player.hasPermission("scs.admin")) return 0.0;
-
-        Set<String> permissions = player.getEffectivePermissions().parallelStream()
-            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
-            .collect(Collectors.toSet());
-
-        Double multiplier = permissions.parallelStream()
-            .map(MULTIPLIER_PATTERN::matcher)
-            .filter(Matcher::find)
-            .mapToDouble(matcher -> Double.parseDouble(matcher.group(1)))
-            .max().orElse(-1);
-        
-        if (multiplier == -1) return claim_cost_multiplier;
-        return multiplier;
-    }
-    
-    /**
-     * Gets the maximum number of members per claim for the player.
-     * 
-     * @return The maximum number of members
-     */
-    public int getMaxMembers() {
-        if (player.hasPermission("scs.admin")) return 0;
-
-        Set<String> permissions = player.getEffectivePermissions().parallelStream()
-            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
-            .collect(Collectors.toSet());
-
-        int members = permissions.parallelStream()
-            .map(MEMBERS_PATTERN::matcher)
-            .filter(Matcher::find)
-            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
-        
-        if (members == -1) return max_members;
-        return members;
-    }
-    
-    /**
-     * Gets the maximum number of chunks per claim for the player
-     * 
-     * @return The maximum number of chunks
-     */
-    public int getMaxChunksPerClaim() {
-        if (player.hasPermission("scs.admin")) return 0;
-
-        Set<String> permissions = player.getEffectivePermissions().parallelStream()
-            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
-            .collect(Collectors.toSet());
-
-        int chunks = permissions.parallelStream()
-            .map(CHUNKS_PATTERN::matcher)
-            .filter(Matcher::find)
-            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
-        
-        if (chunks == -1) return max_chunks_per_claim;
-        return chunks;
-    }
-    
-    /**
-     * Gets the claim distance
-     * 
-     * @return The claim distance
-     */
-    public int getClaimDistance() {
-        if (player.hasPermission("scs.admin")) return 0;
-
-        Set<String> permissions = player.getEffectivePermissions().parallelStream()
-            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
-            .collect(Collectors.toSet());
-
-        int distance = permissions.parallelStream()
-            .map(DISTANCE_PATTERN::matcher)
-            .filter(Matcher::find)
-            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
-        
-        if (distance == -1) return claim_distance;
-        return distance;
-    }
-    
-    /**
-     * Gets the max chunks total
-     * 
-     * @return The max chunks total
-     */
-    public int getMaxChunksTotal() {
-        if (player.hasPermission("scs.admin")) return 0;
-
-        Set<String> permissions = player.getEffectivePermissions().parallelStream()
-            .map(permissionAttachmentInfo -> permissionAttachmentInfo.getPermission())
-            .collect(Collectors.toSet());
-
-        int chunks = permissions.parallelStream()
-            .map(CHUNKS_TOTAL_PATTERN::matcher)
-            .filter(Matcher::find)
-            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
-        
-        if (chunks == -1) return max_chunks_total;
-        return chunks;
     }
     
     /**
