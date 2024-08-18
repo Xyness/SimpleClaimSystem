@@ -227,7 +227,7 @@ public class ClaimGuis {
     	String version = Bukkit.getVersion();
         if (!version.contains("1.21")) {
             meta.addItemFlags(ItemFlag.HIDE_POTION_EFFECTS);
-        } else if (version.contains("1.20") || version.contains("1.21")) {
+        } else if ((version.contains("1.20") || version.contains("1.21")) && !version.contains("Spigot")) {
         	meta.addItemFlags(ItemFlag.HIDE_ITEM_SPECIFICS);
         }
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES, ItemFlag.HIDE_ENCHANTS, ItemFlag.HIDE_DESTROYS, ItemFlag.HIDE_DYE, ItemFlag.HIDE_PLACED_ON, ItemFlag.HIDE_UNBREAKABLE);
