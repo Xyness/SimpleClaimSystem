@@ -464,7 +464,7 @@ public class ClaimMain {
      * @return an integer of the protected areas claims count
      */
     public int getProtectedAreasCount() {
-    	return playerClaims.get(SERVER_UUID).size();
+    	return playerClaims.getOrDefault(SERVER_UUID,new HashSet<>()).size();
     }
 
     /**
@@ -488,16 +488,16 @@ public class ClaimMain {
      */
     public Map<String, Integer> getClaimsOnlineOwners() {
         return playerClaims.values().stream()
-                .flatMap(Set::stream) // Flatten the list of sets into a single stream of claims
+                .flatMap(Set::stream) 
                 .filter(claim -> {
                     Player player = Bukkit.getPlayer(claim.getOwner());
                     return player != null && player.isOnline() && !claim.getUUID().equals(SERVER_UUID);
                 })
                 .collect(Collectors.toConcurrentMap(
-                        Claim::getOwner, // Key: owner name
-                        claim -> 1, // Initial value for the count
-                        Integer::sum, // Merge function: sum the counts
-                        ConcurrentHashMap::new // Map supplier: use ConcurrentHashMap
+                        Claim::getOwner, 
+                        claim -> 1, 
+                        Integer::sum, 
+                        ConcurrentHashMap::new 
                 ));
     }
     
@@ -517,7 +517,7 @@ public class ClaimMain {
                             return claims.isEmpty() ? "Unknown" : claims.iterator().next().getOwner();
                         }, 
                         entry -> (int) entry.getValue().stream().filter(Claim::getSale).count(),
-                        (oldValue, newValue) -> oldValue // In case of key collisions
+                        (oldValue, newValue) -> oldValue
                 ));
     }
 
@@ -528,16 +528,16 @@ public class ClaimMain {
      */
     public Map<String, Integer> getClaimsOfflineOwners() {
         return playerClaims.values().stream()
-                .flatMap(Set::stream) // Flatten the list of sets into a single stream of claims
+                .flatMap(Set::stream)
                 .filter(claim -> {
                     Player player = Bukkit.getPlayer(claim.getOwner());
                     return player == null && !claim.getUUID().equals(SERVER_UUID);
                 })
                 .collect(Collectors.toConcurrentMap(
-                        Claim::getOwner, // Key: owner name
-                        claim -> 1, // Initial value for the count
-                        Integer::sum, // Merge function: sum the counts
-                        ConcurrentHashMap::new // Map supplier: use ConcurrentHashMap
+                        Claim::getOwner,
+                        claim -> 1,
+                        Integer::sum,
+                        ConcurrentHashMap::new
                 ));
     }
 
