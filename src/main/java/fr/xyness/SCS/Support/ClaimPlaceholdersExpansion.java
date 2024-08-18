@@ -2,8 +2,6 @@ package fr.xyness.SCS.Support;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -13,11 +11,8 @@ import org.bukkit.Chunk;
 import org.bukkit.entity.Player;
 
 import fr.xyness.SCS.CPlayer;
-import fr.xyness.SCS.CPlayerMain;
 import fr.xyness.SCS.Claim;
-import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
-import fr.xyness.SCS.Config.ClaimLanguage;
 
 /**
  * This class handles the integration with PlaceholderAPI for providing claim-related placeholders.
@@ -52,9 +47,9 @@ public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
     }
     
     
-	// ********************
-	// *  Others Methods  *
-	// ********************
+	// *******************
+	// *  Other methods  *
+	// *******************
     
     
     /**

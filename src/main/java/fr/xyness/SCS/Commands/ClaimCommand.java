@@ -1354,6 +1354,10 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
      * @param args The args for the command
      */
     private void handleArgOne(Player player, String playerName, CPlayer cPlayer, String[] args) {
+    	if (args[0].equalsIgnoreCase("test")) {
+    		player.sendMessage(String.valueOf(cPlayer.getMaxClaims()));
+    		return;
+    	}
     	if (args[0].equalsIgnoreCase("buy")) {
             if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.buy")) {
             	player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));

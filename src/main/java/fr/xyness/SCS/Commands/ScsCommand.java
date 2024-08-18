@@ -154,15 +154,11 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
      */
     private void handleArgOne(CommandSender sender, String[] args) {
     	if(args[0].equalsIgnoreCase("reload")) {
-    		if(instance.loadConfig(true)) {
-    			sender.sendMessage(instance.getLanguage().getMessage("reload-complete"));
-    		}
+    		instance.loadConfig(true,sender);
     		return;
     	}
     	if(args[0].equalsIgnoreCase("config-reload")) {
-    		if(instance.reloadOnlyConfig()) {
-    			sender.sendMessage(instance.getLanguage().getMessage("reload-complete"));
-    		}
+    		instance.reloadOnlyConfig(sender);
     		return;
     	}
     	if(args[0].equalsIgnoreCase("import-griefprevention")) {
@@ -529,9 +525,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".claim-distance", amount);
                 if(target != null && target.isOnline()) {
-	                CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
-	                int nb = (int) Math.round(amount);
-	                cTarget.setClaimDistance(nb);
+                	UUID targetId = target.getUniqueId();
+	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "claim-distance", amount);
                 }
                 try {
                 	config.save(configFile);
@@ -571,9 +566,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".max-chunks-total", amount);
                 if(target != null && target.isOnline()) {
-	                CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
-	                int nb = (int) Math.round(amount);
-	                cTarget.setMaxChunksTotal(nb);
+                	UUID targetId = target.getUniqueId();
+	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-chunks-total", amount);
                 }
                 try {
                 	config.save(configFile);
@@ -613,9 +607,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".max-chunks-per-claim", amount);
                 if(target != null && target.isOnline()) {
-	                CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
-	                int nb = (int) Math.round(amount);
-	                cTarget.setMaxChunksPerClaim(nb);
+                	UUID targetId = target.getUniqueId();
+	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-chunks-per-claim", amount);
                 }
                 try {
                 	config.save(configFile);
@@ -655,8 +648,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".claim-cost", amount);
                 if(target != null && target.isOnline()) {
-	                CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
-	                cTarget.setClaimCost(amount);
+                	UUID targetId = target.getUniqueId();
+	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "claim-cost", amount);
                 }
                 try {
                 	config.save(configFile);
@@ -696,8 +689,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".claim-cost-multiplier", amount);
                 if(target != null && target.isOnline()) {
-                	CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
-                	cTarget.setClaimCostMultiplier(amount);
+                	UUID targetId = target.getUniqueId();
+	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "claim-cost-multiplier", amount);
                 }
                 try {
                 	config.save(configFile);
@@ -737,8 +730,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".max-members", amount);
                 if(target != null && target.isOnline()) {
-                	CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
-                	cTarget.setMaxMembers(amount);
+                	UUID targetId = target.getUniqueId();
+	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-members", Double.valueOf(amount));
                 }
                 try {
                 	config.save(configFile);
@@ -778,8 +771,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".max-claims", amount);
                 if(target != null && target.isOnline()) {
-                	CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
-                	cTarget.setMaxClaims(amount);
+                	UUID targetId = target.getUniqueId();
+	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-claims", Double.valueOf(amount));
                 }
                 try {
                 	config.save(configFile);
@@ -819,8 +812,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".max-radius-claims", amount);
                 if(target != null && target.isOnline()) {
-                	CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
-                	cTarget.setMaxRadiusClaims(amount);
+                	UUID targetId = target.getUniqueId();
+	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-radius-claims", Double.valueOf(amount));
                 }
                 
                 try {
@@ -861,8 +854,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 config.set("players."+targetName+".teleportation-delay", amount);
                 if(target != null && target.isOnline()) {
-                	CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
-                	cTarget.setTeleportationDelay(amount);
+                	UUID targetId = target.getUniqueId();
+	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "teleportation-delay", Double.valueOf(amount));
                 }
                 
                 try {
@@ -881,7 +874,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     				return;
     			}
     			String name = target.getName();
-    			CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
+    			UUID targetId = target.getUniqueId();
+    			CPlayer cTarget = instance.getPlayerMain().getCPlayer(targetId);
                 int amount;
                 try {
                     amount = Integer.parseInt(args[3]);
@@ -898,7 +892,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 int new_amount = cTarget.getMaxClaims()+amount;
                 config.set("players."+name+".max-claims", new_amount);
-                cTarget.setMaxClaims(new_amount);
+                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-claims", Double.valueOf(new_amount));
                 try {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-claim-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
@@ -914,7 +908,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     				return;
     			}
     			String name = target.getName();
-    			CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
+    			UUID targetId = target.getUniqueId();
+    			CPlayer cTarget = instance.getPlayerMain().getCPlayer(targetId);
                 int amount;
                 try {
                     amount = Integer.parseInt(args[3]);
@@ -931,7 +926,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 int new_amount = cTarget.getMaxRadiusClaims()+amount;
                 config.set("players."+name+".max-radius-claims", new_amount);
-                cTarget.setMaxRadiusClaims(new_amount);
+                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-radius-claims", Double.valueOf(new_amount));
                 try {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-radius-claim-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
@@ -947,7 +942,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     				return;
     			}
     			String name = target.getName();
-    			CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
+    			UUID targetId = target.getUniqueId();
+    			CPlayer cTarget = instance.getPlayerMain().getCPlayer(targetId);
                 int amount;
                 try {
                     amount = Integer.parseInt(args[3]);
@@ -964,7 +960,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 int new_amount = cTarget.getMaxMembers()+amount;
                 config.set("players."+name+".max-members", new_amount);
-                cTarget.setMaxMembers(new_amount);
+                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-members", Double.valueOf(new_amount));
                 try {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-player-member-limit-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
@@ -980,7 +976,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     				return;
     			}
     			String name = target.getName();
-    			CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
+    			UUID targetId = target.getUniqueId();
+    			CPlayer cTarget = instance.getPlayerMain().getCPlayer(targetId);
                 int amount;
                 try {
                     amount = Integer.parseInt(args[3]);
@@ -997,7 +994,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 int new_amount = cTarget.getMaxChunksPerClaim()+amount;
                 config.set("players."+name+".max-chunks-per-claim", new_amount);
-                cTarget.setMaxChunksPerClaim(new_amount);
+                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-chunks-per-claim", Double.valueOf(new_amount));
                 try {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-chunks-per-claim-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
@@ -1013,7 +1010,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     				return;
     			}
     			String name = target.getName();
-    			CPlayer cTarget = instance.getPlayerMain().getCPlayer(target.getUniqueId());
+    			UUID targetId = target.getUniqueId();
+    			CPlayer cTarget = instance.getPlayerMain().getCPlayer(targetId);
                 int amount;
                 try {
                     amount = Integer.parseInt(args[3]);
@@ -1030,7 +1028,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
                 int new_amount = cTarget.getMaxChunksTotal()+amount;
                 config.set("players."+name+".max-chunks-total", new_amount);
-                cTarget.setMaxChunksTotal(new_amount);
+                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-chunks-total", Double.valueOf(new_amount));
                 try {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-chunks-total-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
