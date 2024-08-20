@@ -23,6 +23,17 @@ auto-purge: true
 auto-purge-checking: 60
 auto-purge-time-without-login: 14d
 
+# Aliases
+# Configure the aliases of the main commands.
+# The permissions of these commands are the same.
+command-aliases:
+  claim:
+    - /territory
+  unclaim:
+    - /unterritory
+  claims:
+    - /territories
+
 
 # ********************
 # *  Claim settings  *
@@ -320,7 +331,7 @@ default-values-settings:
     Monsters: true
     Pvp: false
 
-# List of blocked containers for the settings "Interact with blocks"
+# List of blocked containers for the setting "Interact with blocks"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 blocked-interact-blocks:
 - FURNACE
@@ -425,7 +436,7 @@ blocked-interact-blocks:
 - CRIMSON_WALL_SIGN
 - WARPED_WALL_SIGN
 
-# List of blocked items for the settings "Use items"
+# List of blocked items for the setting "Use items"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 blocked-items:
 - ENDER_PEARL
@@ -444,7 +455,7 @@ blocked-items:
 - FISHING_ROD
 - LEAD
 
-# List of blocked entity type for the settings "Entities"
+# List of blocked entity type for the setting "Entities"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/entity/EntityType.html
 blocked-entities:
 - VILLAGER
@@ -462,7 +473,17 @@ blocked-entities:
 - STRIDER
 - LLAMA
 
-# List of blocked containers for the settings "Destroy special blocks"
+# List of blocked blocks for the setting "Destroy special blocks"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 special-blocks:
 - SPAWNER
+
+# List of ignored blocks for the settings "Destroy"
+# https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+ignored-break-blocks:
+- BEDROCK
+
+# List of ignored blocks for the settings "Build"
+# https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+ignored-place-blocks:
+- BEDROCK

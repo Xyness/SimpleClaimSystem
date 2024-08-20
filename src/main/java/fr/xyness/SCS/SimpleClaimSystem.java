@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -12,9 +13,11 @@ import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -22,14 +25,17 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
+import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
+import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.dynmap.DynmapAPI;
 import org.dynmap.markers.MarkerAPI;
@@ -104,7 +110,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.3.1";
+    private String Version = "1.11.4";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -506,6 +512,36 @@ public class SimpleClaimSystem extends JavaPlugin {
                 }
             }
             
+            
+            // Aliases settings
+            List<String> aliases_claim = getConfig().getStringList("command-aliases.claim");
+            List<String> aliases_unclaim = getConfig().getStringList("command-aliases.unclaim");
+            List<String> aliases_claims = getConfig().getStringList("command-aliases.claims");
+            if (aliases_claim == null || aliases_claim.isEmpty()) {
+                info(ChatColor.RED + "'aliases_claim' is missing or empty in config. Using default value.");
+                aliases_claim = new ArrayList<>();
+                aliases_claim.add("/territory");
+            }
+            if (aliases_unclaim == null || aliases_unclaim.isEmpty()) {
+                info(ChatColor.RED + "'aliases_unclaim' is missing or empty in config. Using default value.");
+                aliases_unclaim = new ArrayList<>();
+                aliases_unclaim.add("/unterritory");
+            }
+            if (aliases_claims == null || aliases_claims.isEmpty()) {
+                info(ChatColor.RED + "'aliases_claims' is missing or empty in config. Using default value.");
+                aliases_claims = new ArrayList<>();
+                aliases_claims.add("/territories");
+            }
+            for(String command : aliases_claim) {
+            	claimSettingsInstance.addAliase(command, "/claim");
+            }
+            for(String command : aliases_unclaim) {
+            	claimSettingsInstance.addAliase(command, "/unclaim");
+            }
+            for(String command : aliases_claims) {
+            	claimSettingsInstance.addAliase(command, "/claims");
+            }
+            
             // Add Dynmap settings
             configC = getConfig().getString("dynmap");
             if(configC.equalsIgnoreCase("true") && claimSettingsInstance.getBooleanSetting("dynmap")) {
@@ -739,6 +775,12 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Add special blocks
             claimSettingsInstance.setSpecialBlocks(getConfig().getStringList("special-blocks"));
+            
+            // Add ignored break blocks
+            claimSettingsInstance.setBreakBlocksIgnore(getConfig().getStringList("ignored-break-blocks"));
+            
+            // Add ignored place blocks
+            claimSettingsInstance.setPlaceBlocksIgnore(getConfig().getStringList("ignored-place-blocks"));
             
             // Register protection listener
             getServer().getPluginManager().registerEvents(new ClaimEvents(this), this);
@@ -1025,6 +1067,35 @@ public class SimpleClaimSystem extends JavaPlugin {
                 }
             }
             
+            // Aliases settings
+            List<String> aliases_claim = getConfig().getStringList("command-aliases.claim");
+            List<String> aliases_unclaim = getConfig().getStringList("command-aliases.unclaim");
+            List<String> aliases_claims = getConfig().getStringList("command-aliases.claims");
+            if (aliases_claim == null || aliases_claim.isEmpty()) {
+                info(ChatColor.RED + "'aliases_claim' is missing or empty in config. Using default value.");
+                aliases_claim = new ArrayList<>();
+                aliases_claim.add("/territory");
+            }
+            if (aliases_unclaim == null || aliases_unclaim.isEmpty()) {
+                info(ChatColor.RED + "'aliases_unclaim' is missing or empty in config. Using default value.");
+                aliases_unclaim = new ArrayList<>();
+                aliases_unclaim.add("/unterritory");
+            }
+            if (aliases_claims == null || aliases_claims.isEmpty()) {
+                info(ChatColor.RED + "'aliases_claims' is missing or empty in config. Using default value.");
+                aliases_claims = new ArrayList<>();
+                aliases_claims.add("/territories");
+            }
+            for(String command : aliases_claim) {
+            	claimSettingsInstance.addAliase(command, "/claim");
+            }
+            for(String command : aliases_unclaim) {
+            	claimSettingsInstance.addAliase(command, "/unclaim");
+            }
+            for(String command : aliases_claims) {
+            	claimSettingsInstance.addAliase(command, "/claims");
+            }
+            
             // Add Dynmap settings
             claimSettingsInstance.addSetting("dynmap-claim-border-color", getConfig().getString("dynmap-settings.claim-border-color"));
             claimSettingsInstance.addSetting("dynmap-claim-fill-color", getConfig().getString("dynmap-settings.claim-fill-color"));
@@ -1223,9 +1294,16 @@ public class SimpleClaimSystem extends JavaPlugin {
             // Add special blocks
             claimSettingsInstance.setSpecialBlocks(getConfig().getStringList("special-blocks"));
             
+            // Add ignored break blocks
+            claimSettingsInstance.setBreakBlocksIgnore(getConfig().getStringList("ignored-break-blocks"));
+            
+            // Add ignored place blocks
+            claimSettingsInstance.setPlaceBlocksIgnore(getConfig().getStringList("ignored-place-blocks"));
+            
             // Register protection listener
             getServer().getPluginManager().registerEvents(new ClaimEvents(this), this);
-            
+
+            // Save config
             saveConfig();
             
             // Load bossbar default settings

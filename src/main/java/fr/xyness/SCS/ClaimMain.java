@@ -3090,7 +3090,7 @@ public class ClaimMain {
 
 	        	// Update perms
 	            playerClaims.computeIfAbsent(uuid, k -> new HashSet<>()).stream().forEach(c -> {
-	            	c.setPermissions(perm);
+	            	c.setPermissions(new LinkedHashMap<>(perm));
 	                updateWeatherChunk(c);
 	                updateFlyChunk(c);
 	            });
@@ -3169,7 +3169,7 @@ public class ClaimMain {
 	        	Map<String,LinkedHashMap<String,Boolean>> perm = new LinkedHashMap<>(instance.getSettings().getDefaultValues());
 	            listClaims.values().stream().forEach(c -> {
 	            	if(!c.getUUID().equals(SERVER_UUID)) {
-	                    c.setPermissions(perm);
+	                    c.setPermissions(new LinkedHashMap<>(perm));
 	    	            // Update weather and fly
 	                    updateWeatherChunk(c);
 	                    updateFlyChunk(c);
