@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
@@ -34,6 +35,15 @@ public class ClaimSettings {
     
     /** List of special blocks. */
     private List<Material> specialBlocks = new ArrayList<>();
+    
+    /** List of ignored break blocks. */
+    private List<Material> BreakBlocksIgnore = new ArrayList<>();
+    
+    /** List of ignored place blocks. */
+    private List<Material> PlaceBlocksIgnore = new ArrayList<>();
+    
+    /** Map of aliases, key for aliase, value for real command */
+    private Map<String,String> aliases = new HashMap<>();
     
     /** Default values for settings. */
     private Map<String,LinkedHashMap<String, Boolean>> defaultValues = new HashMap<>();
@@ -76,12 +86,15 @@ public class ClaimSettings {
         restrictedInteractBlocks.clear();
         restrictedEntityType.clear();
         specialBlocks.clear();
+        BreakBlocksIgnore.clear();
+        PlaceBlocksIgnore.clear();
         defaultValues.clear();
         enabledSettings.clear();
         settings.clear();
         groups.clear();
         groupsSettings.clear();
         disabledWorlds.clear();
+        aliases.clear();
     }
 
     /**
@@ -123,6 +136,38 @@ public class ClaimSettings {
 	    		return;
         }
     }
+    
+    /**
+     * Add a new aliase.
+     * 
+     * @param key The aliase.
+     * @param value The real command.
+     */
+    public void addAliase(String key, String value) {
+    	aliases.put(key, value);
+    }
+    
+    /**
+     * Gets an aliase.
+     * 
+     * @param key The aliase to check.
+     * @return The aliase.
+     */
+    public String getAliase(String key) {
+    	return aliases.get(key);
+    }
+    
+    /**
+     * Gets the aliases of a command.
+     * 
+     * @param value The real command.
+     * @return The aliases.
+     */
+    public Set<String> getAliasesFromCommand(String value){
+    	return aliases.values().stream()
+    			.filter(s -> s.equals(value))
+    			.collect(Collectors.toSet());
+    }
 
     /**
      * Checks if the material is a restricted container.
@@ -152,6 +197,36 @@ public class ClaimSettings {
      */
     public boolean isRestrictedItem(Material item) {
         return restrictedItems.contains(item);
+    }
+    
+    /**
+     * Checks if the material is a ignored break block.
+     *
+     * @param item The material to check.
+     * @return true if the material is a ignored break block, false otherwise.
+     */
+    public boolean isBreakBlockIgnore(Material item) {
+        return BreakBlocksIgnore.contains(item);
+    }
+    
+    /**
+     * Checks if the material is a ignored place block.
+     *
+     * @param item The material to check.
+     * @return true if the material is a ignored place block, false otherwise.
+     */
+    public boolean isPlaceBlockIgnore(Material item) {
+        return PlaceBlocksIgnore.contains(item);
+    }
+    
+    /**
+     * Checks if the material is a special block.
+     *
+     * @param item The material to check.
+     * @return true if the material is a special block, false otherwise.
+     */
+    public boolean isSpecialBlock(Material item) {
+        return specialBlocks.contains(item);
     }
 
     /**
@@ -320,6 +395,24 @@ public class ClaimSettings {
     public List<Material> getSpecialBlocks() {
         return specialBlocks;
     }
+    
+    /**
+     * Gets the list of ignored break blocks.
+     *
+     * @return The list of ignored break blocks.
+     */
+    public List<Material> getBreakBlocksIgnore() {
+        return BreakBlocksIgnore;
+    }
+    
+    /**
+     * Gets the list of ignored place blocks.
+     *
+     * @return The list of ignored place blocks.
+     */
+    public List<Material> getPlaceBlocksIgnore() {
+        return PlaceBlocksIgnore;
+    }
 
     /**
      * Sets the default values.
@@ -392,6 +485,34 @@ public class ClaimSettings {
                         .map(Material::matchMaterial)
                         .filter(Objects::nonNull)
                         .peek(specialBlocks::add)
+                        .count();
+    }
+    
+    /**
+     * Sets the ignored break blocks.
+     *
+     * @param mat The list of ignored break blocks.
+     * @return The number of restricted blocks added.
+     */
+    public int setBreakBlocksIgnore(List<String> mat) {
+        return (int) mat.stream()
+                        .map(Material::matchMaterial)
+                        .filter(Objects::nonNull)
+                        .peek(BreakBlocksIgnore::add)
+                        .count();
+    }
+    
+    /**
+     * Sets the ignored place blocks.
+     *
+     * @param mat The list of ignored place blocks.
+     * @return The number of restricted blocks added.
+     */
+    public int setPlaceBlocksIgnore(List<String> mat) {
+        return (int) mat.stream()
+                        .map(Material::matchMaterial)
+                        .filter(Objects::nonNull)
+                        .peek(PlaceBlocksIgnore::add)
                         .count();
     }
 

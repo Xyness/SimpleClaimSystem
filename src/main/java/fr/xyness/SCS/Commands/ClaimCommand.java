@@ -103,7 +103,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 
         CompletableFuture<List<String>> future = CompletableFuture.supplyAsync(() -> {
             List<String> completions = new ArrayList<>();
-
+            
             if (args.length == 1) {
                 completions.addAll(getPrimaryCompletions(player));
             } else if (args.length == 2) {

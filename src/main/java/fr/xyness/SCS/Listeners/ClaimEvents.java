@@ -53,6 +53,7 @@ import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -137,6 +138,21 @@ public class ClaimEvents implements Listener {
 	// *******************
 	
 	
+    /**
+     * Handles player command pre process.
+     * @param event
+     */
+    @EventHandler
+    public void onCommandPreprocess(PlayerCommandPreprocessEvent event) {
+        String message = event.getMessage().toLowerCase();
+        String command = message.split(" ")[0];
+        String aliase = instance.getSettings().getAliase(command);
+        if(aliase != null) {
+            String newCommand = message.replaceFirst(command, aliase);
+            event.setMessage(newCommand);
+        }
+    }
+    
 	/**
 	 * Handles player chat events for claim chat.
 	 * @param event the player chat event.
@@ -426,12 +442,12 @@ public class ClaimEvents implements Listener {
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-			if(!claim.getPermissionForPlayer("Destroy", player)) {
+			if(!claim.getPermissionForPlayer("Destroy", player) && !instance.getSettings().isBreakBlockIgnore(event.getBlock().getType())) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
-			if(instance.getSettings().getSpecialBlocks().contains(event.getBlock().getType()) && !claim.getPermissionForPlayer("SpecialBlocks", player)) {
+			if(instance.getSettings().isSpecialBlock(event.getBlock().getType()) && !claim.getPermissionForPlayer("SpecialBlocks", player)) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("specialblocks"), instance.getSettings().getSetting("protection-message"));
 				return;
@@ -476,28 +492,29 @@ public class ClaimEvents implements Listener {
 		Block block = event.getBlock();
 		Chunk chunk = block.getLocation().getChunk();
 		
-		if(block.getType().toString().contains("BED")) {
-	        Bed bed = (Bed) block.getBlockData();
-	        BlockFace facing = bed.getFacing();
-	        Block adjacentBlock = block.getRelative(facing);
-	        Chunk adjacentChunk = adjacentBlock.getChunk();
-	
-	        if (!chunk.equals(adjacentChunk)) {
-	            if (instance.getMain().checkIfClaimExists(adjacentChunk) &&
-	                !instance.getMain().getOwnerInClaim(chunk).equals(instance.getMain().getOwnerInClaim(adjacentChunk))) {
-	            	Claim claim = instance.getMain().getClaim(adjacentChunk);
-	                if (!claim.getPermissionForPlayer("Build", player)) {
-	                    event.setCancelled(true);
-	                    instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
-	                    return;
+	    if (block.getBlockData() instanceof Bed bed) {
+	        if (!instance.getSettings().isPlaceBlockIgnore(block.getType())) {
+	            BlockFace facing = bed.getFacing();
+	            Block adjacentBlock = block.getRelative(facing);
+	            Chunk adjacentChunk = adjacentBlock.getChunk();
+
+	            if (!chunk.equals(adjacentChunk)) {
+	                if (instance.getMain().checkIfClaimExists(adjacentChunk) &&
+	                    !instance.getMain().getOwnerInClaim(chunk).equals(instance.getMain().getOwnerInClaim(adjacentChunk))) {
+	                    Claim claim = instance.getMain().getClaim(adjacentChunk);
+	                    if (!claim.getPermissionForPlayer("Build", player)) {
+	                        event.setCancelled(true);
+	                        instance.getMain().sendMessage(player, instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
+	                        return;
+	                    }
 	                }
 	            }
 	        }
-		}
+	    }
 		
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-			if(!claim.getPermissionForPlayer("Build", player)) {
+			if(!claim.getPermissionForPlayer("Build", player) && !instance.getSettings().isPlaceBlockIgnore(block.getType())) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 				return;
@@ -517,7 +534,7 @@ public class ClaimEvents implements Listener {
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-			if(!claim.getPermissionForPlayer("Build", player)) {
+			if(!claim.getPermissionForPlayer("Build", player) && !instance.getSettings().isPlaceBlockIgnore(event.getBlock().getType())) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 				return;
@@ -600,7 +617,7 @@ public class ClaimEvents implements Listener {
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-			if(!claim.getPermissionForPlayer("Build", player)) {
+			if(!claim.getPermissionForPlayer("Build", player) && !instance.getSettings().isPlaceBlockIgnore(event.getBlock().getType())) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 				return;
@@ -620,7 +637,7 @@ public class ClaimEvents implements Listener {
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-			if(!claim.getPermissionForPlayer("Destroy", player)) {
+			if(!claim.getPermissionForPlayer("Destroy", player) && !instance.getSettings().isBreakBlockIgnore(event.getBlock().getType())) {
 				event.setCancelled(true);
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
 				return;
