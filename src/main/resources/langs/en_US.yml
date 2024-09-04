@@ -200,7 +200,7 @@ autofly-disabled: "§fAuto-fly off."
 cant-fly-in-this-claim: "§cYou cannot fly in this territory."
 reset-of-player-claims-settings-successful: "§eAll settings for all player claims§f have been reset."
 reset-of-admin-claims-settings-successful: "§eAll settings for all protected areas§f have been reset."
-claims-are-now-merged: "§fThe two claims are now §dmerged§f into one §e%claim-name%§f."
+claims-are-now-merged: "§fThe claims are now §dmerged§f into one §e%claim-name%§f."
 cant-merge-same-claim: "§cYou cannot merge the same claim."
 cant-claim-with-so-many-chunks: "§cYou cannot claim with so many chunks."
 apply-all-settings-success-aclaim: "§eThe settings§f have been applied to§e all claims§f of §e%player%§f."
@@ -276,6 +276,7 @@ set-group-max-chunks-total-success: "§e%group%§f can have a total of §e%amoun
 set-group-claim-distance-success: "§e%group%§f can claim with a distance of §e%amount%§f chunks."
 can-not-buy-your-own-claim: "§cYou can not buy your own claim."
 claim-already-in-sale: "§cThis claim is already in sale."
+no-claim-can-be-merged: "§cThere are no claims to merge."
 
 
 # > Deny messages

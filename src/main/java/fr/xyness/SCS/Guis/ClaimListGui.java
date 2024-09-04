@@ -150,6 +150,9 @@ public class ClaimListGui implements InventoryHolder {
 	            
 	            // Set the claim item
 	        	ItemStack item = instance.getPlayerMain().getPlayerHead(playerName);
+	        	if(item == null) {
+	        		item = new ItemStack(Material.PLAYER_HEAD);
+	        	}
 	            SkullMeta meta = (SkullMeta) item.getItemMeta();
 	            meta.setDisplayName(instance.getLanguage().getMessage("access-claim-title").replace("%name%", claim.getName()).replace("%coords%", instance.getMain().getClaimCoords(claim)));
 	            meta.setLore(used_lore);

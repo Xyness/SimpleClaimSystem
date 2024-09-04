@@ -141,6 +141,9 @@ public class ClaimBansGui implements InventoryHolder {
 	
 	            // Set player head item
 	        	ItemStack item = instance.getPlayerMain().getPlayerHead(p);
+	        	if(item == null) {
+	        		item = new ItemStack(Material.PLAYER_HEAD);
+	        	}
 	            SkullMeta meta = (SkullMeta) item.getItemMeta();
 	            meta.setDisplayName(instance.getLanguage().getMessage("player-ban-title").replace("%player%", p));
 	            meta.setLore(lore);

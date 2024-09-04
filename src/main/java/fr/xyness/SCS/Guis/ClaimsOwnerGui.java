@@ -117,8 +117,8 @@ public class ClaimsOwnerGui implements InventoryHolder {
 	            // Break if bigger than 45 to not exceed
 	            if (i == 45) break;
 	            
-	            // Hide claim if setting "EnterTeleport" disabled (if enabled in config.yml)
-	            if (!claim.getPermissionForPlayer("EnterTeleport",player) && !instance.getSettings().getBooleanSetting("claims-visitors-off-visible")) continue;
+	            // Hide claim if setting "GuiTeleport" disabled (if enabled in config.yml)
+	            if (!claim.getPermissionForPlayer("GuiTeleport",player) && !instance.getSettings().getBooleanSetting("claims-visitors-off-visible")) continue;
 	            
 	            // Prepare lore and title for claim
 	            List<String> lore = prepareLore(loreTemplate, claim, player);
@@ -133,6 +133,9 @@ public class ClaimsOwnerGui implements InventoryHolder {
 	            
 	            // Set owner item
 	        	ItemStack item = instance.getPlayerMain().getPlayerHead(owner);
+	        	if(item == null) {
+	        		item = new ItemStack(Material.PLAYER_HEAD);
+	        	}
 	            SkullMeta meta = (SkullMeta) item.getItemMeta();
 	            meta.setDisplayName(title);
 	            meta.setLore(lore);

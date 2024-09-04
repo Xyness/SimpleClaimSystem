@@ -29,6 +29,22 @@ public interface SimpleClaimSystemAPI {
      * @return the player's claim, or null if not found
      */
     Claim getPlayerClaim(Player player, String claimName);
+    
+    /**
+     * Retrieves player's claims.
+     * 
+     * @param player the player
+     * @return a set with all the player's claims
+     */
+    Set<Claim> getPlayerClaims(Player player);
+    
+    /**
+     * Retrieves all the claims where the player is member of.
+     * 
+     * @param player the player
+     * @return a set with all the claims the player is member of
+     */
+    Set<Claim> getPlayerClaimsWhereMember(Player player);
 
     /**
      * Retrieves a CPlayer object by player name.

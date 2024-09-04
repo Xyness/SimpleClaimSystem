@@ -326,6 +326,19 @@ public class ClaimMain {
     }
     
     /**
+     * Gets all chunks of all protected areas
+     * 
+     * @return A set of chunks
+     */
+    public Set<Chunk> getAllChunksFromAllProtectedAreas() {
+        return listClaims.entrySet()
+                .stream()
+                .filter(entry -> entry.getValue().getUUID().equals(SERVER_UUID))
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toSet());
+    }
+    
+    /**
      * Gets a set of claims in sale of a player.
      *
      * @param owner The name of the owner.
@@ -2404,7 +2417,7 @@ public class ClaimMain {
 	            
 	            // Update settings
 	            playerClaims.computeIfAbsent(uuid, k -> new HashSet<>()).stream().forEach(c -> {
-	            	c.setPermissions(perms);
+	            	c.setPermissions(new LinkedHashMap<>(perms));
 	                updateWeatherChunk(c);
 	                updateFlyChunk(c);
 	            });

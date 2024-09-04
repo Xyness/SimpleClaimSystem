@@ -146,6 +146,9 @@ public class ClaimMembersGui implements InventoryHolder {
 	
 	            // Set member head
 	            ItemStack item = instance.getPlayerMain().getPlayerHead(p);
+	        	if(item == null) {
+	        		item = new ItemStack(Material.PLAYER_HEAD);
+	        	}
 	            SkullMeta meta = (SkullMeta) item.getItemMeta();
 	            meta.setDisplayName(instance.getLanguage().getMessage("player-member-title").replace("%player%", p));
 	            meta.setLore(lore);

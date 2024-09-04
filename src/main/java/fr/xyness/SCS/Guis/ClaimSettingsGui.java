@@ -234,7 +234,6 @@ public class ClaimSettingsGui implements InventoryHolder {
 	        inv.setItem(50, instance.getGuis().createItem(
 	                Material.GREEN_CONCRETE,
 	                instance.getLanguage().getMessage("apply-all-claims-title"),lore));
-        
 	        return true;
 	        
     	});
