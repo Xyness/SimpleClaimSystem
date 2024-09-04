@@ -81,7 +81,7 @@ enter-leave-title-messages: true
 # Enable/Disable the enter/leave message in the chat
 enter-leave-chat-messages: true
 
-# Should claims with the EnterTeleport setting disabled be displayed in /claims?
+# Should claims with the GuiTeleport setting disabled be displayed in /claims?
 claims-visitors-off-visible: true
 
 # Enable/Disable the economy system (sell/buy claims)

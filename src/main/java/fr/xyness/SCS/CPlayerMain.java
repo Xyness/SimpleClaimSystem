@@ -146,6 +146,10 @@ public class CPlayerMain {
         players.clear();
         playersConfigSettings.clear();
         playersHead.clear();
+        playersName.clear();
+        playersUUID.clear();
+        playersRegistered.clear();
+        playersHashedTexture.clear();
     }
 
     /**
@@ -186,7 +190,7 @@ public class CPlayerMain {
                         playerHead = new ItemStack(Material.PLAYER_HEAD);
                         playersHashedTexture.put(name, "none");
                     }
-                    playersHead.put(name, playerHead);
+                    playersHead.put(name, playerHead == null ? new ItemStack(Material.PLAYER_HEAD) : playerHead);
                     playersHashedTexture.put(name, textures == null ? "none" : textures);
                 }).exceptionally(ex -> {
                     return null;
@@ -356,10 +360,8 @@ public class CPlayerMain {
                     	String uuid_mojang = resultSet.getString("uuid_mojang");
                     	String playerName = resultSet.getString("player_name");
                     	String textures = resultSet.getString("player_textures");
-                    	if(!playersHead.containsKey(playerName)) {
-                        	ItemStack playerHead = createPlayerHeadWithTexture(uuid_mojang,textures);
-                        	playersHead.put(playerName, playerHead);
-                    	}
+                        ItemStack playerHead = createPlayerHeadWithTexture(uuid_mojang,textures);
+                        playersHead.put(playerName, playerHead);
                     	playersHashedTexture.put(playerName, textures);
                     	playersName.put(uuid, playerName);
                     	playersUUID.put(playerName, uuid);
@@ -629,7 +631,7 @@ public class CPlayerMain {
      * @return The CPlayer instance, or null if not found
      */
     public CPlayer getCPlayer(UUID targetUUID) {
-        return players.get(targetUUID);
+        return players.computeIfAbsent(targetUUID, k -> new CPlayer(Bukkit.getPlayer(targetUUID), targetUUID, instance.getMain().getPlayerClaimsCount(targetUUID),instance));
     }
     
     /**

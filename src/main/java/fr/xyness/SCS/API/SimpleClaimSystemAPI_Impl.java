@@ -55,6 +55,16 @@ public class SimpleClaimSystemAPI_Impl implements SimpleClaimSystemAPI {
 	public Claim getPlayerClaim(Player player, String claimName) {
 		return instance.getMain().getClaimByName(claimName, player);
 	}
+	
+	@Override
+	public Set<Claim> getPlayerClaims(Player player){
+		return instance.getMain().getPlayerClaims(player.getUniqueId());
+	}
+	
+	@Override
+	public Set<Claim> getPlayerClaimsWhereMember(Player player){
+		return instance.getMain().getClaimsWhereMemberNotOwner(player);
+	}
 
 	@Override
 	public CPlayer getCPlayer(String playerName) {
