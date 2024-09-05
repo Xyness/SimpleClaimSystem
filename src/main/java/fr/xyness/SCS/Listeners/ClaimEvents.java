@@ -243,6 +243,7 @@ public class ClaimEvents implements Listener {
 		if(!(event.getEntity() instanceof Player)) return;
 		if(!instance.getSettings().getBooleanSetting("claim-fly-disabled-on-damage")) return;
 		Player player = (Player) event.getEntity();
+		if(player == null) return;
 		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
     	if(cPlayer != null && cPlayer.getClaimFly()) {
     		instance.getPlayerMain().removePlayerFly(player);
