@@ -38,6 +38,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import fr.xyness.SCS.API.SimpleClaimSystemAPI;
+
 /**
  * This class handles CPlayer management and methods
  */
@@ -145,11 +147,6 @@ public class CPlayerMain {
     public void clearAll() {
         players.clear();
         playersConfigSettings.clear();
-        playersHead.clear();
-        playersName.clear();
-        playersUUID.clear();
-        playersRegistered.clear();
-        playersHashedTexture.clear();
     }
 
     /**
@@ -631,7 +628,7 @@ public class CPlayerMain {
      * @return The CPlayer instance, or null if not found
      */
     public CPlayer getCPlayer(UUID targetUUID) {
-        return players.computeIfAbsent(targetUUID, k -> new CPlayer(Bukkit.getPlayer(targetUUID), targetUUID, instance.getMain().getPlayerClaimsCount(targetUUID),instance));
+        return players.get(targetUUID);
     }
     
     /**
