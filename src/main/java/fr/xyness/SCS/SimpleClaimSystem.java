@@ -41,6 +41,8 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import de.bluecolored.bluemap.api.BlueMapAPI;
+import fr.xyness.SCS.API.SimpleClaimSystemAPI;
+import fr.xyness.SCS.API.SimpleClaimSystemAPI_Impl;
 import fr.xyness.SCS.API.SimpleClaimSystemAPI_Provider;
 import fr.xyness.SCS.Commands.*;
 import fr.xyness.SCS.Config.ClaimGuis;
@@ -105,8 +107,11 @@ public class SimpleClaimSystem extends JavaPlugin {
     /** Instance of SimpleClaimSystem for useful methods */
     private SimpleClaimSystem instance;
     
+	/** Instance of SimpleClaimSystemAPI */
+    public static SimpleClaimSystemAPI apiInstance;
+    
     /** The version of the plugin */
-    private String Version = "1.11.5.1";
+    private String Version = "1.11.5.2";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -146,13 +151,13 @@ public class SimpleClaimSystem extends JavaPlugin {
         this.instance = this;
         
         // Initialize the API
-        SimpleClaimSystemAPI_Provider.initialize(this);
+        apiInstance = new SimpleClaimSystemAPI_Impl(instance);
         
         // Load config and send finale message
         if (loadConfig(false, Bukkit.getConsoleSender())) {
             info(" ");
             info("SimpleClaimSystem is enabled !");
-            info("Discord for support : https://discord.gg/xyness");
+            info("Discord for support : https://discord.gg/6sRTGprM95");
             info("Documentation : https://xyness.gitbook.io/simpleclaimsystem");
             info("Developped by Xyness");
         } else {
@@ -173,7 +178,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         Bukkit.getOnlinePlayers().forEach(p -> claimBossBarInstance.disableBossBar(p));
         info("==========================================================================");
         info("SimpleClaimSystem is disabled !");
-        info("Discord for support : https://discord.gg/xyness");
+        info("Discord for support : https://discord.gg/6sRTGprM95");
         info("Documentation : https://xyness.gitbook.io/simpleclaimsystem");
         info("Developped by Xyness");
         info("==========================================================================");
@@ -513,18 +518,18 @@ public class SimpleClaimSystem extends JavaPlugin {
             List<String> aliases_claim = getConfig().getStringList("command-aliases.claim");
             List<String> aliases_unclaim = getConfig().getStringList("command-aliases.unclaim");
             List<String> aliases_claims = getConfig().getStringList("command-aliases.claims");
-            if (aliases_claim == null || aliases_claim.isEmpty()) {
-                info(ChatColor.RED + "'aliases_claim' is missing or empty in config. Using default value.");
+            if (aliases_claim == null) {
+                info(ChatColor.RED + "'aliases_claim' is missing in config. Using default value.");
                 aliases_claim = new ArrayList<>();
                 aliases_claim.add("/territory");
             }
-            if (aliases_unclaim == null || aliases_unclaim.isEmpty()) {
-                info(ChatColor.RED + "'aliases_unclaim' is missing or empty in config. Using default value.");
+            if (aliases_unclaim == null) {
+                info(ChatColor.RED + "'aliases_unclaim' is missing in config. Using default value.");
                 aliases_unclaim = new ArrayList<>();
                 aliases_unclaim.add("/unterritory");
             }
-            if (aliases_claims == null || aliases_claims.isEmpty()) {
-                info(ChatColor.RED + "'aliases_claims' is missing or empty in config. Using default value.");
+            if (aliases_claims == null) {
+                info(ChatColor.RED + "'aliases_claims' is missing in config. Using default value.");
                 aliases_claims = new ArrayList<>();
                 aliases_claims.add("/territories");
             }
