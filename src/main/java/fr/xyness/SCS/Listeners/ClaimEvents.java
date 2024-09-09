@@ -85,34 +85,8 @@ public class ClaimEvents implements Listener {
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
-    // Potions effect to cancel for 1.18
-    private final List<PotionEffectType> NEGATIVE_EFFECTS_1_18 = Arrays.asList(
-        PotionEffectType.HARM,
-        PotionEffectType.POISON,
-        PotionEffectType.WITHER,
-        PotionEffectType.SLOW,
-        PotionEffectType.WEAKNESS,
-        PotionEffectType.BLINDNESS,
-        PotionEffectType.HUNGER,
-        PotionEffectType.SLOW_DIGGING,
-        PotionEffectType.LEVITATION,
-        PotionEffectType.CONFUSION
-    );
-    
-    // Potions effect to cancel for > 1.19
-    private final List<PotionEffectType> NEGATIVE_EFFECTS_1_19_PLUS = Arrays.asList(
-        PotionEffectType.HARM,
-        PotionEffectType.POISON,
-        PotionEffectType.WITHER,
-        PotionEffectType.SLOW,
-        PotionEffectType.WEAKNESS,
-        PotionEffectType.BLINDNESS,
-        PotionEffectType.HUNGER,
-        PotionEffectType.SLOW_DIGGING,
-        PotionEffectType.LEVITATION,
-        PotionEffectType.CONFUSION,
-        PotionEffectType.DARKNESS
-    );
+    // Potions effect to cancel
+    private final List<PotionEffectType> NEGATIVE_EFFECTS = new ArrayList<>();
     
     /** Bukkit version */
     private final String bukkitVersion = Bukkit.getVersion();
@@ -130,6 +104,21 @@ public class ClaimEvents implements Listener {
      */
     public ClaimEvents(SimpleClaimSystem instance) {
     	this.instance = instance;
+    	
+    	NEGATIVE_EFFECTS.add(PotionEffectType.HARM);
+    	NEGATIVE_EFFECTS.add(PotionEffectType.POISON);
+    	NEGATIVE_EFFECTS.add(PotionEffectType.WITHER);
+    	NEGATIVE_EFFECTS.add(PotionEffectType.SLOW);
+    	NEGATIVE_EFFECTS.add(PotionEffectType.WEAKNESS);
+    	NEGATIVE_EFFECTS.add(PotionEffectType.BLINDNESS);
+    	NEGATIVE_EFFECTS.add(PotionEffectType.HUNGER);
+    	NEGATIVE_EFFECTS.add(PotionEffectType.SLOW_DIGGING);
+    	NEGATIVE_EFFECTS.add(PotionEffectType.LEVITATION);
+    	NEGATIVE_EFFECTS.add(PotionEffectType.CONFUSION);
+    	
+    	if(!bukkitVersion.contains("1.18")) {
+    		NEGATIVE_EFFECTS.add(PotionEffectType.DARKNESS);
+    	}
     }
 	
     
@@ -210,7 +199,6 @@ public class ClaimEvents implements Listener {
 	            Player damager = (Player) thrownPotion.getShooter();
 
 	            if (damager.hasPermission("scs.bypass")) return;
-	            List<PotionEffectType> NEGATIVE_EFFECTS = getPotionList();
 
 	            for (PotionEffect effect : thrownPotion.getEffects()) {
 	                if (NEGATIVE_EFFECTS.contains(effect.getType())) {
@@ -243,7 +231,6 @@ public class ClaimEvents implements Listener {
 		if(!(event.getEntity() instanceof Player)) return;
 		if(!instance.getSettings().getBooleanSetting("claim-fly-disabled-on-damage")) return;
 		Player player = (Player) event.getEntity();
-		if(player == null) return;
 		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
     	if(cPlayer != null && cPlayer.getClaimFly()) {
     		instance.getPlayerMain().removePlayerFly(player);
@@ -1156,18 +1143,6 @@ public class ClaimEvents implements Listener {
             event.setCancelled(true);
             instance.getMain().sendMessage(player, instance.getLanguage().getMessage("damages"), instance.getSettings().getSetting("protection-message"));
         }
-    }
-    
-    /**
-     * Gets the potion list depending on the bukkit version
-     * 
-     * @return The potion list
-     */
-    private List<PotionEffectType> getPotionList(){
-    	if(bukkitVersion.contains("1.18")) {
-    		return NEGATIVE_EFFECTS_1_18;
-    	}
-    	return NEGATIVE_EFFECTS_1_19_PLUS;
     }
     
 }

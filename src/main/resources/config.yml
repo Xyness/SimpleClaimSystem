@@ -129,6 +129,10 @@ bossbar-settings:
 # true = can move, false = cannot move
 teleportation-delay-moving: false
 
+# Where the auto-map is sent.
+# Available types : CHAT and SCOREBOARD.
+map-type: SCOREBOARD
+
 
 # ******************
 # *  Map settings  *

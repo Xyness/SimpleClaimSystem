@@ -15,6 +15,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -23,6 +24,7 @@ import org.bukkit.*;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -784,7 +786,10 @@ public class ClaimMain {
 
                 if (!instance.getSettings().getBooleanSetting("teleportation-delay-moving")) {
                     Location currentLocation = player.getLocation();
-                    if (!currentLocation.equals(originalLocation)) {
+                    if (!currentLocation.equals(originalLocation) && 
+                            (currentLocation.getX() != originalLocation.getX() || 
+                             currentLocation.getY() != originalLocation.getY() || 
+                             currentLocation.getZ() != originalLocation.getZ())) {
                         player.sendMessage(instance.getLanguage().getMessage("teleportation-canceled-moving"));
                         playerLocations.remove(player);
                         return;
@@ -1856,8 +1861,8 @@ public class ClaimMain {
 		        String claimName = "claim-" + String.valueOf(id);
 		        String description = instance.getLanguage().getMessage("default-description");
 		        String locationString = getLocationString(player.getLocation());
-		        Map<String,LinkedHashMap<String, Boolean>> perms = new LinkedHashMap<>(instance.getSettings().getDefaultValues());
-		        Claim newClaim = new Claim(playerId, new HashSet<>(Set.of(chunk)), playerName, new HashSet<>(Set.of(playerId)), player.getLocation(), claimName, description, perms, false, 0.0, new HashSet<>(),id);
+		        Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(instance.getSettings().getDefaultValues());
+		        Claim newClaim = new Claim(playerId, new HashSet<>(Set.of(chunk)), playerName, new HashSet<>(Set.of(playerId)), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new HashSet<>(),id);
 		
 		        // Add claim to claims list and player claims list
 		        listClaims.put(chunk, newClaim);
@@ -1878,6 +1883,7 @@ public class ClaimMain {
 	            	}
 		        }
 		        instance.executeSync(() -> instance.getBossBars().activateBossBar(chunk));
+		        getMapAutoForChunks(Set.of(chunk));
                 updateWeatherChunk(newClaim);
                 updateFlyChunk(newClaim);
 		        
@@ -1934,7 +1940,7 @@ public class ClaimMain {
 		        String description = instance.getLanguage().getMessage("default-description");
 		        String locationString = getLocationString(player.getLocation());
 		        Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(instance.getSettings().getDefaultValues());
-		        Claim newClaim = new Claim(SERVER_UUID, Set.of(chunk), "*", new HashSet<>(), player.getLocation(), claimName, description, perms, false, 0.0, new HashSet<>(),id);
+		        Claim newClaim = new Claim(SERVER_UUID, new HashSet<>(Set.of(chunk)), "*", new HashSet<>(), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new HashSet<>(),id);
 		
 		        // Add claim to claims list and protected areas list ("*" in playerClaims)
 		        listClaims.put(chunk, newClaim);
@@ -1955,6 +1961,7 @@ public class ClaimMain {
 	            	}
 		        }
 		        instance.executeSync(() -> instance.getBossBars().activateBossBar(chunk));
+		        getMapAutoForChunks(Set.of(chunk));
                 updateWeatherChunk(newClaim);
                 updateFlyChunk(newClaim);
 		
@@ -2027,7 +2034,7 @@ public class ClaimMain {
 	            String description = instance.getLanguage().getMessage("default-description");
 	            String locationString = getLocationString(player.getLocation());
 	            Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(instance.getSettings().getDefaultValues());
-	            Claim newClaim = new Claim(playerId, chunks, playerName, Set.of(playerId), player.getLocation(), claimName, description, perms, false, 0.0, new HashSet<>(), id);
+	            Claim newClaim = new Claim(playerId, new HashSet<>(chunks), playerName, new HashSet<>(Set.of(playerId)), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new HashSet<>(), id);
 	
 	            // Add the claim to claims list of the player
 	            playerClaims.computeIfAbsent(player.getUniqueId(), k -> ConcurrentHashMap.newKeySet()).add(newClaim);
@@ -2057,6 +2064,7 @@ public class ClaimMain {
 	            		});
 	            	}
 	            }
+	            getMapAutoForChunks(chunks);
                 updateWeatherChunk(newClaim);
                 updateFlyChunk(newClaim);
 	
@@ -2108,8 +2116,8 @@ public class ClaimMain {
 		        String claimName = "admin-" + String.valueOf(id);
 		        String description = instance.getLanguage().getMessage("default-description");
 		        String locationString = getLocationString(player.getLocation());
-		        Map<String,LinkedHashMap<String, Boolean>> perms = new LinkedHashMap<>(instance.getSettings().getDefaultValues());
-		        Claim newClaim = new Claim(SERVER_UUID, chunks, playerName, new HashSet<>(), player.getLocation(), claimName, description, perms, false, 0.0, new HashSet<>(),id);
+		        Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(instance.getSettings().getDefaultValues());
+		        Claim newClaim = new Claim(SERVER_UUID, new HashSet<>(chunks), playerName, new HashSet<>(), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new HashSet<>(),id);
 		
 		        // Add the claim to protected areas list
 		        playerClaims.computeIfAbsent(SERVER_UUID, k -> new HashSet<>()).add(newClaim);
@@ -2136,6 +2144,7 @@ public class ClaimMain {
 	            		});
 	            	}
 	            }
+	            getMapAutoForChunks(chunks);
                 updateWeatherChunk(newClaim);
                 updateFlyChunk(newClaim);
 		        
@@ -2413,11 +2422,11 @@ public class ClaimMain {
             	UUID uuid = claim.getUUID();
             	
 	        	// Update perms
-	            Map<String,LinkedHashMap<String, Boolean>> perms = new LinkedHashMap<>(claim.getPermissions());
+	            Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(claim.getPermissions());
 	            
 	            // Update settings
 	            playerClaims.computeIfAbsent(uuid, k -> new HashSet<>()).stream().forEach(c -> {
-	            	c.setPermissions(new LinkedHashMap<>(perms));
+	            	c.setPermissions(new HashMap<>(perms));
 	                updateWeatherChunk(c);
 	                updateFlyChunk(c);
 	            });
@@ -2803,6 +2812,7 @@ public class ClaimMain {
 	            // Update name on bossbars and maps
 	        	Set<Chunk> chunks = claim.getChunks();
 	            instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
+	            getMapAutoForChunks(chunks);
 	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(claim);
 	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(claim);
 	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(claim);
@@ -2887,6 +2897,7 @@ public class ClaimMain {
 	        	chunks.stream().forEach(c -> listClaims.remove(c));
                 resetWeatherChunk(claim);
                 resetFlyChunk(claim);
+                getMapAutoForChunks(chunks);
 	            
 	            // Update player's claims count if its not a protected area
                 if(!claim.getOwner().equals("*")) {
@@ -2951,6 +2962,7 @@ public class ClaimMain {
                     chunks.stream().forEach(c -> listClaims.remove(c));
                     updateWeatherChunk(claim);
                     updateFlyChunk(claim);
+                    getMapAutoForChunks(chunks);
                 });
                 playerClaims.remove(uuid);
 
@@ -3096,14 +3108,14 @@ public class ClaimMain {
             try {
             	// Get data
 	        	String defaultValue = instance.getSettings().getDefaultValuesCode("all");
-	        	Map<String,LinkedHashMap<String,Boolean>> perm = new LinkedHashMap<>(instance.getSettings().getDefaultValues());
+	        	Map<String,LinkedHashMap<String,Boolean>> perm = new HashMap<>(instance.getSettings().getDefaultValues());
 	            
 	            // Get uuid of the owner
 	        	UUID uuid = owner.equals("*") ? SERVER_UUID : instance.getPlayerMain().getPlayerUUID(owner);
 
 	        	// Update perms
 	            playerClaims.computeIfAbsent(uuid, k -> new HashSet<>()).stream().forEach(c -> {
-	            	c.setPermissions(new LinkedHashMap<>(perm));
+	            	c.setPermissions(new HashMap<>(perm));
 	                updateWeatherChunk(c);
 	                updateFlyChunk(c);
 	            });
@@ -3141,7 +3153,7 @@ public class ClaimMain {
             	// Get data
             	UUID uuid = claim.getUUID();
 	        	String defaultValue = instance.getSettings().getDefaultValuesCode("all");
-	        	Map<String,LinkedHashMap<String,Boolean>> perm = new LinkedHashMap<>(instance.getSettings().getDefaultValues());
+	        	Map<String,LinkedHashMap<String,Boolean>> perm = new HashMap<>(instance.getSettings().getDefaultValues());
 	        	
 	        	// Update perms
 	            claim.setPermissions(perm);
@@ -3179,10 +3191,10 @@ public class ClaimMain {
         return CompletableFuture.supplyAsync(() -> {
             try {
 	        	String defaultValue = instance.getSettings().getDefaultValuesCode("all");
-	        	Map<String,LinkedHashMap<String,Boolean>> perm = new LinkedHashMap<>(instance.getSettings().getDefaultValues());
+	        	Map<String,LinkedHashMap<String,Boolean>> perm = new HashMap<>(instance.getSettings().getDefaultValues());
 	            listClaims.values().stream().forEach(c -> {
 	            	if(!c.getUUID().equals(SERVER_UUID)) {
-	                    c.setPermissions(new LinkedHashMap<>(perm));
+	                    c.setPermissions(new HashMap<>(perm));
 	    	            // Update weather and fly
 	                    updateWeatherChunk(c);
 	                    updateFlyChunk(c);
@@ -3276,6 +3288,7 @@ public class ClaimMain {
 	            // Update the bossbars, and maps
 	        	Set<Chunk> chunks = claim.getChunks();
 	            instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
+	            getMapAutoForChunks(chunks);
 	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(claim);
 	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(claim);
 	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(claim);
@@ -3372,6 +3385,7 @@ public class ClaimMain {
 	            // Update the bossbars, and maps
 	        	Set<Chunk> chunks = claim.getChunks();
 	        	instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
+	        	getMapAutoForChunks(chunks);
 	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(claim);
 	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(claim);
 	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(claim);
@@ -3473,6 +3487,7 @@ public class ClaimMain {
 	        	            
 	        	            // Update the bossbars, and maps
 	        	        	Set<Chunk> chunks = claim.getChunks();
+	        	        	getMapAutoForChunks(chunks);
 	        	        	instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
 	        	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(claim);
 	        	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(claim);
@@ -3547,6 +3562,7 @@ public class ClaimMain {
                     	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(Set.of(chunk)));
                         updateWeatherChunk(claim);
                         updateFlyChunk(claim);
+                        getMapAutoForChunks(chunks);
         	            
         	            // Serialize chunks
         	            String chunksData = serializeChunks(chunks);
@@ -3615,6 +3631,58 @@ public class ClaimMain {
     }
     
     /**
+     * Remove a chunk from a claim
+     * 
+     * @param claim The target claim
+     * @param chunk The chunk to remove
+     * @return true if the merge process was initiated successfully
+     */
+    public CompletableFuture<Boolean> removeClaimChunk(Claim claim, Chunk chunk){
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+        		// Remove chunk
+        		Set<Chunk> chunks = new HashSet<>(claim.getChunks());
+            	chunks.remove(chunk);
+            	claim.setChunks(chunks);
+            	listClaims.remove(chunk);
+            	
+            	// Remove bossbar and maps
+                if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(Set.of(chunk));
+                if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(Set.of(chunk));
+                if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(Set.of(chunk));
+            	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(Set.of(chunk)));
+                updateWeatherChunk(claim);
+                updateFlyChunk(claim);
+                getMapAutoForChunks(chunks);
+	            
+	            // Serialize chunks
+	            String chunksData = serializeChunks(chunks);
+	            
+	            // Get uuid of the owner
+	            UUID uuid = claim.getUUID();
+	            
+	            // Update database
+	            try (Connection connection = instance.getDataSource().getConnection()) {
+	                String updateQuery = "UPDATE scs_claims_1 SET chunks = ? WHERE owner_uuid = ? AND claim_name = ?";
+	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+	                    preparedStatement.setString(1, chunksData);
+	                    preparedStatement.setString(2, uuid.toString());
+	                    preparedStatement.setString(3, claim.getName());
+	                    preparedStatement.executeUpdate();
+	                }
+	                return true;
+	            } catch (SQLException e) {
+	                e.printStackTrace();
+	                return false;
+	            }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        });
+    }
+    
+    /**
      * Add a chunk to a claim
      * 
      * @param claim The target claim
@@ -3638,6 +3706,7 @@ public class ClaimMain {
             	instance.executeSync(() -> instance.getBossBars().activateBossBar(Set.of(chunk)));
                 updateWeatherChunk(claim);
                 updateFlyChunk(claim);
+                getMapAutoForChunks(chunks);
             	
                 // Serialize chunks
 	            String chunksData = serializeChunks(chunks);
@@ -3679,15 +3748,16 @@ public class ClaimMain {
 	            
 	            // Collect chunks from claims and update listClaims map and add new chunks
 	            claims.stream().forEach(claim -> {
-	            	claim1.addChunks(claim.getChunks());
-	            	instance.executeSync(() -> instance.getBossBars().activateBossBar(claim.getChunks()));
 	            	Set<Chunk> chunks = claim.getChunks();
 	            	chunks.stream().forEach(c -> listClaims.put(c, claim1));
+	            	claim1.addChunks(chunks);
+	            	instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
 	                if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(claim1);
 	                if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(claim1);
 	                if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(claim1);
 	                updateWeatherChunk(claim1);
 	                updateFlyChunk(claim1);
+	                getMapAutoForChunks(chunks);
 	            });
 	            
 	            // Get uuid of the owner
@@ -4122,19 +4192,35 @@ public class ClaimMain {
      *
      * @param player the player requesting the map
      * @param to the chunk to be displayed on the map
+     * @param check if its automap or not
      */
-    public void getMap(Player player, Chunk to) {
+    public void getMap(Player player, Chunk to, boolean check) {
         instance.executeAsync(() -> {
+            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+            if (cPlayer == null) return;
+
+            boolean scoreboard = instance.getSettings().getSetting("map-type").equals("scoreboard") && check;
+            CScoreboard cScoreboard = scoreboard ? cPlayer.getScoreboard() : null;
+            
+            // List of map lines
+            List<String> lines = new ArrayList<>();
+            
+            if (scoreboard && cScoreboard != null) {
+                lines.add("§e  ");
+            }
+
             String direction = getDirection(player.getLocation().getYaw());
             Chunk centerChunk = to;
             int centerX = centerChunk.getX();
             int centerZ = centerChunk.getZ();
             boolean isClaimed = checkIfClaimExists(centerChunk);
-            
+
             String name = isClaimed 
-                ? instance.getLanguage().getMessage("map-actual-claim-name-message").replace("%name%", getClaimNameByChunk(centerChunk)) 
+                ? instance.getLanguage().getMessage("map-actual-claim-name-message").replace("%name%", getClaimNameByChunk(centerChunk))
                 : instance.getLanguage().getMessage("map-no-claim-name-message");
-            String coords = instance.getLanguage().getMessage("map-coords-message").replace("%coords%", centerX + "," + centerZ).replace("%direction%", direction);
+            String coords = instance.getLanguage().getMessage("map-coords-message")
+                .replace("%coords%", centerX + "," + centerZ)
+                .replace("%direction%", direction);
             String colorRelationNoClaim = instance.getLanguage().getMessage("map-no-claim-color");
             String colorCursor = instance.getLanguage().getMessage("map-cursor-color");
             String symbolNoClaim = instance.getLanguage().getMessage("map-symbol-no-claim");
@@ -4142,55 +4228,103 @@ public class ClaimMain {
             String mapCursor = instance.getLanguage().getMessage("map-cursor");
             World world = player.getWorld();
 
-            StringBuilder mapMessage = new StringBuilder("\n"+colorRelationNoClaim);
-            Function<Chunk, String> getChunkSymbol = chunk -> chunk.equals(centerChunk) 
+            // Function to get chunk symbols
+            Function<Chunk, String> getChunkSymbol = chunk -> chunk.equals(centerChunk)
                 ? colorCursor + mapCursor + colorRelationNoClaim
                 : checkIfClaimExists(chunk) 
                     ? getRelation(player, chunk) + symbolClaim + colorRelationNoClaim
                     : colorRelationNoClaim + symbolNoClaim;
 
             Map<Integer, String> legendMap = new HashMap<>();
-            legendMap.put(-3, "  " + name + (isClaimed ? " " + instance.getLanguage().getMessage("map-actual-claim-name-message-owner").replace("%owner%", listClaims.get(centerChunk).getOwner()) : ""));
+            legendMap.put(-3, "  " + name + (isClaimed ? " " + instance.getLanguage().getMessage("map-actual-claim-name-message-owner")
+                .replace("%owner%", listClaims.get(centerChunk).getOwner()) : ""));
             legendMap.put(-2, "  " + coords);
             legendMap.put(0, "  " + instance.getLanguage().getMessage("map-legend-you").replace("%cursor-color%", colorCursor));
             legendMap.put(1, "  " + instance.getLanguage().getMessage("map-legend-free").replace("%no-claim-color%", colorRelationNoClaim));
             legendMap.put(2, "  " + instance.getLanguage().getMessage("map-legend-yours").replace("%claim-relation-member%", instance.getLanguage().getMessage("map-claim-relation-member")));
             legendMap.put(3, "  " + instance.getLanguage().getMessage("map-legend-other").replace("%claim-relation-visitor%", instance.getLanguage().getMessage("map-claim-relation-visitor")));
 
-            if(instance.isFolia()) {
+            StringBuilder mapMessage = new StringBuilder("\n").append(colorRelationNoClaim);
+
+            Runnable mapLogic = () -> IntStream.rangeClosed(-4, 4).forEach(dz -> {
+                StringBuilder line = new StringBuilder(colorRelationNoClaim);
+                IntStream.rangeClosed(-10, 10).forEach(dx -> {
+                    int[] offset = adjustDirection(dx, dz, direction);
+                    Chunk chunk = world.getChunkAt(centerX + offset[0], centerZ + offset[1]);
+                    String symbol = getChunkSymbol.apply(chunk);
+                    mapMessage.append(symbol);
+                    line.append(symbol);
+                });
+                if (legendMap.containsKey(dz)) {
+                    String legend = legendMap.get(dz);
+                    mapMessage.append(legend);
+                    line.append(legend);
+                }
+                mapMessage.append("\n");
+                lines.add(line.toString());
+            });
+
+            if (instance.isFolia()) {
                 Bukkit.getRegionScheduler().run(instance, player.getLocation(), task -> {
-                	IntStream.rangeClosed(-4, 4).forEach(dz -> {
-                        IntStream.rangeClosed(-10, 10).forEach(dx -> {
-                            int[] offset = adjustDirection(dx, dz, direction);
-                            int X = centerX + offset[0];
-                            int Z = centerZ + offset[1];
-                            Chunk chunk = world.getChunkAt(X, Z);
-                            mapMessage.append(getChunkSymbol.apply(chunk));
-                        });
-                        if (legendMap.containsKey(dz)) {
-                            mapMessage.append(legendMap.get(dz));
-                        }
-                        mapMessage.append("\n");
-                    });
-                	instance.executeEntitySync(player, () -> player.sendMessage(mapMessage.toString()));
+                    mapLogic.run();
+                    if (scoreboard) {
+                        updateScoreboard(cScoreboard, lines);
+                    } else {
+                        instance.executeEntitySync(player, () -> player.sendMessage(mapMessage.toString()));
+                    }
                 });
             } else {
-                IntStream.rangeClosed(-4, 4).forEach(dz -> {
-                    IntStream.rangeClosed(-10, 10).forEach(dx -> {
-                        int[] offset = adjustDirection(dx, dz, direction);
-                        int X = centerX + offset[0];
-                        int Z = centerZ + offset[1];
-                        Chunk chunk = world.getChunkAt(X, Z);
-                        mapMessage.append(getChunkSymbol.apply(chunk));
-                    });
-                    if (legendMap.containsKey(dz)) {
-                        mapMessage.append(legendMap.get(dz));
-                    }
-                    mapMessage.append("\n");
-                });
-                instance.executeEntitySync(player, () -> player.sendMessage(mapMessage.toString()));
+                mapLogic.run();
+                if (scoreboard) {
+                    updateScoreboard(cScoreboard, lines);
+                } else {
+                    instance.executeEntitySync(player, () -> player.sendMessage(mapMessage.toString()));
+                }
             }
         });
+    }
+
+    /**
+     * Updates the scoreboard for automap
+     * 
+     * @param cScoreboard The scoreboard to update.
+     * @param lines The lines to update.
+     */
+    private void updateScoreboard(CScoreboard cScoreboard, List<String> lines) {
+    	lines.add("§f ");
+        int score = 11;
+        Map<Integer,String> toRend = new LinkedHashMap<>();
+        for (String line : differentiateDuplicates(lines)) {
+        	toRend.put(score--, line);
+        }
+        cScoreboard.updateLines(toRend);
+    }
+    
+    /**
+     * Optimized method to check if the list contains duplicate strings and adds spaces to differentiate them.
+     *
+     * @param list the list of strings to check for duplicates
+     * @return the updated list with differentiated strings
+     */
+    private List<String> differentiateDuplicates(List<String> list) {
+        // Map to store how many times each string has been seen
+        Map<String, Integer> stringCount = new HashMap<>();
+
+        // Iterate over the list to count occurrences and differentiate duplicates
+        for (int i = 0; i < list.size(); i++) {
+            String original = list.get(i);
+            int count = stringCount.getOrDefault(original, 0);
+
+            if (count > 0) {
+                // Create a new string with the required number of spaces
+                list.set(i, original + " ".repeat(count));
+            }
+
+            // Update the map to increment the count for the current string
+            stringCount.put(original, count + 1);
+        }
+
+        return list;
     }
 
     /**
@@ -4316,5 +4450,22 @@ public class ClaimMain {
                 }
 			}
     	});
+    }
+    
+    /**
+     * Sends the automap to the players
+     *
+     * @param chunks the chunks
+     */
+    public void getMapAutoForChunks(Set<Chunk> chunks) {
+        Bukkit.getOnlinePlayers().stream().forEach(p -> {
+        	Chunk c = p.getLocation().getChunk();
+        	if(chunks.contains(c)) {
+        		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());
+        		if(cPlayer.getClaimAutomap()) {
+        			getMap(p,c,true);
+        		}
+        	}
+        });
     }
 }

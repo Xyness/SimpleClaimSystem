@@ -41,8 +41,6 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import de.bluecolored.bluemap.api.BlueMapAPI;
-import fr.xyness.SCS.API.SimpleClaimSystemAPI;
-import fr.xyness.SCS.API.SimpleClaimSystemAPI_Impl;
 import fr.xyness.SCS.API.SimpleClaimSystemAPI_Provider;
 import fr.xyness.SCS.Commands.*;
 import fr.xyness.SCS.Config.ClaimGuis;
@@ -107,11 +105,8 @@ public class SimpleClaimSystem extends JavaPlugin {
     /** Instance of SimpleClaimSystem for useful methods */
     private SimpleClaimSystem instance;
     
-	/** Instance of SimpleClaimSystemAPI */
-    public static SimpleClaimSystemAPI apiInstance;
-    
     /** The version of the plugin */
-    private String Version = "1.11.5.2";
+    private String Version = "1.11.5.3";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -151,7 +146,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         this.instance = this;
         
         // Initialize the API
-        apiInstance = new SimpleClaimSystemAPI_Impl(instance);
+        SimpleClaimSystemAPI_Provider.initialize(this);
         
         // Load config and send finale message
         if (loadConfig(false, Bukkit.getConsoleSender())) {
@@ -513,7 +508,6 @@ public class SimpleClaimSystem extends JavaPlugin {
                 }
             }
             
-            
             // Aliases settings
             List<String> aliases_claim = getConfig().getStringList("command-aliases.claim");
             List<String> aliases_unclaim = getConfig().getStringList("command-aliases.unclaim");
@@ -640,6 +634,14 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Check if claims where Visitors is false are displayed in the /claims GUI
             claimSettingsInstance.addSetting("claims-visitors-off-visible", getConfig().getString("claims-visitors-off-visible"));
+            
+            // Check where the auto-map is sent
+            configC = getConfig().getString("map-type").toLowerCase();
+            if(configC.equals("scoreboard") && isFolia) {
+            	info(ChatColor.RED + "'map-type' set to 'CHAT' because the server is running on Folia.");
+            	configC = "chat";
+            }
+            claimSettingsInstance.addSetting("map-type", configC);
             
             // Add economy settings
             if (check_vault[0]) {
@@ -1164,6 +1166,14 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Check if claims where Visitors is false are displayed in the /claims GUI
             claimSettingsInstance.addSetting("claims-visitors-off-visible", getConfig().getString("claims-visitors-off-visible"));
+            
+            // Check where the auto-map is sent
+            configC = getConfig().getString("map-type").toLowerCase();
+            if(configC.equals("scoreboard") && isFolia) {
+            	info(ChatColor.RED + "'map-type' set to 'CHAT' because the server is running on Folia.");
+            	configC = "chat";
+            }
+            claimSettingsInstance.addSetting("map-type", configC);
             
             // Add economy settings
             if (check_vault) {
