@@ -245,7 +245,7 @@ public class SimpleClaimSystemAPI_Impl implements SimpleClaimSystemAPI {
 
 	@Override
 	public void getMap(Player player, Chunk chunk) {
-		instance.getMain().getMap(player, chunk);
+		instance.getMain().getMap(player, chunk, false);
 	}
 	
 }

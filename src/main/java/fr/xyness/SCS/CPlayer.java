@@ -39,8 +39,11 @@ public class CPlayer {
     /** Whether the player has claim automap enabled */
     private Boolean claim_automap;
     
-    /** Whether the player has claim autoclaim enabled */
-    private Boolean claim_autoclaim;
+    /** Whether the player has claim autoaddchunk enabled */
+    private String claim_auto;
+    
+    /** The claim for autoaddchunk and autodelchunk */
+    private Claim claim_chunk;
     
     /** Whether the player has claim autofly enabled */
     private Boolean claim_autofly;
@@ -69,6 +72,9 @@ public class CPlayer {
     /** The owner for the GUI */
     private String owner;
     
+    /** The player's scoreboard */
+    private CScoreboard scoreboard;
+    
     /** Instance of SimpleClaimSystem */
     private final SimpleClaimSystem instance;
     
@@ -94,8 +100,8 @@ public class CPlayer {
         this.gui_page = 0;
         this.claim_chat = false;
         this.claim_automap = false;
-        this.claim_autoclaim = false;
         this.claim_autofly = false;
+        this.claim_auto = "";
         this.claim_fly = false;
         this.instance = instance;
     }
@@ -151,11 +157,18 @@ public class CPlayer {
     public void setClaimAutomap(Boolean setting) { this.claim_automap = setting; }
     
     /**
-     * Sets the player's autoclaim mode.
+     * Sets the player's auto mode.
      * 
-     * @param setting The new autoclaim mode
+     * @param setting The new auto mode
      */
-    public void setClaimAutoclaim(Boolean setting) { this.claim_autoclaim = setting; }
+    public void setClaimAuto(String setting) { this.claim_auto = setting; }
+    
+    /**
+     * Sets the claim for the autoaddchunk and autodelchunk.
+     * 
+     * @param claim The new claim
+     */
+    public void setTargetClaimChunk(Claim claim) { this.claim_chunk = claim; }
     
     /**
      * Sets the claim for the GUI.
@@ -216,6 +229,13 @@ public class CPlayer {
      */
     public void setClaimFly(Boolean setting) { this.claim_fly = setting; }
     
+    /**
+     * Sets the player's scoreboard.
+     * 
+     * @param scoreboard The new scoreboard
+     */
+    public void setScoreboard(CScoreboard scoreboard) { this.scoreboard = scoreboard; }
+    
     // Getters
     
     /**
@@ -263,9 +283,16 @@ public class CPlayer {
     /**
      * Gets the player's autoclaim status.
      * 
-     * @return True if autoclaim is enabled, false otherwise
+     * @return The autoclaim status
      */
-    public Boolean getClaimAutoclaim() { return this.claim_autoclaim; }
+    public String getClaimAuto() { return this.claim_auto; }
+    
+    /**
+     * Gets the current claim for the autochunk.
+     * 
+     * @return The current claim
+     */
+    public Claim getTargetClaimChunk() { return this.claim_chunk; }
     
     /**
      * Gets the current claim for the GUI.
@@ -325,6 +352,13 @@ public class CPlayer {
      * @return True if fly is enabled, false otherwise
      */
     public Boolean getClaimFly() { return this.claim_fly; }
+    
+    /**
+     * Gets the player's scoreboard.
+     * 
+     * @return The scoreboard of the player.
+     */
+    public CScoreboard getScoreboard() { return this.scoreboard; }
     
     /**
      * Gets the player's max claims.

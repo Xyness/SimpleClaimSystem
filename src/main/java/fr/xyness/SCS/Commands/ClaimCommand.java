@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.Stack;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,6 +27,7 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import fr.xyness.SCS.CPlayer;
+import fr.xyness.SCS.CScoreboard;
 import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
@@ -59,7 +61,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     
     public static Set<String> commands = Set.of("settings", "add", "remove", "list", "setspawn", "setname", "members", "setdesc",
             "chat", "map", "autoclaim", "automap", "see", "tp", "ban", "unban", "bans", "fly", "autofly", "owner", "merge", "sell", "cancel",
-            "main", "delchunk", "addchunk", "chunks", "kick", "buy");
+            "main", "delchunk", "addchunk", "chunks", "kick", "buy", "autounclaim", "autoaddchunk", "autodelchunk");
     
     
     // ******************
@@ -307,14 +309,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("cant-merge-same-claim"));
             	return;
             }
-            for(Claim claim : claims) {
-            	if(!instance.getMain().isAnyChunkAdjacentBetweenSets(claim1.getChunks(), claim.getChunks())) {
-                	player.sendMessage(instance.getLanguage().getMessage("one-chunk-of-claim-must-be-adjacent"));
-            		return;
-            	}
-            }
             Set<Chunk> chunks = new HashSet<>(claim1.getChunks());
             claims.forEach(c -> chunks.addAll(c.getChunks()));
+            if(!areChunksLinked(chunks)) {
+            	player.sendMessage(instance.getLanguage().getMessage("there-is-a-claim-not-adjacent"));
+            	return;
+            }
             if(!cPlayer.canClaimWithNumber(chunks.size())) {
             	player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks"));
             	return;
@@ -896,6 +896,11 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         		player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
                 return;
             }
+        	String world = player.getWorld().getName();
+            if (instance.getSettings().isWorldDisabled(world)) {
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+                return;
+            }
             Claim claim = instance.getMain().getClaimByName(args[1], player);
             if (claim == null) {
             	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
@@ -1335,6 +1340,58 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             instance.getMain().goClaim(player, claim.getLocation());
             return;
         }
+        if (args[0].equalsIgnoreCase("autoaddchunk")) {
+        	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.autoaddchunk")) {
+        		player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
+                return;
+            }
+            String world = player.getWorld().getName();
+            if (instance.getSettings().isWorldDisabled(world)) {
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+                return;
+            }
+            Claim claim = instance.getMain().getClaimByName(args[1], player);
+            if (claim == null) {
+            	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
+                return;
+            }
+            if (cPlayer.getClaimAuto().equals("addchunk")) {
+                cPlayer.setClaimAuto("");
+                cPlayer.setTargetClaimChunk(null);
+                player.sendMessage(instance.getLanguage().getMessage("autoaddchunk-off"));
+                return;
+            }
+            cPlayer.setTargetClaimChunk(claim);
+            cPlayer.setClaimAuto("addchunk");
+            player.sendMessage(instance.getLanguage().getMessage("autoaddchunk-on").replace("%claim-name%", claim.getName()));
+            return;
+        }
+        if (args[0].equalsIgnoreCase("autodelchunk")) {
+        	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.autodelchunk")) {
+        		player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
+                return;
+            }
+            String world = player.getWorld().getName();
+            if (instance.getSettings().isWorldDisabled(world)) {
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+                return;
+            }
+            Claim claim = instance.getMain().getClaimByName(args[1], player);
+            if (claim == null) {
+            	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
+                return;
+            }
+            if (cPlayer.getClaimAuto().equals("delchunk")) {
+                cPlayer.setClaimAuto("");
+                cPlayer.setTargetClaimChunk(null);
+                player.sendMessage(instance.getLanguage().getMessage("autodelchunk-off"));
+                return;
+            }
+            cPlayer.setTargetClaimChunk(claim);
+            cPlayer.setClaimAuto("delchunk");
+            player.sendMessage(instance.getLanguage().getMessage("autodelchunk-on").replace("%claim-name%", claim.getName()));
+            return;
+        }
         if (args[0].equalsIgnoreCase("cancel")) {
             Claim claim = instance.getMain().getClaimByName(args[1], player);
             if (claim == null) {
@@ -1513,10 +1570,22 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             if (cPlayer.getClaimAutomap()) {
                 cPlayer.setClaimAutomap(false);
                 player.sendMessage(instance.getLanguage().getMessage("automap-off"));
+                if(instance.getSettings().getSetting("map-type").equals("scoreboard")) {
+                	cPlayer.getScoreboard().removeFromPlayer(player);
+                	cPlayer.setScoreboard(null);
+                }
                 return;
             }
             cPlayer.setClaimAutomap(true);
             player.sendMessage(instance.getLanguage().getMessage("automap-on"));
+            if(instance.getSettings().getSetting("map-type").equals("scoreboard")) {
+            	CScoreboard cScoreboard = new CScoreboard("§b§lClaims Map");
+            	instance.getMain().getMap(player, player.getLocation().getChunk(), true);
+            	cPlayer.setScoreboard(cScoreboard);
+            	cScoreboard.showToPlayer(player);
+            } else {
+            	instance.getMain().getMap(player, player.getLocation().getChunk(), true);
+            }
             return;
         }
         if (args[0].equalsIgnoreCase("map")) {
@@ -1529,7 +1598,43 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
-            instance.getMain().getMap(player, player.getLocation().getChunk());
+            instance.getMain().getMap(player, player.getLocation().getChunk(), false);
+            return;
+        }
+        if (args[0].equalsIgnoreCase("autoaddchunk")) {
+        	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.autoaddchunk")) {
+        		player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
+                return;
+            }
+            String world = player.getWorld().getName();
+            if (instance.getSettings().isWorldDisabled(world)) {
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+                return;
+            }
+            if (cPlayer.getClaimAuto().equals("addchunk")) {
+                cPlayer.setClaimAuto("");
+                player.sendMessage(instance.getLanguage().getMessage("autoaddchunk-off"));
+            } else {
+            	player.sendMessage(instance.getLanguage().getMessage("autoaddchunk-not-enabled"));
+            }
+            return;
+        }
+        if (args[0].equalsIgnoreCase("autodelchunk")) {
+        	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.autoaddchunk")) {
+        		player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
+                return;
+            }
+            String world = player.getWorld().getName();
+            if (instance.getSettings().isWorldDisabled(world)) {
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+                return;
+            }
+            if (cPlayer.getClaimAuto().equals("delchunk")) {
+                cPlayer.setClaimAuto("");
+                player.sendMessage(instance.getLanguage().getMessage("autodelchunk-off"));
+            } else {
+            	player.sendMessage(instance.getLanguage().getMessage("autodelchunk-not-enabled"));
+            }
             return;
         }
         if (args[0].equalsIgnoreCase("autoclaim")) {
@@ -1542,13 +1647,32 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
-            if (cPlayer.getClaimAutoclaim()) {
-                cPlayer.setClaimAutoclaim(false);
+            if (cPlayer.getClaimAuto().equals("claim")) {
+                cPlayer.setClaimAuto("");
                 player.sendMessage(instance.getLanguage().getMessage("autoclaim-off"));
                 return;
             }
-            cPlayer.setClaimAutoclaim(true);
+            cPlayer.setClaimAuto("claim");
             player.sendMessage(instance.getLanguage().getMessage("autoclaim-on"));
+            return;
+        }
+        if (args[0].equalsIgnoreCase("autounclaim")) {
+        	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.autounclaim")) {
+        		player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
+                return;
+            }
+            String world = player.getWorld().getName();
+            if (instance.getSettings().isWorldDisabled(world)) {
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+                return;
+            }
+            if (cPlayer.getClaimAuto().equals("unclaim")) {
+                cPlayer.setClaimAuto("");
+                player.sendMessage(instance.getLanguage().getMessage("autounclaim-off"));
+                return;
+            }
+            cPlayer.setClaimAuto("unclaim");
+            player.sendMessage(instance.getLanguage().getMessage("autounclaim-on"));
             return;
         }
         if (args[0].equalsIgnoreCase("setspawn")) {
@@ -1982,7 +2106,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         		        			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("create-claim-success").replace("%remaining-claims%", String.valueOf(remainingClaims))));
         		        			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, Set.of(chunk), true, false);
         		        		} else {
-        		        			player.sendMessage(instance.getLanguage().getMessage("error"));
+        		        			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
         		        		}
         		        	})
         		            .exceptionally(ex -> {
@@ -2052,6 +2176,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             case "chunks":
             case "members":
             case "bans":
+            case "autoaddchunk":
+            case "autodelchunk":
                 completions.addAll(main.getClaimsNameFromOwner(playerName));
                 break;
             case "cancel":
@@ -2240,5 +2366,87 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     public static int calculateNumberOfChunks(int radius) {
         int sideLength = 2 * radius + 1;
         return sideLength * sideLength;
+    }
+    
+    /**
+     * Verifies if all chunks in the given set are linked (i.e., adjacent to each other).
+     * This uses a depth-first search (DFS) to check for connectivity between chunks.
+     *
+     * @param chunks the set of chunks to check
+     * @return true if all chunks are connected, false otherwise
+     */
+    public boolean areChunksLinked(Set<Chunk> chunks) {
+        if (chunks.isEmpty()) {
+            return true; // If no chunks, we consider them trivially linked
+        }
+
+        // Convert the set of chunks to a set of chunk coordinates for easier comparison
+        Set<ChunkCoord> chunkCoords = new HashSet<>();
+        for (Chunk chunk : chunks) {
+            chunkCoords.add(new ChunkCoord(chunk.getX(), chunk.getZ()));
+        }
+
+        // Start DFS or BFS from any chunk
+        ChunkCoord start = chunkCoords.iterator().next();
+        Set<ChunkCoord> visited = new HashSet<>();
+        Stack<ChunkCoord> toVisit = new Stack<>();
+
+        toVisit.add(start);
+
+        while (!toVisit.isEmpty()) {
+            ChunkCoord current = toVisit.pop();
+            if (visited.contains(current)) continue;
+            visited.add(current);
+
+            // Explore all 4 adjacent chunks (up, down, left, right)
+            for (ChunkCoord neighbor : current.getAdjacentChunks()) {
+                if (chunkCoords.contains(neighbor) && !visited.contains(neighbor)) {
+                    toVisit.add(neighbor);
+                }
+            }
+        }
+
+        // Check if we visited all chunks
+        return visited.size() == chunkCoords.size();
+    }
+
+    /**
+     * Helper class to represent the coordinates of a chunk.
+     */
+    private class ChunkCoord {
+        private final int x;
+        private final int z;
+
+        public ChunkCoord(int x, int z) {
+            this.x = x;
+            this.z = z;
+        }
+
+        /**
+         * Returns a list of all adjacent chunks (up, down, left, right).
+         *
+         * @return a set of adjacent ChunkCoord objects
+         */
+        public Set<ChunkCoord> getAdjacentChunks() {
+            Set<ChunkCoord> adjacent = new HashSet<>();
+            adjacent.add(new ChunkCoord(x + 1, z)); // Right
+            adjacent.add(new ChunkCoord(x - 1, z)); // Left
+            adjacent.add(new ChunkCoord(x, z + 1)); // Down
+            adjacent.add(new ChunkCoord(x, z - 1)); // Up
+            return adjacent;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) return true;
+            if (obj == null || getClass() != obj.getClass()) return false;
+            ChunkCoord other = (ChunkCoord) obj;
+            return x == other.x && z == other.z;
+        }
+
+        @Override
+        public int hashCode() {
+            return 31 * x + z;
+        }
     }
 }
