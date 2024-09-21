@@ -15,7 +15,6 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -24,7 +23,6 @@ import org.bukkit.*;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
@@ -32,6 +30,9 @@ import org.bukkit.scheduler.BukkitTask;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
+import fr.xyness.SCS.API.Listeners.ClaimCreateEvent;
+import fr.xyness.SCS.API.Listeners.UnclaimEvent;
+import fr.xyness.SCS.API.Listeners.UnclaimallEvent;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import net.md_5.bungee.api.ChatMessageType;
@@ -1886,6 +1887,10 @@ public class ClaimMain {
 		        getMapAutoForChunks(Set.of(chunk));
                 updateWeatherChunk(newClaim);
                 updateFlyChunk(newClaim);
+                
+                // Call event
+                ClaimCreateEvent event = new ClaimCreateEvent(newClaim);
+                Bukkit.getPluginManager().callEvent(event);
 		        
 		        // Update database
 		        return insertClaimIntoDatabase(id, uuid, playerName, claimName, description, chunk, locationString);
@@ -1964,6 +1969,10 @@ public class ClaimMain {
 		        getMapAutoForChunks(Set.of(chunk));
                 updateWeatherChunk(newClaim);
                 updateFlyChunk(newClaim);
+                
+                // Call event
+                ClaimCreateEvent event = new ClaimCreateEvent(newClaim);
+                Bukkit.getPluginManager().callEvent(event);
 		
 		        // Updata database
 		        return insertClaimIntoDatabase(id, uuid, "*", claimName, description, chunk, locationString);
@@ -2067,6 +2076,10 @@ public class ClaimMain {
 	            getMapAutoForChunks(chunks);
                 updateWeatherChunk(newClaim);
                 updateFlyChunk(newClaim);
+                
+                // Call event
+                ClaimCreateEvent event = new ClaimCreateEvent(newClaim);
+                Bukkit.getPluginManager().callEvent(event);
 	
 	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection();
@@ -2147,6 +2160,10 @@ public class ClaimMain {
 	            getMapAutoForChunks(chunks);
                 updateWeatherChunk(newClaim);
                 updateFlyChunk(newClaim);
+                
+                // Call event
+                ClaimCreateEvent event = new ClaimCreateEvent(newClaim);
+                Bukkit.getPluginManager().callEvent(event);
 		        
 		        // Update database
 	            try (Connection connection = instance.getDataSource().getConnection();
@@ -2912,6 +2929,10 @@ public class ClaimMain {
 	            playerClaims.get(uuid).remove(claim);
 	            if (playerClaims.get(uuid).isEmpty()) playerClaims.remove(uuid);
 	            
+	            // Call event
+                UnclaimEvent event = new UnclaimEvent(claim);
+                Bukkit.getPluginManager().callEvent(event);
+	            
 	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String deleteQuery = "DELETE FROM scs_claims_1 WHERE owner_uuid = ? AND claim_name = ?";
@@ -2953,6 +2974,7 @@ public class ClaimMain {
 	            }
 
                 // Delete all claims of target player, and remove him from data
+	            Set<Claim> claims = playerClaims.getOrDefault(uuid, new HashSet<>());
                 playerClaims.computeIfAbsent(uuid, k -> new HashSet<>()).stream().forEach(claim -> {
                     Set<Chunk> chunks = claim.getChunks();
                     instance.executeSync(() -> instance.getBossBars().deactivateBossBar(chunks));
@@ -2965,6 +2987,10 @@ public class ClaimMain {
                     getMapAutoForChunks(chunks);
                 });
                 playerClaims.remove(uuid);
+                
+	            // Call event
+                UnclaimallEvent event = new UnclaimallEvent(claims);
+                Bukkit.getPluginManager().callEvent(event);
 
                 // Update database
                 try (Connection connection = instance.getDataSource().getConnection()) {

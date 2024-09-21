@@ -687,6 +687,18 @@ public class CPlayer {
     }
     
     /**
+     * Checks if the player can claim more chunks.
+     * 
+     * @param n The number of new claims
+     * @return True if the player can claim more, false otherwise
+     */
+    public boolean canClaimX(int n) {
+        if (player.hasPermission("scs.admin")) return true;
+        int maxClaims = getMaxClaims();
+        return maxClaims > claims_count+n || maxClaims == 0;
+    }
+    
+    /**
      * Checks if the player can claim more chunks with a given amount of new chunks.
      * 
      * @param n The number of new chunks

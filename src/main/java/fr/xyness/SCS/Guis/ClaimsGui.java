@@ -133,9 +133,6 @@ public class ClaimsGui implements InventoryHolder {
 	            
 	            // Set owner head item
 	        	ItemStack item = instance.getPlayerMain().getPlayerHead(owner);
-	        	if(item == null) {
-	        		item = new ItemStack(Material.PLAYER_HEAD);
-	        	}
 	            SkullMeta meta = (SkullMeta) item.getItemMeta();
 	            meta.setDisplayName(instance.getLanguage().getMessage("owner-claim-title").replace("%owner%", owner));
 	            meta.setLore(lore);
