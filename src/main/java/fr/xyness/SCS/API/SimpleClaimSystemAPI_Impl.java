@@ -45,7 +45,7 @@ public class SimpleClaimSystemAPI_Impl implements SimpleClaimSystemAPI {
 	
 	
     // *******************
-    // *  Other Methods  *
+    // *  Other methods  *
     // *******************
 	
 

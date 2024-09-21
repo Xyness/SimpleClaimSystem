@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.GameMode;
 import org.bukkit.WeatherType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -118,13 +119,12 @@ public class ClaimEventsEnterLeave implements Listener {
     public void onPlayerTeleport(PlayerTeleportEvent event) {
         Chunk to = event.getTo().getChunk();
         Chunk from = event.getFrom().getChunk();
-        if (!instance.getMain().checkIfClaimExists(to)) return;
-
         Player player = event.getPlayer();
-        if (playersRejected.contains(player)) {
-        	playersRejected.remove(player);
+        if (!instance.getMain().checkIfClaimExists(to)) {
+        	instance.getBossBars().disableBossBar(player);
         	return;
         }
+
         UUID playerId = player.getUniqueId();
         CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
         if(cPlayer == null) return;
@@ -349,6 +349,7 @@ public class ClaimEventsEnterLeave implements Listener {
      */
     private void handleAutoFly(Player player, CPlayer cPlayer, Chunk chunk, String owner) {
     	Claim claim = instance.getMain().getClaim(chunk);
+    	if(player.getGameMode().equals(GameMode.SPECTATOR) || player.getGameMode().equals(GameMode.CREATIVE)) return;
         if (cPlayer.getClaimAutofly() && (owner.equals(player.getName()) || claim != null && claim.getPermissionForPlayer("Fly", player)) && !instance.isFolia()) {
             instance.getPlayerMain().activePlayerFly(player);
             if (instance.getSettings().getBooleanSetting("claim-fly-message-auto-fly")) {
