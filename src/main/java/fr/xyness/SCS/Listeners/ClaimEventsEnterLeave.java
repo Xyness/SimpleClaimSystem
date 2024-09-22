@@ -349,7 +349,6 @@ public class ClaimEventsEnterLeave implements Listener {
      */
     private void handleAutoFly(Player player, CPlayer cPlayer, Chunk chunk, String owner) {
     	Claim claim = instance.getMain().getClaim(chunk);
-    	if(player.getGameMode().equals(GameMode.SPECTATOR) || player.getGameMode().equals(GameMode.CREATIVE)) return;
         if (cPlayer.getClaimAutofly() && (owner.equals(player.getName()) || claim != null && claim.getPermissionForPlayer("Fly", player)) && !instance.isFolia()) {
             instance.getPlayerMain().activePlayerFly(player);
             if (instance.getSettings().getBooleanSetting("claim-fly-message-auto-fly")) {

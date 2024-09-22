@@ -106,7 +106,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.6";
+    private String Version = "1.11.6.1";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -144,9 +144,6 @@ public class SimpleClaimSystem extends JavaPlugin {
         
         // Register plugin instance
         this.instance = this;
-        
-        // Initialize the API
-        SimpleClaimSystemAPI_Provider.initialize(this);
         
         // Load config and send finale message
         if (loadConfig(false, Bukkit.getConsoleSender())) {
