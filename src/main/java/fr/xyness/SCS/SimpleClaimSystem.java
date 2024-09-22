@@ -262,16 +262,13 @@ public class SimpleClaimSystem extends JavaPlugin {
             // Check Vault
             boolean[] check_vault = {false};
             if (Bukkit.getPluginManager().getPlugin("Vault") != null) {
-            	claimSettingsInstance.addSetting("vault", "true");
-            	if(!reload) {
-                	claimVaultInstance = new ClaimVault();
-                    if (claimVaultInstance.setupEconomy()) {
-                        claimSettingsInstance.addSetting("vault", "true");
-                        check_vault[0] = true;
-                    } else {
-                        claimSettingsInstance.addSetting("vault", "false");
-                    }
-            	}
+            	claimVaultInstance = new ClaimVault();
+                if (claimVaultInstance.setupEconomy()) {
+                    claimSettingsInstance.addSetting("vault", "true");
+                    check_vault[0] = true;
+                } else {
+                    claimSettingsInstance.addSetting("vault", "false");
+                }
             } else {
                 claimSettingsInstance.addSetting("vault", "false");
             }
