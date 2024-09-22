@@ -27,6 +27,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -721,8 +722,11 @@ public class CPlayerMain {
     public void removePlayerFly(Player player) {
         CPlayer cPlayer = players.get(player.getUniqueId());
         if (cPlayer.getClaimFly()) {
-            player.setFlying(false);
-            player.setAllowFlight(false);
+        	GameMode pMode = player.getGameMode();
+        	if(pMode.equals(GameMode.ADVENTURE) || pMode.equals(GameMode.SURVIVAL)) {
+                player.setFlying(false);
+                player.setAllowFlight(false);
+        	}
             cPlayer.setClaimFly(false);
         }
     }

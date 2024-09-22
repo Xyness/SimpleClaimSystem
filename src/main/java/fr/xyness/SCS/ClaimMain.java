@@ -1890,7 +1890,7 @@ public class ClaimMain {
                 
                 // Call event
                 ClaimCreateEvent event = new ClaimCreateEvent(newClaim);
-                Bukkit.getPluginManager().callEvent(event);
+                instance.executeSync(() -> Bukkit.getPluginManager().callEvent(event));
 		        
 		        // Update database
 		        return insertClaimIntoDatabase(id, uuid, playerName, claimName, description, chunk, locationString);
@@ -1972,7 +1972,7 @@ public class ClaimMain {
                 
                 // Call event
                 ClaimCreateEvent event = new ClaimCreateEvent(newClaim);
-                Bukkit.getPluginManager().callEvent(event);
+                instance.executeSync(() -> Bukkit.getPluginManager().callEvent(event));
 		
 		        // Updata database
 		        return insertClaimIntoDatabase(id, uuid, "*", claimName, description, chunk, locationString);
@@ -2079,7 +2079,7 @@ public class ClaimMain {
                 
                 // Call event
                 ClaimCreateEvent event = new ClaimCreateEvent(newClaim);
-                Bukkit.getPluginManager().callEvent(event);
+                instance.executeSync(() -> Bukkit.getPluginManager().callEvent(event));
 	
 	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection();
@@ -2163,7 +2163,7 @@ public class ClaimMain {
                 
                 // Call event
                 ClaimCreateEvent event = new ClaimCreateEvent(newClaim);
-                Bukkit.getPluginManager().callEvent(event);
+                instance.executeSync(() -> Bukkit.getPluginManager().callEvent(event));
 		        
 		        // Update database
 	            try (Connection connection = instance.getDataSource().getConnection();
@@ -2931,7 +2931,7 @@ public class ClaimMain {
 	            
 	            // Call event
                 UnclaimEvent event = new UnclaimEvent(claim);
-                Bukkit.getPluginManager().callEvent(event);
+                instance.executeSync(() -> Bukkit.getPluginManager().callEvent(event));
 	            
 	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
@@ -2990,7 +2990,7 @@ public class ClaimMain {
                 
 	            // Call event
                 UnclaimallEvent event = new UnclaimallEvent(claims);
-                Bukkit.getPluginManager().callEvent(event);
+                instance.executeSync(() -> Bukkit.getPluginManager().callEvent(event));
 
                 // Update database
                 try (Connection connection = instance.getDataSource().getConnection()) {
