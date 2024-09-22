@@ -13,10 +13,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up JDK 22
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
-          java-version: '22'
+          java-version: '17'
           distribution: 'temurin'
 
       - name: Grant execute permission for Gradle Wrapper
@@ -32,7 +32,7 @@ jobs:
         run: ./gradlew clean build --info --refresh-dependencies
 
       - name: Publish JAR
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: SimpleClaimSystem
           path: build/libs/*.jar
