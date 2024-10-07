@@ -670,7 +670,7 @@ public class ClaimEvents implements Listener {
 		}
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-	        if ((event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.LEFT_CLICK_BLOCK) && !instance.getMain().checkMembre(claim, player)) {
+	        if ((event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.LEFT_CLICK_BLOCK)) {
 	            Material mat = event.getClickedBlock().getType();
 	            if (mat.name().contains("BUTTON") && !claim.getPermissionForPlayer("Buttons", player)) {
 	            	event.setCancelled(true);
@@ -730,7 +730,7 @@ public class ClaimEvents implements Listener {
 	            }
 	            return;
 	        }
-	        if (event.getAction() == Action.PHYSICAL && !instance.getMain().checkMembre(claim, player)) {
+	        if (event.getAction() == Action.PHYSICAL) {
 	        	if(block != null && block.getType().name().contains("PRESSURE_PLATE") && !claim.getPermissionForPlayer("Plates", player)) {
 	            	event.setCancelled(true);
 	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("plates"), instance.getSettings().getSetting("protection-message"));
@@ -742,7 +742,7 @@ public class ClaimEvents implements Listener {
 	                return;
 	            }
 	        }
-	        if(!claim.getPermissionForPlayer("Items", player) && !instance.getMain().checkMembre(claim, player)) {
+	        if(!claim.getPermissionForPlayer("Items", player)) {
                 Material item = event.getMaterial();
                 if(instance.getSettings().isRestrictedItem(item)) {
                     event.setCancelled(true);
