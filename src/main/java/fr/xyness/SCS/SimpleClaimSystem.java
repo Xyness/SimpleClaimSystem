@@ -106,7 +106,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.6.1";
+    private String Version = "1.11.6.2";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
