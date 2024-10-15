@@ -100,7 +100,7 @@ public class AdminGestionClaimsGui implements InventoryHolder {
 	
 	            String owner = entry.getKey();
 	            int claimAmount = entry.getValue();
-	            List<String> lore = new ArrayList<>(getLore("§7Claims: §b"+instance.getMain().getNumberSeparate(String.valueOf(claimAmount))+"\n \n§c[Left-click]§7 to display his claims\n§c[Shift-left-click]§7 to remove all his claims"));
+	            List<String> lore = new ArrayList<>(getLore("§7Claims: §b"+instance.getMain().getNumberSeparate(String.valueOf(claimAmount))+"\n \n§c[Left-click]§7 to display their claims\n§c[Shift-left-click]§7 to remove all their claims"));
 	            cPlayer.addMapString(i, owner);
 	            inv.setItem(i, createOwnerClaimItem(owner, lore));
 	            i++;
