@@ -2048,7 +2048,7 @@ public class ClaimMain {
 	            // Add the claim to claims list of the player
 	            playerClaims.computeIfAbsent(player.getUniqueId(), k -> ConcurrentHashMap.newKeySet()).add(newClaim);
 	
-	            // Update his claims count
+	            // Update their claims count
 	            cPlayer.setClaimsCount(cPlayer.getClaimsCount() + 1);
 	
 	            // Create bossbars, maps
@@ -3267,7 +3267,7 @@ public class ClaimMain {
 	            }
 	            instance.getVault().removePlayerBalance(playerName, price);
 	
-	            // Set uuid of the old owner, and update his claims count
+	            // Set uuid of the old owner, and update their claims count
 	            UUID uuid = claim.getUUID();
 	            if(!owner.equals("*")) {
 		            Player ownerP = Bukkit.getPlayer(owner);
@@ -3281,7 +3281,7 @@ public class ClaimMain {
 	            playerClaims.get(uuid).remove(claim);
 	            if (playerClaims.get(uuid).isEmpty()) playerClaims.remove(uuid);
 	            
-	            // Set uuid of the new owner and update his claims count
+	            // Set uuid of the new owner and update their claims count
 		        CPlayer cTarget = instance.getPlayerMain().getCPlayer(playerId);
 		        cTarget.setClaimsCount(cTarget.getClaimsCount() + 1);
 	            
@@ -3359,7 +3359,7 @@ public class ClaimMain {
 	        	String old_name = claim.getName();
 	            String owner = claim.getOwner();
 	            
-	            // Set uuid of the old owner, and update his claims count if online
+	            // Set uuid of the old owner, and update their claims count if online
 	            UUID uuid = claim.getUUID();
 	            if(!owner.equals("*")) {
 		            Player ownerP = Bukkit.getPlayer(owner);
@@ -3453,7 +3453,7 @@ public class ClaimMain {
         return CompletableFuture.supplyAsync(() -> {
             try {
 	            
-	            // Set uuid of the old owner, and update his claims count if online
+	            // Set uuid of the old owner, and update their claims count if online
 	            UUID uuid_real = instance.getPlayerMain().getPlayerUUID(oldOwner);
 	            if(!oldOwner.equals("*")) {
 		            Player ownerP = Bukkit.getPlayer(oldOwner);
