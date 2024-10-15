@@ -261,7 +261,7 @@ public class CPlayerMain {
             if (!oldName.equals(playerName)) {
             	
                 // Log this
-                instance.getLogger().info(oldName + " changed his name to " + playerName + " (" + uuid.toString() + "), new name saved.");
+                instance.getLogger().info(oldName + " changed their name to " + playerName + " (" + uuid.toString() + "), new name saved.");
                 playersUUID.remove(oldName);
                 playersName.put(uuid, playerName);
                 playersUUID.put(playerName, uuid);
@@ -310,7 +310,7 @@ public class CPlayerMain {
                 if (textures.equals(playersHashedTexture.getOrDefault(playerName, ""))) return;
 
                 // Log this
-                instance.getLogger().info(playerName + " changed his skin (" + uuid.toString() + "), new textures saved.");
+                instance.getLogger().info(playerName + " changed their skin (" + uuid.toString() + "), new textures saved.");
 
                 ItemStack head = createPlayerHeadWithTexture(uuid_mojang, textures);
                 playersHead.put(playerName, head);
