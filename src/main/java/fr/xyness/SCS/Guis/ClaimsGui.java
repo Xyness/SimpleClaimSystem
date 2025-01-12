@@ -2,6 +2,7 @@ package fr.xyness.SCS.Guis;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -88,6 +89,15 @@ public class ClaimsGui implements InventoryHolder {
 	        
 	        // Get claims data
 	        Map<String, Integer> owners = getOwnersByFilter(filter);
+	        LinkedHashMap<String, Integer> sortedOwners = owners.entrySet()
+	                .stream()
+	                .sorted(Map.Entry.comparingByKey())
+	                .collect(Collectors.toMap(
+	                        Map.Entry::getKey,
+	                        Map.Entry::getValue,
+	                        (e1, e2) -> e1,
+	                        LinkedHashMap::new
+	                ));
 	        int ownersCount = owners.size();
 	        
 	        // Update player data (gui)
@@ -108,7 +118,7 @@ public class ClaimsGui implements InventoryHolder {
 	        int count = 0;
 	
 	        // Start loop
-	        for (Map.Entry<String, Integer> entry : owners.entrySet()) {
+	        for (Map.Entry<String, Integer> entry : sortedOwners.entrySet()) {
 	        	
 	        	// Continue if not in the page
 	            if (count++ < startItem) continue;
