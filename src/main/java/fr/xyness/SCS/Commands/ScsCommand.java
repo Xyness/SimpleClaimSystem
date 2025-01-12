@@ -660,6 +660,88 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
 				}
                 return;
         	}
+    		if(args[1].equalsIgnoreCase("set-chunk-cost")) {
+    			Player target = Bukkit.getPlayer(args[2]);
+                String targetName = "";
+                if (target == null) {
+                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
+                    if (otarget == null || !otarget.hasPlayedBefore()) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                        return;
+                    }
+                    targetName = otarget.getName();
+                } else {
+                    targetName = target.getName();
+                }
+                Double amount;
+                try {
+                    amount = Double.parseDouble(args[3]);
+                    if(amount < 0) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-must-be-positive"));
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-must-be-number"));
+                    return;
+                }
+                
+                File configFile = new File(instance.getDataFolder(), "config.yml");
+                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                config.set("players."+targetName+".chunk-cost", amount);
+                if(target != null && target.isOnline()) {
+                	UUID targetId = target.getUniqueId();
+	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "chunk-cost", amount);
+                }
+                try {
+                	config.save(configFile);
+                	final String tName = targetName;
+                	sender.sendMessage(instance.getLanguage().getMessage("set-player-chunk-cost-success").replace("%player%", tName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+                return;
+        	}
+    		if(args[1].equalsIgnoreCase("set-chunk-cost-multiplier")) {
+    			Player target = Bukkit.getPlayer(args[2]);
+                String targetName = "";
+                if (target == null) {
+                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
+                    if (otarget == null || !otarget.hasPlayedBefore()) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                        return;
+                    }
+                    targetName = otarget.getName();
+                } else {
+                    targetName = target.getName();
+                }
+                Double amount;
+                try {
+                    amount = Double.parseDouble(args[3]);
+                    if(amount < 0) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-multiplier-must-be-positive"));
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-multiplier-must-be-number"));
+                    return;
+                }
+                
+                File configFile = new File(instance.getDataFolder(), "config.yml");
+                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                config.set("players."+targetName+".chunk-cost-multiplier", amount);
+                if(target != null && target.isOnline()) {
+                	UUID targetId = target.getUniqueId();
+	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "chunk-cost-multiplier", amount);
+                }
+                try {
+                	config.save(configFile);
+                	final String tName = targetName;
+                	sender.sendMessage(instance.getLanguage().getMessage("set-player-chunk-cost-multiplier-success").replace("%player%", tName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+                return;
+        	}
     		if(args[1].equalsIgnoreCase("set-claim-cost-multiplier")) {
     			Player target = Bukkit.getPlayer(args[2]);
                 String targetName = "";
@@ -1146,6 +1228,31 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
 				}
                 return;
         	}
+    		if(args[1].equalsIgnoreCase("set-chunk-cost")) {
+                Double amount;
+                try {
+                    amount = Double.parseDouble(args[3]);
+                    if(amount < 0) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-must-be-positive"));
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-must-be-number"));
+                    return;
+                }
+                
+                File configFile = new File(instance.getDataFolder(), "config.yml");
+                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                config.set("groups."+args[2]+".chunk-cost", amount);
+                instance.getSettings().getGroupsSettings().get(args[2]).put("chunk-cost", amount);
+                try {
+                	config.save(configFile);
+                	sender.sendMessage(instance.getLanguage().getMessage("set-group-chunk-cost-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+                return;
+        	}
     		if(args[1].equalsIgnoreCase("set-claim-cost-multiplier")) {
                 Double amount;
                 try {
@@ -1166,6 +1273,31 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 try {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-group-claim-cost-multiplier-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+                return;
+        	}
+    		if(args[1].equalsIgnoreCase("set-chunk-cost-multiplier")) {
+                Double amount;
+                try {
+                    amount = Double.parseDouble(args[3]);
+                    if(amount < 0) {
+                    	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-multiplier-must-be-positive"));
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-multiplier-must-be-number"));
+                    return;
+                }
+                
+                File configFile = new File(instance.getDataFolder(), "config.yml");
+                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                config.set("groups."+args[2]+".chunk-cost-multiplier", amount);
+                instance.getSettings().getGroupsSettings().get(args[2]).put("chunk-cost-multiplier", amount);
+                try {
+                	config.save(configFile);
+                	sender.sendMessage(instance.getLanguage().getMessage("set-group-chunk-cost-multiplier-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
@@ -1304,7 +1436,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
             case "cplayer":
                 completions.addAll(List.of("add-limit", "add-radius", "add-members", "add-chunks-per-claim", "add-chunks-total", "set-limit", "set-radius", "set-delay",
                         "set-members", "set-claim-cost", "set-claim-cost-multiplier", "set-max-chunks-per-claim",
-                        "set-claim-distance", "set-max-chunks-total"));
+                        "set-claim-distance", "set-max-chunks-total", "set-chunk-cost", "set-chunk-cost-multiplier"));
                 break;
             case "player":
             	completions.addAll(List.of("tp", "unclaim", "main", "list"));

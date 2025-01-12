@@ -1330,8 +1330,10 @@ public class ClaimMain {
         		// Get data of the claim
         		Set<Chunk> chunks = new HashSet<>(claim.getChunks());
         		String owner = claim.getOwnerName();
-        		String uuid = claim.getOwnerID().toString();
-        		int id = findFreeId(claim.getOwnerID());
+        		UUID trueUUID = claim.getOwnerID();
+        		if(trueUUID == null) continue;
+        		String uuid = trueUUID.toString();
+        		int id = findFreeId(trueUUID);
         		String claim_name = "claim-"+ String.valueOf(id);
         		
         		// Check if the chunks are in the same world, even skip
@@ -1835,7 +1837,7 @@ public class ClaimMain {
 
         instance.info(getNumberSeparate(String.valueOf(i[0]))+"/"+getNumberSeparate(String.valueOf(max_i))+" claims loaded.");
         instance.info("> including "+getNumberSeparate(String.valueOf(protected_areas_count))+" protected areas.");
-        instance.getPlayerMain().loadOwners(owners);
+        instance.getBluemap().load();
         return;
     }
 
@@ -4177,7 +4179,6 @@ public class ClaimMain {
             for (Map.Entry<Chunk, Claim> entry : listClaims.entrySet()) {
                 Chunk chunk = entry.getKey();
                 Claim claim = entry.getValue();
-
                 if (chunk.getWorld().equals(world)) {
                     int chunkX = chunk.getX();
                     int chunkZ = chunk.getZ();

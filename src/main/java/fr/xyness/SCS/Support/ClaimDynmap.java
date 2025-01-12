@@ -67,6 +67,7 @@ public class ClaimDynmap {
      * @param claim The claim to be marked
      */
 	public void createClaimZone(Claim claim) {
+		if(markerSet == null) return;
     	String t = instance.getSettings().getSetting("dynmap-claim-hover-text")
     			.replace("%claim-name%", claim.getName())
     			.replace("%owner%", claim.getOwner());
@@ -101,6 +102,7 @@ public class ClaimDynmap {
      * @param claim The claim to update the name for
      */
 	public void updateName(Claim claim) {
+		if(markerSet == null) return;
     	String t = instance.getSettings().getSetting("dynmap-claim-hover-text")
     			.replace("%claim-name%", claim.getName())
     			.replace("%owner%", claim.getOwner());
@@ -119,7 +121,8 @@ public class ClaimDynmap {
      * @param chunks The chunks whose marker needs deletion.
      */
 	public void deleteMarker(Set<Chunk> chunks) {
-		chunks.parallelStream().forEach(chunk -> {
+		if(markerSet == null) return;
+		chunks.forEach(chunk -> {
 			String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 		    AreaMarker marker = markerSet.findAreaMarker(markerId);
 		    if (marker != null) {

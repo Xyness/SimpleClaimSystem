@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
@@ -41,7 +42,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 
 import de.bluecolored.bluemap.api.BlueMapAPI;
-import fr.xyness.SCS.API.SimpleClaimSystemAPI_Provider;
+
 import fr.xyness.SCS.Commands.*;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Config.ClaimLanguage;
@@ -106,7 +107,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.6.2";
+    private String Version = "1.11.6.3";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -455,13 +456,13 @@ public class SimpleClaimSystem extends JavaPlugin {
                 		sql = "UPDATE scs_claims_1 SET owner_uuid = '" + ClaimMain.SERVER_UUID.toString() + "' WHERE owner_uuid = 'none';";
                 		stmt.executeUpdate(sql);
                     } catch (SQLException e) {
-                        info(ChatColor.RED + "Error creating tables, disabling ");
+                        info(ChatColor.RED + "Error creating tables, disabling plugin");
                         status[0] = false;
                         return;
                     }
                     
                 } catch (SQLException e) {
-                    info(ChatColor.RED + "Error creating tables, disabling ");
+                    info(ChatColor.RED + "Error creating tables, disabling plugin");
                     status[0] = false;
                     return;
                 }
@@ -725,6 +726,8 @@ public class SimpleClaimSystem extends JavaPlugin {
                 settings.put("max-chunks-per-claim", getConfig().getDouble("groups." + key + ".max-chunks-per-claim"));
                 settings.put("claim-distance", getConfig().getDouble("groups." + key + ".claim-distance"));
                 settings.put("max-chunks-total", getConfig().getDouble("groups." + key + ".max-chunks-total"));
+                settings.put("chunk-cost", getConfig().getDouble("groups." + key + ".chunk-cost"));
+                settings.put("chunk-cost-multiplier", getConfig().getDouble("groups." + key + ".chunk-cost-multiplier"));
                 groupsSettings.put(key, settings);
             }
             claimSettingsInstance.setGroups(groups);
@@ -743,6 +746,8 @@ public class SimpleClaimSystem extends JavaPlugin {
                 if (getConfig().isSet("players." + key + ".max-chunks-per-claim")) settings.put("max-chunks-per-claim", getConfig().getDouble("players." + key + ".max-chunks-per-claim"));
                 if (getConfig().isSet("players." + key + ".claim-distance")) settings.put("claim-distance", getConfig().getDouble("players." + key + ".claim-distance"));
                 if (getConfig().isSet("players." + key + ".max-chunks-total")) settings.put("max-chunks-total", getConfig().getDouble("players." + key + ".max-chunks-total"));
+                if (getConfig().isSet("players." + key + ".chunk-cost")) settings.put("chunk-cost", getConfig().getDouble("players." + key + ".chunk-cost"));
+                if (getConfig().isSet("players." + key + ".chunk-cost-multiplier")) settings.put("chunk-cost-multiplier", getConfig().getDouble("players." + key + ".chunk-cost-multiplier"));
                 if (!settings.isEmpty()) playersSettings.put(Bukkit.getOfflinePlayer(key).getUniqueId(), settings);
             }
             cPlayerMainInstance.setPlayersConfigSettings(playersSettings);
@@ -1610,7 +1615,8 @@ public class SimpleClaimSystem extends JavaPlugin {
      */
     public String checkForUpdates() {
         try {
-            URL url = new URL("https://raw.githubusercontent.com/Xyness/SimpleClaimSystem/main/version.yml");
+        	URI uri = URI.create("https://raw.githubusercontent.com/Xyness/SimpleClaimSystem/main/version.yml");
+            URL url = uri.toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
             
