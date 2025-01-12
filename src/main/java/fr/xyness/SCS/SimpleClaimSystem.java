@@ -19,6 +19,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -107,7 +108,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.6.4";
+    private String Version = "1.11.6.5";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -554,10 +555,12 @@ public class SimpleClaimSystem extends JavaPlugin {
             configC = getConfig().getString("bluemap");
             if(configC.equalsIgnoreCase("true") && claimSettingsInstance.getBooleanSetting("bluemap")) {
             	if(!reload) {
-                    BlueMapAPI.onEnable(api -> {
-                        // Register marker set
-                        bluemapInstance = new ClaimBluemap(api,this);
-                    });
+                    Optional<BlueMapAPI> apiO = BlueMapAPI.getInstance();
+                    if(apiO.isPresent()) {
+                    	bluemapInstance = new ClaimBluemap(apiO.get(),this);
+                    } else {
+                    	claimSettingsInstance.addSetting("bluemap", "false");
+                    }
             	}
             } else {
             	claimSettingsInstance.addSetting("bluemap", "false");
