@@ -448,7 +448,7 @@ public class CPlayer {
             .map(CPlayerMain.DELAY_PATTERN::matcher)
             .filter(Matcher::find)
             .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
+            .min().orElse(-1);
 
         if (n == -1) {
 
@@ -536,6 +536,41 @@ public class CPlayer {
     }
     
     /**
+     * Gets the cost of a chunk for the player.
+     * 
+     * @return The chunk cost
+     */
+    public double getChunkCost() {
+        if (player.hasPermission("scs.admin")) return 0;
+        
+        Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
+        if (playerConfig != null && playerConfig.containsKey("chunk-cost")) {
+            return (int) Math.round(playerConfig.get("chunk-cost"));
+        }
+
+        int n = player.getEffectivePermissions().stream()
+            .map(PermissionAttachmentInfo::getPermission)
+            .map(CPlayerMain.CHUNK_COST_PATTERN::matcher)
+            .filter(Matcher::find)
+            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
+            .max().orElse(-1);
+
+        if (n == -1) {
+
+            Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
+            LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
+            n = (int) Math.round(groupsSettings.get("default").get("chunk-cost"));
+            for (Map.Entry<String, String> entry : groups.entrySet()) {
+                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("chunk-cost")));
+                }
+            }
+        }
+
+        return n;
+    }
+    
+    /**
      * Gets the claim cost multiplier for the player.
      * 
      * @return The claim cost multiplier
@@ -563,6 +598,41 @@ public class CPlayer {
             for (Map.Entry<String, String> entry : groups.entrySet()) {
                 if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
                     n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("claim-cost-multiplier")));
+                }
+            }
+        }
+
+        return n;
+    }
+    
+    /**
+     * Gets the chunk cost multiplier for the player.
+     * 
+     * @return The chunk cost multiplier
+     */
+    public double getChunkMultiplier() {
+        if (player.hasPermission("scs.admin")) return 0;
+        
+        Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
+        if (playerConfig != null && playerConfig.containsKey("chunk-cost-multiplier")) {
+            return (int) Math.round(playerConfig.get("chunk-cost-multiplier"));
+        }
+
+        int n = player.getEffectivePermissions().stream()
+            .map(PermissionAttachmentInfo::getPermission)
+            .map(CPlayerMain.CHUNK_MULTIPLIER_PATTERN::matcher)
+            .filter(Matcher::find)
+            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
+            .max().orElse(-1);
+
+        if (n == -1) {
+
+            Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
+            LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
+            n = (int) Math.round(groupsSettings.get("default").get("chunk-cost-multiplier"));
+            for (Map.Entry<String, String> entry : groups.entrySet()) {
+                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("chunk-cost-multiplier")));
                 }
             }
         }
@@ -623,7 +693,7 @@ public class CPlayer {
             .map(CPlayerMain.DISTANCE_PATTERN::matcher)
             .filter(Matcher::find)
             .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
+            .min().orElse(-1);
 
         if (n == -1) {
 
@@ -744,6 +814,18 @@ public class CPlayer {
         Double cost = getCost();
         Double multiplier = getMultiplier();
         return cost * Math.pow(multiplier, (claims_count - 1));
+    }
+    
+    /**
+     * Gets the multiplied cost for a chunk.
+     * 
+     * @return The multiplied chunk cost
+     */
+    public Double getChunkMultipliedCost(int nb_chunks) {
+        if (player.hasPermission("scs.admin")) return 0.0;
+        Double cost = getChunkCost();
+        Double multiplier = getChunkMultiplier();
+        return cost * Math.pow(multiplier, (nb_chunks - 1));
     }
     
     /**

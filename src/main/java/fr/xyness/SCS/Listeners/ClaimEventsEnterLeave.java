@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
-import org.bukkit.GameMode;
 import org.bukkit.WeatherType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -32,6 +31,7 @@ public class ClaimEventsEnterLeave implements Listener {
     // *  Variables  *
     // ***************
     
+	
     /** Set of players when they are rejected from a claim */
 	private Set<Player> playersRejected = new HashSet<>();
     

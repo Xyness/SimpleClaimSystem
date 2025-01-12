@@ -1,20 +1,17 @@
 package fr.xyness.SCS;
 
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -24,7 +21,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -35,11 +31,8 @@ import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.profile.PlayerProfile;
 import org.bukkit.profile.PlayerTextures;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-
-import fr.xyness.SCS.API.SimpleClaimSystemAPI;
 
 /**
  * This class handles CPlayer management and methods
@@ -79,9 +72,6 @@ public class CPlayerMain {
     /** Link of the mojang API */
     private final String MOJANG_API_URL = "https://api.mojang.com/users/profiles/minecraft/";
     
-    /** Link of the second mojang API */
-    private final String MOJANG_API_URL_2 = "https://api.mojang.com/profiles/minecraft";
-    
     /** Link of the mojang profile API */
     private final String MOJANG_PROFILE_API_URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
     
@@ -106,8 +96,14 @@ public class CPlayerMain {
     /** Pattern for matching cost permissions */
     public static final Pattern COST_PATTERN = Pattern.compile("scs\\.cost\\.(\\d+)");
     
+    /** Pattern for matching cost permissions */
+    public static final Pattern CHUNK_COST_PATTERN = Pattern.compile("scs\\.chunk-cost\\.(\\d+)");
+    
     /** Pattern for matching multiplier permissions */
     public static final Pattern MULTIPLIER_PATTERN = Pattern.compile("scs\\.multiplier\\.(\\d+)");
+    
+    /** Pattern for matching chunk multiplier permissions */
+    public static final Pattern CHUNK_MULTIPLIER_PATTERN = Pattern.compile("scs\\.chunk-multiplier\\.(\\d+)");
     
     /** Pattern for matching member permissions */
     public static final Pattern MEMBERS_PATTERN = Pattern.compile("scs\\.members\\.(\\d+)");
@@ -148,57 +144,6 @@ public class CPlayerMain {
     public void clearAll() {
         players.clear();
         playersConfigSettings.clear();
-    }
-
-    /**
-     * Load owner player.
-     */
-    public void loadOwners(Map<String, String> owners) {
-
-        // Return if map is empty
-        if (owners.isEmpty()) return;
-
-        // Get Mojang UUID for players
-        Map<String, String> uuids = getUUIDsFromMojang(new ArrayList<>(owners.keySet()));
-        if (uuids.keySet().size() != owners.size()) {
-            owners.keySet().forEach(o -> {
-                if (!uuids.containsKey(o)) {
-                    uuids.put(o, null);
-                }
-            });
-        }
-
-        // Add players
-        for (Map.Entry<String, String> entry : uuids.entrySet()) {
-            String name = entry.getKey();
-            String uuid_mojang = entry.getValue();
-            String uuid_server = owners.get(name);
-            
-            UUID uuid_server_real = UUID.fromString(uuid_server);
-            playersName.put(uuid_server_real, name);
-            playersUUID.put(name, uuid_server_real);
-
-            if (uuid_server != null) {
-
-                getSkinURL(uuid_mojang).thenAccept(textures -> {
-                    ItemStack playerHead;
-                    if (uuid_mojang != null && textures != null) {
-                        playerHead = createPlayerHeadWithTexture(uuid_mojang, textures);
-                    } else {
-                        playerHead = new ItemStack(Material.PLAYER_HEAD);
-                        playersHashedTexture.put(name, "none");
-                    }
-                    playersHead.put(name, playerHead == null ? new ItemStack(Material.PLAYER_HEAD) : playerHead);
-                    playersHashedTexture.put(name, textures == null ? "none" : textures);
-                }).exceptionally(ex -> {
-                    return null;
-                });
-            } else {
-            	playersHashedTexture.put(name, "none");
-                playersHead.put(name, new ItemStack(Material.PLAYER_HEAD));
-            }
-        }
-       
     }
     
     /**
@@ -420,7 +365,8 @@ public class CPlayerMain {
             PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString(uuid));
             if(texture != null) {
                 try {
-                    URL url = new URL(texture);
+                	URI uri = URI.create(texture);
+                    URL url = uri.toURL();
                     PlayerTextures textures = profile.getTextures();
                     textures.setSkin(url);
                     profile.setTextures(textures);
@@ -444,7 +390,8 @@ public class CPlayerMain {
         CompletableFuture<String> future = new CompletableFuture<>();
         scheduler.schedule(() -> {
             try {
-                URL url = new URL(MOJANG_PROFILE_API_URL + uuid);
+            	URI uri = URI.create(MOJANG_PROFILE_API_URL + uuid);
+                URL url = uri.toURL();
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
 
@@ -473,7 +420,8 @@ public class CPlayerMain {
      */
     public String getSkinURLWithoutDelay(String uuid) {
         try {
-            URL url = new URL(MOJANG_PROFILE_API_URL + uuid);
+        	URI uri = URI.create(MOJANG_PROFILE_API_URL + uuid);
+            URL url = uri.toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
 
@@ -496,23 +444,6 @@ public class CPlayerMain {
     }
 
     /**
-     * Retrieves the URLs of Minecraft players' skin textures from Mineskin using their UUIDs.
-     *
-     * @param uuids The UUIDs of the players whose skin texture URLs are to be retrieved.
-     * @return A CompletableFuture that resolves to a map of UUIDs to their corresponding skin texture URLs.
-     */
-    public CompletableFuture<Map<String, String>> getSkinURLs(List<String> uuids) {
-        List<CompletableFuture<Map.Entry<String, String>>> futures = uuids.stream()
-                .map(uuid -> getSkinURL(uuid).thenApply(url -> Map.entry(uuid, url)))
-                .collect(Collectors.toList());
-
-        return CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]))
-                .thenApply(v -> futures.stream()
-                        .map(CompletableFuture::join)
-                        .collect(Collectors.toConcurrentMap(Map.Entry::getKey, Map.Entry::getValue)));
-    }
-
-    /**
      * Retrieves the UUID of a player from Mojang's API using the player's name.
      *
      * @param playerName The name of the player.
@@ -520,7 +451,8 @@ public class CPlayerMain {
      */
     private String getUUIDFromMojang(String playerName) {
         try {
-            URL url = new URL(MOJANG_API_URL + playerName);
+        	URI uri = URI.create(MOJANG_API_URL + playerName);
+            URL url = uri.toURL();
             HttpURLConnection connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
 
@@ -534,83 +466,6 @@ public class CPlayerMain {
             e.printStackTrace();
         }
         return null;
-    }
-    
-    /**
-     * Retrieves the UUIDs of players from Mojang's API using a list of player names.
-     *
-     * @param playerNames The list of player names.
-     * @return A map of player names to their UUIDs.
-     */
-    public Map<String, String> getUUIDsFromMojang(List<String> playerNames) {
-        Map<String, String> result = new HashMap<>();
-        List<List<String>> batches = splitList(playerNames, 10);
-
-        for (List<String> batch : batches) {
-            result.putAll(getUUIDsFromMojangBatch(batch));
-        }
-
-        return result;
-    }
-    
-    /**
-     * Retrieves the UUIDs of players from Mojang's API using a list of player names.
-     *
-     * @param playerNames The list of player names.
-     * @return A map of player names to their UUIDs.
-     */
-    public Map<String, String> getUUIDsFromMojangBatch(List<String> playerNames) {
-        Map<String, String> result = new HashMap<>();
-        try {
-            URL url = new URL(MOJANG_API_URL_2);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            connection.setRequestMethod("POST");
-            connection.setRequestProperty("Content-Type", "application/json");
-            connection.setDoOutput(true);
-
-            // Create the JSON array for the request
-            JsonArray jsonArray = new JsonArray();
-            for (String playerName : playerNames) {
-                jsonArray.add(playerName);
-            }
-
-            // Send the request
-            try (OutputStream os = connection.getOutputStream()) {
-                os.write(jsonArray.toString().getBytes("utf-8"));
-            }
-
-            // Process the response
-            if (connection.getResponseCode() == 200) {
-                try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
-                    JsonArray responseJson = JsonParser.parseReader(reader).getAsJsonArray();
-                    for (int i = 0; i < responseJson.size(); i++) {
-                        JsonObject playerData = responseJson.get(i).getAsJsonObject();
-                        String id = playerData.get("id").getAsString();
-                        String name = playerNames.get(i);
-                        result.put(name, addDashesToUUID(id));
-                    }
-                }
-            }
-            
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return result;
-    }
-    
-    /**
-     * Splits a list into smaller sublists of a specified maximum size.
-     *
-     * @param list The list to split.
-     * @param size The maximum size of each sublist.
-     * @return A list of sublists.
-     */
-    private <T> List<List<T>> splitList(List<T> list, int size) {
-        List<List<T>> result = new ArrayList<>();
-        for (int i = 0; i < list.size(); i += size) {
-            result.add(new ArrayList<>(list.subList(i, Math.min(list.size(), i + size))));
-        }
-        return result;
     }
     
     /**

@@ -92,10 +92,14 @@ max-sell-price: 1000000000
 
 # If /claim is paid
 claim-cost: false
+# If adding chunk to a claim is paid
+chunk-cost: false
 
 # If claim cost is multiplied (for example if claim-cost-multipler = 2, first claim will be the claim-cost, 1000 for example,
 # the second claim will cost 2000, the third one 4000 ..)
 claim-cost-multiplier: false
+# Same for adding chunk
+chunk-cost-multiplier: false
 
 # Settings of announce
 announce-sale:
@@ -187,6 +191,8 @@ groups:
     max-chunks-per-claim: 0
     claim-distance: 0
     max-chunks-total: 0
+    chunk-cost: 0
+    chunk-cost-multiplier: 0
   vip: # Example
     permission: scs.group.vip
     max-claims: 15
@@ -198,6 +204,8 @@ groups:
     max-chunks-per-claim: 10
     claim-distance: 0
     max-chunks-total: 50
+    chunk-cost: 0
+    chunk-cost-multiplier: 0
   default:
     max-claims: 1
     max-radius-claims: 1
@@ -208,6 +216,8 @@ groups:
     max-chunks-per-claim: 4
     claim-distance: 0
     max-chunks-total: 20
+    chunk-cost: 0
+    chunk-cost-multiplier: 0
     
 # Players settings
 # 0 for infinite claims
@@ -229,6 +239,8 @@ players: {}
   # max-chunks-per-claim: 0
   # claim-distance: 0
   # max-chunks-total: 20
+  # chunk-cost: 0
+  # chunk-cost-multiplier: 0
 
 
 # *************************

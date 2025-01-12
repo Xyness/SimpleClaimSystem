@@ -23,7 +23,6 @@ import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
-import fr.xyness.SCS.Guis.ClaimMainGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimBansGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimChunksGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimGui;

@@ -57,6 +57,18 @@ public class ClaimBluemap {
 	public ClaimBluemap(BlueMapAPI api, SimpleClaimSystem instance) {
 		this.api = api;
 		this.instance = instance;
+	}
+	
+	
+	// ********************
+	// *  Others Methods  *
+	// ********************
+	
+	
+	/**
+	 * Loads the claims into Bluemap
+	 */
+	public void load() {
 		Set<Claim> claims = instance.getMain().getAllClaims();
 		instance.executeAsync(() -> {
 			for (World w : Bukkit.getWorlds()) {
@@ -78,12 +90,6 @@ public class ClaimBluemap {
 		});
 		instance.getLogger().info("Claims added to BlueMap.");
 	}
-	
-	
-	// ********************
-	// *  Others Methods  *
-	// ********************
-	
 	
 	/**
 	 * Creates a marker on the BlueMap for the specified chunks.
@@ -113,12 +119,12 @@ public class ClaimBluemap {
 		    Location loc3 = new Location(chunk.getWorld(), (chunk.getX() * 16) + 16, 0, (chunk.getZ() * 16) + 16);
 		    Location loc4 = new Location(chunk.getWorld(), chunk.getX() * 16, 0, (chunk.getZ() * 16) + 16);
 		    
-		    Shape shape = new Shape(Arrays.asList(
-		            new Vector2d(loc1.getX(), loc1.getZ()),
-		            new Vector2d(loc2.getX(), loc2.getZ()),
-		            new Vector2d(loc3.getX(), loc3.getZ()),
-		            new Vector2d(loc4.getX(), loc4.getZ())
-		    ));
+		    Shape shape = new Shape(new Vector2d[] {
+		    	    new Vector2d(loc1.getX(), loc1.getZ()),
+		    	    new Vector2d(loc2.getX(), loc2.getZ()),
+		    	    new Vector2d(loc3.getX(), loc3.getZ()),
+		    	    new Vector2d(loc4.getX(), loc4.getZ())
+		    	});
 		    
 		    ExtrudeMarker marker = ExtrudeMarker.builder()
 		            .label(hoverText)
