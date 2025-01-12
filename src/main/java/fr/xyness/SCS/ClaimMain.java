@@ -1837,7 +1837,9 @@ public class ClaimMain {
 
         instance.info(getNumberSeparate(String.valueOf(i[0]))+"/"+getNumberSeparate(String.valueOf(max_i))+" claims loaded.");
         instance.info("> including "+getNumberSeparate(String.valueOf(protected_areas_count))+" protected areas.");
-        instance.getBluemap().load();
+        if(instance.getSettings().getBooleanSetting("bluemap")) {
+        	instance.getBluemap().load();
+        }
         return;
     }
 

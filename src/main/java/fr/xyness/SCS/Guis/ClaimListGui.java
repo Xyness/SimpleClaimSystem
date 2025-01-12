@@ -2,7 +2,9 @@ package fr.xyness.SCS.Guis;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -111,6 +113,9 @@ public class ClaimListGui implements InventoryHolder {
 	
 	        // Prepare lore
 	        Set<Claim> claims = new HashSet<>(filter.equals("owner") ? instance.getMain().getPlayerClaims(playerName) : instance.getMain().getClaimsWhereMemberNotOwner(player));
+	        List<Claim> claimList = new ArrayList<>(claims);
+	        Collections.sort(claimList, (claim1, claim2) -> claim1.getName().compareTo(claim2.getName()));
+	        claims = new LinkedHashSet<>(claimList);
 	        List<String> lore = new ArrayList<>(instance.getGuis().getLore(filter.equals("owner") ? instance.getLanguage().getMessage("access-claim-lore") : instance.getLanguage().getMessage("access-claim-not-owner-lore")));
 	        String lore_tp = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")
 	                ? instance.getLanguage().getMessage("access-claim-clickable-tp")
