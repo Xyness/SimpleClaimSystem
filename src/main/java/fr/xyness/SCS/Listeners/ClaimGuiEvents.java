@@ -14,8 +14,6 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import fr.xyness.SCS.CPlayer;
-import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Guis.ClaimBansGui;
 import fr.xyness.SCS.Guis.ClaimChunksGui;
@@ -34,6 +32,8 @@ import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimsGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimsOwnerGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimsProtectedAreasGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionMainGui;
+import fr.xyness.SCS.Types.CPlayer;
+import fr.xyness.SCS.Types.Claim;
 
 /**
  * Event listener for claim guis events.

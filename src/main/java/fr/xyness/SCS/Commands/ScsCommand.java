@@ -22,12 +22,12 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
-import fr.xyness.SCS.CPlayer;
-import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimMainGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimsOwnerGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionMainGui;
+import fr.xyness.SCS.Types.CPlayer;
+import fr.xyness.SCS.Types.Claim;
 
 /**
  * This class handles admin commands related to claims.
@@ -78,16 +78,20 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         CompletableFuture<List<String>> future = CompletableFuture.supplyAsync(() -> {
             List<String> completions = new ArrayList<>();
             if (args.length == 1) {
-                completions.addAll(getPrimaryCompletions());
+                completions.addAll(getPrimaryCompletions(args));
             } else if (args.length == 2) {
                 completions.addAll(getSecondaryCompletions(sender, args));
             } else if (args.length == 3) {
                 completions.addAll(getTertiaryCompletions(sender, args));
             } else if (args.length == 4 && args[0].equalsIgnoreCase("player") && (args[1].equalsIgnoreCase("tp") || args[1].equalsIgnoreCase("unclaim"))) {
-                completions.addAll(instance.getMain().getClaimsNameFromOwner(args[2]));
+            	String partialInput = args.length > 3 ? args[3].toLowerCase() : "";
+            	completions.addAll(instance.getMain().getClaimsNameFromOwner(args[2]));
                 if (args[1].equalsIgnoreCase("unclaim")) {
                     completions.add("*");
                 }
+                return completions.stream()
+            	        .filter(c -> c.toLowerCase().startsWith(partialInput))
+            	        .collect(Collectors.toList());
             } else if (args.length == 4) {
             	completions.addAll(getFourCompletions(sender, args));
             }
@@ -250,33 +254,42 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     		Player player = (Player) sender;
     		if(args[0].equalsIgnoreCase("setowner")) {
                 Player target = Bukkit.getPlayer(args[1]);
-                String targetName = "";
+                String[] targetName = {""};
+                
+                // Create runnable
+                Runnable task = () -> {
+                	instance.executeSync(() -> {
+                		Chunk chunk = player.getLocation().getChunk();
+                		if(!instance.getMain().checkIfClaimExists(chunk)) {
+                			player.sendMessage(instance.getLanguage().getMessage("free-territory"));
+                			return;
+                		}
+                		Claim claim = instance.getMain().getClaim(chunk);
+                		instance.getMain().setOwner(targetName[0], claim)
+                			.thenAccept(success -> {
+                				if (success) {
+                					sender.sendMessage(instance.getLanguage().getMessage("setowner-success").replace("%owner%", targetName[0]));
+                				}
+                			})
+                            .exceptionally(ex -> {
+                                return null;
+                            });
+                	});
+                };
+                
                 if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[1]);
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[1]));
-                        return;
-                    }
-                    targetName = otarget.getName();
+                	instance.getOfflinePlayer(args[1], otarget -> {
+                        if (otarget == null || !otarget.hasPlayedBefore()) {
+                        	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                            return;
+                        }
+                        targetName[0] = otarget.getName();
+                        task.run();
+                	});
                 } else {
-                    targetName = target.getName();
+                    targetName[0] = target.getName();
+                    task.run();
                 }
-        		Chunk chunk = player.getLocation().getChunk();
-        		if(!instance.getMain().checkIfClaimExists(chunk)) {
-        			player.sendMessage(instance.getLanguage().getMessage("free-territory"));
-        			return;
-        		}
-        		Claim claim = instance.getMain().getClaim(chunk);
-        		final String tName = targetName;
-        		instance.getMain().setOwner(tName, claim)
-        			.thenAccept(success -> {
-        				if (success) {
-        					sender.sendMessage(instance.getLanguage().getMessage("setowner-success").replace("%owner%", tName));
-        				}
-        			})
-                    .exceptionally(ex -> {
-                        return null;
-                    });
         		return;
         	}
     	}
@@ -321,93 +334,113 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     		Player player = (Player) sender;
     		if(args[0].equalsIgnoreCase("setowner")) {
                 Player target = Bukkit.getPlayer(args[1]);
-                String targetName = "";
-                UUID uuid = null;
+                String[] targetName = {""};
+                UUID[] uuid = {null};
+                
+                // Create runnable
+                Runnable task = () -> {
+                	instance.executeSync(() -> {
+                		if(!instance.getMain().getClaimsOwners().contains(targetName[0])) {
+            				player.sendMessage(instance.getLanguage().getMessage("player-does-not-have-claim"));
+            				return;
+            			}
+            			if(args[2].equals("*")) {
+            				
+                			// Check new owner
+                            Player newOwner = Bukkit.getPlayer(args[3]);
+                            String[] ownerName = {""};
+                            
+                            Runnable subtask = () -> {
+                            	instance.executeSync(() -> {
+                                    // Set the new owner
+                            		instance.getMain().setOwner(ownerName[0], instance.getMain().getPlayerClaims(targetName[0]), targetName[0])
+                	        			.thenAccept(success -> {
+                	        				if (success) {
+                	        					sender.sendMessage(instance.getLanguage().getMessage("setowner-all-other-success").replace("%owner%", ownerName[0]).replace("%old-owner%", targetName[0]));
+                	        				}
+                	        			})
+                	                    .exceptionally(ex -> {
+                	                        return null;
+                	                    });
+                            	});
+                            };
+                            
+                            if (newOwner == null) {
+                            	instance.getOfflinePlayer(args[1], otarget -> {
+                                    if (otarget == null || !otarget.hasPlayedBefore()) {
+                                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                                        return;
+                                    }
+                                    ownerName[0] = otarget.getName();
+                                    subtask.run();
+                            	});
+                            } else {
+                            	ownerName[0] = newOwner.getName();
+                                subtask.run();
+                            }
+            				
+            			} else {
+            				
+            				// Check if the claim exists
+                			if(!instance.getMain().getClaimsNameFromOwner(targetName[0]).contains(args[2])) {
+                				player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
+                				return;
+                			}
+                			
+                			// Check new owner
+                            Player newOwner = Bukkit.getPlayer(args[3]);
+                            String[] ownerName = {""};
+                            
+                            // Create runnable
+                            Runnable subtask = () -> {
+                            	instance.executeSync(() -> {
+                        			Claim claim = instance.getMain().getClaimByName(args[2], uuid[0]);
+                            		instance.getMain().setOwner(ownerName[0], claim)
+                	        			.thenAccept(success -> {
+                	        				if (success) {
+                	        					sender.sendMessage(instance.getLanguage().getMessage("setowner-claim-other-success").replace("%owner%", ownerName[0])
+                	        							.replace("%old-owner%", targetName[0])
+                	        							.replace("%claim-name%", claim.getName()));
+                	        				}
+                	        			})
+                	                    .exceptionally(ex -> {
+                	                        return null;
+                	                    });
+                            	});
+                            };
+                            
+                            if (newOwner == null) {
+                            	instance.getOfflinePlayer(args[1], otarget -> {
+                                    if (otarget == null || !otarget.hasPlayedBefore()) {
+                                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                                        return;
+                                    }
+                                    ownerName[0] = otarget.getName();
+                                    subtask.run();
+                            	});
+                            } else {
+                            	ownerName[0] = newOwner.getName();
+                                subtask.run();
+                            }
+            			}
+                	});
+                };
+                
                 if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[1]);
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[1]));
-                        return;
-                    }
-                    targetName = otarget.getName();
-                    uuid = otarget.getUniqueId();
+                	instance.getOfflinePlayer(args[1], otarget -> {
+                        if (otarget == null || !otarget.hasPlayedBefore()) {
+                        	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                            return;
+                        }
+                        targetName[0] = otarget.getName();
+                        uuid[0] = otarget.getUniqueId();
+                        task.run();
+                	});
                 } else {
-                    targetName = target.getName();
-                    uuid = target.getUniqueId();
+                    targetName[0] = target.getName();
+                    uuid[0] = target.getUniqueId();
+                    task.run();
                 }
-    			if(!instance.getMain().getClaimsOwners().contains(targetName)) {
-    				player.sendMessage(instance.getLanguage().getMessage("player-does-not-have-claim"));
-    				return;
-    			}
-    			if(args[2].equals("*")) {
-    				
-        			// Check new owner
-                    Player newOwner = Bukkit.getPlayer(args[3]);
-                    String ownerName = "";
-                    if (newOwner == null) {
-                        OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[3]);
-                        if (otarget == null || !otarget.hasPlayedBefore()) {
-                        	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[3]));
-                            return;
-                        }
-                        ownerName = otarget.getName();
-                    } else {
-                        ownerName = newOwner.getName();
-                    }
-                    
-                    // Set the new owner
-                    final String newOwnerName = ownerName;
-                    final String finaltargetName = targetName;
-            		instance.getMain().setOwner(ownerName, instance.getMain().getPlayerClaims(targetName), targetName)
-	        			.thenAccept(success -> {
-	        				if (success) {
-	        					sender.sendMessage(instance.getLanguage().getMessage("setowner-all-other-success").replace("%owner%", newOwnerName).replace("%old-owner%", finaltargetName));
-	        				}
-	        			})
-	                    .exceptionally(ex -> {
-	                        return null;
-	                    });
-            		
-            		return;
-    				
-    			} else {
-    				
-    				// Check if the claim exists
-        			if(!instance.getMain().getClaimsNameFromOwner(targetName).contains(args[2])) {
-        				player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
-        				return;
-        			}
-        			
-        			// Check new owner
-                    Player newOwner = Bukkit.getPlayer(args[3]);
-                    String ownerName = "";
-                    if (newOwner == null) {
-                        OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[3]);
-                        if (otarget == null || !otarget.hasPlayedBefore()) {
-                        	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[3]));
-                            return;
-                        }
-                        ownerName = otarget.getName();
-                    } else {
-                        ownerName = newOwner.getName();
-                    }
-        			
-                    // Set the new owner
-                    final String newOwnerName = ownerName;
-                    final String finaltargetName = targetName;
-        			Claim claim = instance.getMain().getClaimByName(args[2], uuid);
-            		instance.getMain().setOwner(ownerName, claim)
-	        			.thenAccept(success -> {
-	        				if (success) {
-	        					sender.sendMessage(instance.getLanguage().getMessage("setowner-claim-other-success").replace("%owner%", newOwnerName)
-	        							.replace("%old-owner%", finaltargetName)
-	        							.replace("%claim-name%", claim.getName()));
-	        				}
-	        			})
-	                    .exceptionally(ex -> {
-	                        return null;
-	                    });
-    			}
     			return;
     		}
     		if(args[0].equalsIgnoreCase("player")) {
@@ -420,9 +453,12 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         				player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
         				return;
         			}
-        			OfflinePlayer p = Bukkit.getOfflinePlayer(args[2]);
-        			Claim claim = instance.getMain().getClaimByName(args[3], p.getUniqueId());
-        			new AdminGestionClaimMainGui(player,claim,instance);
+                	instance.getOfflinePlayer(args[2], p -> {
+                		instance.executeSync(() -> {
+                			Claim claim = instance.getMain().getClaimByName(args[3], p.getUniqueId());
+                			new AdminGestionClaimMainGui(player,claim,instance);
+                		});
+                	});
             		return;
     			}
     			if(args[1].equalsIgnoreCase("tp")) {
@@ -434,15 +470,18 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         				player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
         				return;
         			}
-        			OfflinePlayer p = Bukkit.getOfflinePlayer(args[2]);
-        			Claim claim = instance.getMain().getClaimByName(args[3], p.getUniqueId());
-        			Location loc = claim.getLocation();
-            		if(instance.isFolia()) {
-            			player.teleportAsync(loc);
-            		} else {
-            			player.teleport(loc);
-            		}
-            		player.sendMessage(instance.getLanguage().getMessage("player-teleport-to-other-claim-aclaim").replace("%name%", args[3]).replace("%player%", args[2]));
+        			instance.getOfflinePlayer(args[2], p -> {
+        				instance.executeSync(() -> {
+                			Claim claim = instance.getMain().getClaimByName(args[3], p.getUniqueId());
+                			Location loc = claim.getLocation();
+                    		if(instance.isFolia()) {
+                    			player.teleportAsync(loc);
+                    		} else {
+                    			player.teleport(loc);
+                    		}
+                    		player.sendMessage(instance.getLanguage().getMessage("player-teleport-to-other-claim-aclaim").replace("%name%", args[3]).replace("%player%", args[2]));
+        				});
+        			});
             		return;
         		}
         		if(args[1].equalsIgnoreCase("unclaim")) {
@@ -473,486 +512,445 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         				player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
         				return;
         			}
-        			OfflinePlayer p = Bukkit.getOfflinePlayer(args[2]);
-        			Claim claim = instance.getMain().getClaimByName(args[3], p.getUniqueId());
-        			instance.getMain().deleteClaim(claim)
-        				.thenAccept(success -> {
-        					if (success) {
-                				player.sendMessage(instance.getLanguage().getMessage("player-unclaim-other-claim-aclaim").replace("%name%", args[3]).replace("%player%", args[2]));
-                				Player target = Bukkit.getPlayer(args[2]);
-                				if(target != null) {
-                					target.sendMessage(instance.getLanguage().getMessage("player-claim-unclaimed-by-admin").replace("%name%", args[3]).replace("%player%", player.getName()));
-                				}
-        					} else {
-        						player.sendMessage(instance.getLanguage().getMessage("error"));
-        					}
-        				})
-        		        .exceptionally(ex -> {
-        		            ex.printStackTrace();
-        		            return null;
-        		        });
+        			instance.getOfflinePlayer(args[2], p -> {
+        				instance.executeSync(() -> {
+                			Claim claim = instance.getMain().getClaimByName(args[3], p.getUniqueId());
+                			instance.getMain().deleteClaim(claim)
+                				.thenAccept(success -> {
+                					if (success) {
+                        				player.sendMessage(instance.getLanguage().getMessage("player-unclaim-other-claim-aclaim").replace("%name%", args[3]).replace("%player%", args[2]));
+                        				Player target = Bukkit.getPlayer(args[2]);
+                        				if(target != null) {
+                        					target.sendMessage(instance.getLanguage().getMessage("player-claim-unclaimed-by-admin").replace("%name%", args[3]).replace("%player%", player.getName()));
+                        				}
+                					} else {
+                						player.sendMessage(instance.getLanguage().getMessage("error"));
+                					}
+                				})
+                		        .exceptionally(ex -> {
+                		            ex.printStackTrace();
+                		            return null;
+                		        });
+        				});
+        			});
         			return;
         		}
 			}
     	}
     	if(args[0].equalsIgnoreCase("cplayer")) {
     		if(args[1].equalsIgnoreCase("set-claim-distance")) {
-    			Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
-                        return;
-                    }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                Double amount;
-                try {
-                    amount = Double.parseDouble(args[3]);
-                    if(amount < 0) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("claim-distance-must-be-positive")); // Same message
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                	sender.sendMessage(instance.getLanguage().getMessage("claim-distance-must-be-number"));
-                    return;
-                }
-                
-                File configFile = new File(instance.getDataFolder(), "config.yml");
-                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                config.set("players."+targetName+".claim-distance", amount);
-                if(target != null && target.isOnline()) {
-                	UUID targetId = target.getUniqueId();
-	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "claim-distance", amount);
-                }
-                try {
-                	config.save(configFile);
-                	final String tName = targetName;
-                	sender.sendMessage(instance.getLanguage().getMessage("set-player-claim-distance-success").replace("%player%", tName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+    			instance.getOfflinePlayer(args[2], p -> {
+    				instance.executeSync(() -> {
+                        if (p == null || !p.hasPlayedBefore()) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                            return;
+                        }
+                        String targetName = p.getName();
+                        Double amount;
+                        try {
+                            amount = Double.parseDouble(args[3]);
+                            if(amount < 0) {
+                            	sender.sendMessage(instance.getLanguage().getMessage("claim-distance-must-be-positive")); // Same message
+                                return;
+                            }
+                        } catch (NumberFormatException e) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("claim-distance-must-be-number"));
+                            return;
+                        }
+                        
+                        File configFile = new File(instance.getDataFolder(), "config.yml");
+                        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                        config.set("players."+targetName+".claim-distance", amount);
+                        if(p.isOnline()) {
+                        	UUID targetId = p.getUniqueId();
+        	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "claim-distance", amount);
+                        }
+                        try {
+                        	config.save(configFile);
+                        	sender.sendMessage(instance.getLanguage().getMessage("set-player-claim-distance-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+        				} catch (IOException e) {
+        					e.printStackTrace();
+        				}
+    				});
+    			});
                 return;
         	}
     		if(args[1].equalsIgnoreCase("set-max-chunks-total")) {
-    			Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
-                        return;
-                    }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                Double amount;
-                try {
-                    amount = Double.parseDouble(args[3]);
-                    if(amount < 0) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-total-must-be-positive")); // Same message
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-total-must-be-number"));
-                    return;
-                }
-                
-                File configFile = new File(instance.getDataFolder(), "config.yml");
-                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                config.set("players."+targetName+".max-chunks-total", amount);
-                if(target != null && target.isOnline()) {
-                	UUID targetId = target.getUniqueId();
-	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-chunks-total", amount);
-                }
-                try {
-                	config.save(configFile);
-                	final String tName = targetName;
-                	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-chunks-total-success").replace("%player%", tName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+    			instance.getOfflinePlayer(args[2], p -> {
+    				instance.executeSync(() -> {
+                        if (p == null || !p.hasPlayedBefore()) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                            return;
+                        }
+                        String targetName = p.getName();
+                        Double amount;
+                        try {
+                            amount = Double.parseDouble(args[3]);
+                            if(amount < 0) {
+                            	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-total-must-be-positive")); // Same message
+                                return;
+                            }
+                        } catch (NumberFormatException e) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-total-must-be-number"));
+                            return;
+                        }
+                        
+                        File configFile = new File(instance.getDataFolder(), "config.yml");
+                        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                        config.set("players."+targetName+".max-chunks-total", amount);
+                        if(p.isOnline()) {
+                        	UUID targetId = p.getUniqueId();
+        	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-chunks-total", amount);
+                        }
+                        try {
+                        	config.save(configFile);
+                        	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-chunks-total-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+        				} catch (IOException e) {
+        					e.printStackTrace();
+        				}
+    				});
+    			});
                 return;
         	}
     		if(args[1].equalsIgnoreCase("set-max-chunks-per-claim")) {
-    			Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
-                        return;
-                    }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                Double amount;
-                try {
-                    amount = Double.parseDouble(args[3]);
-                    if(amount < 0) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-per-claim-must-be-positive"));
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-per-claim-must-be-number"));
-                    return;
-                }
-                
-                File configFile = new File(instance.getDataFolder(), "config.yml");
-                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                config.set("players."+targetName+".max-chunks-per-claim", amount);
-                if(target != null && target.isOnline()) {
-                	UUID targetId = target.getUniqueId();
-	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-chunks-per-claim", amount);
-                }
-                try {
-                	config.save(configFile);
-                	final String tName = targetName;
-                	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-chunks-per-claim-success").replace("%player%", tName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+    			instance.getOfflinePlayer(args[2], p -> {
+    				instance.executeSync(() -> {
+                        if (p == null || !p.hasPlayedBefore()) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                            return;
+                        }
+                        String targetName = p.getName();
+                        Double amount;
+                        try {
+                            amount = Double.parseDouble(args[3]);
+                            if(amount < 0) {
+                            	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-per-claim-must-be-positive"));
+                                return;
+                            }
+                        } catch (NumberFormatException e) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("max-chunks-per-claim-must-be-number"));
+                            return;
+                        }
+                        
+                        File configFile = new File(instance.getDataFolder(), "config.yml");
+                        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                        config.set("players."+targetName+".max-chunks-per-claim", amount);
+                        if(p.isOnline()) {
+                        	UUID targetId = p.getUniqueId();
+        	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-chunks-per-claim", amount);
+                        }
+                        try {
+                        	config.save(configFile);
+                        	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-chunks-per-claim-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+        				} catch (IOException e) {
+        					e.printStackTrace();
+        				}
+    				});
+    			});
                 return;
         	}
     		if(args[1].equalsIgnoreCase("set-claim-cost")) {
-    			Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
-                        return;
-                    }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                Double amount;
-                try {
-                    amount = Double.parseDouble(args[3]);
-                    if(amount < 0) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("claim-cost-must-be-positive"));
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                	sender.sendMessage(instance.getLanguage().getMessage("claim-cost-must-be-number"));
-                    return;
-                }
-                
-                File configFile = new File(instance.getDataFolder(), "config.yml");
-                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                config.set("players."+targetName+".claim-cost", amount);
-                if(target != null && target.isOnline()) {
-                	UUID targetId = target.getUniqueId();
-	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "claim-cost", amount);
-                }
-                try {
-                	config.save(configFile);
-                	final String tName = targetName;
-                	sender.sendMessage(instance.getLanguage().getMessage("set-player-claim-cost-success").replace("%player%", tName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+    			instance.getOfflinePlayer(args[2], p -> {
+    				instance.executeSync(() -> {
+                        if (p == null || !p.hasPlayedBefore()) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                            return;
+                        }
+                        String targetName = p.getName();
+                        Double amount;
+                        try {
+                            amount = Double.parseDouble(args[3]);
+                            if(amount < 0) {
+                            	sender.sendMessage(instance.getLanguage().getMessage("claim-cost-must-be-positive"));
+                                return;
+                            }
+                        } catch (NumberFormatException e) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("claim-cost-must-be-number"));
+                            return;
+                        }
+                        
+                        File configFile = new File(instance.getDataFolder(), "config.yml");
+                        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                        config.set("players."+targetName+".claim-cost", amount);
+                        if(p.isOnline()) {
+                        	UUID targetId = p.getUniqueId();
+        	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "claim-cost", amount);
+                        }
+                        try {
+                        	config.save(configFile);
+                        	sender.sendMessage(instance.getLanguage().getMessage("set-player-claim-cost-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+        				} catch (IOException e) {
+        					e.printStackTrace();
+        				}
+    				});
+    			});
                 return;
         	}
     		if(args[1].equalsIgnoreCase("set-chunk-cost")) {
-    			Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
-                        return;
-                    }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                Double amount;
-                try {
-                    amount = Double.parseDouble(args[3]);
-                    if(amount < 0) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-must-be-positive"));
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-must-be-number"));
-                    return;
-                }
-                
-                File configFile = new File(instance.getDataFolder(), "config.yml");
-                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                config.set("players."+targetName+".chunk-cost", amount);
-                if(target != null && target.isOnline()) {
-                	UUID targetId = target.getUniqueId();
-	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "chunk-cost", amount);
-                }
-                try {
-                	config.save(configFile);
-                	final String tName = targetName;
-                	sender.sendMessage(instance.getLanguage().getMessage("set-player-chunk-cost-success").replace("%player%", tName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+    			instance.getOfflinePlayer(args[2], p -> {
+    				instance.executeSync(() -> {
+                        if (p == null || !p.hasPlayedBefore()) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                            return;
+                        }
+                        String targetName = p.getName();
+                        Double amount;
+                        try {
+                            amount = Double.parseDouble(args[3]);
+                            if(amount < 0) {
+                            	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-must-be-positive"));
+                                return;
+                            }
+                        } catch (NumberFormatException e) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-must-be-number"));
+                            return;
+                        }
+                        
+                        File configFile = new File(instance.getDataFolder(), "config.yml");
+                        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                        config.set("players."+targetName+".chunk-cost", amount);
+                        if(p.isOnline()) {
+                        	UUID targetId = p.getUniqueId();
+        	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "chunk-cost", amount);
+                        }
+                        try {
+                        	config.save(configFile);
+                        	sender.sendMessage(instance.getLanguage().getMessage("set-player-chunk-cost-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+        				} catch (IOException e) {
+        					e.printStackTrace();
+        				}
+    				});
+    			});
                 return;
         	}
     		if(args[1].equalsIgnoreCase("set-chunk-cost-multiplier")) {
-    			Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
-                        return;
-                    }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                Double amount;
-                try {
-                    amount = Double.parseDouble(args[3]);
-                    if(amount < 0) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-multiplier-must-be-positive"));
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-multiplier-must-be-number"));
-                    return;
-                }
-                
-                File configFile = new File(instance.getDataFolder(), "config.yml");
-                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                config.set("players."+targetName+".chunk-cost-multiplier", amount);
-                if(target != null && target.isOnline()) {
-                	UUID targetId = target.getUniqueId();
-	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "chunk-cost-multiplier", amount);
-                }
-                try {
-                	config.save(configFile);
-                	final String tName = targetName;
-                	sender.sendMessage(instance.getLanguage().getMessage("set-player-chunk-cost-multiplier-success").replace("%player%", tName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+    			instance.getOfflinePlayer(args[2], p -> {
+    				instance.executeSync(() -> {
+                        if (p == null || !p.hasPlayedBefore()) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                            return;
+                        }
+                        String targetName = p.getName();
+                        Double amount;
+                        try {
+                            amount = Double.parseDouble(args[3]);
+                            if(amount < 0) {
+                            	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-multiplier-must-be-positive"));
+                                return;
+                            }
+                        } catch (NumberFormatException e) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("chunk-cost-multiplier-must-be-number"));
+                            return;
+                        }
+                        
+                        File configFile = new File(instance.getDataFolder(), "config.yml");
+                        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                        config.set("players."+targetName+".chunk-cost-multiplier", amount);
+                        if(p.isOnline()) {
+                        	UUID targetId = p.getUniqueId();
+        	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "chunk-cost-multiplier", amount);
+                        }
+                        try {
+                        	config.save(configFile);
+                        	sender.sendMessage(instance.getLanguage().getMessage("set-player-chunk-cost-multiplier-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+        				} catch (IOException e) {
+        					e.printStackTrace();
+        				}
+    				});
+    			});
                 return;
         	}
     		if(args[1].equalsIgnoreCase("set-claim-cost-multiplier")) {
-    			Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
-                        return;
-                    }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                Double amount;
-                try {
-                    amount = Double.parseDouble(args[3]);
-                    if(amount < 0) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("claim-cost-multiplier-must-be-positive"));
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                	sender.sendMessage(instance.getLanguage().getMessage("claim-cost-multiplier-must-be-number"));
-                    return;
-                }
-                
-                File configFile = new File(instance.getDataFolder(), "config.yml");
-                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                config.set("players."+targetName+".claim-cost-multiplier", amount);
-                if(target != null && target.isOnline()) {
-                	UUID targetId = target.getUniqueId();
-	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "claim-cost-multiplier", amount);
-                }
-                try {
-                	config.save(configFile);
-                	final String tName = targetName;
-                	sender.sendMessage(instance.getLanguage().getMessage("set-player-claim-cost-multiplier-success").replace("%player%", tName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+    			instance.getOfflinePlayer(args[2], p -> {
+    				instance.executeSync(() -> {
+                        if (p == null || !p.hasPlayedBefore()) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                            return;
+                        }
+                        String targetName = p.getName();
+                        Double amount;
+                        try {
+                            amount = Double.parseDouble(args[3]);
+                            if(amount < 0) {
+                            	sender.sendMessage(instance.getLanguage().getMessage("claim-cost-multiplier-must-be-positive"));
+                                return;
+                            }
+                        } catch (NumberFormatException e) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("claim-cost-multiplier-must-be-number"));
+                            return;
+                        }
+                        
+                        File configFile = new File(instance.getDataFolder(), "config.yml");
+                        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                        config.set("players."+targetName+".claim-cost-multiplier", amount);
+                        if(p.isOnline()) {
+                        	UUID targetId = p.getUniqueId();
+        	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "claim-cost-multiplier", amount);
+                        }
+                        try {
+                        	config.save(configFile);
+                        	sender.sendMessage(instance.getLanguage().getMessage("set-player-claim-cost-multiplier-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+        				} catch (IOException e) {
+        					e.printStackTrace();
+        				}
+    				});
+    			});
                 return;
         	}
     		if(args[1].equalsIgnoreCase("set-members")) {
-    			Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
-                        return;
-                    }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                int amount;
-                try {
-                    amount = Integer.parseInt(args[3]);
-                    if(amount < 0) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("member-limit-must-be-positive"));
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                	sender.sendMessage(instance.getLanguage().getMessage("member-limit-must-be-number"));
-                    return;
-                }
-                
-                File configFile = new File(instance.getDataFolder(), "config.yml");
-                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                config.set("players."+targetName+".max-members", amount);
-                if(target != null && target.isOnline()) {
-                	UUID targetId = target.getUniqueId();
-	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-members", Double.valueOf(amount));
-                }
-                try {
-                	config.save(configFile);
-                	final String tName = targetName;
-                	sender.sendMessage(instance.getLanguage().getMessage("set-player-member-limit-success").replace("%player%", tName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+    			instance.getOfflinePlayer(args[2], p -> {
+    				instance.executeSync(() -> {
+                        if (p == null || !p.hasPlayedBefore()) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                            return;
+                        }
+                        String targetName = p.getName();
+                        int amount;
+                        try {
+                            amount = Integer.parseInt(args[3]);
+                            if(amount < 0) {
+                            	sender.sendMessage(instance.getLanguage().getMessage("member-limit-must-be-positive"));
+                                return;
+                            }
+                        } catch (NumberFormatException e) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("member-limit-must-be-number"));
+                            return;
+                        }
+                        
+                        File configFile = new File(instance.getDataFolder(), "config.yml");
+                        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                        config.set("players."+targetName+".max-members", amount);
+                        if(p.isOnline()) {
+                        	UUID targetId = p.getUniqueId();
+        	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-members", Double.valueOf(amount));
+                        }
+                        try {
+                        	config.save(configFile);
+                        	sender.sendMessage(instance.getLanguage().getMessage("set-player-member-limit-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+        				} catch (IOException e) {
+        					e.printStackTrace();
+        				}
+    				});
+    			});
                 return;
         	}
         	if(args[1].equalsIgnoreCase("set-limit")) {
-    			Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
-                        return;
-                    }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                int amount;
-                try {
-                    amount = Integer.parseInt(args[3]);
-                    if(amount < 0) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("claim-limit-must-be-positive"));
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                	sender.sendMessage(instance.getLanguage().getMessage("claim-limit-must-be-number"));
-                    return;
-                }
-                
-                File configFile = new File(instance.getDataFolder(), "config.yml");
-                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                config.set("players."+targetName+".max-claims", amount);
-                if(target != null && target.isOnline()) {
-                	UUID targetId = target.getUniqueId();
-	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-claims", Double.valueOf(amount));
-                }
-                try {
-                	config.save(configFile);
-                	final String tName = targetName;
-                	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-claim-success").replace("%player%", tName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+    			instance.getOfflinePlayer(args[2], p -> {
+    				instance.executeSync(() -> {
+                        if (p == null || !p.hasPlayedBefore()) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                            return;
+                        }
+                        String targetName = p.getName();
+                        int amount;
+                        try {
+                            amount = Integer.parseInt(args[3]);
+                            if(amount < 0) {
+                            	sender.sendMessage(instance.getLanguage().getMessage("claim-limit-must-be-positive"));
+                                return;
+                            }
+                        } catch (NumberFormatException e) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("claim-limit-must-be-number"));
+                            return;
+                        }
+                        
+                        File configFile = new File(instance.getDataFolder(), "config.yml");
+                        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                        config.set("players."+targetName+".max-claims", amount);
+                        if(p.isOnline()) {
+                        	UUID targetId = p.getUniqueId();
+        	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-claims", Double.valueOf(amount));
+                        }
+                        try {
+                        	config.save(configFile);
+                        	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-claim-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+        				} catch (IOException e) {
+        					e.printStackTrace();
+        				}
+    				});
+    			});
                 return;
         	}
         	if(args[1].equalsIgnoreCase("set-radius")) {
-    			Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
-                        return;
-                    }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                int amount;
-                try {
-                    amount = Integer.parseInt(args[3]);
-                    if(amount < 0) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("claim-limit-radius-must-be-positive"));
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                	sender.sendMessage(instance.getLanguage().getMessage("claim-limit-radius-must-be-number"));
-                    return;
-                }
-                
-                File configFile = new File(instance.getDataFolder(), "config.yml");
-                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                config.set("players."+targetName+".max-radius-claims", amount);
-                if(target != null && target.isOnline()) {
-                	UUID targetId = target.getUniqueId();
-	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-radius-claims", Double.valueOf(amount));
-                }
-                
-                try {
-                	config.save(configFile);
-                	final String tName = targetName;
-                	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-radius-claim-success").replace("%player%", tName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+    			instance.getOfflinePlayer(args[2], p -> {
+    				instance.executeSync(() -> {
+                        if (p == null || !p.hasPlayedBefore()) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                            return;
+                        }
+                        String targetName = p.getName();
+                        int amount;
+                        try {
+                            amount = Integer.parseInt(args[3]);
+                            if(amount < 0) {
+                            	sender.sendMessage(instance.getLanguage().getMessage("claim-limit-radius-must-be-positive"));
+                                return;
+                            }
+                        } catch (NumberFormatException e) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("claim-limit-radius-must-be-number"));
+                            return;
+                        }
+                        
+                        File configFile = new File(instance.getDataFolder(), "config.yml");
+                        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                        config.set("players."+targetName+".max-radius-claims", amount);
+                        if(p.isOnline()) {
+                        	UUID targetId = p.getUniqueId();
+        	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "max-radius-claims", Double.valueOf(amount));
+                        }
+                        
+                        try {
+                        	config.save(configFile);
+                        	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-radius-claim-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
+        				} catch (IOException e) {
+        					e.printStackTrace();
+        				}
+    				});
+    			});
                 return;
         	}
         	if(args[1].equalsIgnoreCase("set-delay")) {
-    			Player target = Bukkit.getPlayer(args[2]);
-                String targetName = "";
-                if (target == null) {
-                    OfflinePlayer otarget = Bukkit.getOfflinePlayer(args[2]);
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
-                        return;
-                    }
-                    targetName = otarget.getName();
-                } else {
-                    targetName = target.getName();
-                }
-                int amount;
-                try {
-                    amount = Integer.parseInt(args[3]);
-                    if(amount < 0) {
-                    	sender.sendMessage(instance.getLanguage().getMessage("teleportation-delay-must-be-positive"));
-                        return;
-                    }
-                } catch (NumberFormatException e) {
-                	sender.sendMessage(instance.getLanguage().getMessage("teleportation-delay-must-be-number"));
-                    return;
-                }
-                
-                File configFile = new File(instance.getDataFolder(), "config.yml");
-                FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-                config.set("players."+targetName+".teleportation-delay", amount);
-                if(target != null && target.isOnline()) {
-                	UUID targetId = target.getUniqueId();
-	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "teleportation-delay", Double.valueOf(amount));
-                }
-                
-                try {
-                	config.save(configFile);
-                	final String tName = targetName;
-                	sender.sendMessage(instance.getLanguage().getMessage("set-player-teleportation-delay-success").replace("%player%", tName).replace("%amount%", String.valueOf(args[3])));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
+    			instance.getOfflinePlayer(args[2], p -> {
+    				instance.executeSync(() -> {
+                        if (p == null || !p.hasPlayedBefore()) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                            return;
+                        }
+                        String targetName = p.getName();
+                        int amount;
+                        try {
+                            amount = Integer.parseInt(args[3]);
+                            if(amount < 0) {
+                            	sender.sendMessage(instance.getLanguage().getMessage("teleportation-delay-must-be-positive"));
+                                return;
+                            }
+                        } catch (NumberFormatException e) {
+                        	sender.sendMessage(instance.getLanguage().getMessage("teleportation-delay-must-be-number"));
+                            return;
+                        }
+                        
+                        File configFile = new File(instance.getDataFolder(), "config.yml");
+                        FileConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+                        config.set("players."+targetName+".teleportation-delay", amount);
+                        if(p.isOnline()) {
+                        	UUID targetId = p.getUniqueId();
+        	                instance.getPlayerMain().updatePlayerConfigSettings(targetId, "teleportation-delay", Double.valueOf(amount));
+                        }
+                        
+                        try {
+                        	config.save(configFile);
+                        	sender.sendMessage(instance.getLanguage().getMessage("set-player-teleportation-delay-success").replace("%player%", targetName).replace("%amount%", String.valueOf(args[3])));
+        				} catch (IOException e) {
+        					e.printStackTrace();
+        				}
+    				});
+    			});
                 return;
         	}
         	if(args[1].equalsIgnoreCase("add-limit")) {
     			Player target = Bukkit.getPlayer(args[2]);
     			if(target == null) {
-    				sender.sendMessage(instance.getLanguage().getMessage("player-not-online"));
+    				sender.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[2]));
     				return;
     			}
     			String name = target.getName();
@@ -986,7 +984,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         	if(args[1].equalsIgnoreCase("add-radius")) {
     			Player target = Bukkit.getPlayer(args[2]);
     			if(target == null) {
-    				sender.sendMessage(instance.getLanguage().getMessage("player-not-online"));
+    				sender.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[2]));
     				return;
     			}
     			String name = target.getName();
@@ -1020,7 +1018,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         	if(args[1].equalsIgnoreCase("add-members")) {
     			Player target = Bukkit.getPlayer(args[2]);
     			if(target == null) {
-    				sender.sendMessage(instance.getLanguage().getMessage("player-not-online"));
+    				sender.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[2]));
     				return;
     			}
     			String name = target.getName();
@@ -1054,7 +1052,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         	if(args[1].equalsIgnoreCase("add-chunks-per-claim")) {
     			Player target = Bukkit.getPlayer(args[2]);
     			if(target == null) {
-    				sender.sendMessage(instance.getLanguage().getMessage("player-not-online"));
+    				sender.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[2]));
     				return;
     			}
     			String name = target.getName();
@@ -1088,7 +1086,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         	if(args[1].equalsIgnoreCase("add-chunks-total")) {
     			Player target = Bukkit.getPlayer(args[2]);
     			if(target == null) {
-    				sender.sendMessage(instance.getLanguage().getMessage("player-not-online"));
+    				sender.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[2]));
     				return;
     			}
     			String name = target.getName();
@@ -1410,11 +1408,16 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     /**
      * Provides primary completions for the first argument.
      *
+     * @param args the args of the command
      * @return a list of possible primary completions
      */
-    private List<String> getPrimaryCompletions() {
-        return List.of("reload", "config-reload", "transfer", "player", "cplayer", "group", "forceunclaim", "setowner", "set-lang", 
+    private List<String> getPrimaryCompletions(String[] args) {
+    	String partialInput = args.length > 0 ? args[0].toLowerCase() : "";
+        List<String> completions = List.of("reload", "config-reload", "transfer", "player", "cplayer", "group", "forceunclaim", "setowner", "set-lang", 
                 "reset-all-player-claims-settings", "reset-all-admin-claims-settings","admin","import-griefprevention");
+        return completions.stream()
+    	        .filter(c -> c.toLowerCase().startsWith(partialInput))
+    	        .collect(Collectors.toList());
     }
 
     /**
@@ -1427,7 +1430,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     private List<String> getSecondaryCompletions(CommandSender sender, String[] args) {
         List<String> completions = new ArrayList<>();
         String command = args[0].toLowerCase();
-
+        String partialInput = args.length > 1 ? args[1].toLowerCase() : "";
         switch (command) {
             case "setowner":
                 completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
@@ -1444,7 +1447,9 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
             default:
                 break;
         }
-        return completions;
+        return completions.stream()
+    	        .filter(c -> c.toLowerCase().startsWith(partialInput))
+    	        .collect(Collectors.toList());
     }
 
     /**
@@ -1458,7 +1463,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         List<String> completions = new ArrayList<>();
         String command = args[0].toLowerCase();
         String secondArg = args[1].toLowerCase();
-
+        String partialInput = args.length > 2 ? args[2].toLowerCase() : "";
         switch (command) {
             case "player":
                 if (secondArg.equals("tp") || secondArg.equals("unclaim") || secondArg.equals("main") || secondArg.equals("list")) {
@@ -1478,7 +1483,9 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
             default:
                 break;
         }
-        return completions;
+        return completions.stream()
+    	        .filter(c -> c.toLowerCase().startsWith(partialInput))
+    	        .collect(Collectors.toList());
     }
     
     /**
@@ -1491,7 +1498,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     private List<String> getFourCompletions(CommandSender sender, String[] args) {
         List<String> completions = new ArrayList<>();
         String command = args[0].toLowerCase();
-
+        String partialInput = args.length > 3 ? args[3].toLowerCase() : "";
         switch (command) {
             case "setowner":
             	completions.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).collect(Collectors.toList()));
@@ -1499,6 +1506,8 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
             default:
                 break;
         }
-        return completions;
+        return completions.stream()
+    	        .filter(c -> c.toLowerCase().startsWith(partialInput))
+    	        .collect(Collectors.toList());
     }
 }

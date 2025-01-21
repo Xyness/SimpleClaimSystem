@@ -7,8 +7,9 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import fr.xyness.SCS.CPlayer;
-import fr.xyness.SCS.Claim;
+import fr.xyness.SCS.Types.CPlayer;
+import fr.xyness.SCS.Types.Claim;
+import fr.xyness.SCS.Types.CustomSet;
 
 /**
  * Interface providing API methods for the Simple Claim System.
@@ -142,7 +143,7 @@ public interface SimpleClaimSystemAPI {
      * @param claimsToMerge the set of claims to merge
      * @return true if the claims were successfully merged, false otherwise
      */
-    boolean mergeMultipleClaims(Claim mainClaim, Set<Claim> claimsToMerge);
+    boolean mergeMultipleClaims(Claim mainClaim, CustomSet<Claim> claimsToMerge);
     
     /**
      * Kicks a player from a specific claim.

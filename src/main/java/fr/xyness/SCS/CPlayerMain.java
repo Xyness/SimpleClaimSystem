@@ -34,6 +34,10 @@ import org.bukkit.profile.PlayerTextures;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import fr.xyness.SCS.Types.CPlayer;
+import fr.xyness.SCS.Types.Claim;
+import fr.xyness.SCS.Types.CustomSet;
+
 /**
  * This class handles CPlayer management and methods
  */
@@ -211,7 +215,7 @@ public class CPlayerMain {
                 playersName.put(uuid, playerName);
                 playersUUID.put(playerName, uuid);
 
-                Set<Claim> claims = instance.getMain().getPlayerClaims(uuid);
+                CustomSet<Claim> claims = instance.getMain().getPlayerClaims(uuid);
                 claims.forEach(c -> {
                     c.setOwner(playerName);
                     instance.getBossBars().activateBossBar(c.getChunks());
@@ -331,7 +335,29 @@ public class CPlayerMain {
      * @return The ItemStack representing the player's head.
      */
     public ItemStack getPlayerHead(String playerName) {
-        return playersHead.computeIfAbsent(playerName, p -> new ItemStack(Material.PLAYER_HEAD));
+        ItemStack player_head = playersHead.computeIfAbsent(playerName, p -> {
+        	
+        	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+        	SkullMeta meta = (SkullMeta) head.getItemMeta();
+        	if(meta != null) {
+        		meta.setOwnerProfile(Bukkit.createPlayerProfile(playerName));
+        		head.setItemMeta(meta);
+        	}
+        	return head;
+        	
+        });
+        
+        if(player_head == null) {
+        	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+        	SkullMeta meta = (SkullMeta) head.getItemMeta();
+        	if(meta != null) {
+        		meta.setOwnerProfile(Bukkit.createPlayerProfile(playerName));
+        		head.setItemMeta(meta);
+        	}
+        	return head;
+        } else {
+        	return player_head;
+        }
     }
     
     /**
@@ -499,14 +525,23 @@ public class CPlayerMain {
     }
     
     /**
-     * Gets the player uuid associated with the given player name
-     * 
-     * @param targetName The name of the player
-     * @return The player uuid
+     * Gets the player UUID associated with the given player name, case-insensitively.
+     *
+     * @param targetName The name of the player.
+     * @return The player's UUID, or null if not found.
      */
     public UUID getPlayerUUID(String targetName) {
-    	UUID uuid = playersUUID.get(targetName);
-    	return uuid == null ? Bukkit.getOfflinePlayer(targetName).getUniqueId() : uuid;
+        if (targetName == null) return null;
+
+        // Use a case-insensitive lookup in playersUUID
+        UUID uuid = playersUUID.entrySet().stream()
+                .filter(entry -> entry.getKey().equalsIgnoreCase(targetName))
+                .map(Map.Entry::getValue)
+                .findFirst()
+                .orElse(null);
+
+        // Fallback to Bukkit's offline player search if no match is found
+        return uuid != null ? uuid : Bukkit.getOfflinePlayer(targetName).getUniqueId();
     }
     
     /**
