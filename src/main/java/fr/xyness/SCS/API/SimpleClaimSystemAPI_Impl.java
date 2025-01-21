@@ -9,9 +9,10 @@ import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
-import fr.xyness.SCS.CPlayer;
-import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.SimpleClaimSystem;
+import fr.xyness.SCS.Types.CPlayer;
+import fr.xyness.SCS.Types.Claim;
+import fr.xyness.SCS.Types.CustomSet;
 
 /**
  * Implementation of the SimpleClaimSystemAPI interface.
@@ -126,7 +127,7 @@ public class SimpleClaimSystemAPI_Impl implements SimpleClaimSystemAPI {
 	}
 
 	@Override
-	public boolean mergeMultipleClaims(Claim mainClaim, Set<Claim> claimsToMerge) {
+	public boolean mergeMultipleClaims(Claim mainClaim, CustomSet<Claim> claimsToMerge) {
 		return instance.getMain().mergeClaims(mainClaim, claimsToMerge).join();
 	}
 	

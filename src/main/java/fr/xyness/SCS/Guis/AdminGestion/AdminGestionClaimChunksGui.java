@@ -16,9 +16,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import fr.xyness.SCS.CPlayer;
-import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.SimpleClaimSystem;
+import fr.xyness.SCS.Types.CPlayer;
+import fr.xyness.SCS.Types.Claim;
 
 /**
  * Class representing the Claim Members GUI.

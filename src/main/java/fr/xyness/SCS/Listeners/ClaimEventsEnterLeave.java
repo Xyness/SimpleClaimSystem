@@ -16,9 +16,10 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
-import fr.xyness.SCS.CPlayer;
-import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.SimpleClaimSystem;
+import fr.xyness.SCS.Types.CPlayer;
+import fr.xyness.SCS.Types.Claim;
+import fr.xyness.SCS.Types.CustomSet;
 
 /**
  * This class handles events related to players entering and leaving claims.
@@ -456,7 +457,7 @@ public class ClaimEventsEnterLeave implements Listener {
             			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("add-chunk-successful")
             					.replace("%chunk%", "["+chunk.getWorld().getName()+";"+String.valueOf(chunk.getX())+";"+String.valueOf(chunk.getZ())+"]")
             					.replace("%claim-name%", claim.getName())));
-            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, claim.getChunks(), true, false);
+            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, new CustomSet<>(claim.getChunks()), true, false);
             			return;
             		} else {
             			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
@@ -579,7 +580,7 @@ public class ClaimEventsEnterLeave implements Listener {
             		if (success) {
             			int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
             			player.sendMessage(instance.getLanguage().getMessage("create-claim-success").replace("%remaining-claims%", instance.getMain().getNumberSeparate(String.valueOf(remainingClaims))));
-            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, Set.of(chunk), true, false);
+            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, new CustomSet<>(Set.of(chunk)), true, false);
             		} else {
             			player.sendMessage(instance.getLanguage().getMessage("error"));
             		}

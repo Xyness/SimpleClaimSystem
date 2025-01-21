@@ -12,6 +12,8 @@ import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 
+import fr.xyness.SCS.Types.Claim;
+
 /**
  * This class handles bossbar management.
  */

@@ -33,6 +33,9 @@ import com.zaxxer.hikari.HikariDataSource;
 import fr.xyness.SCS.API.Listeners.ClaimCreateEvent;
 import fr.xyness.SCS.API.Listeners.UnclaimEvent;
 import fr.xyness.SCS.API.Listeners.UnclaimallEvent;
+import fr.xyness.SCS.Types.CPlayer;
+import fr.xyness.SCS.Types.Claim;
+import fr.xyness.SCS.Types.CustomSet;
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
 import net.md_5.bungee.api.ChatMessageType;
@@ -50,7 +53,7 @@ public class ClaimMain {
     private Map<Chunk, Claim> listClaims = new HashMap<>();
 
     /** Mapping of player uuid to their claims. */
-    private Map<UUID, Set<Claim>> playerClaims = new HashMap<>();
+    private Map<UUID, CustomSet<Claim>> playerClaims = new HashMap<>();
     
     /** Key UUID for protected areas */
     public static final UUID SERVER_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
@@ -65,18 +68,19 @@ public class ClaimMain {
     private final Map<Player, ScheduledTask> activeFoliaTasks = new ConcurrentHashMap<>();
 
     /** Set of command arguments for /claim. */
-    private Set<String> commandArgsClaim = Set.of("add", "autoclaim", "automap", "list",
+    private CustomSet<String> commandArgsClaim = new CustomSet<>(Set.of("add", "autoclaim", "automap", "list",
             "map", "members", "remove", "see", "setdesc", "setname", "setspawn", "settings", 
             "tp", "chat", "ban", "unban", "bans", "owner", "autofly", "fly", "merge", "sell",
-            "cancel", "addchunk", "removechunk", "chunks", "main", "kick");
-    
+            "cancel", "addchunk", "removechunk", "chunks", "main", "kick"));
+
     /** Set of command arguments for /scs. */
-    private Set<String> commandArgsScs = Set.of("reload", "config-reload", "transfer", "list", "player", "group", "forceunclaim", "setowner", "set-lang", 
-            "reset-all-player-claims-settings", "reset-all-admin-claims-settings","admin");
-    
+    private CustomSet<String> commandArgsScs = new CustomSet<>(Set.of("reload", "config-reload", "transfer", "list", "player", "group", "forceunclaim", "setowner", "set-lang", 
+            "reset-all-player-claims-settings", "reset-all-admin-claims-settings", "admin"));
+
     /** Set of command arguments for /parea. */
-    private Set<String> commandArgsParea = Set.of("setdesc", "settings", "setname", "members", "tp",
-    		"list", "ban", "unban", "bans", "add", "remove", "unclaim", "main", "kick");
+    private CustomSet<String> commandArgsParea = new CustomSet<>(Set.of("setdesc", "settings", "setname", "members", "tp",
+            "list", "ban", "unban", "bans", "add", "remove", "unclaim", "main", "kick"));
+
     
     /** Instance of instance. */
     private SimpleClaimSystem instance;
@@ -272,7 +276,7 @@ public class ClaimMain {
      * @return The claim associated with the name, or null if none exists
      */
     public Claim getClaimByName(String name, Player owner) {
-        return playerClaims.getOrDefault(owner.getUniqueId(), new HashSet<>()).stream()
+        return playerClaims.getOrDefault(owner.getUniqueId(), new CustomSet<>()).stream()
                 .filter(claim -> claim.getName().equalsIgnoreCase(name))
                 .findFirst()
                 .orElse(null);
@@ -286,7 +290,7 @@ public class ClaimMain {
      * @return The claim associated with the name, or null if none exists
      */
     public Claim getClaimByName(String name, UUID ownerUUID) {
-        return playerClaims.getOrDefault(ownerUUID, new HashSet<>()).stream()
+        return playerClaims.getOrDefault(ownerUUID, new CustomSet<>()).stream()
                 .filter(claim -> claim.getName().equalsIgnoreCase(name))
                 .findFirst()
                 .orElse(null);
@@ -299,7 +303,7 @@ public class ClaimMain {
      * @return The claim associated with the name, or null if none exists
      */
     public Claim getProtectedAreaByName(String name) {
-    	return playerClaims.getOrDefault(SERVER_UUID, new HashSet<>()).stream()
+    	return playerClaims.getOrDefault(SERVER_UUID, new CustomSet<>()).stream()
     			.filter(claim -> claim.getName().equalsIgnoreCase(name))
     			.findFirst()
     			.orElse(null);
@@ -310,8 +314,8 @@ public class ClaimMain {
      * 
      * @return The set of claim of protected areas.
      */
-    public Set<Claim> getProtectedAreas(){
-    	return playerClaims.getOrDefault(SERVER_UUID, new HashSet<>());
+    public CustomSet<Claim> getProtectedAreas(){
+    	return playerClaims.getOrDefault(SERVER_UUID, new CustomSet<>());
     }
     
     /**
@@ -320,12 +324,12 @@ public class ClaimMain {
      * @param owner The name of the owner of claims
      * @return A set of chunks
      */
-    public Set<Chunk> getAllChunksFromAllClaims(String owner) {
+    public CustomSet<Chunk> getAllChunksFromAllClaims(String owner) {
         return listClaims.entrySet()
                 .stream()
                 .filter(entry -> entry.getValue().getOwner().equals(owner))
                 .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(CustomSet::new));
     }
     
     /**
@@ -333,12 +337,12 @@ public class ClaimMain {
      * 
      * @return A set of chunks
      */
-    public Set<Chunk> getAllChunksFromAllProtectedAreas() {
+    public CustomSet<Chunk> getAllChunksFromAllProtectedAreas() {
         return listClaims.entrySet()
                 .stream()
                 .filter(entry -> entry.getValue().getUUID().equals(SERVER_UUID))
                 .map(Map.Entry::getKey)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(CustomSet::new));
     }
     
     /**
@@ -347,11 +351,11 @@ public class ClaimMain {
      * @param owner The name of the owner.
      * @return A set of claims in sale
      */
-    public Set<Claim> getClaimsInSale(String owner) {
+    public CustomSet<Claim> getClaimsInSale(String owner) {
         return listClaims.values()
                 .stream()
                 .filter(claim -> claim.getOwner().equals(owner) && claim.getSale())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(CustomSet::new));
     }
 
     /**
@@ -360,11 +364,11 @@ public class ClaimMain {
      * @param owner The owner of the claims.
      * @return A list of claims belonging to the specified owner.
      */
-    public Set<Claim> getPlayerClaims(String owner) {
+    public CustomSet<Claim> getPlayerClaims(String owner) {
         return listClaims.values()
                          .stream()
-                         .filter(claim -> claim.getOwner().equals(owner))
-                         .collect(Collectors.toSet());
+                         .filter(claim -> claim.getOwner().equalsIgnoreCase(owner))
+                         .collect(Collectors.toCollection(CustomSet::new));
     }
     
     /**
@@ -373,8 +377,8 @@ public class ClaimMain {
      * @param targetUUID The owner's uuid of the claims.
      * @return A list of claims belonging to the specified owner.
      */
-    public Set<Claim> getPlayerClaims(UUID targetUUID) {
-        return playerClaims.getOrDefault(targetUUID, new HashSet<>());
+    public CustomSet<Claim> getPlayerClaims(UUID targetUUID) {
+        return playerClaims.getOrDefault(targetUUID, new CustomSet<>());
     }
     
     /**
@@ -383,7 +387,7 @@ public class ClaimMain {
      * @param targetUUID The owner's uuid of the claims
      * @param claims The set of new claims
      */
-    public void setPlayerClaims(UUID targetUUID, Set<Claim> claims) {
+    public void setPlayerClaims(UUID targetUUID, CustomSet<Claim> claims) {
     	playerClaims.put(targetUUID, claims);
     }
 
@@ -403,10 +407,10 @@ public class ClaimMain {
      * @param claim The target claim
      * @return the set of chunk information strings, or an empty set if no chunks are present
      */
-    public Set<String> getStringChunkFromClaim(Claim claim) {
+    public CustomSet<String> getStringChunkFromClaim(Claim claim) {
         return claim.getChunks().stream()
                 .map(chunk -> chunk.getWorld().getName() + ";" + chunk.getX() + ";" + chunk.getZ())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(CustomSet::new));
     }
 
     /**
@@ -416,7 +420,7 @@ public class ClaimMain {
      * @return the number of claims the player has
      */
     public int getPlayerClaimsCount(UUID targetUUID) {
-        return playerClaims.getOrDefault(targetUUID, new HashSet<>()).size();
+        return playerClaims.getOrDefault(targetUUID, new CustomSet<>()).size();
     }
 
     /**
@@ -439,12 +443,12 @@ public class ClaimMain {
      *
      * @return a set of claim owners
      */
-    public Set<String> getClaimsOwners() {
+    public CustomSet<String> getClaimsOwners() {
         return playerClaims.values()
                 .stream()
                 .filter(claims -> !claims.isEmpty())
                 .map(claims -> claims.iterator().next().getOwner())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(CustomSet::new));
     }
 
     /**
@@ -452,8 +456,9 @@ public class ClaimMain {
      *
      * @return a set of all claimed chunks
      */
-    public Set<Chunk> getAllClaimsChunk() {
-        return listClaims.keySet();
+    public CustomSet<Chunk> getAllClaimsChunk() {
+        return listClaims.keySet().stream()
+                .collect(Collectors.toCollection(CustomSet::new));
     }
     
     /**
@@ -461,8 +466,9 @@ public class ClaimMain {
      *
      * @return a set of all claims
      */
-    public Set<Claim> getAllClaims() {
-        return new HashSet<>(listClaims.values());
+    public CustomSet<Claim> getAllClaims() {
+        return listClaims.values().stream()
+                .collect(Collectors.toCollection(CustomSet::new));
     }
     
     /**
@@ -480,7 +486,7 @@ public class ClaimMain {
      * @return an integer of the protected areas claims count
      */
     public int getProtectedAreasCount() {
-    	return playerClaims.getOrDefault(SERVER_UUID,new HashSet<>()).size();
+    	return playerClaims.getOrDefault(SERVER_UUID,new CustomSet<>()).size();
     }
 
     /**
@@ -489,12 +495,12 @@ public class ClaimMain {
      * @param owner the owner of the claims
      * @return a set of all members of the owner's claims
      */
-    public Set<String> getAllMembersOfAllPlayerClaim(String owner) {
+    public CustomSet<String> getAllMembersOfAllPlayerClaim(String owner) {
         return listClaims.values().stream()
                 .filter(claim -> claim.getOwner().equals(owner))
                 .flatMap(claim -> claim.getMembers().stream())
                 .map(uuid -> instance.getPlayerMain().getPlayerName(uuid))
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(CustomSet::new));
     }
 
     /**
@@ -529,7 +535,7 @@ public class ClaimMain {
                 .filter(entry -> entry.getValue().stream().anyMatch(Claim::getSale))
                 .collect(Collectors.toMap(
                         entry -> {
-                            Set<Claim> claims = entry.getValue();
+                            CustomSet<Claim> claims = entry.getValue();
                             return claims.isEmpty() ? "Unknown" : claims.iterator().next().getOwner();
                         }, 
                         entry -> (int) entry.getValue().stream().filter(Claim::getSale).count(),
@@ -563,13 +569,13 @@ public class ClaimMain {
      * @param player the player
      * @return a set of claims where the player is a member but not the owner
      */
-    public Set<Claim> getClaimsWhereMemberNotOwner(Player player) {
+    public CustomSet<Claim> getClaimsWhereMemberNotOwner(Player player) {
     	UUID playerId = player.getUniqueId();
     	String playerName = player.getName();
         return listClaims.entrySet().stream()
                 .filter(entry -> !entry.getValue().getOwner().equals(playerName) && entry.getValue().getMembers().contains(playerId))
                 .map(Map.Entry::getValue)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(CustomSet::new));
     }
 
     /**
@@ -578,11 +584,11 @@ public class ClaimMain {
      * @param owner the owner of the claims
      * @return a set of claim names owned by the owner
      */
-    public Set<String> getClaimsNameFromOwner(String owner) {
+    public CustomSet<String> getClaimsNameFromOwner(String owner) {
         return listClaims.entrySet().stream()
-                .filter(entry -> entry.getValue().getOwner().equals(owner))
+                .filter(entry -> entry.getValue().getOwner().equalsIgnoreCase(owner))
                 .map(entry -> entry.getValue().getName())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(CustomSet::new));
     }
 
     /**
@@ -591,11 +597,11 @@ public class ClaimMain {
      * @param owner the owner of the claims
      * @return a set of claim names in sale owned by the owner
      */
-    public Set<String> getClaimsNameInSaleFromOwner(String owner) {
+    public CustomSet<String> getClaimsNameInSaleFromOwner(String owner) {
         return listClaims.entrySet().stream()
-                .filter(entry -> entry.getValue().getOwner().equals(owner) && entry.getValue().getSale())
+                .filter(entry -> entry.getValue().getOwner().equalsIgnoreCase(owner) && entry.getValue().getSale())
                 .map(entry -> entry.getValue().getName())
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(CustomSet::new));
     }
 
     /**
@@ -620,11 +626,11 @@ public class ClaimMain {
      * @param uuids The set of UUIDs to be converted.
      * @return A set of player names.
      */
-    public Set<String> convertUUIDSetToStringSet(Set<UUID> uuids) {
+    public CustomSet<String> convertUUIDSetToStringSet(Set<UUID> uuids) {
         return uuids.stream()
                 .map(uuid -> instance.getPlayerMain().getPlayerName(uuid))
                 .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toCollection(CustomSet::new));
     }
     
     /**
@@ -688,7 +694,7 @@ public class ClaimMain {
      * @param set2 The second set of chunks.
      * @return true if at least one chunk from set1 is adjacent to any chunk in set2, false otherwise.
      */
-    public boolean isAnyChunkAdjacentBetweenSets(Set<Chunk> set1, Set<Chunk> set2) {
+    public boolean isAnyChunkAdjacentBetweenSets(Set<Chunk> set1, CustomSet<Chunk> set2) {
         for (Chunk chunk1 : set1) {
             int x1 = chunk1.getX();
             int z1 = chunk1.getZ();
@@ -816,7 +822,7 @@ public class ClaimMain {
      * @return true if the name is already used, false otherwise
      */
     public boolean checkName(UUID ownerId, String name) {
-        return playerClaims.getOrDefault(ownerId, new HashSet<>()).stream()
+        return playerClaims.getOrDefault(ownerId, new CustomSet<>()).stream()
                 .noneMatch(claim -> claim.getName().toLowerCase().equals(name.toLowerCase()));
     }
 
@@ -853,7 +859,7 @@ public class ClaimMain {
      * @return the next available ID
      */
     public int findFreeId(UUID targetUUID) {
-        return playerClaims.getOrDefault(targetUUID, Collections.emptySet())
+        return playerClaims.getOrDefault(targetUUID, new CustomSet<>())
                 .stream()
                 .mapToInt(Claim::getId)
                 .max()
@@ -866,7 +872,7 @@ public class ClaimMain {
      * @return the next available ID
      */
     public int findFreeIdProtectedArea() {
-        return playerClaims.getOrDefault(SERVER_UUID, Collections.emptySet())
+        return playerClaims.getOrDefault(SERVER_UUID, new CustomSet<>())
                 .stream()
                 .mapToInt(Claim::getId)
                 .max()
@@ -1328,7 +1334,7 @@ public class ClaimMain {
     		int[] i = {0};
     		for (me.ryanhamshire.GriefPrevention.Claim claim : GriefPrevention.instance.dataStore.getClaims()) {
         		// Get data of the claim
-        		Set<Chunk> chunks = new HashSet<>(claim.getChunks());
+        		Set<Chunk> chunks = new CustomSet<>(claim.getChunks());
         		String owner = claim.getOwnerName();
         		UUID trueUUID = claim.getOwnerID();
         		if(trueUUID == null) continue;
@@ -1505,7 +1511,7 @@ public class ClaimMain {
                     	String[] parts;
                         // Members data
                         String s_members = resultSet.getString("members");
-                        Set<UUID> members = new HashSet<>();
+                        CustomSet<UUID> members = new CustomSet<>();
                         if (!s_members.isBlank()) {
                             parts = s_members.split(";");
                             for (String m : parts) {
@@ -1522,7 +1528,7 @@ public class ClaimMain {
 
                         // Banned players data
                         String s_bans = resultSet.getString("bans");
-                        Set<UUID> bans = new HashSet<>();
+                        CustomSet<UUID> bans = new CustomSet<>();
                         if (!s_bans.isBlank()) {
                             parts = s_bans.split(";");
                             for (String m : parts) {
@@ -1665,7 +1671,7 @@ public class ClaimMain {
 
                         // Members data
                         String s_members = resultSet.getString("members");
-                        Set<UUID> members = new HashSet<>();
+                        CustomSet<UUID> members = new CustomSet<>();
                         if (!s_members.isBlank()) {
                             parts = s_members.split(";");
                             for (String m : parts) {
@@ -1682,7 +1688,7 @@ public class ClaimMain {
 
                         // Banned players data
                         String s_bans = resultSet.getString("bans");
-                        Set<UUID> bans = new HashSet<>();
+                        CustomSet<UUID> bans = new CustomSet<>();
                         if (!s_bans.isBlank()) {
                             parts = s_bans.split(";");
                             for (String m : parts) {
@@ -1729,7 +1735,7 @@ public class ClaimMain {
                         i[0]++;
 
                         Runnable task = () -> {
-                            Claim claim = new Claim(uuid_owner, new HashSet<>(chunks), owner, new HashSet<>(members), location, name, description, new LinkedHashMap<>(perms), sale, price, new HashSet<>(bans), id);
+                            Claim claim = new Claim(uuid_owner, new CustomSet<>(chunks), owner, new CustomSet<>(members), location, name, description, new LinkedHashMap<>(perms), sale, price, new CustomSet<>(bans), id);
 
                             // Add chunks
                             chunks.forEach(c -> listClaims.put(c, claim));
@@ -1778,7 +1784,7 @@ public class ClaimMain {
                             // Add claim to owner
                             if (owner != null) {
                                 if(!owner.equals("*")) owners.put(owner, uuid_owner.toString());
-                                playerClaims.computeIfAbsent(uuid_owner, k -> ConcurrentHashMap.newKeySet()).add(claim);
+                                playerClaims.computeIfAbsent(uuid_owner, k -> new CustomSet<>()).add(claim);
                             }
 
                             // Enable bossbar
@@ -1867,11 +1873,11 @@ public class ClaimMain {
 		        String description = instance.getLanguage().getMessage("default-description");
 		        String locationString = getLocationString(player.getLocation());
 		        Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(instance.getSettings().getDefaultValues());
-		        Claim newClaim = new Claim(playerId, new HashSet<>(Set.of(chunk)), playerName, new HashSet<>(Set.of(playerId)), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new HashSet<>(),id);
+		        Claim newClaim = new Claim(playerId, new CustomSet<>(Set.of(chunk)), playerName, new CustomSet<>(Set.of(playerId)), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new CustomSet<>(),id);
 		
 		        // Add claim to claims list and player claims list
 		        listClaims.put(chunk, newClaim);
-		        playerClaims.computeIfAbsent(player.getUniqueId(), k -> new HashSet<>()).add(newClaim);
+		        playerClaims.computeIfAbsent(player.getUniqueId(), k -> new CustomSet<>()).add(newClaim);
 		        
 		        // Create bossbars and maps
 		        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(newClaim);
@@ -1949,11 +1955,11 @@ public class ClaimMain {
 		        String description = instance.getLanguage().getMessage("default-description");
 		        String locationString = getLocationString(player.getLocation());
 		        Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(instance.getSettings().getDefaultValues());
-		        Claim newClaim = new Claim(SERVER_UUID, new HashSet<>(Set.of(chunk)), "*", new HashSet<>(), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new HashSet<>(),id);
+		        Claim newClaim = new Claim(SERVER_UUID, new CustomSet<>(Set.of(chunk)), "*", new CustomSet<>(), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new CustomSet<>(),id);
 		
 		        // Add claim to claims list and protected areas list ("*" in playerClaims)
 		        listClaims.put(chunk, newClaim);
-		        playerClaims.computeIfAbsent(SERVER_UUID, k -> new HashSet<>()).add(newClaim);
+		        playerClaims.computeIfAbsent(SERVER_UUID, k -> new CustomSet<>()).add(newClaim);
 		
 		        // Create bossbars and maps
 		        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(newClaim);
@@ -2029,7 +2035,7 @@ public class ClaimMain {
      * @param radius the radius within which to claim chunks
      * @return true if the claims were created successfully, false otherwise
      */
-    public CompletableFuture<Boolean> createClaimRadius(Player player, Set<Chunk> chunks, int radius) {
+    public CompletableFuture<Boolean> createClaimRadius(Player player, CustomSet<Chunk> chunks, int radius) {
     	return CompletableFuture.supplyAsync(() -> {
             try {
 	            // Get data
@@ -2047,10 +2053,10 @@ public class ClaimMain {
 	            String description = instance.getLanguage().getMessage("default-description");
 	            String locationString = getLocationString(player.getLocation());
 	            Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(instance.getSettings().getDefaultValues());
-	            Claim newClaim = new Claim(playerId, new HashSet<>(chunks), playerName, new HashSet<>(Set.of(playerId)), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new HashSet<>(), id);
+	            Claim newClaim = new Claim(playerId, new CustomSet<>(chunks), playerName, new CustomSet<>(Set.of(playerId)), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new CustomSet<>(), id);
 	
 	            // Add the claim to claims list of the player
-	            playerClaims.computeIfAbsent(player.getUniqueId(), k -> ConcurrentHashMap.newKeySet()).add(newClaim);
+	            playerClaims.computeIfAbsent(player.getUniqueId(), k -> new CustomSet<>()).add(newClaim);
 	
 	            // Update their claims count
 	            cPlayer.setClaimsCount(cPlayer.getClaimsCount() + 1);
@@ -2121,7 +2127,7 @@ public class ClaimMain {
      * @param radius the radius within which to claim chunks
      * @return true if the claims were created successfully, false otherwise
      */
-    public CompletableFuture<Boolean> createAdminClaimRadius(Player player, Set<Chunk> chunks, int radius) {
+    public CompletableFuture<Boolean> createAdminClaimRadius(Player player, CustomSet<Chunk> chunks, int radius) {
     	return CompletableFuture.supplyAsync(() -> {
             try {
 	    		// Get data
@@ -2134,10 +2140,10 @@ public class ClaimMain {
 		        String description = instance.getLanguage().getMessage("default-description");
 		        String locationString = getLocationString(player.getLocation());
 		        Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(instance.getSettings().getDefaultValues());
-		        Claim newClaim = new Claim(SERVER_UUID, new HashSet<>(chunks), playerName, new HashSet<>(), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new HashSet<>(),id);
+		        Claim newClaim = new Claim(SERVER_UUID, new CustomSet<>(chunks), playerName, new CustomSet<>(), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new CustomSet<>(),id);
 		
 		        // Add the claim to protected areas list
-		        playerClaims.computeIfAbsent(SERVER_UUID, k -> new HashSet<>()).add(newClaim);
+		        playerClaims.computeIfAbsent(SERVER_UUID, k -> new CustomSet<>()).add(newClaim);
 		        
 		        // Create bossbars, maps
 		        List<Integer> X = Collections.synchronizedList(new ArrayList<>());
@@ -2274,7 +2280,7 @@ public class ClaimMain {
      */
     public boolean checkMembre(Claim claim, String targetName) {
         return claim != null && claim.getMembers().stream()
-                .map(ban -> instance.getPlayerMain().getPlayerName(ban))
+                .map(member -> instance.getPlayerMain().getPlayerName(member))
                 .anyMatch(playerName -> playerName != null && playerName.equalsIgnoreCase(targetName));
     }
     
@@ -2446,7 +2452,7 @@ public class ClaimMain {
 	            Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(claim.getPermissions());
 	            
 	            // Update settings
-	            playerClaims.computeIfAbsent(uuid, k -> new HashSet<>()).stream().forEach(c -> {
+	            playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(c -> {
 	            	c.setPermissions(new HashMap<>(perms));
 	                updateWeatherChunk(c);
 	                updateFlyChunk(c);
@@ -2579,7 +2585,7 @@ public class ClaimMain {
 	            UUID targetUUID = instance.getPlayerMain().getPlayerUUID(name);
 	            
 	            // Add banned and remove member
-	            playerClaims.computeIfAbsent(uuid, k -> new HashSet<>()).stream().forEach(claim -> {
+	            playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(claim -> {
 	            	claim.addBan(targetUUID);
 	            	claim.removeMember(targetUUID);
 	            });
@@ -2588,7 +2594,7 @@ public class ClaimMain {
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims_1 SET bans = ?, members = ? WHERE owner_uuid = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                    for (Claim claim : playerClaims.computeIfAbsent(uuid, k -> new HashSet<>())) {
+	                    for (Claim claim : playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>())) {
 	                        preparedStatement.setString(1, getBanString(claim));
 	                        preparedStatement.setString(2, getMemberString(claim));
 	                        preparedStatement.setString(3, uuid_string);
@@ -2625,13 +2631,13 @@ public class ClaimMain {
             	String uuid_string = uuid.toString();
 	            UUID targetUUID = instance.getPlayerMain().getPlayerUUID(name);
 
-		        playerClaims.computeIfAbsent(uuid, k -> new HashSet<>()).stream().forEach(claim -> claim.removeBan(targetUUID));
+		        playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(claim -> claim.removeBan(targetUUID));
 	            
 	            // Updata database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims_1 SET bans = ? WHERE owner_uuid = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                	for (Claim claim : playerClaims.computeIfAbsent(uuid, k -> new HashSet<>())) {
+	                	for (Claim claim : playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>())) {
 	                        preparedStatement.setString(1, getBanString(claim));
 	                        preparedStatement.setString(2, uuid_string);
 	                        preparedStatement.setString(3, claim.getName());
@@ -2708,13 +2714,13 @@ public class ClaimMain {
 	            UUID targetUUID = instance.getPlayerMain().getPlayerUUID(name);
 	            
 	            // Remove member
-		        playerClaims.computeIfAbsent(uuid, k -> new HashSet<>()).stream().forEach(claim -> claim.addMember(targetUUID));
+		        playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(claim -> claim.addMember(targetUUID));
 	
 	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims_1 SET members = ? WHERE owner_uuid = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                	for (Claim claim : playerClaims.computeIfAbsent(uuid, k -> new HashSet<>())) {
+	                	for (Claim claim : playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>())) {
 	                        preparedStatement.setString(1, getMemberString(claim));
 	                        preparedStatement.setString(2, uuid_string);
 	                        preparedStatement.setString(3, claim.getName());
@@ -2788,13 +2794,13 @@ public class ClaimMain {
             	UUID uuid = owner.equals("*") ? SERVER_UUID : instance.getPlayerMain().getPlayerUUID(owner);
             	String uuid_string = uuid.toString();
 	            UUID targetUUID = instance.getPlayerMain().getPlayerUUID(name);
-	            playerClaims.computeIfAbsent(uuid, k -> new HashSet<>()).stream().forEach(claim -> claim.removeMember(targetUUID));
+	            playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(claim -> claim.removeMember(targetUUID));
 	            
 	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims_1 SET Members = ? WHERE owner_uuid = ? AND claim_name = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
-	                	for (Claim claim : playerClaims.computeIfAbsent(uuid, k -> new HashSet<>())) {
+	                	for (Claim claim : playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>())) {
 	                        preparedStatement.setString(1, getMemberString(claim));
 	                        preparedStatement.setString(2, uuid_string);
 	                        preparedStatement.setString(3, claim.getName());
@@ -2978,8 +2984,8 @@ public class ClaimMain {
 	            }
 
                 // Delete all claims of target player, and remove him from data
-	            Set<Claim> claims = playerClaims.getOrDefault(uuid, new HashSet<>());
-                playerClaims.computeIfAbsent(uuid, k -> new HashSet<>()).stream().forEach(claim -> {
+	            CustomSet<Claim> claims = playerClaims.getOrDefault(uuid, new CustomSet<>());
+                playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(claim -> {
                     Set<Chunk> chunks = claim.getChunks();
                     instance.executeSync(() -> instance.getBossBars().deactivateBossBar(chunks));
                     if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
@@ -3144,7 +3150,7 @@ public class ClaimMain {
 	        	UUID uuid = owner.equals("*") ? SERVER_UUID : instance.getPlayerMain().getPlayerUUID(owner);
 
 	        	// Update perms
-	            playerClaims.computeIfAbsent(uuid, k -> new HashSet<>()).stream().forEach(c -> {
+	            playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(c -> {
 	            	c.setPermissions(new HashMap<>(perm));
 	                updateWeatherChunk(c);
 	                updateFlyChunk(c);
@@ -3300,7 +3306,7 @@ public class ClaimMain {
 	            claim.setUUID(playerId);
 	            
 	            // Add the new owner to members if not member, and remove the old owner
-	            Set<UUID> members = new HashSet<>(claim.getMembers());
+	            CustomSet<UUID> members = new CustomSet<>(claim.getMembers());
 	            if (!members.contains(playerId)) {
 	                members.add(playerId);
 	            }
@@ -3313,7 +3319,7 @@ public class ClaimMain {
 	            claim.setPrice(0.0);
 	            
 	            // Add the claim to the new owner
-	            playerClaims.computeIfAbsent(playerId, k -> new HashSet<>()).add(claim);
+	            playerClaims.computeIfAbsent(playerId, k -> new CustomSet<>()).add(claim);
 	            
 	            // Update the bossbars, and maps
 	        	Set<Chunk> chunks = claim.getChunks();
@@ -3401,7 +3407,7 @@ public class ClaimMain {
 	            claim.setUUID(uuidNewOwner);
 	            
 	            // Add the new owner to members if not member, and remove the old owner
-	            Set<UUID> members = new HashSet<>(claim.getMembers());
+	            CustomSet<UUID> members = new CustomSet<>(claim.getMembers());
 	            if (!members.contains(uuidNewOwner)) {
 	                members.add(uuidNewOwner);
 	            }
@@ -3410,7 +3416,7 @@ public class ClaimMain {
 	            String members_string = getMemberString(claim);
 	            
 	            // Add the claim to the new owner
-	            playerClaims.computeIfAbsent(uuidNewOwner, k -> new HashSet<>()).add(claim);
+	            playerClaims.computeIfAbsent(uuidNewOwner, k -> new CustomSet<>()).add(claim);
 	            
 	            // Update the bossbars, and maps
 	        	Set<Chunk> chunks = claim.getChunks();
@@ -3453,7 +3459,7 @@ public class ClaimMain {
      * @param claims the claims
      * @param owner The owner of the claims
      */
-    public CompletableFuture<Boolean> setOwner(String newOwner, Set<Claim> claims, String oldOwner) {
+    public CompletableFuture<Boolean> setOwner(String newOwner, CustomSet<Claim> claims, String oldOwner) {
         return CompletableFuture.supplyAsync(() -> {
             try {
 	            
@@ -3504,7 +3510,7 @@ public class ClaimMain {
 	        	            claim.setName(new_name);
 	        	            
 	        	            // Add the new owner to members if not member, and remove the old owner
-	        	            Set<UUID> members = new HashSet<>(claim.getMembers());
+	        	            CustomSet<UUID> members = new CustomSet<>(claim.getMembers());
 	        	            if (!members.contains(uuidNewOwner)) {
 	        	                members.add(uuidNewOwner);
 	        	            }
@@ -3513,7 +3519,7 @@ public class ClaimMain {
 	        	            String members_string = getMemberString(claim);
 	        	            
 	        	            // Add claim
-	        	            playerClaims.computeIfAbsent(uuidNewOwner, k -> new HashSet<>()).add(claim);
+	        	            playerClaims.computeIfAbsent(uuidNewOwner, k -> new CustomSet<>()).add(claim);
 	        	            
 	        	            // Update the bossbars, and maps
 	        	        	Set<Chunk> chunks = claim.getChunks();
@@ -3579,7 +3585,7 @@ public class ClaimMain {
             		CompletableFuture<Boolean> future = world.getChunkAtAsync(X_, Z_).thenApply(chunk -> {
             			
             			// Remove chunk
-            			Set<Chunk> chunks = new HashSet<>(claim.getChunks());
+            			Set<Chunk> chunks = new CustomSet<>(claim.getChunks());
             			if(!chunks.contains(chunk)) return false;
                     	chunks.remove(chunk);
                     	claim.setChunks(chunks);
@@ -3619,7 +3625,7 @@ public class ClaimMain {
             	} else {
             		Chunk chunk = world.getChunkAt(X_, Z_);
             		// Remove chunk
-            		Set<Chunk> chunks = new HashSet<>(claim.getChunks());
+            		Set<Chunk> chunks = new CustomSet<>(claim.getChunks());
                 	chunks.remove(chunk);
                 	claim.setChunks(chunks);
                 	listClaims.remove(chunk);
@@ -3671,7 +3677,7 @@ public class ClaimMain {
         return CompletableFuture.supplyAsync(() -> {
             try {
         		// Remove chunk
-        		Set<Chunk> chunks = new HashSet<>(claim.getChunks());
+        		Set<Chunk> chunks = new CustomSet<>(claim.getChunks());
             	chunks.remove(chunk);
             	claim.setChunks(chunks);
             	listClaims.remove(chunk);
@@ -3723,7 +3729,7 @@ public class ClaimMain {
         return CompletableFuture.supplyAsync(() -> {
             try {
     			// Add chunk
-            	Set<Chunk> chunks = new HashSet<>(claim.getChunks());
+            	Set<Chunk> chunks = new CustomSet<>(claim.getChunks());
             	if(chunks.contains(chunk)) return false;
             	chunks.add(chunk);
             	claim.setChunks(chunks);
@@ -3772,7 +3778,7 @@ public class ClaimMain {
      * @param claims the set of claims to merge with claim1
      * @return true if the merge process was initiated successfully
      */
-    public CompletableFuture<Boolean> mergeClaims(Claim claim1, Set<Claim> claims) {
+    public CompletableFuture<Boolean> mergeClaims(Claim claim1, CustomSet<Claim> claims) {
         return CompletableFuture.supplyAsync(() -> {
             try {
 	            
@@ -3804,7 +3810,7 @@ public class ClaimMain {
 	            }
 		            
 	            // Remove claims from player's claims
-		        playerClaims.computeIfAbsent(uuid, k -> new HashSet<>()).removeAll(claims);
+		        playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).removeAll(claims);
 	            
 	            // Serialize chunks
 	            String chunksData = serializeChunks(claim1.getChunks());
@@ -3848,7 +3854,7 @@ public class ClaimMain {
      * @param claim  whether the chunks are being claimed or not
      * @param see if its from the /claim see command
      */
-    public void displayChunks(Player player, Set<Chunk> chunks, boolean claim, boolean see) {
+    public void displayChunks(Player player, CustomSet<Chunk> chunks, boolean claim, boolean see) {
         Particle.DustOptions dustOptions = getDustOptions(player, claim, see);
 
         CompletableFuture<Set<Location>> futureLocations = getParticleLocations(chunks);
@@ -3918,7 +3924,7 @@ public class ClaimMain {
      * @return the set of locations for particle spawning
      */
     private CompletableFuture<Set<Location>> getParticleLocations(Set<Chunk> chunks) {
-        Set<Location> locations = new HashSet<>();
+        CustomSet<Location> locations = new CustomSet<>();
         CompletableFuture<Set<Location>> resultFuture = new CompletableFuture<>();
 
         if (instance.isFolia()) {

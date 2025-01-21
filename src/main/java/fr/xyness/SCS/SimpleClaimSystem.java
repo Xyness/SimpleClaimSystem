@@ -22,8 +22,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.command.CommandSender;
@@ -108,7 +111,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.6.5";
+    private String Version = "1.11.7";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -1768,5 +1771,22 @@ public class SimpleClaimSystem extends JavaPlugin {
      */
     public ClaimPurge getAutopurge() {
         return claimPurgeInstance;
+    }
+    
+    /**
+     * Gets the offline player asynchronously.
+     * 
+     * @param playerName The player's name.
+     * @param callback The callback.
+     */
+    public void getOfflinePlayer(String playerName, Consumer<OfflinePlayer> callback) {
+    	CompletableFuture.runAsync(() -> {
+    		
+    		OfflinePlayer offlinePlayer = Bukkit.getOfflinePlayer(playerName);
+    		executeSync(() -> {
+    			callback.accept(offlinePlayer);
+    		});
+    		
+    	});
     }
 }

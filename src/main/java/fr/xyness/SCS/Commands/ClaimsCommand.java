@@ -5,9 +5,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-import fr.xyness.SCS.CPlayer;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Guis.ClaimsGui;
+import fr.xyness.SCS.Types.CPlayer;
 
 /**
  * Handles the /claims command, which opens a GUI for the player to view their claims.

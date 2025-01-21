@@ -17,8 +17,8 @@ import de.bluecolored.bluemap.api.markers.ExtrudeMarker;
 import de.bluecolored.bluemap.api.markers.MarkerSet;
 import de.bluecolored.bluemap.api.math.Color;
 import de.bluecolored.bluemap.api.math.Shape;
-import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.SimpleClaimSystem;
+import fr.xyness.SCS.Types.Claim;
 
 /**
  * This class integrates claims with the BlueMap plugin, allowing claims to be displayed as markers on the BlueMap.

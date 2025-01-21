@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import org.bukkit.Chunk;
 import org.bukkit.command.Command;
@@ -12,9 +13,9 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
-import fr.xyness.SCS.CPlayer;
-import fr.xyness.SCS.Claim;
 import fr.xyness.SCS.SimpleClaimSystem;
+import fr.xyness.SCS.Types.CPlayer;
+import fr.xyness.SCS.Types.Claim;
 
 /**
  * Handles the /unclaim command for unclaiming territory.
@@ -72,18 +73,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
             List<String> completions = new ArrayList<>();
             
             if (args.length == 1) {
-                completions.addAll(getPrimaryCompletions(player));
-            }
-
-            if (!player.hasPermission("scs.command.unclaim") && !player.hasPermission("scs.admin")) {
-                return completions;
-            }
-
-            if (args.length == 1) {
-                if (player.hasPermission("scs.command.unclaim.all") || player.hasPermission("scs.admin")) {
-                    completions.add("*");
-                }
-                completions.addAll(instance.getMain().getClaimsNameFromOwner(player.getName()));
+                completions.addAll(getPrimaryCompletions(player, args));
             }
 
             return completions;
@@ -236,14 +226,18 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
      * Gets the primary completions for the first argument.
      *
      * @param player the player executing the command
+     * @param args the args of the command
      * @return a list of primary completions
      */
-    private List<String> getPrimaryCompletions(Player player) {
+    private List<String> getPrimaryCompletions(Player player, String[] args) {
+    	String partialInput = args.length > 0 ? args[0].toLowerCase() : "";
         List<String> completions = new ArrayList<>();
         if (instance.getPlayerMain().checkPermPlayer(player, "scs.command.unclaim.all")) {
             completions.add("*");
         }
         completions.addAll(instance.getMain().getClaimsNameFromOwner(player.getName()));
-        return completions;
+        return completions.stream()
+    	        .filter(c -> c.toLowerCase().startsWith(partialInput))
+    	        .collect(Collectors.toList());
     }
 }

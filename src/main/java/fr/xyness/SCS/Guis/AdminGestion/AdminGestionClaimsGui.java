@@ -9,6 +9,7 @@ import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import fr.xyness.SCS.*;
+import fr.xyness.SCS.Types.CPlayer;
 
 /**
  * Class representing the Admin Gestion Claims GUI.

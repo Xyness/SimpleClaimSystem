@@ -564,7 +564,7 @@ claim-info-lore: |
 claim-info-lore-sale-status-true: "§a✔ Claim in sale §7(%price%%money-symbol%)"
 claim-info-lore-sale-status-false: "§c✘ Claim not in sale"
   
-chunk-title: "§6Chunk-%number% §7(%coords%)"
+chunk-title: "§6Chunk §7(%coords%)"
 chunk-lore: "§7The chunk is part of the claim"
 
 access-button: "§7▸ §fClick to perform"

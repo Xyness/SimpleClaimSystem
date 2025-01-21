@@ -3,7 +3,7 @@ package fr.xyness.SCS.API.Listeners;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-import fr.xyness.SCS.Claim;
+import fr.xyness.SCS.Types.Claim;
 
 /**
  * Event that is triggered when a claim is removed.
