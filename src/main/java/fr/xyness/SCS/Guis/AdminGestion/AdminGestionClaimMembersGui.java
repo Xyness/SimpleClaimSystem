@@ -2,7 +2,10 @@ package fr.xyness.SCS.Guis.AdminGestion;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
@@ -97,7 +100,11 @@ public class AdminGestionClaimMembersGui implements InventoryHolder {
 	        int startItem = (page - 1) * items_count;
 	        int i = min_member_slot;
 	        int count = 0;
-	        for (String p : instance.getMain().convertUUIDSetToStringSet(claim.getMembers())) {
+	        Set<String> members = instance.getMain().convertUUIDSetToStringSet(claim.getMembers());
+	        List<String> membersList = new ArrayList<>(members);
+	        Collections.sort(membersList, (member1, member2) -> member1.compareTo(member2));
+	        members = new LinkedHashSet<>(membersList);
+	        for (String p : members) {
 	            if (count++ < startItem) continue;
 	            if (i == max_member_slot + 1) {
 	            	inv.setItem(50, nextPage(page + 1));

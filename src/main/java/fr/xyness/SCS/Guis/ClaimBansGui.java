@@ -1,7 +1,9 @@
 package fr.xyness.SCS.Guis;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -107,6 +109,9 @@ public class ClaimBansGui implements InventoryHolder {
 	        
 	        // Get claim data
 	        Set<String> bans = instance.getMain().convertUUIDSetToStringSet(claim.getBans());
+	        List<String> bansList = new ArrayList<>(bans);
+	        Collections.sort(bansList, (ban1, ban2) -> ban1.compareTo(ban2));
+	        bans = new LinkedHashSet<>(bansList);
 	        int bansCount = bans.size();
 	        
 	        // Update player data (gui)

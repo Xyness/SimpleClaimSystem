@@ -91,6 +91,9 @@ public class AdminGestionClaimsProtectedAreasGui implements InventoryHolder {
 	        inv.setItem(48, backPage(page - 1,!(page > 1)));
 	        
 	        Set<Claim> claims = getClaims(filter, "*");
+	        List<Claim> claimList = new ArrayList<>(claims);
+	        Collections.sort(claimList, (claim1, claim2) -> claim1.getName().compareTo(claim2.getName()));
+	        claims = new LinkedHashSet<>(claimList);
 	        setFilterItem(filter);
 	
 	        List<String> loreTemplate = instance.getGuis().getLore("§7Chunks: §e%chunks_count%\n§7Spawn location: §b%location%\n§7%sale-status%\n \n§7Members:\n%members%\n \n§7Banned players:\n%bans%\n \n");

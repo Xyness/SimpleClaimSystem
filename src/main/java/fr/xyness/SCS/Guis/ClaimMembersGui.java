@@ -1,6 +1,8 @@
 package fr.xyness.SCS.Guis;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
@@ -98,6 +100,9 @@ public class ClaimMembersGui implements InventoryHolder {
 	        
 	        // Get claim data
 	        Set<String> members = instance.getMain().convertUUIDSetToStringSet(claim.getMembers());
+	        List<String> membersList = new ArrayList<>(members);
+	        Collections.sort(membersList, (member1, member2) -> member1.compareTo(member2));
+	        members = new LinkedHashSet<>(membersList);
 	        int membersCount = members.size();
 	        members.remove(playerName);
 	        
