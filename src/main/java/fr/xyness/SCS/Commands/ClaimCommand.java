@@ -1129,7 +1129,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             if (target == null) {
             	instance.getOfflinePlayer(args[1], otarget -> {
                     if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[1]));
                         return;
                     }
                     targetName[0] = otarget.getName();
@@ -1308,7 +1308,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             // Create runnable
             Runnable task = () -> {
             	instance.executeSync(() -> {
-                    if (targetName.equals(playerName)) {
+                    if (targetName[0].equals(playerName)) {
                     	player.sendMessage(instance.getLanguage().getMessage("cant-add-yourself"));
                         return;
                     }
@@ -1339,7 +1339,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             if (target == null) {
             	instance.getOfflinePlayer(args[1], otarget -> {
                     if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[1]));
                         return;
                     }
                     targetName[0] = otarget.getName();
@@ -1380,7 +1380,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             if (target == null) {
             	instance.getOfflinePlayer(args[1], otarget -> {
                     if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[1]));
                         return;
                     }
                     uuid[0] = otarget.getUniqueId();

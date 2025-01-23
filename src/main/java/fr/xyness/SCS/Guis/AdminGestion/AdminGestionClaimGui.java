@@ -197,6 +197,7 @@ public class AdminGestionClaimGui implements InventoryHolder {
 	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
 	        cPlayer.setClaim(claim);
 	        cPlayer.setFilter(role);
+	        cPlayer.setOwner(claim.getOwner());
 	        inv.setItem(48, role(role));
 	        for (String key : instance.getGuis().getPerms(role)) {
 	            String lower_name = key.toLowerCase();
