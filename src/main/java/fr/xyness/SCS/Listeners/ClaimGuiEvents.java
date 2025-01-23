@@ -684,6 +684,16 @@ public class ClaimGuiEvents implements Listener {
         	            	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money"));
         	                return;
         	            }
+        		        // Check if the player can claim
+        		        if (!cPlayer.canClaim()) {
+        		        	player.sendMessage(instance.getLanguage().getMessage("cant-claim-anymore"));
+        		            return;
+        		        }
+                        // Check if player can claim with all these chunks (total)
+                        if (!cPlayer.canClaimTotalWithNumber(instance.getMain().getAllChunksFromAllClaims(playerName).size()+claim.getChunks().size())) {
+                        	player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks"));
+                            return;
+                        }
             			instance.getMain().sellChunk(player, claim)
             				.thenAccept(success -> {
             					if (success) {

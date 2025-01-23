@@ -2,6 +2,7 @@ package fr.xyness.SCS.Guis.AdminGestion;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -83,6 +84,15 @@ public class AdminGestionClaimsGui implements InventoryHolder {
 	        inv.setItem(48, backPage(page - 1,!(page > 1)));
 	
 	        Map<String, Integer> owners = getOwnersByFilter(filter);
+	        LinkedHashMap<String, Integer> sortedOwners = owners.entrySet()
+	                .stream()
+	                .sorted(Map.Entry.comparingByKey())
+	                .collect(Collectors.toMap(
+	                        Map.Entry::getKey,
+	                        Map.Entry::getValue,
+	                        (e1, e2) -> e1,
+	                        LinkedHashMap::new
+	                ));
 	        inv.setItem(49, createFilterItem(filter));
 	
 	        int maxSlot = 44;
@@ -92,7 +102,7 @@ public class AdminGestionClaimsGui implements InventoryHolder {
 	        int i = minSlot;
 	        int count = 0;
 	
-	        for (Map.Entry<String, Integer> entry : owners.entrySet()) {
+	        for (Map.Entry<String, Integer> entry : sortedOwners.entrySet()) {
 	            if (count++ < startItem) continue;
 	            if (i > maxSlot) {
 	                inv.setItem(50, nextPage(page + 1));
