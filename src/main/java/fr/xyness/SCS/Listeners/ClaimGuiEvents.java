@@ -85,11 +85,7 @@ public class ClaimGuiEvents implements Listener {
     	Inventory inv = event.getInventory();
     	InventoryHolder holder = inv.getHolder();
     	if(holder instanceof ClaimConfirmationGui) {
-    		if(instance.isFolia()) {
-    			Bukkit.getAsyncScheduler().runDelayed(instance, task -> ClaimCommand.isOnCreate.remove(player), 500, TimeUnit.MILLISECONDS);
-    		} else {
-    			Bukkit.getScheduler().runTaskLaterAsynchronously(instance, () -> ClaimCommand.isOnCreate.remove(player), 10L);
-    		}
+    		instance.executeAsyncLater(() -> ClaimCommand.isOnCreate.remove(player), 500);
     	}
     }
     
