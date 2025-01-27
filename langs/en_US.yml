@@ -150,6 +150,7 @@ set-group-member-limit-success: "§fGroup §e%group%§f can have maximum §e%amo
 claim-was-sold: "§fYour claim §e%name%§f was purchased by §e%buyer%§f for §e%price%%money-symbol%§f."
 target-does-not-have-claim: "§cThe player '%name%' does not have claims."
 you-paid-claim: "§fYou paid §e%price%%money-symbol%§f for claiming."
+you-paid-chunk: "§fYou paid §e%price%%money-symbol%§f for adding a chunk."
 buy-but-not-enough-money-claim: "§cYou do not have enough money. You are missing %missing-price%%money-symbol%."
 claim-cost-must-be-positive: "§cThe claim cost must be positive."
 claim-cost-must-be-number: "§cThe claim cost must be a number."
@@ -363,6 +364,8 @@ leave-territory-chat: "§fYou leave the territory of §e%owner%§f."
 # > Gui messages
 # Use \n for new line only for lores messages
 
+gui-claim-confirm-title: "Confirm claiming?"
+gui-chunk-confirm-title: "Confirm adding chunk?"
 gui-bans-title: "Bans: %name% (Page %page%)"
 gui-chunks-title: "Chunks: %name% (Page %page%)"
 gui-list-title: "My claims (Page %page%)"
@@ -382,6 +385,15 @@ to-manage: " to manage"
 to-remove-member: " to remove this member"
 to-use-setting: " to use this setting"
 to-buy: " to buy"
+
+confirm-title: "§aConfirm"
+cancel-title: "§cCancel"
+claim-confirm-info-title: "§eInformations"
+claim-confirm-info-lore-economy: "§7Price: §6%price%%money-symbol%\n "
+claim-confirm-info-lore: "§7▸ §fMake a choice for the claim"
+chunk-confirm-info-title: "§eInformations"
+chunk-confirm-info-lore-economy: "§7Price: §6%price%%money-symbol%\n "
+chunk-confirm-info-lore: "§7▸ §fMake a choice for the claim"
 
 owner-claim-title: "§e%owner%"
 owner-claim-lore: "§7Claims: §b%claim-amount%"
@@ -564,7 +576,7 @@ claim-info-lore: |
 claim-info-lore-sale-status-true: "§a✔ Claim in sale §7(%price%%money-symbol%)"
 claim-info-lore-sale-status-false: "§c✘ Claim not in sale"
   
-chunk-title: "§6Chunk-%number% §7(%coords%)"
+chunk-title: "§6Chunk §7(%coords%)"
 chunk-lore: "§7The chunk is part of the claim"
 
 access-button: "§7▸ §fClick to perform"

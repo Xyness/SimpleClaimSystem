@@ -111,7 +111,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.7.2";
+    private String Version = "1.11.8";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -544,7 +544,7 @@ public class SimpleClaimSystem extends JavaPlugin {
                     MarkerAPI markerAPI = dynmapAPI.getMarkerAPI();
                     if (markerAPI != null) {
                         MarkerSet markerSet = markerAPI.createMarkerSet("SimpleClaimSystem", "Claims", null, false);
-                        dynmapInstance = new ClaimDynmap(dynmapAPI, markerAPI, markerSet, this);
+                        dynmapInstance = new ClaimDynmap(markerSet, this);
                     }
                 }
             } else {
@@ -562,6 +562,13 @@ public class SimpleClaimSystem extends JavaPlugin {
                     if(apiO.isPresent()) {
                     	bluemapInstance = new ClaimBluemap(apiO.get(),this);
                     } else {
+                    	BlueMapAPI.onEnable(task -> {
+                    		Optional<BlueMapAPI> apiCheck = BlueMapAPI.getInstance();
+                    		if(apiCheck.isPresent()) {
+                    			claimSettingsInstance.addSetting("bluemap", "true");
+                    			bluemapInstance = new ClaimBluemap(apiCheck.get(),this);
+                    		}
+                    	});
                     	claimSettingsInstance.addSetting("bluemap", "false");
                     }
             	}
@@ -650,6 +657,8 @@ public class SimpleClaimSystem extends JavaPlugin {
                 claimSettingsInstance.addSetting("max-sell-price", getConfig().getString("max-sell-price"));
                 claimSettingsInstance.addSetting("claim-cost", getConfig().getString("claim-cost"));
                 claimSettingsInstance.addSetting("claim-cost-multiplier", getConfig().getString("claim-cost-multiplier"));
+                claimSettingsInstance.addSetting("chunk-cost", getConfig().getString("chunk-cost"));
+                claimSettingsInstance.addSetting("chunk-cost-multiplier", getConfig().getString("chunk-cost-multiplier"));
             } else {
                 claimSettingsInstance.addSetting("economy", "false");
             }
@@ -1186,6 +1195,8 @@ public class SimpleClaimSystem extends JavaPlugin {
                 claimSettingsInstance.addSetting("max-sell-price", getConfig().getString("max-sell-price"));
                 claimSettingsInstance.addSetting("claim-cost", getConfig().getString("claim-cost"));
                 claimSettingsInstance.addSetting("claim-cost-multiplier", getConfig().getString("claim-cost-multiplier"));
+                claimSettingsInstance.addSetting("chunk-cost", getConfig().getString("chunk-cost"));
+                claimSettingsInstance.addSetting("chunk-cost-multiplier", getConfig().getString("chunk-cost-multiplier"));
             } else {
                 claimSettingsInstance.addSetting("economy", "false");
             }
@@ -1268,6 +1279,8 @@ public class SimpleClaimSystem extends JavaPlugin {
                 settings.put("max-chunks-per-claim", getConfig().getDouble("groups." + key + ".max-chunks-per-claim"));
                 settings.put("claim-distance", getConfig().getDouble("groups." + key + ".claim-distance"));
                 settings.put("max-chunks-total", getConfig().getDouble("groups." + key + ".max-chunks-total"));
+                settings.put("chunk-cost", getConfig().getDouble("groups." + key + ".chunk-cost"));
+                settings.put("chunk-cost-multiplier", getConfig().getDouble("groups." + key + ".chunk-cost-multiplier"));
                 groupsSettings.put(key, settings);
             }
             claimSettingsInstance.setGroups(groups);
@@ -1286,6 +1299,8 @@ public class SimpleClaimSystem extends JavaPlugin {
                 if (getConfig().isSet("players." + key + ".max-chunks-per-claim")) settings.put("max-chunks-per-claim", getConfig().getDouble("players." + key + ".max-chunks-per-claim"));
                 if (getConfig().isSet("players." + key + ".claim-distance")) settings.put("claim-distance", getConfig().getDouble("players." + key + ".claim-distance"));
                 if (getConfig().isSet("players." + key + ".max-chunks-total")) settings.put("max-chunks-total", getConfig().getDouble("players." + key + ".max-chunks-total"));
+                if (getConfig().isSet("players." + key + ".chunk-cost")) settings.put("chunk-cost", getConfig().getDouble("players." + key + ".chunk-cost"));
+                if (getConfig().isSet("players." + key + ".chunk-cost-multiplier")) settings.put("chunk-cost-multiplier", getConfig().getDouble("players." + key + ".chunk-cost-multiplier"));
                 if (!settings.isEmpty()) playersSettings.put(Bukkit.getOfflinePlayer(key).getUniqueId(), settings);
             }
             cPlayerMainInstance.setPlayersConfigSettings(playersSettings);

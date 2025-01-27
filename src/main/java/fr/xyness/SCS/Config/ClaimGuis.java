@@ -165,7 +165,7 @@ public class ClaimGuis {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             meta.setDisplayName(name);
-            meta.setLore(lore);
+            if(lore != null) meta.setLore(lore);
             meta = instance.getGuis().setItemFlag(meta);
             AttributeModifier modifier = new AttributeModifier(UUID.randomUUID(), "generic.armor", 0, AttributeModifier.Operation.ADD_NUMBER);
             meta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);

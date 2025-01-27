@@ -1843,9 +1843,6 @@ public class ClaimMain {
 
         instance.info(getNumberSeparate(String.valueOf(i[0]))+"/"+getNumberSeparate(String.valueOf(max_i))+" claims loaded.");
         instance.info("> including "+getNumberSeparate(String.valueOf(protected_areas_count))+" protected areas.");
-        if(instance.getSettings().getBooleanSetting("bluemap")) {
-        	instance.getBluemap().load();
-        }
         return;
     }
 
@@ -4412,17 +4409,33 @@ public class ClaimMain {
      */
     public void updateWeatherChunk(Claim claim) {
 		Set<Chunk> chunks = claim.getChunks();
-    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
-			Chunk c = p.getLocation().getChunk();
-			if(chunks.contains(c)) {
-				boolean value = claim.getPermissionForPlayer("Weather", p);
-                if(value) {
-                	p.resetPlayerWeather();
-                } else {
-                	p.setPlayerWeather(WeatherType.CLEAR);
-                }
-			}
-    	});
+		if(instance.isFolia()) {
+	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	    		Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
+					Chunk c = p.getLocation().getChunk();
+					if(chunks.contains(c)) {
+						boolean value = claim.getPermissionForPlayer("Weather", p);
+		                if(value) {
+		                	p.resetPlayerWeather();
+		                } else {
+		                	p.setPlayerWeather(WeatherType.CLEAR);
+		                }
+					}
+	    		});
+	    	});
+		} else {
+	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+				Chunk c = p.getLocation().getChunk();
+				if(chunks.contains(c)) {
+					boolean value = claim.getPermissionForPlayer("Weather", p);
+	                if(value) {
+	                	p.resetPlayerWeather();
+	                } else {
+	                	p.setPlayerWeather(WeatherType.CLEAR);
+	                }
+				}
+	    	});
+		}
     }
 
     /**
@@ -4433,23 +4446,45 @@ public class ClaimMain {
      */
     public void updateFlyChunk(Claim claim) {
 		Set<Chunk> chunks = claim.getChunks();
-    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
-			Chunk c = p.getLocation().getChunk();
-			if(chunks.contains(c)) {
-				boolean value = claim.getPermissionForPlayer("Fly", p);
-                CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());
-                if(value) {
-                    if (cPlayer.getClaimAutofly()) {
-                        instance.getPlayerMain().activePlayerFly(p);
-                    }
-                } else {
-                    if (cPlayer.getClaimFly()) {
-                        instance.getPlayerMain().removePlayerFly(p);
-                    }
-                }
+		if(instance.isFolia()) {
+	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	    		Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
+					Chunk c = p.getLocation().getChunk();
+					if(chunks.contains(c)) {
+						boolean value = claim.getPermissionForPlayer("Fly", p);
+		                CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());
+		                if(value) {
+		                    if (cPlayer.getClaimAutofly()) {
+		                        instance.getPlayerMain().activePlayerFly(p);
+		                    }
+		                } else {
+		                    if (cPlayer.getClaimFly()) {
+		                        instance.getPlayerMain().removePlayerFly(p);
+		                    }
+		                }
 
-			}
-    	});
+					}
+	    		});
+	    	});
+		} else {
+	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+				Chunk c = p.getLocation().getChunk();
+				if(chunks.contains(c)) {
+					boolean value = claim.getPermissionForPlayer("Fly", p);
+	                CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());
+	                if(value) {
+	                    if (cPlayer.getClaimAutofly()) {
+	                        instance.getPlayerMain().activePlayerFly(p);
+	                    }
+	                } else {
+	                    if (cPlayer.getClaimFly()) {
+	                        instance.getPlayerMain().removePlayerFly(p);
+	                    }
+	                }
+
+				}
+	    	});
+		}
     }
     
     /**
@@ -4460,12 +4495,23 @@ public class ClaimMain {
      */
     public void resetWeatherChunk(Claim claim) {
 		Set<Chunk> chunks = claim.getChunks();
-    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
-			Chunk c = p.getLocation().getChunk();
-			if(chunks.contains(c)) {
-                p.resetPlayerWeather();
-			}
-    	});
+		if(instance.isFolia()) {
+	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	    		Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
+					Chunk c = p.getLocation().getChunk();
+					if(chunks.contains(c)) {
+		                p.resetPlayerWeather();
+					}
+	    		});
+	    	});
+		} else {
+	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+				Chunk c = p.getLocation().getChunk();
+				if(chunks.contains(c)) {
+	                p.resetPlayerWeather();
+				}
+	    	});
+		}
     }
 
     /**
@@ -4476,15 +4522,29 @@ public class ClaimMain {
      */
     public void resetFlyChunk(Claim claim) {
 		Set<Chunk> chunks = claim.getChunks();
-    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
-			Chunk c = p.getLocation().getChunk();
-			if(chunks.contains(c)) {
-                CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());
-                if (cPlayer.getClaimFly()) {
-                    instance.getPlayerMain().removePlayerFly(p);
-                }
-			}
-    	});
+		if(instance.isFolia()) {
+	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	    		Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
+					Chunk c = p.getLocation().getChunk();
+					if(chunks.contains(c)) {
+		                CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());
+		                if (cPlayer.getClaimFly()) {
+		                    instance.getPlayerMain().removePlayerFly(p);
+		                }
+					}
+	    		});
+	    	});
+		} else {
+	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+				Chunk c = p.getLocation().getChunk();
+				if(chunks.contains(c)) {
+	                CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());
+	                if (cPlayer.getClaimFly()) {
+	                    instance.getPlayerMain().removePlayerFly(p);
+	                }
+				}
+	    	});
+		}
     }
     
     /**
@@ -4493,14 +4553,28 @@ public class ClaimMain {
      * @param chunks the chunks
      */
     public void getMapAutoForChunks(Set<Chunk> chunks) {
-        Bukkit.getOnlinePlayers().stream().forEach(p -> {
-        	Chunk c = p.getLocation().getChunk();
-        	if(chunks.contains(c)) {
-        		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());
-        		if(cPlayer.getClaimAutomap()) {
-        			getMap(p,c,true);
-        		}
-        	}
-        });
+    	if(instance.isFolia()) {
+	        Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	        	Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
+		        	Chunk c = p.getLocation().getChunk();
+		        	if(chunks.contains(c)) {
+		        		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());
+		        		if(cPlayer.getClaimAutomap()) {
+		        			getMap(p,c,true);
+		        		}
+		        	}
+	        	});
+	        });
+    	} else {
+	        Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	        	Chunk c = p.getLocation().getChunk();
+	        	if(chunks.contains(c)) {
+	        		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());
+	        		if(cPlayer.getClaimAutomap()) {
+	        			getMap(p,c,true);
+	        		}
+	        	}
+	        });
+    	}
     }
 }

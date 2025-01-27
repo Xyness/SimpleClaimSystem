@@ -235,12 +235,23 @@ public class ClaimBossBar {
      */
     public void activateBossBar(Set<Chunk> chunks) {
     	if (!instance.getSettings().getBooleanSetting("bossbar")) return;
-        Bukkit.getOnlinePlayers().stream().forEach(p -> {
-        	Chunk c = p.getLocation().getChunk();
-        	if(chunks.contains(c)) {
-        		activeBossBar(p,c);
-        	}
-        });
+    	if(instance.isFolia()) {
+            Bukkit.getOnlinePlayers().stream().forEach(p -> {
+            	Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
+                	Chunk c = p.getLocation().getChunk();
+                	if(chunks.contains(c)) {
+                		activeBossBar(p,c);
+                	}
+            	});
+            });
+    	} else {
+            Bukkit.getOnlinePlayers().stream().forEach(p -> {
+            	Chunk c = p.getLocation().getChunk();
+            	if(chunks.contains(c)) {
+            		activeBossBar(p,c);
+            	}
+            });
+    	}
     }
     
     /**
@@ -250,11 +261,22 @@ public class ClaimBossBar {
      */
     public void deactivateBossBar(Set<Chunk> chunks) {
     	if (!instance.getSettings().getBooleanSetting("bossbar")) return;
-        Bukkit.getOnlinePlayers().stream().forEach(p -> {
-        	Chunk c = p.getLocation().getChunk();
-        	if(chunks.contains(c)) {
-        		disableBossBar(p);
-        	}
-        });
+    	if(instance.isFolia()) {
+            Bukkit.getOnlinePlayers().stream().forEach(p -> {
+            	Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
+                	Chunk c = p.getLocation().getChunk();
+                	if(chunks.contains(c)) {
+                		disableBossBar(p);
+                	}
+            	});
+            });
+    	} else {
+            Bukkit.getOnlinePlayers().stream().forEach(p -> {
+            	Chunk c = p.getLocation().getChunk();
+            	if(chunks.contains(c)) {
+            		disableBossBar(p);
+            	}
+            });
+    	}
     }
 }

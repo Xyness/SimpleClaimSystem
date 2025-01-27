@@ -584,24 +584,24 @@ public class CPlayer {
         
         Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
         if (playerConfig != null && playerConfig.containsKey("claim-cost-multiplier")) {
-            return (int) Math.round(playerConfig.get("claim-cost-multiplier"));
+            return playerConfig.get("claim-cost-multiplier");
         }
 
-        int n = player.getEffectivePermissions().stream()
+        double n = player.getEffectivePermissions().stream()
             .map(PermissionAttachmentInfo::getPermission)
             .map(CPlayerMain.MULTIPLIER_PATTERN::matcher)
             .filter(Matcher::find)
-            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
+            .mapToDouble(matcher -> Double.parseDouble(matcher.group(1)))
+            .min().orElse(-1);
 
         if (n == -1) {
 
             Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
-            n = (int) Math.round(groupsSettings.get("default").get("claim-cost-multiplier"));
+            n = groupsSettings.get("default").get("claim-cost-multiplier");
             for (Map.Entry<String, String> entry : groups.entrySet()) {
                 if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("claim-cost-multiplier")));
+                    n = Math.min(n, groupsSettings.get(entry.getKey()).get("claim-cost-multiplier"));
                 }
             }
         }
@@ -619,24 +619,24 @@ public class CPlayer {
         
         Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
         if (playerConfig != null && playerConfig.containsKey("chunk-cost-multiplier")) {
-            return (int) Math.round(playerConfig.get("chunk-cost-multiplier"));
+            return playerConfig.get("chunk-cost-multiplier");
         }
 
-        int n = player.getEffectivePermissions().stream()
+        double n = player.getEffectivePermissions().stream()
             .map(PermissionAttachmentInfo::getPermission)
             .map(CPlayerMain.CHUNK_MULTIPLIER_PATTERN::matcher)
             .filter(Matcher::find)
-            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
+            .mapToDouble(matcher -> Double.parseDouble(matcher.group(1)))
+            .min().orElse(-1);
 
         if (n == -1) {
 
             Map<String, Map<String, Double>> groupsSettings = instance.getSettings().getGroupsSettings();
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
-            n = (int) Math.round(groupsSettings.get("default").get("chunk-cost-multiplier"));
+            n = groupsSettings.get("default").get("chunk-cost-multiplier");
             for (Map.Entry<String, String> entry : groups.entrySet()) {
                 if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("chunk-cost-multiplier")));
+                    n = Math.min(n, groupsSettings.get(entry.getKey()).get("chunk-cost-multiplier"));
                 }
             }
         }
@@ -817,7 +817,7 @@ public class CPlayer {
         if (player.hasPermission("scs.admin")) return 0.0;
         Double cost = getCost();
         Double multiplier = getMultiplier();
-        return cost * Math.pow(multiplier, (claims_count - 1));
+        return cost * Math.pow(multiplier, claims_count);
     }
     
     /**
