@@ -56,6 +56,7 @@ public class ClaimBluemap {
 	public ClaimBluemap(BlueMapAPI api, SimpleClaimSystem instance) {
 		this.api = api;
 		this.instance = instance;
+		load();
 	}
 	
 	
@@ -108,7 +109,7 @@ public class ClaimBluemap {
 	    Color fillColor = new Color((int) Long.parseLong(fcolor, 16));
 	    Color strokeColor = new Color((int) Long.parseLong(lcolor, 16));
 
-	    chunks.parallelStream().forEach(chunk -> {
+	    chunks.forEach(chunk -> {
 	    	String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 		    MarkerSet markerSet = markerSets.get(chunk.getWorld());
 		    if (markerSet == null) return;

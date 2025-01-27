@@ -151,7 +151,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
             }
             Claim claim = instance.getMain().getClaimByName(args[0], player);
             if (claim == null) {
-            	player.sendMessage(instance.getLanguage().getMessage("help-command.unclaim-unclaim").replace("%help-separator%", instance.getLanguage().getMessage("help-separator")));
+            	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
                 return false;
             }
             instance.getMain().deleteClaim(claim)

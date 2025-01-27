@@ -3,8 +3,10 @@ package fr.xyness.SCS.Commands;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
 import java.util.UUID;
@@ -28,8 +30,10 @@ import org.bukkit.entity.Player;
 import fr.xyness.SCS.CScoreboard;
 import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
+import fr.xyness.SCS.Guis.ChunkConfirmationGui;
 import fr.xyness.SCS.Guis.ClaimBansGui;
 import fr.xyness.SCS.Guis.ClaimChunksGui;
+import fr.xyness.SCS.Guis.ClaimConfirmationGui;
 import fr.xyness.SCS.Guis.ClaimSettingsGui;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
@@ -54,7 +58,10 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	
 	
     /** A set of players currently in the process of creating a claim. */
-    private static Set<Player> isOnCreate = new HashSet<>();
+    public static Map<Player, Integer> isOnCreate = new HashMap<>();
+    
+    /** A set of players currently in the process of adding a chunk. */
+    public static Map<Player, String> isOnAdd = new HashMap<>();
 	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
@@ -1025,22 +1032,58 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
             }
-            instance.getMain().addClaimChunk(claim, chunk)
-            	.thenAccept(success -> {
-            		if (success) {
-            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("add-chunk-successful")
-            					.replace("%chunk%", "["+chunk.getWorld().getName()+";"+String.valueOf(chunk.getX())+";"+String.valueOf(chunk.getZ())+"]")
-            					.replace("%claim-name%", claim.getName())));
-            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, new CustomSet<>(claim.getChunks()), true, false);
-            			return;
-            		} else {
-            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
-            		}
-            	})
-                .exceptionally(ex -> {
-                    ex.printStackTrace();
-                    return null;
-                });
+            if (instance.getSettings().getBooleanSetting("claim-confirmation")) {
+            	if(isOnAdd.containsKey(player)) {
+            		isOnAdd.remove(player);
+            		
+                    // Make the player pay
+                    if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
+                        instance.getVault().removePlayerBalance(playerName, price[0]);
+                        if (price[0] > 0) instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-chunk").replace("%price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
+                    }
+                    
+                    // Add the chunk
+                    instance.getMain().addClaimChunk(claim, chunk)
+    	            	.thenAccept(success -> {
+    	            		if (success) {
+    	            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("add-chunk-successful")
+    	            					.replace("%chunk%", "["+chunk.getWorld().getName()+";"+String.valueOf(chunk.getX())+";"+String.valueOf(chunk.getZ())+"]")
+    	            					.replace("%claim-name%", claim.getName())));
+    	            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, new CustomSet<>(claim.getChunks()), true, false);
+    	            			return;
+    	            		} else {
+    	            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+    	            		}
+    	            	})
+    	                .exceptionally(ex -> {
+    	                    ex.printStackTrace();
+    	                    return null;
+    	                });
+                    
+            	} else {
+            		isOnAdd.put(player,claim.getName());
+            		new ChunkConfirmationGui(player,instance,price[0]);
+            	}
+            } else {
+                instance.getVault().removePlayerBalance(playerName, price[0]);
+                if (price[0] > 0) instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-chunk").replace("%price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
+                instance.getMain().addClaimChunk(claim, chunk)
+	            	.thenAccept(success -> {
+	            		if (success) {
+	            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("add-chunk-successful")
+	            					.replace("%chunk%", "["+chunk.getWorld().getName()+";"+String.valueOf(chunk.getX())+";"+String.valueOf(chunk.getZ())+"]")
+	            					.replace("%claim-name%", claim.getName())));
+	            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, new CustomSet<>(claim.getChunks()), true, false);
+	            			return;
+	            		} else {
+	            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+	            		}
+	            	})
+	                .exceptionally(ex -> {
+	                    ex.printStackTrace();
+	                    return null;
+	                });
+            }
             return;
     	}
     	if (args[0].equalsIgnoreCase("kick")) {
@@ -1997,7 +2040,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	        	            }
 	        	            
 	                        if (instance.getSettings().getBooleanSetting("claim-confirmation")) {
-	                            if (isOnCreate.contains(player)) {
+	                            if (isOnCreate.containsKey(player)) {
 	                                isOnCreate.remove(player);
 	                                
 	                                // Make player pay
@@ -2026,14 +2069,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	                	                });
 	                                return;
 	                            }
-	                            isOnCreate.add(player);
-	                            String AnswerA = instance.getLanguage().getMessage("claim-confirmation-button").replace("%price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
-	                            TextComponent AnswerA_C = new TextComponent(AnswerA);
-	                            AnswerA_C.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(instance.getLanguage().getMessage("claim-confirmation-button")).create()));
-	                            AnswerA_C.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim " + String.valueOf(radius)));
-	                            TextComponent finale = new TextComponent(instance.getLanguage().getMessage("claim-confirmation-ask"));
-	                            finale.addExtra(AnswerA_C);
-	                            instance.executeEntitySync(player, () -> player.sendMessage(finale));
+	                            isOnCreate.put(player,radius);
+	                            new ClaimConfirmationGui(player,instance,price[0]);
 	                            return;
 	                        }
 	                        // Make player pay
@@ -2147,7 +2184,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                             }
                         }
                         
-                        if (isOnCreate.contains(player)) {
+                        if (isOnCreate.containsKey(player)) {
                             isOnCreate.remove(player);
                             
                             // Make the player pay
@@ -2172,18 +2209,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	                    return null;
             	                });
                         } else {
-                            isOnCreate.add(player);
-                            if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, new CustomSet<>(Set.of(player.getLocation().getChunk())), false, false);
-                            String confirmationMessage = instance.getLanguage().getMessage("claim-confirmation-ask").replace("%price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));;
-                            TextComponent confirmationComponent = new TextComponent(confirmationMessage);
-
-                            String buttonText = instance.getLanguage().getMessage("claim-confirmation-button");
-                            TextComponent buttonComponent = new TextComponent(buttonText);
-                            buttonComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(buttonText).create()));
-                            buttonComponent.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim"));
-
-                            confirmationComponent.addExtra(buttonComponent);
-                            instance.executeEntitySync(player, () -> player.sendMessage(confirmationComponent));
+                            isOnCreate.put(player,0);
+                            new ClaimConfirmationGui(player,instance,price[0]);
                         }
             		} else {
             			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("cannot-claim-because-claim-near")));

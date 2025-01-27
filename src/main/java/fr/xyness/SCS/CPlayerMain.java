@@ -98,16 +98,16 @@ public class CPlayerMain {
     public static final Pattern DELAY_PATTERN = Pattern.compile("scs\\.delay\\.(\\d+)");
     
     /** Pattern for matching cost permissions */
-    public static final Pattern COST_PATTERN = Pattern.compile("scs\\.cost\\.(\\d+)");
+    public static final Pattern COST_PATTERN = Pattern.compile("scs\\.claim-cost\\.(\\d+(\\.\\d+)?)");
     
     /** Pattern for matching cost permissions */
-    public static final Pattern CHUNK_COST_PATTERN = Pattern.compile("scs\\.chunk-cost\\.(\\d+)");
+    public static final Pattern CHUNK_COST_PATTERN = Pattern.compile("scs\\.chunk-cost\\.(\\d+(\\.\\d+)?)");
     
     /** Pattern for matching multiplier permissions */
-    public static final Pattern MULTIPLIER_PATTERN = Pattern.compile("scs\\.multiplier\\.(\\d+)");
+    public static final Pattern MULTIPLIER_PATTERN = Pattern.compile("scs\\.claim-cost-multiplier\\.(\\d+(\\.\\d+)?)");
     
     /** Pattern for matching chunk multiplier permissions */
-    public static final Pattern CHUNK_MULTIPLIER_PATTERN = Pattern.compile("scs\\.chunk-multiplier\\.(\\d+)");
+    public static final Pattern CHUNK_MULTIPLIER_PATTERN = Pattern.compile("scs\\.chunk-cost-multiplier\\.(\\d+(\\.\\d+)?)");
     
     /** Pattern for matching member permissions */
     public static final Pattern MEMBERS_PATTERN = Pattern.compile("scs\\.members\\.(\\d+)");
@@ -235,7 +235,7 @@ public class CPlayerMain {
 	                }
 	
 	                // Update database
-	                updateQuery = "UPDATE scs_claims SET owner_name = ? WHERE owner_uuid = ?";
+	                updateQuery = "UPDATE scs_claims_1 SET owner_name = ? WHERE owner_uuid = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                    preparedStatement.setString(1, playerName);
 	                    preparedStatement.setString(2, uuid.toString());

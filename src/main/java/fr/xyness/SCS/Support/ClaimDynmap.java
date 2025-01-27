@@ -4,9 +4,7 @@ import java.util.Set;
 
 import org.bukkit.Chunk;
 import org.bukkit.World;
-import org.dynmap.DynmapAPI;
 import org.dynmap.markers.AreaMarker;
-import org.dynmap.markers.MarkerAPI;
 import org.dynmap.markers.MarkerSet;
 
 import fr.xyness.SCS.SimpleClaimSystem;
@@ -21,13 +19,7 @@ public class ClaimDynmap {
 	// ***************
 	// *  Variables  *
 	// ***************
-	
-	
-    /** The Dynmap API instance. */
-    private DynmapAPI dynmapAPI;
-    
-    /** The Marker API instance from Dynmap. */
-    private MarkerAPI markerAPI;
+
     
     /** The MarkerSet instance to manage markers on the Dynmap. */
     private MarkerSet markerSet;
@@ -48,9 +40,7 @@ public class ClaimDynmap {
      * @param m  the Marker API instance.
      * @param m2 the MarkerSet instance.
      */
-    public ClaimDynmap(DynmapAPI d, MarkerAPI m, MarkerSet m2, SimpleClaimSystem instance) {
-    	this.dynmapAPI = d;
-    	this.markerAPI = m;
+    public ClaimDynmap(MarkerSet m2, SimpleClaimSystem instance) {
     	this.markerSet = m2;
     	this.instance = instance;
     }

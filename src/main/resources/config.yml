@@ -60,7 +60,7 @@ max-length-claim-name: 16
 # Length max for claim description
 max-length-claim-description: 50
 
-# Confirmation before claiming?
+# Confirmation before claiming? (available with adding chunks system too)
 claim-confirmation: false
 
 # Display particles on the borders when claiming?
@@ -470,6 +470,7 @@ blocked-items:
 - ENDER_EYE
 - FISHING_ROD
 - LEAD
+- WIND_CHARGE
 
 # List of blocked entity type for the setting "Entities"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/entity/EntityType.html

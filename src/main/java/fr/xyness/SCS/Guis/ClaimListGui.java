@@ -98,12 +98,18 @@ public class ClaimListGui implements InventoryHolder {
 	    	// Get player data
 	        String playerName = player.getName();
 	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
-	        int claimsCount = cPlayer.getClaimsCount();
 	        
 	        // Update player data (gui)
 	        cPlayer.setFilter(filter);
 	        cPlayer.clearMapClaim();
 	        cPlayer.clearMapLoc();
+	        
+	        // Get claims
+	        Set<Claim> claims = new HashSet<>(filter.equals("owner") ? instance.getMain().getPlayerClaims(playerName) : instance.getMain().getClaimsWhereMemberNotOwner(player));
+	        List<Claim> claimList = new ArrayList<>(claims);
+	        Collections.sort(claimList, (claim1, claim2) -> claim1.getName().compareTo(claim2.getName()));
+	        claims = new LinkedHashSet<>(claimList);
+	        int claimsCount = claims.size();
 	        
 	        // Set bottom items
 	        if (page > 1) inv.setItem(48, backPage(page - 1));
@@ -112,10 +118,6 @@ public class ClaimListGui implements InventoryHolder {
 	        inv.setItem(53, filter(filter));
 	
 	        // Prepare lore
-	        Set<Claim> claims = new HashSet<>(filter.equals("owner") ? instance.getMain().getPlayerClaims(playerName) : instance.getMain().getClaimsWhereMemberNotOwner(player));
-	        List<Claim> claimList = new ArrayList<>(claims);
-	        Collections.sort(claimList, (claim1, claim2) -> claim1.getName().compareTo(claim2.getName()));
-	        claims = new LinkedHashSet<>(claimList);
 	        List<String> lore = new ArrayList<>(instance.getGuis().getLore(filter.equals("owner") ? instance.getLanguage().getMessage("access-claim-lore") : instance.getLanguage().getMessage("access-claim-not-owner-lore")));
 	        String lore_tp = instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")
 	                ? instance.getLanguage().getMessage("access-claim-clickable-tp")

@@ -1,6 +1,7 @@
 package fr.xyness.SCS.Listeners;
 
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -9,14 +10,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import fr.xyness.SCS.SimpleClaimSystem;
+import fr.xyness.SCS.Commands.ClaimCommand;
+import fr.xyness.SCS.Guis.ChunkConfirmationGui;
 import fr.xyness.SCS.Guis.ClaimBansGui;
 import fr.xyness.SCS.Guis.ClaimChunksGui;
+import fr.xyness.SCS.Guis.ClaimConfirmationGui;
 import fr.xyness.SCS.Guis.ClaimMainGui;
 import fr.xyness.SCS.Guis.ClaimListGui;
 import fr.xyness.SCS.Guis.ClaimMembersGui;
@@ -69,9 +74,28 @@ public class ClaimGuiEvents implements Listener {
 	// *  EventHandler  *
 	// ******************
 
-	
+	/**
+	 * Handles inventory close events.
+	 * 
+	 * @param event The InventoryCloseEvent event.
+	 */
+    @EventHandler
+    public void onInventoryClose(InventoryCloseEvent event) {
+    	Player player = (Player) event.getPlayer();
+    	Inventory inv = event.getInventory();
+    	InventoryHolder holder = inv.getHolder();
+    	if(holder instanceof ClaimConfirmationGui) {
+    		if(instance.isFolia()) {
+    			Bukkit.getAsyncScheduler().runDelayed(instance, task -> ClaimCommand.isOnCreate.remove(player), 500, TimeUnit.MILLISECONDS);
+    		} else {
+    			Bukkit.getScheduler().runTaskLaterAsynchronously(instance, () -> ClaimCommand.isOnCreate.remove(player), 10L);
+    		}
+    	}
+    }
+    
 	/**
 	 * Handles inventory click events in the claim GUIs.
+	 * 
 	 * @param event the inventory click event.
 	 */
 	@EventHandler
@@ -86,38 +110,118 @@ public class ClaimGuiEvents implements Listener {
         	CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
         	
         	if (holder instanceof ClaimMainGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleClaimMainGuiClick(event, player, cPlayer);
         	} else if (holder instanceof ClaimSettingsGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleClaimSettingsGuiClick(event, player, cPlayer);
         	} else if (holder instanceof ClaimMembersGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleClaimMembersGuiClick(event, player, cPlayer);
         	} else if (holder instanceof ClaimChunksGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleClaimChunksGuiClick(event, player, cPlayer);
         	} else if (holder instanceof ClaimBansGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleClaimBansGuiClick(event, player, cPlayer);
         	} else if (holder instanceof ClaimListGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleClaimListGuiClick(event, player, cPlayer);
         	} else if (holder instanceof ClaimsGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleClaimsGuiClick(event, player, cPlayer);
         	} else if (holder instanceof ClaimsOwnerGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleClaimsOwnerGuiClick(event, player, cPlayer);
+        	} else if (holder instanceof ClaimConfirmationGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
+        		handleClaimConfirmationGuiClick(event, player, cPlayer);
+        	} else if (holder instanceof ChunkConfirmationGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
+        		handleChunkConfirmationGuiClick(event, player, cPlayer);
         	} else if (holder instanceof AdminGestionMainGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleAdminGestionMainGuiClick(event, player, cPlayer);
         	} else if (holder instanceof AdminGestionClaimsGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleAdminGestionClaimsGuiClick(event, player, cPlayer);
         	} else if (holder instanceof AdminGestionClaimsOwnerGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleAdminGestionClaimsOwnerGuiClick(event, player, cPlayer);
         	} else if (holder instanceof AdminGestionClaimGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleAdminGestionClaimGuiClick(event, player, cPlayer);
         	} else if (holder instanceof AdminGestionClaimMembersGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleAdminGestionClaimMembersGuiClick(event, player, cPlayer);
         	} else if (holder instanceof AdminGestionClaimBansGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleAdminGestionClaimBansGuiClick(event, player, cPlayer);
         	} else if (holder instanceof AdminGestionClaimsProtectedAreasGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleAdminGestionClaimsProtectedAreasGuiClick(event, player, cPlayer);
         	} else if (holder instanceof AdminGestionClaimMainGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleAdminGestionClaimMainGuiClick(event, player, cPlayer);
         	} else if (holder instanceof AdminGestionClaimChunksGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
         		handleAdminGestionClaimChunksGuiClick(event, player, cPlayer);
         	}
         }
@@ -129,6 +233,60 @@ public class ClaimGuiEvents implements Listener {
     // ********************
 	
 	
+	/**
+     * Handles claim confirmation GUI click events.
+     * @param event the inventory click event.
+     * @param player the player clicking in the inventory.
+     * @param cPlayer the CPlayer object for the player.
+     */
+    private void handleClaimConfirmationGuiClick(InventoryClickEvent event, Player player, CPlayer cPlayer) {
+    	event.setCancelled(true);
+        ItemStack clickedItem = event.getCurrentItem();
+        if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
+        int clickedSlot = event.getSlot();
+        if(ClaimConfirmationGui.confirm_int.contains(clickedSlot)) {
+        	player.closeInventory();
+        	int radius = ClaimCommand.isOnCreate.get(player);
+        	if(radius == 0) {
+        		Bukkit.dispatchCommand(player, "claim");
+        	} else {
+        		Bukkit.dispatchCommand(player, "claim "+String.valueOf(radius));
+        	}
+        	return;
+        }
+        if(ClaimConfirmationGui.cancel_int.contains(clickedSlot)) {
+        	player.closeInventory();
+        	ClaimCommand.isOnCreate.remove(player);
+        	return;
+        }
+        return;
+    }
+	
+	/**
+     * Handles chunk confirmation GUI click events.
+     * @param event the inventory click event.
+     * @param player the player clicking in the inventory.
+     * @param cPlayer the CPlayer object for the player.
+     */
+    private void handleChunkConfirmationGuiClick(InventoryClickEvent event, Player player, CPlayer cPlayer) {
+    	event.setCancelled(true);
+        ItemStack clickedItem = event.getCurrentItem();
+        if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
+        int clickedSlot = event.getSlot();
+        if(ChunkConfirmationGui.confirm_int.contains(clickedSlot)) {
+        	player.closeInventory();
+        	String claimName = ClaimCommand.isOnAdd.get(player);
+        	Bukkit.dispatchCommand(player, "claim addchunk "+claimName);
+        	return;
+        }
+        if(ChunkConfirmationGui.cancel_int.contains(clickedSlot)) {
+        	player.closeInventory();
+        	ClaimCommand.isOnAdd.remove(player);
+        	return;
+        }
+        return;
+    }
+    
 	/**
      * Handles claim GUI click events.
      * @param event the inventory click event.
