@@ -41,7 +41,7 @@ dependencies {
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.4") {
         exclude(group = "org.bstats", module = "bstats-bukkit")
     }
-    compileOnly('com.github.MilkBowl:VaultAPI:1.7') {
+    compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
         exclude(group = "org.bukkit", module = "bukkit")
     }
     compileOnly(files("libs/Dynmap-3.7-beta-6-spigot.jar"))
