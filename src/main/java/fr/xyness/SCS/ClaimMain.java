@@ -141,6 +141,9 @@ public class ClaimMain {
      * @param type    the type of message (ACTION_BAR, SUBTITLE, TITLE, CHAT, BOSSBAR)
      */
     public void sendMessage(Player player, String message, String type) {
+    	if(message.isBlank()) {
+    		return;
+    	}
         switch (type) {
             case "ACTION_BAR":
                 player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(message));

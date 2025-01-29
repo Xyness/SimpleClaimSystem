@@ -16,7 +16,7 @@ java {
 
 repositories {
     mavenCentral()
-    maven("https://papermc.io/repo/repository/maven-public/")
+    maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://ci.ender.zone/plugin/repository/everything/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     maven("https://jitpack.io")
@@ -41,7 +41,9 @@ dependencies {
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.4") {
         exclude(group = "org.bstats", module = "bstats-bukkit")
     }
-    compileOnly("com.github.MilkBowl:VaultAPI:1.7")
+    compileOnly('com.github.MilkBowl:VaultAPI:1.7') {
+        exclude(group = "org.bukkit", module = "bukkit")
+    }
     compileOnly(files("libs/Dynmap-3.7-beta-6-spigot.jar"))
     compileOnly("de.bluecolored.bluemap:BlueMapAPI:2.7.2")
     compileOnly("maven.modrinth:pl3xmap:1.21-500")
