@@ -60,6 +60,12 @@ max-length-claim-name: 16
 # Length max for claim description
 max-length-claim-description: 50
 
+# Is there an invitation system for claims? If not, players can add anyone to their claims
+claim-invitations-system: false
+
+# Expiration of an invitation (in seconds)
+claim-invitation-expiration-delay: 120
+
 # Confirmation before claiming? (available with adding chunks system too)
 claim-confirmation: false
 

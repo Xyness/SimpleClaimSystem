@@ -112,7 +112,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.8.1";
+    private String Version = "1.11.8.2";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -619,6 +619,12 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Check the max length of the claim description
             claimSettingsInstance.addSetting("max-length-claim-description", getConfig().getString("max-length-claim-description"));
+            
+            // Add invitations system setting
+            claimSettingsInstance.addSetting("claim-invitations-system", getConfig().getString("claim-invitations-system"));
+            
+            // Add invitation expiration delay setting
+            claimSettingsInstance.addSetting("claim-invitation-expiration-delay", getConfig().getString("claim-invitation-expiration-delay"));
             
             // Add confirmation check setting
             claimSettingsInstance.addSetting("claim-confirmation", getConfig().getString("claim-confirmation"));
@@ -1157,6 +1163,12 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Check the max length of the claim description
             claimSettingsInstance.addSetting("max-length-claim-description", getConfig().getString("max-length-claim-description"));
+            
+            // Add invitations system setting
+            claimSettingsInstance.addSetting("claim-invitations-system", getConfig().getString("claim-invitations-system"));
+            
+            // Add invitation expiration delay setting
+            claimSettingsInstance.addSetting("claim-invitation-expiration-delay", getConfig().getString("claim-invitation-expiration-delay"));
             
             // Add confirmation check setting
             claimSettingsInstance.addSetting("claim-confirmation", getConfig().getString("claim-confirmation"));

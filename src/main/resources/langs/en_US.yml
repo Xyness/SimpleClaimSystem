@@ -290,6 +290,27 @@ can-not-buy-your-own-claim: "§cYou can not buy your own claim."
 claim-already-in-sale: "§cThis claim is already in sale."
 no-claim-can-be-merged: "§cThere are no claims to merge."
 
+player-invite-other-player: "§e%sender%§f sent you an invitation to join §e%claim-name%"
+player-invite-other: "§aInvitation sent to %player%."
+player-already-invite-other: |
+  §cYou have already sent an invitation to %player%.
+  §cUse /claim cancelinv %player% to cancel the old invitation.
+player-invite-accept-button: "§a[Accept]"
+player-invite-deny-button: "§c[Deny]"
+player-invite-accept-button-hover: "§aClick to accept"
+player-invite-deny-button-hover: "§cClick to deny"
+player-accept-invitation: "§aYou accepted the invitation."
+player-cancel-invitation: "§cYou cancelled the invitation of %player%."
+player-deny-invitation: "§cYou denied the invitation."
+player-accept-invitation-other: "§a%player%§f accepted the invitation."
+player-deny-invitation-other: "§c%player%§f denied the invitation."
+player-no-invitation: "§c%player% didn't invite you."
+player-do-not-invite: "§cYou didn't invite %player%."
+player-invitation-expired: "§cYour invitation to %player% has expired."
+player-invitation-expired-other: "§cThe invitation of %player% has expired."
+player-invitation-all-their-claims: "all their claims"
+player-invitations-system-off: "§cThe invitations system is disabled on this server."
+
 
 # > Deny messages
 

@@ -54,6 +54,7 @@ import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -65,6 +66,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
+import org.bukkit.util.Vector;
 
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.CPlayer;
@@ -362,6 +364,12 @@ public class ClaimEvents implements Listener {
                 blockIterator.remove();
             }
         }
+        event.getEntity().getNearbyEntities(5, 5, 5).forEach(entity -> {
+        	Chunk chunk = entity.getLocation().getChunk();
+        	if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
+                entity.setVelocity(new Vector(0, 0, 0));
+            }
+        });
     }
     
     /**
@@ -384,6 +392,32 @@ public class ClaimEvents implements Listener {
         			event.setCancelled(true);
         		}
             }
+            event.getEntity().getNearbyEntities(5, 5, 5).forEach(entity -> {
+            	Chunk chunk = entity.getLocation().getChunk();
+            	if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
+                    entity.setVelocity(new Vector(0, 0, 0));
+                }
+            });
+        } else if (event.getEntityType() == EntityType.WIND_CHARGE) {
+        	if (event.getHitBlock() != null) {
+            	Block block = event.getHitBlock();
+            	Chunk chunk = block.getLocation().getChunk();
+                if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
+                	event.setCancelled(true);
+                }
+            }
+            if (event.getHitEntity() != null) {
+        		Chunk chunk = event.getHitEntity().getLocation().getChunk();
+        		if(instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
+        			event.setCancelled(true);
+        		}
+            }
+            event.getEntity().getNearbyEntities(5, 5, 5).forEach(entity -> {
+            	Chunk chunk = entity.getLocation().getChunk();
+            	if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
+                    entity.setVelocity(new Vector(0, 0, 0));
+                }
+            });
         }
     }
     
@@ -539,6 +573,8 @@ public class ClaimEvents implements Listener {
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			if(event.getCause() == HangingBreakEvent.RemoveCause.PHYSICS && !instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
 				event.setCancelled(true);
+			} else if (event.getCause() == HangingBreakEvent.RemoveCause.EXPLOSION && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
+				event.setCancelled(true);
 			}
 		}
 	}
@@ -549,28 +585,9 @@ public class ClaimEvents implements Listener {
      */
 	@EventHandler(priority = EventPriority.LOWEST)
     public void onHangingBreakByEntity(HangingBreakByEntityEvent event) {
-		if(event.isCancelled()) return;
-        if (event.getEntity().getType() == EntityType.PAINTING) {
-        	Chunk chunk = event.getEntity().getLocation().getChunk();
-            if (event.getRemover() instanceof Player) {
-                if(instance.getMain().checkIfClaimExists(chunk)) {
-                	Player player = (Player) event.getRemover();
-                	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
-                	Claim claim = instance.getMain().getClaim(chunk);
-                	if(!claim.getPermissionForPlayer("Destroy", player)) {
-                		event.setCancelled(true);
-                		instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
-                		return;
-                	}
-                }
-                return;
-            }
-           	if(!instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
-        		event.setCancelled(true);
-        		return;
-        	}
-        }
-        if (event.getEntity().getType() == EntityType.ITEM_FRAME || event.getEntity().getType() == EntityType.GLOW_ITEM_FRAME) {
+        if (event.getEntity().getType() == EntityType.PAINTING
+        		|| event.getEntity().getType() == EntityType.ITEM_FRAME 
+        		|| event.getEntity().getType() == EntityType.GLOW_ITEM_FRAME) {
         	Chunk chunk = event.getEntity().getLocation().getChunk();
             if (event.getRemover() instanceof Player) {
                 if(instance.getMain().checkIfClaimExists(chunk)) {
@@ -631,6 +648,31 @@ public class ClaimEvents implements Listener {
 			}
 		}
     }
+	
+	/**
+	 * Handles the player fish event.
+	 * 
+	 * @param event the player fish event.
+	 */
+	@EventHandler
+	public void onPlayerFish(PlayerFishEvent event) {
+		Player player = event.getPlayer();
+		if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+		if(event.getCaught() instanceof Entity) {
+			Entity entity = event.getCaught();
+			if(entity != null) {
+				Chunk chunk = entity.getLocation().getChunk();
+				if(instance.getMain().checkIfClaimExists(chunk)) {
+					Claim claim = instance.getMain().getClaim(chunk);
+					if(!claim.getPermissionForPlayer("Entities", player)) {
+						event.setCancelled(true);
+		        		instance.getMain().sendMessage(player,instance.getLanguage().getMessage("entities"), instance.getSettings().getSetting("protection-message"));
+		        		return;
+					}
+				}
+			}
+		}
+	}
 	
     /**
      * Handles entity place events to prevent entity placement in claims.
@@ -991,7 +1033,7 @@ public class ClaimEvents implements Listener {
      * Handles entity damage by entity events to prevent damage to armor stands, item frames, and glow item frames in claims.
      * @param event the entity damage by entity event.
      */
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler
     public void onEntityDamageByEntity2(EntityDamageByEntityEvent event) {
     	Entity entity = event.getEntity();
     	if(entity instanceof ArmorStand || entity instanceof ItemFrame || entity instanceof GlowItemFrame) {
@@ -1008,7 +1050,6 @@ public class ClaimEvents implements Listener {
                 }
             	return;
             }
-            
             if (!instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
             	event.setCancelled(true);
             }
@@ -1019,7 +1060,7 @@ public class ClaimEvents implements Listener {
      * Handles entity damage by entity events to prevent damage to non-player, non-monster, non-armor stand, non-item frame entities in claims.
      * @param event the entity damage by entity event.
      */
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         Entity entity = event.getEntity();
         Chunk chunk = entity.getLocation().getChunk();

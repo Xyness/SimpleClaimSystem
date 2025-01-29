@@ -1,5 +1,6 @@
 package fr.xyness.SCS.Commands;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -38,13 +39,13 @@ import fr.xyness.SCS.Guis.ClaimSettingsGui;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 import fr.xyness.SCS.Types.CustomSet;
-import fr.xyness.SCS.Guis.ClaimListGui;
-import fr.xyness.SCS.Guis.ClaimMembersGui;
-import fr.xyness.SCS.Guis.ClaimMainGui;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
+import fr.xyness.SCS.Guis.ClaimListGui;
+import fr.xyness.SCS.Guis.ClaimMembersGui;
+import fr.xyness.SCS.Guis.ClaimMainGui;
 
 /**
  * Command executor and tab completer for the /claim command.
@@ -57,18 +58,22 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     // ***************
 	
 	
-    /** A set of players currently in the process of creating a claim. */
+    /** A map of players currently in the process of creating a claim. */
     public static Map<Player, Integer> isOnCreate = new HashMap<>();
     
-    /** A set of players currently in the process of adding a chunk. */
+    /** A map of players currently in the process of adding a chunk. */
     public static Map<Player, String> isOnAdd = new HashMap<>();
+    
+    /** A map of invitations */
+    public static Map<Player, Map<Player,String>> invitations = new HashMap<>();
+    public static Map<Player, Map<Player,LocalDateTime>> invitationsTime = new HashMap<>();
 	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
     public static Set<String> commands = Set.of("settings", "add", "remove", "list", "setspawn", "setname", "members", "setdesc",
             "chat", "map", "autoclaim", "automap", "see", "tp", "ban", "unban", "bans", "fly", "autofly", "owner", "merge", "sell", "cancel",
-            "main", "delchunk", "addchunk", "chunks", "kick", "buy", "autounclaim", "autoaddchunk", "autodelchunk");
+            "main", "delchunk", "addchunk", "chunks", "kick", "buy", "autounclaim", "autoaddchunk", "autodelchunk", "accept", "deny", "cancelinv");
     
     
     // ******************
@@ -644,7 +649,190 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     }
                 }
                 Player target = Bukkit.getPlayer(args[2]);
-                String[] targetName = {""};
+                if(instance.getSettings().getBooleanSetting("claim-invitations-system")) {
+                	
+                	if(target == null) {
+                    	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[2]));
+                    	return;
+                	}
+                	
+                	String targetName = target.getName();
+                    if (targetName.equals(playerName)) {
+                    	player.sendMessage(instance.getLanguage().getMessage("cant-add-yourself"));
+                        return;
+                    }
+                	if(invitations.containsKey(player) && invitations.get(player).containsKey(target)) {
+                        String message = instance.getLanguage().getMessage("player-already-invite-other").replace("%player%", targetName);
+                        player.sendMessage(message);
+                        return;
+                	}
+                	invitations.computeIfAbsent(player, k -> new HashMap<>()).put(target, "*");
+                	LocalDateTime date = LocalDateTime.now();
+                	invitationsTime.computeIfAbsent(player, k -> new HashMap<>()).put(target, date);
+                	player.sendMessage(instance.getLanguage().getMessage("player-invite-other").replace("%player%", targetName));
+                    TextComponent message = new TextComponent(instance.getLanguage().getMessage("player-invite-other-player").replace("%sender%", playerName).replace("%claim-name%", instance.getLanguage().getMessage("player-invitation-all-their-claims"))+" ");
+                    TextComponent acceptButton = new TextComponent(instance.getLanguage().getMessage("player-invite-accept-button"));
+                    acceptButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim accept " + playerName));
+                    acceptButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(instance.getLanguage().getMessage("player-invite-accept-button-hover")).create()));
+                    TextComponent space = new TextComponent(" ");
+                    TextComponent denyButton = new TextComponent(instance.getLanguage().getMessage("player-invite-deny-button"));
+                    denyButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim deny " + playerName));
+                    denyButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(instance.getLanguage().getMessage("player-invite-deny-button-hover")).create()));
+                    message.addExtra(acceptButton);
+                    message.addExtra(space);
+                    message.addExtra(denyButton);
+                	target.sendMessage(message);
+                	
+                	instance.executeAsyncLater(() -> {
+                		
+                		if(player != null && target != null) {
+                    		if(invitations.containsKey(player) 
+                    				&& invitations.get(player).containsKey(target) 
+                    				&& invitations.get(player).get(target).equals("*")
+                    				&& invitationsTime.containsKey(player)
+                    				&& invitationsTime.get(player).containsKey(target)
+                    				&& invitationsTime.get(player).get(target) == date) {
+                    			if(target.isOnline()) {
+                    				instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("player-invitation-expired-other").replace("%player%", playerName)));
+                    			}
+                    			if(player.isOnline()) {
+                    				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("player-invitation-expired").replace("%player%", targetName)));
+                    			}
+                    			invitations.get(player).remove(target);
+                    			if(invitations.get(player).isEmpty()) {
+                    				invitations.remove(player);
+                    			}
+                    			invitationsTime.get(player).remove(target);
+                    			if(invitationsTime.get(player).isEmpty()) {
+                    				invitationsTime.remove(player);
+                    			}
+                    		}
+                		}
+                		
+                	}, Integer.parseInt(instance.getSettings().getSetting("claim-invitation-expiration-delay"))*1000);
+                	
+                } else {
+                	String[] targetName = {""};
+                    
+                    // Create runnable
+                    Runnable task = () -> {
+                    	instance.executeSync(() -> {
+                            if (targetName[0].equals(playerName)) {
+                            	player.sendMessage(instance.getLanguage().getMessage("cant-add-yourself"));
+                                return;
+                            }
+                            String message = instance.getLanguage().getMessage("add-member-success").replace("%player%", targetName[0]).replace("%claim-name%", instance.getLanguage().getMessage("all-your-claims-title"));
+                            instance.getMain().addAllClaimsMember(playerName, targetName[0])
+                            	.thenAccept(success -> {
+                            		if (success) {
+                            			instance.executeEntitySync(player, () -> player.sendMessage(message));
+                                        if(target != null && target.isOnline()) {
+                                        	instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("add-all-claim-player").replace("%owner%", playerName)));
+                                        }
+                            		} else {
+                            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+                            		}
+                            	})
+                                .exceptionally(ex -> {
+                                    ex.printStackTrace();
+                                    return null;
+                                });
+                    	});
+                    };
+                    
+                    if (target == null) {
+                    	instance.getOfflinePlayer(args[2], otarget -> {
+                            if (otarget == null || !otarget.hasPlayedBefore()) {
+                            	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
+                                return;
+                            }
+                            targetName[0] = otarget.getName();
+                            task.run();
+                    	});
+                    } else {
+                        targetName[0] = target.getName();
+                        task.run();
+                    }
+                }
+                return;
+            }
+            Claim claim = instance.getMain().getClaimByName(args[1], player);
+            if (claim == null) {
+            	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
+                return;
+            }
+            if (!instance.getPlayerMain().canAddMember(player, claim)) {
+            	player.sendMessage(instance.getLanguage().getMessage("cant-add-member-anymore"));
+                return;
+            }
+            Player target = Bukkit.getPlayer(args[2]);
+            if(instance.getSettings().getBooleanSetting("claim-invitations-system")) {
+            	
+            	if(target == null) {
+                	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[1]));
+                	return;
+            	}
+            	
+            	String targetName = target.getName();
+                if (targetName.equals(playerName)) {
+                	player.sendMessage(instance.getLanguage().getMessage("cant-add-yourself"));
+                    return;
+                }
+                if (instance.getMain().checkMembre(claim, targetName)) {
+                    String message = instance.getLanguage().getMessage("already-member").replace("%player%", targetName);
+                    player.sendMessage(message);
+                    return;
+                }
+            	if(invitations.containsKey(player) && invitations.get(player).containsKey(target)) {
+                    String message = instance.getLanguage().getMessage("player-already-invite-other").replace("%player%", targetName);
+                    player.sendMessage(message);
+                    return;
+            	}
+            	invitations.computeIfAbsent(player, k -> new HashMap<>()).put(target, claim.getName());
+            	LocalDateTime date = LocalDateTime.now();
+            	invitationsTime.computeIfAbsent(player, k -> new HashMap<>()).put(target, date);
+            	player.sendMessage(instance.getLanguage().getMessage("player-invite-other").replace("%player%", targetName));
+                TextComponent message = new TextComponent(instance.getLanguage().getMessage("player-invite-other-player").replace("%sender%", playerName).replace("%claim-name%", claim.getName()));
+                TextComponent acceptButton = new TextComponent(instance.getLanguage().getMessage("player-invite-accept-button"));
+                acceptButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim accept " + playerName));
+                acceptButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(instance.getLanguage().getMessage("player-invite-accept-button-hover")).create()));
+                TextComponent denyButton = new TextComponent(instance.getLanguage().getMessage("player-invite-deny-button"));
+                denyButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim deny " + playerName));
+                denyButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(instance.getLanguage().getMessage("player-invite-deny-button-hover")).create()));
+                message.addExtra(acceptButton);
+                message.addExtra(denyButton);
+            	target.sendMessage(message);
+            	
+            	instance.executeAsyncLater(() -> {
+            		
+            		if(player != null && target != null) {
+                		if(invitations.containsKey(player) 
+                				&& invitations.get(player).containsKey(target) 
+                				&& invitations.get(player).get(target).equals(claim.getName())
+                				&& invitationsTime.containsKey(player)
+                				&& invitationsTime.get(player).containsKey(target)
+                				&& invitationsTime.get(player).get(target) == date) {
+                			if(target.isOnline()) {
+                				instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("player-invitation-expired-other").replace("%player%", playerName)));
+                			}
+                			if(player.isOnline()) {
+                				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("player-invitation-expired").replace("%player%", targetName)));
+                			}
+                			invitations.get(player).remove(target);
+                			if(invitations.get(player).isEmpty()) {
+                				invitations.remove(player);
+                			}
+                			invitationsTime.get(player).remove(target);
+                			if(invitationsTime.get(player).isEmpty()) {
+                				invitationsTime.remove(player);
+                			}
+                		}
+            		}
+            		
+            	}, Integer.parseInt(instance.getSettings().getSetting("claim-invitation-expiration-delay"))*1000);
+            	
+            } else {
+            	String[] targetName = {""};
                 
                 // Create runnable
                 Runnable task = () -> {
@@ -653,13 +841,18 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         	player.sendMessage(instance.getLanguage().getMessage("cant-add-yourself"));
                             return;
                         }
-                        String message = instance.getLanguage().getMessage("add-member-success").replace("%player%", targetName[0]).replace("%claim-name%", instance.getLanguage().getMessage("all-your-claims-title"));
-                        instance.getMain().addAllClaimsMember(playerName, targetName[0])
+                        if (instance.getMain().checkMembre(claim, targetName[0])) {
+                            String message = instance.getLanguage().getMessage("already-member").replace("%player%", targetName[0]);
+                            player.sendMessage(message);
+                            return;
+                        }
+                        String message = instance.getLanguage().getMessage("add-member-success").replace("%player%", targetName[0]).replace("%claim-name%", claim.getName());
+                        instance.getMain().addClaimMember(claim, targetName[0])
                         	.thenAccept(success -> {
                         		if (success) {
                         			instance.executeEntitySync(player, () -> player.sendMessage(message));
                                     if(target != null && target.isOnline()) {
-                                    	instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("add-all-claim-player").replace("%owner%", playerName)));
+                                    	instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("add-claim-player").replace("%claim-name%", claim.getName()).replace("%owner%", playerName)));
                                     }
                         		} else {
                         			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
@@ -685,63 +878,6 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     targetName[0] = target.getName();
                     task.run();
                 }
-                return;
-            }
-            Claim claim = instance.getMain().getClaimByName(args[1], player);
-            if (claim == null) {
-            	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
-                return;
-            }
-            if (!instance.getPlayerMain().canAddMember(player, claim)) {
-            	player.sendMessage(instance.getLanguage().getMessage("cant-add-member-anymore"));
-                return;
-            }
-            Player target = Bukkit.getPlayer(args[2]);
-            String[] targetName = {""};
-            
-            // Create runnable
-            Runnable task = () -> {
-            	instance.executeSync(() -> {
-                    if (targetName[0].equals(playerName)) {
-                    	player.sendMessage(instance.getLanguage().getMessage("cant-add-yourself"));
-                        return;
-                    }
-                    if (instance.getMain().checkMembre(claim, targetName[0])) {
-                        String message = instance.getLanguage().getMessage("already-member").replace("%player%", targetName[0]);
-                        player.sendMessage(message);
-                        return;
-                    }
-                    String message = instance.getLanguage().getMessage("add-member-success").replace("%player%", targetName[0]).replace("%claim-name%", claim.getName());
-                    instance.getMain().addClaimMember(claim, targetName[0])
-                    	.thenAccept(success -> {
-                    		if (success) {
-                    			instance.executeEntitySync(player, () -> player.sendMessage(message));
-                                if(target != null && target.isOnline()) {
-                                	instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("add-claim-player").replace("%claim-name%", claim.getName()).replace("%owner%", playerName)));
-                                }
-                    		} else {
-                    			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
-                    		}
-                    	})
-                        .exceptionally(ex -> {
-                            ex.printStackTrace();
-                            return null;
-                        });
-            	});
-            };
-            
-            if (target == null) {
-            	instance.getOfflinePlayer(args[2], otarget -> {
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[2]));
-                        return;
-                    }
-                    targetName[0] = otarget.getName();
-                    task.run();
-            	});
-            } else {
-                targetName[0] = target.getName();
-                task.run();
             }
             return;
         }
@@ -960,6 +1096,132 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
      * @param args The args for the command
      */
     private void handleArgTwo(Player player, String playerName, CPlayer cPlayer, String[] args) {
+    	if (args[0].equalsIgnoreCase("cancelinv")) {
+            if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.cancelinv")) {
+            	player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
+                return;
+            }
+    		if(!instance.getSettings().getBooleanSetting("claim-invitations-system")) {
+            	player.sendMessage(instance.getLanguage().getMessage("player-invitations-system-off"));
+            	return;
+    		}
+    		Player target = Bukkit.getPlayer(args[1]);
+    		if(target == null) {
+            	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[1]));
+            	return;
+    		}
+    		if(invitations.containsKey(player) && invitations.get(player).containsKey(target)
+    				&& invitationsTime.containsKey(player) && invitationsTime.get(player).containsKey(target)) {
+    			invitations.get(player).remove(target);
+    			if(invitations.get(player).isEmpty()) {
+    				invitations.remove(player);
+    			}
+    			invitationsTime.get(player).remove(target);
+    			if(invitationsTime.get(player).isEmpty()) {
+    				invitationsTime.remove(player);
+    			}
+    			player.sendMessage(instance.getLanguage().getMessage("player-cancel-invitation").replace("%player%", target.getName()));
+    		} else {
+    			player.sendMessage(instance.getLanguage().getMessage("player-do-not-invite").replace("%player%", target.getName()));
+    		}
+    		return;
+    	}
+    	if (args[0].equalsIgnoreCase("accept")) {
+            if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.accept")) {
+            	player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
+                return;
+            }
+    		if(!instance.getSettings().getBooleanSetting("claim-invitations-system")) {
+            	player.sendMessage(instance.getLanguage().getMessage("player-invitations-system-off"));
+            	return;
+    		}
+    		Player sender = Bukkit.getPlayer(args[1]);
+    		if(sender == null) {
+            	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[1]));
+            	return;
+    		}
+    		if(invitations.containsKey(sender) && invitations.get(sender).containsKey(player)) {
+    			String claimName = invitations.get(sender).get(player);
+    			invitations.get(sender).remove(player);
+    			if(invitations.get(sender).isEmpty()) {
+    				invitations.remove(sender);
+    			}
+    			invitationsTime.get(sender).remove(player);
+    			if(invitationsTime.get(sender).isEmpty()) {
+    				invitationsTime.remove(sender);
+    			}
+    			if(claimName.equals("*")) {
+                    instance.getMain().addAllClaimsMember(sender.getName(), playerName)
+	                	.thenAccept(success -> {
+	                		if (success) {
+	                			String message = instance.getLanguage().getMessage("player-accept-invitation");
+	                			instance.executeEntitySync(player, () -> player.sendMessage(message));
+	                            instance.executeEntitySync(sender, () -> sender.sendMessage(instance.getLanguage().getMessage("player-accept-invitation-other").replace("%player%", playerName)));
+	                		} else {
+	                			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+	                		}
+	                	})
+	                    .exceptionally(ex -> {
+	                        ex.printStackTrace();
+	                        return null;
+	                    });
+    			} else {
+    	            Claim claim = instance.getMain().getClaimByName(claimName, sender);
+    	            if (claim == null) {
+    	            	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
+    	                return;
+    	            }
+                    instance.getMain().addClaimMember(claim, playerName)
+	                	.thenAccept(success -> {
+	                		if (success) {
+	                			String message = instance.getLanguage().getMessage("player-accept-invitation");
+	                			instance.executeEntitySync(player, () -> player.sendMessage(message));
+	                            instance.executeEntitySync(sender, () -> sender.sendMessage(instance.getLanguage().getMessage("player-accept-invitation-other").replace("%player%", playerName)));
+	                		} else {
+	                			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+	                		}
+	                	})
+	                    .exceptionally(ex -> {
+	                        ex.printStackTrace();
+	                        return null;
+	                    });
+    			}
+    		} else {
+    			player.sendMessage(instance.getLanguage().getMessage("player-no-invitation").replace("%player%", sender.getName()));
+    		}
+    		return;
+    	}
+    	if (args[0].equalsIgnoreCase("deny")) {
+            if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.deny")) {
+            	player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
+                return;
+            }
+    		if(!instance.getSettings().getBooleanSetting("claim-invitations-system")) {
+            	player.sendMessage(instance.getLanguage().getMessage("player-invitations-system-off"));
+            	return;
+    		}
+    		Player sender = Bukkit.getPlayer(args[1]);
+    		if(sender == null) {
+            	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[1]));
+            	return;
+    		}
+    		if(invitations.containsKey(sender) && invitations.get(sender).containsKey(player)) {
+    			invitations.get(sender).remove(player);
+    			if(invitations.get(sender).isEmpty()) {
+    				invitations.remove(sender);
+    			}
+    			invitationsTime.get(sender).remove(player);
+    			if(invitationsTime.get(sender).isEmpty()) {
+    				invitationsTime.remove(sender);
+    			}
+				String message = instance.getLanguage().getMessage("player-deny-invitation");
+				player.sendMessage(message);
+	            sender.sendMessage(instance.getLanguage().getMessage("player-deny-invitation-other").replace("%player%", playerName));
+    		} else {
+    			player.sendMessage(instance.getLanguage().getMessage("player-no-invitation").replace("%player%", sender.getName()));
+    		}
+    		return;
+    	}
     	if (args[0].equalsIgnoreCase("main")) {
             Claim claim = instance.getMain().getClaimByName(args[1], player);
             if (claim == null) {
@@ -1345,52 +1607,124 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("cant-add-member-anymore"));
                 return;
             }
+            
             Player target = Bukkit.getPlayer(args[1]);
-            String[] targetName = {""};
-            
-            // Create runnable
-            Runnable task = () -> {
-            	instance.executeSync(() -> {
-                    if (targetName[0].equals(playerName)) {
-                    	player.sendMessage(instance.getLanguage().getMessage("cant-add-yourself"));
-                        return;
-                    }
-                    if (instance.getMain().checkMembre(claim, targetName[0])) {
-                        String message = instance.getLanguage().getMessage("already-member").replace("%player%", targetName[0]);
-                        player.sendMessage(message);
-                        return;
-                    }
-                    String message = instance.getLanguage().getMessage("add-member-success").replace("%player%", targetName[0]).replace("%claim-name%", claim.getName());
-                    instance.getMain().addClaimMember(claim, targetName[0])
-                    	.thenAccept(success -> {
-                    		if (success) {
-                    			instance.executeEntitySync(player, () -> player.sendMessage(message));
-                                if(target != null && target.isOnline()) {
-                                	instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("add-claim-player").replace("%claim-name%", claim.getName()).replace("%owner%", playerName)));
-                                }
-                    		} else {
-                    			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
-                    		}
-                    	})
-                        .exceptionally(ex -> {
-                            ex.printStackTrace();
-                            return null;
-                        });
-            	});
-            };
-            
-            if (target == null) {
-            	instance.getOfflinePlayer(args[1], otarget -> {
-                    if (otarget == null || !otarget.hasPlayedBefore()) {
-                    	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[1]));
-                        return;
-                    }
-                    targetName[0] = otarget.getName();
-                    task.run();
-            	});
+            if(instance.getSettings().getBooleanSetting("claim-invitations-system")) {
+            	
+            	if(target == null) {
+                	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[1]));
+                	return;
+            	}
+            	
+            	String targetName = target.getName();
+                if (targetName.equals(playerName)) {
+                	player.sendMessage(instance.getLanguage().getMessage("cant-add-yourself"));
+                    return;
+                }
+                if (instance.getMain().checkMembre(claim, targetName)) {
+                    String message = instance.getLanguage().getMessage("already-member").replace("%player%", targetName);
+                    player.sendMessage(message);
+                    return;
+                }
+            	if(invitations.containsKey(player) && invitations.get(player).containsKey(target)) {
+                    String message = instance.getLanguage().getMessage("player-already-invite-other").replace("%player%", targetName);
+                    player.sendMessage(message);
+                    return;
+            	}
+            	invitations.computeIfAbsent(player, k -> new HashMap<>()).put(target, claim.getName());
+            	LocalDateTime date = LocalDateTime.now();
+            	invitationsTime.computeIfAbsent(player, k -> new HashMap<>()).put(target, date);
+            	player.sendMessage(instance.getLanguage().getMessage("player-invite-other").replace("%player%", targetName));
+                TextComponent message = new TextComponent(instance.getLanguage().getMessage("player-invite-other-player").replace("%sender%", playerName).replace("%claim-name%", claim.getName())+" ");
+                TextComponent acceptButton = new TextComponent(instance.getLanguage().getMessage("player-invite-accept-button"));
+                acceptButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim accept " + playerName));
+                acceptButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(instance.getLanguage().getMessage("player-invite-accept-button-hover")).create()));
+                TextComponent space = new TextComponent(" ");
+                TextComponent denyButton = new TextComponent(instance.getLanguage().getMessage("player-invite-deny-button"));
+                denyButton.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/claim deny " + playerName));
+                denyButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(instance.getLanguage().getMessage("player-invite-deny-button-hover")).create()));
+                message.addExtra(acceptButton);
+                message.addExtra(space);
+                message.addExtra(denyButton);
+            	target.sendMessage(message);
+            	
+            	instance.executeAsyncLater(() -> {
+            		
+            		if(player != null && target != null) {
+                		if(invitations.containsKey(player) 
+                				&& invitations.get(player).containsKey(target) 
+                				&& invitations.get(player).get(target).equals(claim.getName())
+                				&& invitationsTime.containsKey(player)
+                				&& invitationsTime.get(player).containsKey(target)
+                				&& invitationsTime.get(player).get(target) == date) {
+                			if(target.isOnline()) {
+                				instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("player-invitation-expired-other").replace("%player%", playerName)));
+                			}
+                			if(player.isOnline()) {
+                				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("player-invitation-expired").replace("%player%", targetName)));
+                			}
+                			invitations.get(player).remove(target);
+                			if(invitations.get(player).isEmpty()) {
+                				invitations.remove(player);
+                			}
+                			invitationsTime.get(player).remove(target);
+                			if(invitationsTime.get(player).isEmpty()) {
+                				invitationsTime.remove(player);
+                			}
+                		}
+            		}
+            		
+            	}, Integer.parseInt(instance.getSettings().getSetting("claim-invitation-expiration-delay"))*1000);
+            	
             } else {
-                targetName[0] = target.getName();
-                task.run();
+
+                String[] targetName = {""};
+                
+                // Create runnable
+                Runnable task = () -> {
+                	instance.executeSync(() -> {
+                        if (targetName[0].equals(playerName)) {
+                        	player.sendMessage(instance.getLanguage().getMessage("cant-add-yourself"));
+                            return;
+                        }
+                        if (instance.getMain().checkMembre(claim, targetName[0])) {
+                            String message = instance.getLanguage().getMessage("already-member").replace("%player%", targetName[0]);
+                            player.sendMessage(message);
+                            return;
+                        }
+                        String message = instance.getLanguage().getMessage("add-member-success").replace("%player%", targetName[0]).replace("%claim-name%", claim.getName());
+                        instance.getMain().addClaimMember(claim, targetName[0])
+                        	.thenAccept(success -> {
+                        		if (success) {
+                        			instance.executeEntitySync(player, () -> player.sendMessage(message));
+                                    if(target != null && target.isOnline()) {
+                                    	instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("add-claim-player").replace("%claim-name%", claim.getName()).replace("%owner%", playerName)));
+                                    }
+                        		} else {
+                        			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+                        		}
+                        	})
+                            .exceptionally(ex -> {
+                                ex.printStackTrace();
+                                return null;
+                            });
+                	});
+                };
+                
+                if (target == null) {
+                	instance.getOfflinePlayer(args[1], otarget -> {
+                        if (otarget == null || !otarget.hasPlayedBefore()) {
+                        	player.sendMessage(instance.getLanguage().getMessage("player-never-played").replace("%player%", args[1]));
+                            return;
+                        }
+                        targetName[0] = otarget.getName();
+                        task.run();
+                	});
+                } else {
+                    targetName[0] = target.getName();
+                    task.run();
+                }
+            	
             }
             return;
         }
@@ -2315,6 +2649,20 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         
         if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim."+arg)) return completions;
         switch (arg.toLowerCase()) {
+	        case "accept":
+	        case "deny":
+	        	completions.addAll(invitations.entrySet().stream()
+	                    .filter(entry -> entry.getValue().containsKey(player))
+	                    .map(entry -> entry.getKey().getName())
+	                    .collect(Collectors.toList()));
+	        	break;
+	        case "cancelinv":
+	        	if(invitations.containsKey(player) && invitations.get(player) != null) {
+	        		completions.addAll(invitations.get(player).keySet().stream()
+	        				.map(entry -> entry.getName())
+	        				.collect(Collectors.toList()));
+	        	}
+	        	break;
             case "see":
                 if (instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.see.others")) {
                     completions.addAll(main.getClaimsOwners());
