@@ -75,6 +75,15 @@ public class ClaimBossBar {
     }
     
     /**
+     * Removes a player.
+     * 
+     * @param player The player.
+     */
+    public void removePlayer(Player player) {
+    	bossBars.remove(player);
+    }
+    
+    /**
      * Activates the BossBar for the player.
      *
      * @param player the player.

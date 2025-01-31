@@ -112,7 +112,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.8.2";
+    private String Version = "1.11.8.3";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -829,10 +829,19 @@ public class SimpleClaimSystem extends JavaPlugin {
             cPlayerMainInstance.loadPlayers();
             
             // Add players setting and active their bossbar (/reload prevention)
-            Bukkit.getOnlinePlayers().forEach(p -> {
-            	cPlayerMainInstance.addPlayerPermSetting(p);
-            	claimBossBarInstance.activeBossBar(p, p.getLocation().getChunk());
-            });
+            if(isFolia) {
+                Bukkit.getOnlinePlayers().forEach(p -> {
+                	cPlayerMainInstance.addPlayerPermSetting(p);
+                	Bukkit.getRegionScheduler().run(this, p.getLocation(), task -> {
+                		claimBossBarInstance.activeBossBar(p, p.getLocation().getChunk());
+                	});
+                });
+            } else {
+                Bukkit.getOnlinePlayers().forEach(p -> {
+                	cPlayerMainInstance.addPlayerPermSetting(p);
+                	claimBossBarInstance.activeBossBar(p, p.getLocation().getChunk());
+                });
+            }
             if(reload) {
             	info("==========================================================================");
                 if(status[0]) {
@@ -1354,10 +1363,19 @@ public class SimpleClaimSystem extends JavaPlugin {
             claimBossBarInstance.loadBossbarSettings();
             
             // Add players setting and active their bossbar (/reload prevention)
-            Bukkit.getOnlinePlayers().forEach(p -> {
-            	cPlayerMainInstance.addPlayerPermSetting(p);
-            	claimBossBarInstance.activeBossBar(p, p.getLocation().getChunk());
-            });
+            if(isFolia) {
+                Bukkit.getOnlinePlayers().forEach(p -> {
+                	cPlayerMainInstance.addPlayerPermSetting(p);
+                	Bukkit.getRegionScheduler().run(this, p.getLocation(), task -> {
+                		claimBossBarInstance.activeBossBar(p, p.getLocation().getChunk());
+                	});
+                });
+            } else {
+                Bukkit.getOnlinePlayers().forEach(p -> {
+                	cPlayerMainInstance.addPlayerPermSetting(p);
+                	claimBossBarInstance.activeBossBar(p, p.getLocation().getChunk());
+                });
+            }
 
             info("==========================================================================");
             
