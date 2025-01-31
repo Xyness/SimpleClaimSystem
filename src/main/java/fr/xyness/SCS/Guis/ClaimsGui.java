@@ -139,16 +139,18 @@ public class ClaimsGui implements InventoryHolder {
 	            });
 	            lore.add(instance.getLanguage().getMessage("owner-claim-access"));
 	            
-	            // Add the owner to map string for gui clicking
-	            cPlayer.addMapString(i, owner);
-	            
 	            // Set owner head item
 	        	ItemStack item = instance.getPlayerMain().getPlayerHead(owner);
+	        	if(item == null) continue;
 	            SkullMeta meta = (SkullMeta) item.getItemMeta();
 	            meta.setDisplayName(instance.getLanguage().getMessage("owner-claim-title").replace("%owner%", owner));
 	            meta.setLore(lore);
 	            item.setItemMeta(meta);
 	            inv.setItem(i, item);
+	            
+	            // Add the owner to map string for gui clicking
+	            cPlayer.addMapString(i, owner);
+	            
 	            i++;
 	        }
 	        

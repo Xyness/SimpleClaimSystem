@@ -340,7 +340,10 @@ public class CPlayerMain {
         	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         	SkullMeta meta = (SkullMeta) head.getItemMeta();
         	if(meta != null) {
-        		meta.setOwnerProfile(Bukkit.createPlayerProfile(playerName));
+        		PlayerProfile profile = Bukkit.createPlayerProfile(playerName);
+        		if(profile != null) {
+        			meta.setOwnerProfile(profile);
+        		}
         		head.setItemMeta(meta);
         	}
         	return head;
@@ -351,7 +354,10 @@ public class CPlayerMain {
         	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         	SkullMeta meta = (SkullMeta) head.getItemMeta();
         	if(meta != null) {
-        		meta.setOwnerProfile(Bukkit.createPlayerProfile(playerName));
+        		PlayerProfile profile = Bukkit.createPlayerProfile(playerName);
+        		if(profile != null) {
+        			meta.setOwnerProfile(profile);
+        		}
         		head.setItemMeta(meta);
         	}
         	return head;

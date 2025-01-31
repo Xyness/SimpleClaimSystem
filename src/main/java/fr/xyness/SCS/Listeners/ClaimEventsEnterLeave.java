@@ -80,7 +80,7 @@ public class ClaimEventsEnterLeave implements Listener {
         handleWeatherSettings(player, chunk, chunk);
         
         if (!instance.getMain().checkIfClaimExists(chunk)) return;
-
+        
         Claim claim = instance.getMain().getClaim(chunk);
         if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
         	playersRejected.add(player);
@@ -108,6 +108,7 @@ public class ClaimEventsEnterLeave implements Listener {
         player.resetPlayerWeather();
         instance.getPlayerMain().removeCPlayer(player.getUniqueId());
         instance.getMain().clearDataForPlayer(player);
+        instance.getBossBars().removePlayer(player);
         if(playersRejected.contains(player)) playersRejected.remove(player);
     }
 
