@@ -100,7 +100,7 @@ public class ClaimGuiEvents implements Listener {
         Inventory inv = event.getClickedInventory();
         Inventory openInventory = event.getView().getTopInventory();
 
-        if (inv != null && inv.equals(openInventory)) {
+        if (inv != null) {
         	
         	InventoryHolder holder = event.getInventory().getHolder();
         	CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
