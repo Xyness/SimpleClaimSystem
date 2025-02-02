@@ -112,7 +112,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.8.4";
+    private String Version = "1.11.8.5";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -649,6 +649,11 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Check if claims where Visitors is false are displayed in the /claims GUI
             claimSettingsInstance.addSetting("claims-visitors-off-visible", getConfig().getString("claims-visitors-off-visible"));
+            
+            // Check claim fly disabled or not for Folia
+            if(isFolia) {
+            	info(ChatColor.RED + "'/claim fly' command disabled because the server is running on Folia.");
+            }
             
             // Check where the auto-map is sent
             configC = getConfig().getString("map-type").toLowerCase();
@@ -1202,6 +1207,11 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Check if claims where Visitors is false are displayed in the /claims GUI
             claimSettingsInstance.addSetting("claims-visitors-off-visible", getConfig().getString("claims-visitors-off-visible"));
+            
+            // Check claim fly disabled or not for Folia
+            if(isFolia) {
+            	info(ChatColor.RED + "'/claim fly' command disabled because the server is running on Folia.");
+            }
             
             // Check where the auto-map is sent
             configC = getConfig().getString("map-type").toLowerCase();
