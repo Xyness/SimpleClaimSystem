@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -14,6 +15,7 @@ import org.bukkit.block.data.Waterlogged;
 import org.bukkit.block.data.type.Bed;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.GlowItemFrame;
@@ -60,6 +62,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.inventory.ItemStack;
@@ -255,6 +258,7 @@ public class ClaimEvents implements Listener {
 	    	Claim claim = instance.getMain().getClaim(chunk);
 	        if (event.getDamager() instanceof Player) {
 	            Player damager = (Player) event.getDamager();
+	            if(player == damager) return;
 	            if(damager.hasPermission("scs.bypass")) return;
 	            if(!claim.getPermission("Pvp", "Natural")) {
 	                instance.getMain().sendMessage(damager, instance.getLanguage().getMessage("pvp"), instance.getSettings().getSetting("protection-message"));
@@ -265,6 +269,7 @@ public class ClaimEvents implements Listener {
 	            ProjectileSource shooter = projectile.getShooter();
 	            if (shooter instanceof Player) {
 	                Player damager = (Player) shooter;
+	                if(player == damager) return;
 	                if(damager.hasPermission("scs.bypass")) return;
 	                if(!claim.getPermission("Pvp", "Natural")) {
 	                    instance.getMain().sendMessage(damager, instance.getLanguage().getMessage("pvp"), instance.getSettings().getSetting("protection-message"));
@@ -418,6 +423,21 @@ public class ClaimEvents implements Listener {
                     entity.setVelocity(new Vector(0, 0, 0));
                 }
             });
+        } else if (event.getEntityType() == EntityType.ENDER_PEARL && instance.isFolia()) {
+            if (event.getEntity().getShooter() instanceof Player player) {
+            	EnderPearl pearl = (EnderPearl) event.getEntity();
+                Location pearlLocation = pearl.getLocation();
+                pearlLocation.setYaw(player.getLocation().getYaw());
+                pearlLocation.setPitch(player.getLocation().getPitch());
+                PlayerTeleportEvent e = new PlayerTeleportEvent(player, player.getLocation(), pearlLocation, PlayerTeleportEvent.TeleportCause.ENDER_PEARL);
+                Bukkit.getPluginManager().callEvent(e);
+                if (e.isCancelled()) {
+                    return;
+                }
+                player.getScheduler().run(instance, task -> {
+                	player.teleportAsync(pearlLocation);
+                }, null);
+            }
         }
     }
     

@@ -300,7 +300,11 @@ public class ClaimEventsEnterLeave implements Listener {
      * @param message The message key to send.
      */
     private void cancelTeleport(PlayerTeleportEvent event, Player player, String message) {
-        event.setCancelled(true);
+    	if(instance.isFolia()) {
+    		instance.executeAsyncLater(() -> instance.getMain().teleportPlayer(player, event.getFrom()), 50);
+    	} else {
+    		event.setCancelled(true);
+    	}
         instance.getMain().sendMessage(player, instance.getLanguage().getMessage(message), instance.getSettings().getSetting("protection-message"));
     }
 

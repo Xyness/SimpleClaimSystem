@@ -254,39 +254,7 @@ banned-claim-player: §c%owner%§f cấm bạn đi lại trên lãnh thổ của
 unbanned-claim-protected-area-player: §fbạn đã được đi lại tự do trên khu vực được
   bảo vệ, khu vực đó là §a%claim-name%§f.
 chunks-must-be-from-same-world: §cCác lãnh thổ phải đến từ cùng một thế giới.
-database-must-be-five-settings: |-
-  §cCơ sở dữ liệu lãnh thổ 5 tham số:
-  §c<HOSTNAME>;<PORT>;<DATABASE>;<USERNAME>;<PASSWORD>
-database-connection-error: |-
-  §cLỗi khi cố gắng kết nối với cơ sở dữ liệu.
-  §cKiểm tra thông tin đăng nhập, chúng nên theo thứ tự này:
-  §c<HOSTNAME>;<PORT>;<DATABASE>;<USERNAME>;<PASSWORD>
-database-connection-successful: §aKết nối cơ sở dữ liệu thành công. Bạn chỉ cần tải
-  lại.
-database-connection-successful-button: §b[Nhấn vào đây để tải lại để sử dụng cơ sở
-  dữ liệu mới]
-database-setup-how-to: |-
-  §fGửi cuộc trò chuyện, thông tin kết nối như thế này:
-  §b<HOSTNAME>§f;§b<PORT>§f;§b<DATABASE>§f;§b<USERNAME>§f;§b<PASSWORD>
-auto-purge-setup-how-to: |-
-  §fGửi cuộc trò chuyện, các cài đặt tự động thanh toán như thế này :
-  §b<FREQUENCY>§f;§b<TIME-WITHOUT-LOGIN>
-auto-purge-must-be-two-settings: |-
-  §cTự động thanh toán, lãnh thổ 2 tham số:
-  §c<FREQUENCY>;<TIME-WITHOUT-LOGIN>
 vault-required: §cBạn cần vault plugin, để thiết lập nền kinh tế.
-economy-setup-how-to: |-
-  §fGửi cuộc trò chuyện, giá bán tối đa mới như thế này :
-  §b<MAX-SELL-PRICE>
-map-setup-how-to: |-
-  §fGửi cuộc trò chuyện, các cài đặt như thế này :
-  §b<CLAIM-BORDER-COLOR>§f;§b<CLAIM-FILL-COLOR>§f;§b<CLAIM-HOVER-TEXT>
-map-must-be-three-settings: |-
-  §cBản đồ lãnh thổ 3 tham số:
-  §c<CLAIM-BORDER-COLOR>;<CLAIM-FILL-COLOR>;<CLAIM-HOVER-TEXT>
-map-new-settings: |-
-  §fCài đặt bản đồ mới:
-  %settings%
 money-symbol: $
 delete-claim-protected-area: §aKhu vực được bảo vệ đã xóa thành công.
 delete-claim-all-protected-areas: §aTất cả các khu vực được bảo vệ đã xóa thành công.
@@ -834,23 +802,24 @@ available-args: |
 chat-format: '§b[Truyền Tin]§e %player%§7: §f%message%'
 talking-now-in-claim: §fBây giờ bạn đang nói trong §eChat trong lãnh thổ§f.
 talking-now-in-public: §fBây giờ bạn đang nói trong §atrò chuyện công khai§f.
-bossbar-protected-area-for-sale-message: §f§eKhu vực được bảo vệ§f - §6§lĐể mua nó §b/claim
-  buy §a(%price%%money-symbol%)
-bossbar-owner-for-sale-message: §eLãnh thổ của bạn §f- §b%name%§f - §6§lĐể mua nó §7/claim
-  cancel §a(%price%%money-symbol%)
-bossbar-member-for-sale-message: §fLãnh thổ §b%name%§f of §e%owner%§f - §6§lĐể mua nó
+bossbar-protected-area-for-sale-message: §f§eKhu vực được bảo vệ§f - §6§lĐể mua nó
   §b/claim buy §a(%price%%money-symbol%)
-bossbar-visitor-for-sale-message: §fLãnh thổ §b%name%§f of §e%owner%§f - §6§lĐể mua nó §b/claim buy §a(%price%%money-symbol%)
+bossbar-owner-for-sale-message: §eLãnh thổ của bạn §f- §b%name%§f - §6§lĐể mua nó
+  §7/claim cancel §a(%price%%money-symbol%)
+bossbar-member-for-sale-message: §fLãnh thổ §b%name%§f of §e%owner%§f - §6§lĐể mua
+  nó §b/claim buy §a(%price%%money-symbol%)
+bossbar-visitor-for-sale-message: §fLãnh thổ §b%name%§f of §e%owner%§f - §6§lĐể mua
+  nó §b/claim buy §a(%price%%money-symbol%)
 can-not-buy-your-own-claim: §cbạn không thể mua mảnh đất của chính mình
 enter: §cBạn không thể vào lãnh thổ này
 guiteleport: §cBạn không thể dịch chuyển đến lãnh thổ này
 portals: §cBạn không thể sử dụng cổng trong lãnh thổ này
 itemspickup: §cBạn không thể nhặt các vật phẩm trong lãnh thổ này
 itemsdrop: §cBạn không thể ném vật phẩm trong lãnh thổ này
-enter-protected-area-for-sale: §fBạn đang bước vào §eKhu vực được bảo vệ §f - §6§lĐể mua nó §b/claim
-  buy §a(%price%%money-symbol%)
-enter-territory-for-sale: §fBạn đã bước vào lãnh thổ của §e%owner%§f - §6§lĐể mua nó
-  §b/claim buy §a(%price%%money-symbol%)
+enter-protected-area-for-sale: §fBạn đang bước vào §eKhu vực được bảo vệ §f - §6§lĐể
+  mua nó §b/claim buy §a(%price%%money-symbol%)
+enter-territory-for-sale: §fBạn đã bước vào lãnh thổ của §e%owner%§f - §6§lĐể mua
+  nó §b/claim buy §a(%price%%money-symbol%)
 enter-protected-area-for-sale-title: §6§lĐang rao bán
 enter-protected-area-for-sale-subtitle: §fBan đi vào một §eKhu vực bảo vệ§f - §b/claim
   buy §a(%price%%money-symbol%)
@@ -899,8 +868,8 @@ config-reload-attempt: |
   §7Bạn có thể tiếp tục những gì bạn đang làm.
 config-reload-complete: §aCấu hình tải lại hoàn tất.
 config-reload-not-complete: §cCấu hình tải lại thất bại.
-setowner-all-other-success: §e%owner%§f bây giờ là lãnh chúa mới cho §eTất cả vùng đất§f
-  của §e%old-owner%§f.
+setowner-all-other-success: §e%owner%§f bây giờ là lãnh chúa mới cho §eTất cả vùng
+  đất§f của §e%old-owner%§f.
 setowner-claim-other-success: §e%owner%§f vây giờ là lãnh chúa mới cho vùng đất §e%claim-name%§f
   của §e%old-owner%§f.
 claim-already-in-sale: §cKhu vực này đang được rao bán.
@@ -911,3 +880,63 @@ elytra-lore: §7Cho phép sử dụng Elytra
 specialblocks-title: §ePhá hủy các khối §7(%status%§7)
 specialblocks-lore: §7Cho phép phá hủy các khối
 no-claim-can-be-merged: §cKhông có yêu cầu hợp nhất lãnh thổ.
+cant-claim-anymore-other: §c%player% đã đạt được số lượng chiếm đóng tối đa cho mỗi
+  Người chơi.
+autoaddchunk-off: §fAuto-addchunk tất.
+autoaddchunk-on: §fAuto-addchunk Bật cho các mảnh đất §7%claim-name%§f.
+autodelchunk-off: §fAuto-delchunk tắt.
+autodelchunk-on: §fAuto-delchunk Bật cho các mảnh đất §7%claim-name%§f.
+autounclaim-off: §fAuto-unclaim tắt.
+autounclaim-on: §fAuto-unclaim bật.
+autoaddchunk-not-enabled: §cAuto-addchunk đã tắt.
+autodelchunk-not-enabled: §cAuto-delchunk đã tắt.
+there-is-a-claim-not-adjacent: §cÍt nhất một mảnh đất không liền kề với những người khác.
+autounclaim-world-disabled: §cChiếm đóng tự động bị vô hiệu hóa trên thế giới '%world%'. Auto-unclaim
+  tắt.
+autodelchunk-world-disabled: §cAuto-Delchunk bị vô hiệu hóa trên thế giới '%world%'. Auto-Delchunk
+  tắt.
+autoaddchunk-world-disabled: §cAuto-Addchunk bị vô hiệu hóa trên thế giới '%world%'. Auto-addchunk
+  tắt.
+cant-claim-with-so-many-chunks-other: §c%player% Không thể chiếm với quá nhiều khu vực khối.
+you-paid-chunk: §fBạn đã trả tiền §e%price%%money-symbol%§f để thêm cho một khu vực.
+chunk-cost-must-be-positive: §cThe chunk cost must be positive.
+chunk-cost-must-be-number: §cChi phí khu vực phải là một con số.
+set-player-chunk-cost-success: §e%player%§f Sẽ phải trả tiền §e%amount%§f Để thêm khu vực.
+set-group-chunk-cost-success: §fNhóm §e%group%§f Sẽ phải trả tiền §e%amount%§f để thêm
+  khu vực.
+chunk-cost-multiplier-must-be-positive: §cCác giá trị cho hệ số nhân trong khu vực phải lớn hơn 0.
+chunk-cost-multiplier-must-be-number: §cCác giá trị hệ số nhân cho khu vực Phải là một số.
+set-player-chunk-cost-multiplier-success: §fHệ số nhân §e%amount%§f sẽ được sử dụng
+  cho chi phí khu vực cho §e%player%§f.
+set-group-chunk-cost-multiplier-success: §fHệ số nhân §e%amount%§f sẽ được sử dụng
+  Đối với chi phí chunk cho nhóm §e%group%§f.
+player-invite-other-player: §e%sender%§f Đã gửi cho bạn một lời mời tham gia §e%claim-name%
+player-invite-other: §aLời mời được gửi đến %player%.
+player-already-invite-other: |
+  §cBạn đã gửi một lời mời đến %player%.
+  §cSử dụng /claim cancelinv %player% Để hủy lời mời cũ.
+player-invite-accept-button: §a[Chấp nhận]
+player-invite-deny-button: §c[Từ Chối]
+player-invite-accept-button-hover: §aBấm để chấp nhận
+player-invite-deny-button-hover: §cBấm để từ chối
+player-accept-invitation: §aBạn đã chấp nhận lời mời.
+player-cancel-invitation: §cBạn đã hủy lời mời của %player%.
+player-deny-invitation: §cBạn đã từ chối lời mời.
+player-accept-invitation-other: §a%player%§f chấp nhận lời mời.
+player-deny-invitation-other: §c%player%§f từ chối lời mời.
+player-no-invitation: §c%player% Không mời bạn.
+player-do-not-invite: §cBạn đã không mời %player%.
+player-invitation-expired: §cLời mời của bạn đến %player% đã hết hạn.
+player-invitation-expired-other: §cLời mời của %player% đã hết hạn.
+player-invitation-all-their-claims: Tất cả các khu vực của họ
+player-invitations-system-off: §cHệ thống lời mời bị vô hiệu hóa trên máy chủ này.
+gui-claim-confirm-title: Xác nhận chiếm đóng khu vực?
+gui-chunk-confirm-title: Xác nhận thêm chunk?
+confirm-title: §aXác Nhận
+cancel-title: §cHuỷ bỏ
+claim-confirm-info-title: §eThông Tin
+claim-confirm-info-lore-economy: "§7Giá trị: §6%price%%money-symbol%\n "
+claim-confirm-info-lore: §7▸ §fĐưa ra lựa chọn cho khu vực chiếm đóng
+chunk-confirm-info-title: §eThông tin
+chunk-confirm-info-lore-economy: "§7Giá trị: §6%price%%money-symbol%\n "
+chunk-confirm-info-lore: §7▸ §fĐưa ra lựa chọn cho khu vực chiếm đóng
