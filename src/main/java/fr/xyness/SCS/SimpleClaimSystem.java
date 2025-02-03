@@ -27,7 +27,9 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.command.CommandSender;
@@ -112,7 +114,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.8.5";
+    private String Version = "1.11.8.6";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -736,6 +738,27 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Add teleportation delay moving setting
             claimSettingsInstance.addSetting("teleportation-delay-moving", getConfig().getString("teleportation-delay-moving"));
+            
+            // Expulsion location
+            if(getConfig().contains("expulsion-location")) {
+            	if (!config.isSet("expulsion-location") || config.getConfigurationSection("expulsion-location").getKeys(false).isEmpty()) {
+            		getLogger().warning("'expulsion-location' : don't forget to set it with /scs setexpulsionlocation.");
+            	} else {
+	            	World world = Bukkit.getWorld(config.getString("expulsion-location.world"));
+	                if (world == null) {
+	                    getLogger().warning("'expulsion-location' : the world is incorrect.");
+	                    status[0] = false;
+	                    return;
+	                }
+	                double x = config.getDouble("expulsion-location.x");
+	                double y = config.getDouble("expulsion-location.y");
+	                double z = config.getDouble("expulsion-location.z");
+	                float yaw = (float) config.getDouble("expulsion-location.yaw");
+	                float pitch = (float) config.getDouble("expulsion-location.pitch");
+	                Location location = new Location(world, x, y, z, yaw, pitch);
+	                claimSettingsInstance.setExpulsionLocation(location);
+            	}
+            }
             
             // Add group settings
             ConfigurationSection groupsSection = getConfig().getConfigurationSection("groups");
@@ -1856,6 +1879,26 @@ public class SimpleClaimSystem extends JavaPlugin {
     			callback.accept(offlinePlayer);
     		});
     		
+    	});
+    }
+    
+    /**
+     * Define the expulsion location.
+     * 
+     * @param loc The new expulsion location
+     */
+    public void setExpulsionLocation(Location loc) {
+    	getSettings().setExpulsionLocation(loc);
+    	CompletableFuture.runAsync(() -> {
+        	FileConfiguration config = getConfig();
+        	config.set("expulsion-location.world", loc.getWorld().getName());
+        	config.set("expulsion-location.x", loc.getX());
+        	config.set("expulsion-location.y", loc.getY());
+        	config.set("expulsion-location.z", loc.getZ());
+        	config.set("expulsion-location.yaw", loc.getYaw());
+        	config.set("expulsion-location.pitch", loc.getPitch());
+            saveConfig();
+            reloadConfig();
     	});
     }
 }

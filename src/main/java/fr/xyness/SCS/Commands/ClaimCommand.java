@@ -414,7 +414,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	        	}
 	            player.sendMessage(instance.getLanguage().getMessage("kick-success-all-claims").replace("%player%", target.getName()));
 	            target.sendMessage(instance.getLanguage().getMessage("kicked-from-all-claims").replace("%player%", playerName));
-	        	instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+	            instance.getMain().teleportPlayerToExpulsion(target);
 	        	return;
             }
             Claim claim = instance.getMain().getClaimByName(args[1], player);
@@ -434,7 +434,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             String claimName = claim.getName();
             player.sendMessage(instance.getLanguage().getMessage("kick-success").replace("%player%", target.getName()).replace("%claim-name%", claimName));
             target.sendMessage(instance.getLanguage().getMessage("kicked-from-claim").replace("%player%", playerName).replace("%claim-name%", claimName));
-            instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+            instance.getMain().teleportPlayerToExpulsion(target);
             return;
     	}
         if (args[0].equalsIgnoreCase("ban")) {
@@ -464,7 +464,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         			instance.executeEntitySync(player, () -> player.sendMessage(message));
                     		        if (target != null && target.isOnline()) {
                     		        	if(instance.getMain().getAllChunksFromAllClaims(playerName).contains(target.getLocation().getChunk())) {
-                    		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation()));
+                    		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayerToExpulsion(target));
                     		        	}
                     		        	instance.executeEntitySync(target, () -> {
                     		        		target.sendMessage(instance.getLanguage().getMessage("banned-all-claim-player").replace("%owner%", playerName));
@@ -521,7 +521,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 		        if (target != null && target.isOnline()) {
                 		        	String claimName = claim.getName();
                 		        	if(claim.getChunks().contains(target.getLocation().getChunk())) {
-                		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation()));
+                		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayerToExpulsion(target));
                 		        	}
                 		        	instance.executeEntitySync(target, () -> {
                 		        		target.sendMessage(instance.getLanguage().getMessage("banned-claim-player").replace("%owner%", playerName).replace("%claim-name%", claimName));
@@ -1376,7 +1376,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             String claimName = claim.getName();
             player.sendMessage(instance.getLanguage().getMessage("kick-success").replace("%player%", target.getName()).replace("%claim-name%", claimName));
             target.sendMessage(instance.getLanguage().getMessage("kicked-from-claim").replace("%player%", playerName).replace("%claim-name%", claimName));
-            instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+            instance.getMain().teleportPlayerToExpulsion(target);
             return;
     	}
         if (args[0].equalsIgnoreCase("ban")) {
@@ -1413,7 +1413,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 		        if (target != null && target.isOnline()) {
                 		        	String claimName = claim.getName();
                 		        	if(claim.getChunks().contains(target.getLocation().getChunk())) {
-                		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation()));
+                		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayerToExpulsion(target));
                 		        	}
                 		        	instance.executeEntitySync(target, () -> {
         	        		        	target.sendMessage(instance.getLanguage().getMessage("banned-claim-player").replace("%owner%", playerName).replace("%claim-name%", claimName));

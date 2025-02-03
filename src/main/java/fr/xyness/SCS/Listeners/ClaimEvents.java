@@ -20,6 +20,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.GlowItemFrame;
 import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -209,6 +210,7 @@ public class ClaimEvents implements Listener {
 	                    for (Entity entity : event.getAffectedEntities()) {
 	                        if (entity.getType() == EntityType.PLAYER) {
 	                            Player player = (Player) entity;
+	                            if(player == damager) return;
 	                            Chunk chunk = player.getLocation().getChunk();
 	                            Claim claim = instance.getMain().getClaim(chunk);
 
@@ -369,12 +371,23 @@ public class ClaimEvents implements Listener {
                 blockIterator.remove();
             }
         }
-        event.getEntity().getNearbyEntities(5, 5, 5).forEach(entity -> {
-        	Chunk chunk = entity.getLocation().getChunk();
-        	if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
-                entity.setVelocity(new Vector(0, 0, 0));
-            }
-        });
+        if (event.getEntityType() == EntityType.WIND_CHARGE) {
+        	Projectile wind = (Projectile) event.getEntity();
+        	if(wind.getShooter() instanceof Player player) {
+        		Chunk chunk = event.getEntity().getLocation().getChunk();
+        		if(instance.getMain().checkIfClaimExists(chunk)) {
+        			Claim claim = instance.getMain().getClaim(chunk);
+        			if(!claim.getPermissionForPlayer("Windcharges", player)) {
+        				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("windcharges"), instance.getSettings().getSetting("protection-message"));
+                        event.getEntity().getNearbyEntities(5, 5, 5).forEach(entity -> {
+                        	entity.setVelocity(new Vector(0, 0, 0));
+                        });
+        			}
+        		}
+        		return;
+        	}
+    		return;
+        }
     }
     
     /**
@@ -404,7 +417,7 @@ public class ClaimEvents implements Listener {
                 }
             });
         } else if (event.getEntityType() == EntityType.WIND_CHARGE) {
-        	if (event.getHitBlock() != null) {
+            if (event.getHitBlock() != null) {
             	Block block = event.getHitBlock();
             	Chunk chunk = block.getLocation().getChunk();
                 if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
@@ -417,12 +430,6 @@ public class ClaimEvents implements Listener {
         			event.setCancelled(true);
         		}
             }
-            event.getEntity().getNearbyEntities(5, 5, 5).forEach(entity -> {
-            	Chunk chunk = entity.getLocation().getChunk();
-            	if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
-                    entity.setVelocity(new Vector(0, 0, 0));
-                }
-            });
         } else if (event.getEntityType() == EntityType.ENDER_PEARL && instance.isFolia()) {
             if (event.getEntity().getShooter() instanceof Player player) {
             	EnderPearl pearl = (EnderPearl) event.getEntity();
@@ -434,9 +441,9 @@ public class ClaimEvents implements Listener {
                 if (e.isCancelled()) {
                     return;
                 }
-                player.getScheduler().run(instance, task -> {
-                	player.teleportAsync(pearlLocation);
-                }, null);
+                instance.executeEntitySync(player, () -> {
+                	instance.getMain().teleportPlayer(player, pearlLocation);
+                });
             }
         }
     }

@@ -312,7 +312,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 	        	}
 	            player.sendMessage(instance.getLanguage().getMessage("kick-success-all-protected-areas").replace("%player%", target.getName()));
 	            target.sendMessage(instance.getLanguage().getMessage("kicked-from-all-protected-areas").replace("%player%", playerName));
-	        	instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+	        	instance.getMain().teleportPlayerToExpulsion(target);
 	        	return;
             }
             Claim claim = instance.getMain().getProtectedAreaByName(args[1]);
@@ -332,7 +332,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             String claimName = claim.getName();
             player.sendMessage(instance.getLanguage().getMessage("kick-success-protected-area").replace("%player%", target.getName()).replace("%claim-name%", claimName));
             target.sendMessage(instance.getLanguage().getMessage("kicked-from-protected-area").replace("%player%", playerName).replace("%claim-name%", claimName));
-            instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation());
+            instance.getMain().teleportPlayerToExpulsion(target);
             return;
     	}
     	if(args[0].equalsIgnoreCase("ban")) {
@@ -358,7 +358,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     	        					instance.executeEntitySync(player, () -> player.sendMessage(message));
     	    	        			if (target != null && target.isOnline()) {
     	    	        				if(instance.getMain().getAllChunksFromAllProtectedAreas().contains(target.getLocation().getChunk())) {
-    	            		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation()));
+    	            		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayerToExpulsion(target));
     	            		        	}
     	            		        	instance.executeEntitySync(target, () -> {
     			    			        	target.sendMessage(instance.getLanguage().getMessage("banned-all-claim-protected-area-player"));
@@ -413,7 +413,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 		    			        if (target != null && target.isOnline()) {
 		    			        	String claimName = claim.getName();
 		    			        	if(claim.getChunks().contains(target.getLocation().getChunk())) {
-		        		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayer(target, Bukkit.getWorlds().get(0).getSpawnLocation()));
+		        		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayerToExpulsion(target));
 		        		        	}
 		        		        	instance.executeEntitySync(target, () -> {
 			    			        	target.sendMessage(instance.getLanguage().getMessage("banned-claim-protected-area-player").replace("%claim-name%", claimName));

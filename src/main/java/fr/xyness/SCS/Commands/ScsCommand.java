@@ -216,6 +216,12 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     			new AdminGestionMainGui(player,instance);
     			return;
     		}
+        	if(args[0].equalsIgnoreCase("setexpulsionlocation")) {
+        		Location loc = player.getLocation();
+        		instance.setExpulsionLocation(loc);
+        		player.sendMessage(instance.getLanguage().getMessage("expulsion-set"));
+        		return;
+        	}
         	if(args[0].equalsIgnoreCase("forceunclaim")) {
         		Chunk chunk = player.getLocation().getChunk();
         		if(!instance.getMain().checkIfClaimExists(chunk)) {
@@ -1413,7 +1419,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     private List<String> getPrimaryCompletions(String[] args) {
     	String partialInput = args.length > 0 ? args[0].toLowerCase() : "";
         List<String> completions = List.of("reload", "config-reload", "transfer", "player", "cplayer", "group", "forceunclaim", "setowner", "set-lang", 
-                "reset-all-player-claims-settings", "reset-all-admin-claims-settings","admin","import-griefprevention");
+                "reset-all-player-claims-settings", "reset-all-admin-claims-settings","admin","import-griefprevention","setexpulsionlocation");
         return completions.stream()
     	        .filter(c -> c.toLowerCase().startsWith(partialInput))
     	        .collect(Collectors.toList());

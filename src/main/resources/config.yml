@@ -143,6 +143,9 @@ teleportation-delay-moving: false
 # Available types : CHAT and SCOREBOARD.
 map-type: SCOREBOARD
 
+# Location when a player is banned/kicked from a clail
+expulsion-location: {}
+
 
 # ******************
 # *  Map settings  *
@@ -288,6 +291,7 @@ status-settings:
   ItemsDrop: true
   SpecialBlocks: true
   Elytra: true
+  Windcharges: true
 
 # List of default values for the settings
 default-values-settings:
@@ -318,6 +322,7 @@ default-values-settings:
     ItemsDrop: true
     SpecialBlocks: false
     Elytra: true
+    Windcharges: true
   Visitors:
     Build: false
     Destroy: false
@@ -345,6 +350,7 @@ default-values-settings:
     ItemsDrop: false
     SpecialBlocks: false
     Elytra: false
+    Windcharges: false
   Natural:
     Explosions: false
     Liquids: false

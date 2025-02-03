@@ -10,6 +10,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 
@@ -71,6 +72,9 @@ public class ClaimSettings {
     
     /** Set of disabled worlds. */
     private Set<String> disabledWorlds = new HashSet<>();
+    
+    /** Location of the expulsion */
+    private Location expulsionLocation;
 
     
     // ********************
@@ -264,6 +268,24 @@ public class ClaimSettings {
      */
     public boolean isWorldDisabled(String w) {
         return disabledWorlds.contains(w);
+    }
+    
+    /**
+     * Set the expulsion location.
+     * 
+     * @param expulsionLocation The expulsion location.
+     */
+    public void setExpulsionLocation(Location expulsionLocation) {
+    	this.expulsionLocation = expulsionLocation;
+    }
+    
+    /**
+     * Gets the expulsion location.
+     * 
+     * @return The expulsion location.
+     */
+    public Location getExpulsionLocation() {
+    	return expulsionLocation;
     }
 
     /**
