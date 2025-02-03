@@ -749,6 +749,15 @@ help-command:
   claim-main: |
     §bSyntax : §f/claim main <claim-name>
     §bDescription : §fOpen the main menu of a claim
+  claim-cancelinv: |
+    §bSyntax : §f/claim cancelinv <player>
+    §bDescription : §fCancel a player's invitation
+  claim-accept: |
+    §bSyntax : §f/claim accept <player>
+    §bDescription : §fAccept a player's invitation
+  claim-deny: |
+    §bSyntax : §f/claim deny <player>
+    §bDescription : §fDeny a player's invitation
   unclaim-unclaim: |
     %help-separator%
     §bSyntax : §f/unclaim [<claim-name|*>]
@@ -838,6 +847,9 @@ help-command:
   scs-admin: |
     §bSyntax : §f/scs admin
     §bDescription : §fOpen the admin GUI
+  scs-setexpulsionlocation: |
+    §bSyntax : §f/scs setexpulsionlocation
+    §bDescription : §fSet the expulsion location
   next-page: §7Page %page% - click to access next page
   previous-page: §7Page %page% - click to access previous page
   
