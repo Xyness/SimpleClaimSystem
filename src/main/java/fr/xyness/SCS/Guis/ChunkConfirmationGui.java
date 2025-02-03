@@ -100,7 +100,7 @@ public class ChunkConfirmationGui implements InventoryHolder {
         	List<String> lore = new ArrayList<>();
         	if(instance.getSettings().getBooleanSetting("economy") && price > 0) {
         		lore.addAll(instance.getGuis().getLore(instance.getLanguage().getMessage("chunk-confirm-info-lore-economy")
-        				.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(price)))
+        				.replace("%price%", instance.getMain().getPrice(String.valueOf(price)))
         				.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
         	}
         	lore.addAll(instance.getGuis().getLore(instance.getLanguage().getMessage("chunk-confirm-info-lore")));

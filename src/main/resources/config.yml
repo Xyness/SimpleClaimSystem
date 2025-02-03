@@ -72,6 +72,9 @@ claim-confirmation: false
 # Display particles on the borders when claiming?
 claim-particles: true
 
+# Display particles when a player can not enter
+claim-particles-not-enter: true
+
 # Disable claim fly on damage (of any type)
 claim-fly-disabled-on-damage: true
 
@@ -106,6 +109,9 @@ chunk-cost: false
 claim-cost-multiplier: false
 # Same for adding chunk
 chunk-cost-multiplier: false
+
+# Use formatted number for costs (10,000,000 = 10M for example)
+use-formatted-number: true
 
 # Settings of announce
 announce-sale:
