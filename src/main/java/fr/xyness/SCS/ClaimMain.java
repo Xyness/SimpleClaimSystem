@@ -773,6 +773,16 @@ public class ClaimMain {
             player.teleport(loc);
         }
     }
+    
+    /**
+     * Teleports the player to expulsion location.
+     * 
+     * @param player The player to teleport.
+     */
+    public void teleportPlayerToExpulsion(Player player) {
+    	Location loc = instance.getSettings().getExpulsionLocation();
+    	teleportPlayer(player,loc == null ? Bukkit.getWorlds().get(0).getSpawnLocation() : loc);
+    }
 
     /**
      * Creates the teleport task for goClaim method.

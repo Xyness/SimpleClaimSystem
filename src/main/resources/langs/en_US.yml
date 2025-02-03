@@ -310,6 +310,7 @@ player-invitation-expired: "§cYour invitation to %player% has expired."
 player-invitation-expired-other: "§cThe invitation of %player% has expired."
 player-invitation-all-their-claims: "all their claims"
 player-invitations-system-off: "§cThe invitations system is disabled on this server."
+expulsion-set: "§aThe expulsion location has been defined."
 
 
 # > Deny messages
@@ -340,6 +341,7 @@ pvp: "§cYou cannot pvp in this territory"
 claim-fly-disabled-on-damage: "§cClaim fly disabled because you received damage"
 elytra: "§cYou cannot use elytra in this territory."
 specialblocks: "§cYou cannot destroy this block is this territory."
+windcharges: "§cYou cannot use wind charges is this territory."
 
 
 # > Enter/Leave messages
@@ -564,6 +566,9 @@ elytra-lore: "§7Allow use elytra"
 
 specialblocks-title: "§eDestroy special blocks §7(%status%§7)"
 specialblocks-lore: "§7Allow to destroy the special blocks"
+
+windcharges-title: "§eUse wind charges §7(%status%§7)"
+windcharges-lore: "§7Allow to use wind charges"
 
 manage-members-title: "§aMembers"
 manage-members-lore: "§7Manage members"

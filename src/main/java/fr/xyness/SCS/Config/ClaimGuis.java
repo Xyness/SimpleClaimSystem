@@ -54,11 +54,12 @@ public class ClaimGuis {
         guis_items_perms_clicked_slots.get("visitors").put(23, "Weather");
         guis_items_perms_clicked_slots.get("visitors").put(24, "GuiTeleport");
         guis_items_perms_clicked_slots.get("visitors").put(25, "Portals");
-        guis_items_perms_clicked_slots.get("visitors").put(29, "Elytra");
-        guis_items_perms_clicked_slots.get("visitors").put(30, "Enter");
-        guis_items_perms_clicked_slots.get("visitors").put(31, "ItemsPickup");
+        guis_items_perms_clicked_slots.get("visitors").put(28, "Elytra");
+        guis_items_perms_clicked_slots.get("visitors").put(29, "Enter");
+        guis_items_perms_clicked_slots.get("visitors").put(30, "ItemsPickup");
         guis_items_perms_clicked_slots.get("visitors").put(32, "ItemsDrop");
         guis_items_perms_clicked_slots.get("visitors").put(33, "SpecialBlocks");
+        guis_items_perms_clicked_slots.get("visitors").put(34, "Windcharges");
         
         
     	guis_items_perms_clicked_slots.put("members", new HashMap<>());
@@ -83,11 +84,12 @@ public class ClaimGuis {
     	guis_items_perms_clicked_slots.get("members").put(23, "Weather");
     	guis_items_perms_clicked_slots.get("members").put(24, "GuiTeleport");
     	guis_items_perms_clicked_slots.get("members").put(25, "Portals");
-    	guis_items_perms_clicked_slots.get("members").put(29, "Elytra");
-    	guis_items_perms_clicked_slots.get("members").put(30, "Enter");
-    	guis_items_perms_clicked_slots.get("members").put(31, "ItemsPickup");
+    	guis_items_perms_clicked_slots.get("members").put(28, "Elytra");
+    	guis_items_perms_clicked_slots.get("members").put(29, "Enter");
+    	guis_items_perms_clicked_slots.get("members").put(30, "ItemsPickup");
     	guis_items_perms_clicked_slots.get("members").put(32, "ItemsDrop");
     	guis_items_perms_clicked_slots.get("members").put(33, "SpecialBlocks");
+    	guis_items_perms_clicked_slots.get("members").put(34, "Windcharges");
 
         
         guis_items_perms_clicked_slots.put("natural", new HashMap<>());
@@ -122,11 +124,11 @@ public class ClaimGuis {
     	// Set settings_name
     	settings_name.put("members", Set.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", "Trapdoors",
             "Fencegates","Tripwires","RepeatersComparators","Bells","Entities","Frostwalker","Teleportations","Damages","Enter", "GuiTeleport",
-            "Weather","Fly", "Portals", "ItemsPickup", "ItemsDrop", "SpecialBlocks", "Elytra"));
+            "Weather","Fly", "Portals", "ItemsPickup", "ItemsDrop", "SpecialBlocks", "Elytra", "Windcharges"));
     	
     	settings_name.put("visitors", Set.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", "Trapdoors",
                 "Fencegates","Tripwires","RepeatersComparators","Bells","Entities","Frostwalker","Teleportations","Damages","Enter", "GuiTeleport",
-                "Weather","Fly", "Portals", "ItemsPickup", "ItemsDrop", "SpecialBlocks", "Elytra"));
+                "Weather","Fly", "Portals", "ItemsPickup", "ItemsDrop", "SpecialBlocks", "Elytra", "Windcharges"));
     	
     	settings_name.put("natural", Set.of("Explosions","Liquids","Redstone","Firespread","Monsters","Pvp"));
     }
