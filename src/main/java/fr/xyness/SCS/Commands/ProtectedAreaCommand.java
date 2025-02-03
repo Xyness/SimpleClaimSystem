@@ -306,6 +306,10 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                 	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[2]));
                 	return;
                 }
+                if(target.getName().equals(playerName)) {
+                	player.sendMessage(instance.getLanguage().getMessage("can-not-kick-yourself"));
+                	return;
+                }
 	        	if(!instance.getMain().getAllChunksFromAllClaims("*").contains(target.getLocation().getChunk())) {
 	            	player.sendMessage(instance.getLanguage().getMessage("player-not-in-any-claim").replace("%player%", target.getName()));
 	            	return;
@@ -323,6 +327,10 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             Player target = Bukkit.getPlayer(args[2]);
             if(target == null) {
             	player.sendMessage(instance.getLanguage().getMessage("player-not-online").replace("%player%", args[2]));
+            	return;
+            }
+            if(target.getName().equals(playerName)) {
+            	player.sendMessage(instance.getLanguage().getMessage("can-not-kick-yourself"));
             	return;
             }
             if(!claim.getChunks().contains(target.getLocation().getChunk())) {
@@ -405,6 +413,11 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 		    			player.sendMessage(instance.getLanguage().getMessage("cant-ban-yourself"));
 		    			return;
 		    		}
+                    if (instance.getMain().checkBan(claim, targetName[0])) {
+                        String message = instance.getLanguage().getMessage("already-banned").replace("%player%", targetName[0]);
+                        player.sendMessage(message);
+                        return;
+                    }
 		    		String message = instance.getLanguage().getMessage("add-ban-success").replace("%player%", targetName[0]).replace("%claim-name%", claim.getName());
 		    		instance.getMain().addClaimBan(claim, targetName[0])
 		    			.thenAccept(success -> {

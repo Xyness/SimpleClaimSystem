@@ -66,6 +66,9 @@ public class ClaimMain {
 
     /** Mapping of players to their active Folia tasks. */
     private final Map<Player, ScheduledTask> activeFoliaTasks = new ConcurrentHashMap<>();
+    
+    /** Set of chunks particles */
+    private CustomSet<Chunk> chunksParticles = new CustomSet<>();
 
     /** Set of command arguments for /claim. */
     private CustomSet<String> commandArgsClaim = new CustomSet<>(Set.of("add", "autoclaim", "automap", "list",
@@ -121,6 +124,11 @@ public class ClaimMain {
         }
     }
     
+    /**
+     * Clear data for a player.
+     * 
+     * @param player The player to clear data for.
+     */
     public void clearDataForPlayer(Player player) {
     	playerLocations.remove(player);
     	if(activeTasks.containsKey(player)) {
@@ -253,6 +261,89 @@ public class ClaimMain {
         }
 
         return sb.toString();
+    }
+    
+    /**
+     * Formats a numerical string to a shortened version with appropriate suffixes (k, m, M, b, B, t, T).
+     *
+     * @param text The numerical string to be formatted.
+     * @return The formatted string with appropriate suffix.
+     */
+    public String getNumberFormatted(String text) {
+        // Check if the text contains a decimal point
+        if (text.contains(".")) {
+            String[] parts = text.split("\\.");
+            // If the decimal part is ".0", ignore it
+            if (parts[1].equals("0")) {
+                return getNumberFormatted(parts[0]);
+            } else {
+                return getNumberFormatted(parts[0]) + "." + parts[1];
+            }
+        }
+
+        int length = text.length();
+        String mainPart;
+        String decimalPart = "";
+
+        if (length >= 4 && length <= 6) {
+            mainPart = text.substring(0, length - 3);
+            decimalPart = text.substring(length - 3, length - 2);
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "k";
+        } else if (length >= 7 && length <= 9) {
+            mainPart = text.substring(0, length - 6);
+            decimalPart = text.substring(length - 6, length - 5);
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "m";
+        } else if (length >= 10 && length <= 12) {
+            mainPart = text.substring(0, length - 9);
+            decimalPart = text.substring(length - 9, length - 8);
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "M";
+        } else if (length >= 13 && length <= 15) {
+            mainPart = text.substring(0, length - 12);
+            decimalPart = text.substring(length - 12, length - 11);
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "b";
+        } else if (length >= 16 && length <= 18) {
+            mainPart = text.substring(0, length - 15);
+            decimalPart = text.substring(length - 15, length - 14);
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "B";
+        } else if (length >= 19 && length <= 21) {
+            mainPart = text.substring(0, length - 18);
+            decimalPart = text.substring(length - 18, length - 17);
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "t";
+        } else if (length >= 22 && length <= 24) {
+            mainPart = text.substring(0, length - 21);
+            decimalPart = text.substring(length - 21, length - 20);
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "T";
+        } else {
+            return text;
+        }
+    }
+    
+    /**
+     * Gets the right syntax of the price.
+     * 
+     * @param price The price.
+     * @return The right syntax of the given price.
+     */
+    public String getPrice(long price) {
+    	if(instance.getSettings().getBooleanSetting("use-formatted-number")) {
+    		return getNumberFormatted(String.valueOf(price));
+    	} else {
+    		return getNumberSeparate(String.valueOf(price));
+    	}
+    }
+    
+    /**
+     * Gets the right syntax of the price.
+     * 
+     * @param price The price.
+     * @return The right syntax of the given price.
+     */
+    public String getPrice(String price) {
+    	if(instance.getSettings().getBooleanSetting("use-formatted-number")) {
+    		return getNumberFormatted(price);
+    	} else {
+    		return getNumberSeparate(price);
+    	}
     }
 
     
@@ -1740,7 +1831,7 @@ public class ClaimMain {
 
                         // Economy data
                         boolean sale = resultSet.getBoolean("for_sale");
-                        double price = resultSet.getDouble("sale_price");
+                        long price = resultSet.getLong("sale_price");
 
                         // Chunks data
                         String chunksData = resultSet.getString("chunks");
@@ -1883,7 +1974,7 @@ public class ClaimMain {
 		        String description = instance.getLanguage().getMessage("default-description");
 		        String locationString = getLocationString(player.getLocation());
 		        Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(instance.getSettings().getDefaultValues());
-		        Claim newClaim = new Claim(playerId, new CustomSet<>(Set.of(chunk)), playerName, new CustomSet<>(Set.of(playerId)), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new CustomSet<>(),id);
+		        Claim newClaim = new Claim(playerId, new CustomSet<>(Set.of(chunk)), playerName, new CustomSet<>(Set.of(playerId)), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0, new CustomSet<>(),id);
 		
 		        // Add claim to claims list and player claims list
 		        listClaims.put(chunk, newClaim);
@@ -1965,7 +2056,7 @@ public class ClaimMain {
 		        String description = instance.getLanguage().getMessage("default-description");
 		        String locationString = getLocationString(player.getLocation());
 		        Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(instance.getSettings().getDefaultValues());
-		        Claim newClaim = new Claim(SERVER_UUID, new CustomSet<>(Set.of(chunk)), "*", new CustomSet<>(), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new CustomSet<>(),id);
+		        Claim newClaim = new Claim(SERVER_UUID, new CustomSet<>(Set.of(chunk)), "*", new CustomSet<>(), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0, new CustomSet<>(),id);
 		
 		        // Add claim to claims list and protected areas list ("*" in playerClaims)
 		        listClaims.put(chunk, newClaim);
@@ -2063,7 +2154,7 @@ public class ClaimMain {
 	            String description = instance.getLanguage().getMessage("default-description");
 	            String locationString = getLocationString(player.getLocation());
 	            Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(instance.getSettings().getDefaultValues());
-	            Claim newClaim = new Claim(playerId, new CustomSet<>(chunks), playerName, new CustomSet<>(Set.of(playerId)), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new CustomSet<>(), id);
+	            Claim newClaim = new Claim(playerId, new CustomSet<>(chunks), playerName, new CustomSet<>(Set.of(playerId)), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0, new CustomSet<>(), id);
 	
 	            // Add the claim to claims list of the player
 	            playerClaims.computeIfAbsent(player.getUniqueId(), k -> new CustomSet<>()).add(newClaim);
@@ -2150,7 +2241,7 @@ public class ClaimMain {
 		        String description = instance.getLanguage().getMessage("default-description");
 		        String locationString = getLocationString(player.getLocation());
 		        Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(instance.getSettings().getDefaultValues());
-		        Claim newClaim = new Claim(SERVER_UUID, new CustomSet<>(chunks), playerName, new CustomSet<>(), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0.0, new CustomSet<>(),id);
+		        Claim newClaim = new Claim(SERVER_UUID, new CustomSet<>(chunks), playerName, new CustomSet<>(), player.getLocation(), claimName, description, new HashMap<>(perms), false, 0, new CustomSet<>(),id);
 		
 		        // Add the claim to protected areas list
 		        playerClaims.computeIfAbsent(SERVER_UUID, k -> new CustomSet<>()).add(newClaim);
@@ -3076,7 +3167,7 @@ public class ClaimMain {
      * @param price the sale price of the claim
      * @return true if the operation was successful, false otherwise
      */
-    public CompletableFuture<Boolean> setChunkSale(Claim claim, double price) {
+    public CompletableFuture<Boolean> setChunkSale(Claim claim, long price) {
         return CompletableFuture.supplyAsync(() -> {
             try {
             	// Get data
@@ -3121,7 +3212,7 @@ public class ClaimMain {
             	
             	// Update sale and price
 	            claim.setSale(false);
-	            claim.setPrice(0.0);
+	            claim.setPrice(0);
 	            
 	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
@@ -3326,7 +3417,7 @@ public class ClaimMain {
 	            
 	            // Delete the sale and set the price to 0.0
 	            claim.setSale(false);
-	            claim.setPrice(0.0);
+	            claim.setPrice(0);
 	            
 	            // Add the claim to the new owner
 	            playerClaims.computeIfAbsent(playerId, k -> new CustomSet<>()).add(claim);
@@ -3854,7 +3945,7 @@ public class ClaimMain {
             }
         });
     }
-
+    
     /**
      * Displays particles around the specified chunks for claiming.
      * Particles are shown only at the borders of the chunks and not between adjacent chunks.
@@ -3864,8 +3955,12 @@ public class ClaimMain {
      * @param claim  whether the chunks are being claimed or not
      * @param see if its from the /claim see command
      */
-    public void displayChunks(Player player, CustomSet<Chunk> chunks, boolean claim, boolean see) {
-        Particle.DustOptions dustOptions = getDustOptions(player, claim, see);
+    public void displayChunksNotEnter(Player player, CustomSet<Chunk> chunks) {
+    	
+    	if(chunksParticles.containsAll(chunks)) return;
+    	
+    	chunksParticles.addAll(chunks);
+        Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(255, 0, 0), 1.5f);
 
         CompletableFuture<Set<Location>> futureLocations = getParticleLocations(chunks);
         
@@ -3875,6 +3970,8 @@ public class ClaimMain {
 	            Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
 	                if (counter[0] >= 10) {
 	                    task.cancel();
+	                    chunksParticles.removeAll(chunks);
+	                    return;
 	                }
 	                World world = player.getWorld();
 	                particleLocations.stream().forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
@@ -3888,6 +3985,59 @@ public class ClaimMain {
 	                public void run() {
 	                    if (counter >= 10) {
 	                        this.cancel();
+	                        chunksParticles.removeAll(chunks);
+	                        return;
+	                    }
+	                    World world = player.getWorld();
+	                    particleLocations.stream().forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
+	                    counter++;
+	                }
+	            }.runTaskTimerAsynchronously(instance, 0, 10L);
+	        }
+        });
+    }
+
+    /**
+     * Displays particles around the specified chunks for claiming.
+     * Particles are shown only at the borders of the chunks and not between adjacent chunks.
+     *
+     * @param player the player claiming the chunks
+     * @param chunks the set of chunks to be displayed
+     * @param claim  whether the chunks are being claimed or not
+     * @param see if its from the /claim see command
+     */
+    public void displayChunks(Player player, CustomSet<Chunk> chunks, boolean claim, boolean see) {
+    	
+    	if(chunksParticles.containsAll(chunks)) return;
+    	
+    	chunksParticles.addAll(chunks);
+        Particle.DustOptions dustOptions = getDustOptions(player, claim, see);
+
+        CompletableFuture<Set<Location>> futureLocations = getParticleLocations(chunks);
+        
+        futureLocations.thenAccept(particleLocations -> {
+	        if (instance.isFolia()) {
+	            final int[] counter = {0};
+	            Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
+	                if (counter[0] >= 10) {
+	                    task.cancel();
+	                    chunksParticles.removeAll(chunks);
+	                    return;
+	                }
+	                World world = player.getWorld();
+	                particleLocations.stream().forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
+	                counter[0]++;
+	            }, 0, 500, TimeUnit.MILLISECONDS);
+	        } else {
+	            new BukkitRunnable() {
+	                int counter = 0;
+	
+	                @Override
+	                public void run() {
+	                    if (counter >= 10) {
+	                        this.cancel();
+	                        chunksParticles.removeAll(chunks);
+	                        return;
 	                    }
 	                    World world = player.getWorld();
 	                    particleLocations.stream().forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
@@ -4052,12 +4202,16 @@ public class ClaimMain {
      * @param radius the radius around the central chunk to be displayed
      */
     public void displayChunkBorderWithRadius(Player player, Chunk centralChunk, int radius) {
+    	if(chunksParticles.contains(centralChunk)) return;
+    	chunksParticles.add(centralChunk);
         Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(0, 255, 0), 1.5f);
         if (instance.isFolia()) {
             final int[] counter = {0};
             Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
                 if (counter[0] >= 10) {
                     task.cancel();
+                    chunksParticles.remove(centralChunk);
+                    return;
                 }
                 World world = player.getWorld();
                 int xStart = (centralChunk.getX() - radius) << 4;
@@ -4086,6 +4240,8 @@ public class ClaimMain {
             public void run() {
                 if (counter >= 10) {
                     this.cancel();
+                    chunksParticles.remove(centralChunk);
+                    return;
                 }
                 World world = player.getWorld();
                 int xStart = (centralChunk.getX() - radius) << 4;

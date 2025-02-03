@@ -218,7 +218,7 @@ public class SimpleClaimSystemAPI_Impl implements SimpleClaimSystemAPI {
 	}
 
 	@Override
-	public boolean addClaimSale(Claim claim, double claimPrice) {
+	public boolean addClaimSale(Claim claim, long claimPrice) {
 		return instance.getMain().setChunkSale(claim, claimPrice).join();
 	}
 

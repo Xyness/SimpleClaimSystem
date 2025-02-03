@@ -286,7 +286,7 @@ public interface SimpleClaimSystemAPI {
      * @param claimPrice the price of the claim
      * @return true if the claim was successfully added for sale, false otherwise
      */
-    boolean addClaimSale(Claim claim, double claimPrice);
+    boolean addClaimSale(Claim claim, long claimPrice);
 
     /**
      * Removes a claim from sale.

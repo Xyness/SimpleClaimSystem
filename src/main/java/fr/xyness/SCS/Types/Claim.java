@@ -53,7 +53,7 @@ public class Claim {
     private boolean sale;
     
     /** Price of the claim if for sale */
-    private Double price;
+    private long price;
     
     /** Banned members from the claim */
     private Set<UUID> bans;
@@ -79,7 +79,7 @@ public class Claim {
      * @param price Price of the claim if for sale
      * @param bans Banned members from the claim
      */
-    public Claim(UUID uuid_owner, Set<Chunk> chunks, String owner, Set<UUID> members, Location location, String name, String description, Map<String,LinkedHashMap<String, Boolean>> permissions, boolean sale, Double price, Set<UUID> bans, int id) {
+    public Claim(UUID uuid_owner, Set<Chunk> chunks, String owner, Set<UUID> members, Location location, String name, String description, Map<String,LinkedHashMap<String, Boolean>> permissions, boolean sale, long price, Set<UUID> bans, int id) {
     	this.uuid_owner = uuid_owner;
     	this.chunks = chunks;
         this.owner = owner;
@@ -177,7 +177,7 @@ public class Claim {
      * 
      * @param price The new price
      */
-    public void setPrice(Double price) { this.price = price; }
+    public void setPrice(long price) { this.price = price; }
     
     /**
      * Sets the members who are banned from this claim.
@@ -286,7 +286,7 @@ public class Claim {
      * 
      * @return The price
      */
-    public Double getPrice() { return this.price; }
+    public long getPrice() { return this.price; }
     
     /**
      * Gets the members who are banned from this claim.

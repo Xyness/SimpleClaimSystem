@@ -114,7 +114,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.8.6";
+    private String Version = "1.11.8.7";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -508,6 +508,10 @@ public class SimpleClaimSystem extends JavaPlugin {
                     claimPurgeInstance = new ClaimPurge(this);
                     claimPurgeInstance.startPurge(minutes, configC);
                 }
+            } else {
+            	if(claimPurgeInstance != null) {
+            		claimPurgeInstance.stopPurge();
+            	}
             }
             
             // Aliases settings
@@ -634,6 +638,9 @@ public class SimpleClaimSystem extends JavaPlugin {
             // Add claim particles setting
             claimSettingsInstance.addSetting("claim-particles", getConfig().getString("claim-particles"));
             
+            // Add claim particles not enter setting
+            claimSettingsInstance.addSetting("claim-particles-not-enter", getConfig().getString("claim-particles-not-enter"));
+            
             // Add claim fly disabled on damage setting
             claimSettingsInstance.addSetting("claim-fly-disabled-on-damage", getConfig().getString("claim-fly-disabled-on-damage"));
             
@@ -673,45 +680,45 @@ public class SimpleClaimSystem extends JavaPlugin {
                 claimSettingsInstance.addSetting("claim-cost-multiplier", getConfig().getString("claim-cost-multiplier"));
                 claimSettingsInstance.addSetting("chunk-cost", getConfig().getString("chunk-cost"));
                 claimSettingsInstance.addSetting("chunk-cost-multiplier", getConfig().getString("chunk-cost-multiplier"));
+                claimSettingsInstance.addSetting("use-formatted-number", getConfig().getString("use-formatted-number"));
+                // Add announce sale settings
+                claimSettingsInstance.addSetting("announce-sale.bossbar", getConfig().getString("announce-sale.bossbar"));
+                String barColor = getConfig().getString("announce-sale.bossbar-settings.color").toUpperCase();
+                try {
+                	BarColor color = BarColor.valueOf(barColor);
+                	if(color == null) {
+                        info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
+                        barColor = "YELLOW";
+                	}
+                } catch (IllegalArgumentException e) {
+                    info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
+                    barColor = "YELLOW";
+                }
+                String barStyle = getConfig().getString("announce-sale.bossbar-settings.style").toUpperCase();
+                try {
+                	BarStyle style = BarStyle.valueOf(barStyle);
+                	if(style == null) {
+                    	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
+                    	barStyle = "SOLID";
+                	}
+                } catch (IllegalArgumentException e) {
+                	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
+                	barStyle = "SOLID";
+                }
+                claimSettingsInstance.addSetting("announce-sale.bossbar-settings.color", barColor);
+                claimSettingsInstance.addSetting("announce-sale.bossbar-settings.style", barStyle);
+                claimSettingsInstance.addSetting("announce-sale.chat", getConfig().getString("announce-sale.chat"));
+                claimSettingsInstance.addSetting("announce-sale.title", getConfig().getString("announce-sale.title"));
+                claimSettingsInstance.addSetting("announce-sale.actionbar", getConfig().getString("announce-sale.actionbar"));
             } else {
                 claimSettingsInstance.addSetting("economy", "false");
             }
-            
-            // Add announce sale settings
-            claimSettingsInstance.addSetting("announce-sale.bossbar", getConfig().getString("announce-sale.bossbar"));
-            String barColor = getConfig().getString("announce-sale.bossbar-settings.color").toUpperCase();
-            try {
-            	BarColor color = BarColor.valueOf(barColor);
-            	if(color == null) {
-                    info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
-                    barColor = "YELLOW";
-            	}
-            } catch (IllegalArgumentException e) {
-                info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
-                barColor = "YELLOW";
-            }
-            String barStyle = getConfig().getString("announce-sale.bossbar-settings.style").toUpperCase();
-            try {
-            	BarStyle style = BarStyle.valueOf(barStyle);
-            	if(style == null) {
-                	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
-                	barStyle = "SOLID";
-            	}
-            } catch (IllegalArgumentException e) {
-            	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
-            	barStyle = "SOLID";
-            }
-            claimSettingsInstance.addSetting("announce-sale.bossbar-settings.color", barColor);
-            claimSettingsInstance.addSetting("announce-sale.bossbar-settings.style", barStyle);
-            claimSettingsInstance.addSetting("announce-sale.chat", getConfig().getString("announce-sale.chat"));
-            claimSettingsInstance.addSetting("announce-sale.title", getConfig().getString("announce-sale.title"));
-            claimSettingsInstance.addSetting("announce-sale.actionbar", getConfig().getString("announce-sale.actionbar"));
             
             // Add bossbar settings
             configC = getConfig().getString("bossbar");
             claimSettingsInstance.addSetting("bossbar", configC);
             // Load bossbar settings
-            barColor = getConfig().getString("bossbar-settings.color").toUpperCase();
+            String barColor = getConfig().getString("bossbar-settings.color").toUpperCase();
             try {
             	BarColor color = BarColor.valueOf(barColor);
             	if(color == null) {
@@ -722,7 +729,7 @@ public class SimpleClaimSystem extends JavaPlugin {
                 info(ChatColor.RED + "Invalid bossbar color, using default color YELLOW.");
                 barColor = "YELLOW";
             }
-            barStyle = getConfig().getString("bossbar-settings.style").toUpperCase();
+            String barStyle = getConfig().getString("bossbar-settings.style").toUpperCase();
             try {
             	BarStyle style = BarStyle.valueOf(barStyle);
             	if(style == null) {
@@ -1126,6 +1133,10 @@ public class SimpleClaimSystem extends JavaPlugin {
                     claimPurgeInstance = new ClaimPurge(this);
                     claimPurgeInstance.startPurge(minutes, configC);
                 }
+            } else {
+            	if(claimPurgeInstance != null) {
+            		claimPurgeInstance.stopPurge();
+            	}
             }
             
             // Aliases settings
@@ -1213,6 +1224,9 @@ public class SimpleClaimSystem extends JavaPlugin {
             // Add claim particles setting
             claimSettingsInstance.addSetting("claim-particles", getConfig().getString("claim-particles"));
             
+            // Add claim particles not enter setting
+            claimSettingsInstance.addSetting("claim-particles-not-enter", getConfig().getString("claim-particles-not-enter"));
+            
             // Add claim fly disabled on damage setting
             claimSettingsInstance.addSetting("claim-fly-disabled-on-damage", getConfig().getString("claim-fly-disabled-on-damage"));
             
@@ -1252,45 +1266,45 @@ public class SimpleClaimSystem extends JavaPlugin {
                 claimSettingsInstance.addSetting("claim-cost-multiplier", getConfig().getString("claim-cost-multiplier"));
                 claimSettingsInstance.addSetting("chunk-cost", getConfig().getString("chunk-cost"));
                 claimSettingsInstance.addSetting("chunk-cost-multiplier", getConfig().getString("chunk-cost-multiplier"));
+                claimSettingsInstance.addSetting("use-formatted-number", getConfig().getString("use-formatted-number"));
+                // Add announce sale settings
+                claimSettingsInstance.addSetting("announce-sale.bossbar", getConfig().getString("announce-sale.bossbar"));
+                String barColor = getConfig().getString("announce-sale.bossbar-settings.color").toUpperCase();
+                try {
+                	BarColor color = BarColor.valueOf(barColor);
+                	if(color == null) {
+                        info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
+                        barColor = "YELLOW";
+                	}
+                } catch (IllegalArgumentException e) {
+                    info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
+                    barColor = "YELLOW";
+                }
+                String barStyle = getConfig().getString("announce-sale.bossbar-settings.style").toUpperCase();
+                try {
+                	BarStyle style = BarStyle.valueOf(barStyle);
+                	if(style == null) {
+                    	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
+                    	barStyle = "SOLID";
+                	}
+                } catch (IllegalArgumentException e) {
+                	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
+                	barStyle = "SOLID";
+                }
+                claimSettingsInstance.addSetting("announce-sale.bossbar-settings.color", barColor);
+                claimSettingsInstance.addSetting("announce-sale.bossbar-settings.style", barStyle);
+                claimSettingsInstance.addSetting("announce-sale.chat", getConfig().getString("announce-sale.chat"));
+                claimSettingsInstance.addSetting("announce-sale.title", getConfig().getString("announce-sale.title"));
+                claimSettingsInstance.addSetting("announce-sale.actionbar", getConfig().getString("announce-sale.actionbar"));
             } else {
                 claimSettingsInstance.addSetting("economy", "false");
             }
-            
-            // Add announce sale settings
-            claimSettingsInstance.addSetting("announce-sale.bossbar", getConfig().getString("announce-sale.bossbar"));
-            String barColor = getConfig().getString("announce-sale.bossbar-settings.color").toUpperCase();
-            try {
-            	BarColor color = BarColor.valueOf(barColor);
-            	if(color == null) {
-                    info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
-                    barColor = "YELLOW";
-            	}
-            } catch (IllegalArgumentException e) {
-                info(ChatColor.RED + "Invalid bossbar color, using default color RED.");
-                barColor = "YELLOW";
-            }
-            String barStyle = getConfig().getString("announce-sale.bossbar-settings.style").toUpperCase();
-            try {
-            	BarStyle style = BarStyle.valueOf(barStyle);
-            	if(style == null) {
-                	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
-                	barStyle = "SOLID";
-            	}
-            } catch (IllegalArgumentException e) {
-            	info(ChatColor.RED + "Invalid bossbar style, using default style SOLID.");
-            	barStyle = "SOLID";
-            }
-            claimSettingsInstance.addSetting("announce-sale.bossbar-settings.color", barColor);
-            claimSettingsInstance.addSetting("announce-sale.bossbar-settings.style", barStyle);
-            claimSettingsInstance.addSetting("announce-sale.chat", getConfig().getString("announce-sale.chat"));
-            claimSettingsInstance.addSetting("announce-sale.title", getConfig().getString("announce-sale.title"));
-            claimSettingsInstance.addSetting("announce-sale.actionbar", getConfig().getString("announce-sale.actionbar"));
             
             // Add bossbar settings
             configC = getConfig().getString("bossbar");
             claimSettingsInstance.addSetting("bossbar", configC);
             // Load bossbar settings
-            barColor = getConfig().getString("bossbar-settings.color").toUpperCase();
+            String barColor = getConfig().getString("bossbar-settings.color").toUpperCase();
             try {
             	BarColor color = BarColor.valueOf(barColor);
             	if(color == null) {
@@ -1301,7 +1315,7 @@ public class SimpleClaimSystem extends JavaPlugin {
                 info(ChatColor.RED + "Invalid bossbar color, using default color YELLOW.");
                 barColor = "YELLOW";
             }
-            barStyle = getConfig().getString("bossbar-settings.style").toUpperCase();
+            String barStyle = getConfig().getString("bossbar-settings.style").toUpperCase();
             try {
             	BarStyle style = BarStyle.valueOf(barStyle);
             	if(style == null) {
@@ -1702,7 +1716,7 @@ public class SimpleClaimSystem extends JavaPlugin {
      * @return True if the key must be deleted
      */
     private boolean checkKey(String key) {
-    	return key.startsWith("groups.") || key.startsWith("players.");
+    	return key.startsWith("groups.") || key.startsWith("players.") || key.equals("expulsion-location");
     }
     
     /**

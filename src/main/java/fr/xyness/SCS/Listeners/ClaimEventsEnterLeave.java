@@ -237,12 +237,18 @@ public class ClaimEventsEnterLeave implements Listener {
 	        	playersRejected.add(player);
 	        	instance.getMain().teleportPlayer(player, event.getFrom());
 	            instance.getMain().sendMessage(player, instance.getLanguage().getMessage("player-banned"), instance.getSettings().getSetting("protection-message"));
+	        	if(instance.getSettings().getBooleanSetting("claim-particles-not-enter")) {
+	        		instance.getMain().displayChunksNotEnter(player, new CustomSet<>(claim.getChunks()));
+	        	}
 	            return;
 	        }
 	        if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
 	        	playersRejected.add(player);
 	        	instance.getMain().teleportPlayer(player, event.getFrom());
 	        	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("enter"), instance.getSettings().getSetting("protection-message"));
+	        	if(instance.getSettings().getBooleanSetting("claim-particles-not-enter")) {
+	        		instance.getMain().displayChunksNotEnter(player, new CustomSet<>(claim.getChunks()));
+	        	}
 	        	return;
 	        }
 	        
@@ -571,12 +577,12 @@ public class ClaimEventsEnterLeave implements Listener {
                 double balance = instance.getVault().getPlayerBalance(playerName);
 
                 if (balance < price) {
-                	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replace("%missing-price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round((price - balance)*100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+                	player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replace("%missing-price%", instance.getMain().getPrice(String.valueOf((double) Math.round((price - balance)*100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
                     return;
                 }
 
                 instance.getVault().removePlayerBalance(playerName, price);
-                if (price > 0) player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", instance.getMain().getNumberSeparate(String.valueOf((double) Math.round(price * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
+                if (price > 0) player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", instance.getMain().getPrice(String.valueOf((double) Math.round(price * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")));
             }
             
             // Create claim
@@ -656,13 +662,13 @@ public class ClaimEventsEnterLeave implements Listener {
                 message = ownerTO.equals("*")
                         ? instance.getLanguage().getMessage("enter-protected-area-for-sale-chat")
                         		.replace("%name%", toName)
-                        		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                        		.replace("%price%", instance.getMain().getPrice(String.valueOf(claim.getPrice())))
                         		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))
                         : instance.getLanguage().getMessage("enter-territory-for-sale-chat")
                           .replace("%owner%", ownerTO)
                           .replace("%player%", playerName)
                           .replace("%name%", toName)
-                  		  .replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                  		  .replace("%price%", instance.getMain().getPrice(String.valueOf(claim.getPrice())))
                   		  .replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
         	} else {
                 message = ownerTO.equals("*")
@@ -710,13 +716,13 @@ public class ClaimEventsEnterLeave implements Listener {
         		message = ownerTO.equals("*")
                     ? instance.getLanguage().getMessage("enter-protected-area-for-sale")
                     		.replace("%name%", toName)
-                    		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                    		.replace("%price%", instance.getMain().getPrice(String.valueOf(claim.getPrice())))
                     		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))
                     : instance.getLanguage().getMessage("enter-territory-for-sale")
                       .replace("%owner%", ownerTO)
                       .replace("%player%", playerName)
                       .replace("%name%", toName)
-              		  .replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+              		  .replace("%price%", instance.getMain().getPrice(String.valueOf(claim.getPrice())))
               		  .replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
         	} else {
         		message = ownerTO.equals("*")
@@ -764,25 +770,25 @@ public class ClaimEventsEnterLeave implements Listener {
             	        .replace("%name%", toName)
             	        .replace("%owner%", ownerTO)
             	        .replace("%player%", playerName)
-                		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                		.replace("%price%", instance.getMain().getPrice(String.valueOf(claim.getPrice())))
                   		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))
             			: instance.getLanguage().getMessage("enter-territory-for-sale-title")
                 	        .replace("%name%", toName)
                 	        .replace("%owner%", ownerTO)
                 	        .replace("%player%", playerName)
-                    		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                    		.replace("%price%", instance.getMain().getPrice(String.valueOf(claim.getPrice())))
                       		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
             	toSubtitleKey = ownerTO.equals("*") ? instance.getLanguage().getMessage("enter-protected-area-for-sale-subtitle")
             	        .replace("%name%", toName)
             	        .replace("%owner%", ownerTO)
             	        .replace("%player%", playerName)
-                		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                		.replace("%price%", instance.getMain().getPrice(String.valueOf(claim.getPrice())))
                   		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))
             	        : instance.getLanguage().getMessage("enter-territory-for-sale-subtitle")
                 	        .replace("%name%", toName)
                 	        .replace("%owner%", ownerTO)
                 	        .replace("%player%", playerName)
-                    		.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+                    		.replace("%price%", instance.getMain().getPrice(String.valueOf(claim.getPrice())))
                       		.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
         	} else {
             	toTitleKey = ownerTO.equals("*") ? instance.getLanguage().getMessage("enter-protected-area-title")
