@@ -114,7 +114,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.8.8";
+    private String Version = "1.11.8.9";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -1401,9 +1401,6 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Add ignored place blocks
             claimSettingsInstance.setPlaceBlocksIgnore(getConfig().getStringList("ignored-place-blocks"));
-            
-            // Register protection listener
-            getServer().getPluginManager().registerEvents(new ClaimEvents(this), this);
 
             // Save config
             saveConfig();
@@ -1718,7 +1715,7 @@ public class SimpleClaimSystem extends JavaPlugin {
      * @return True if the key must be deleted
      */
     private boolean checkKey(String key) {
-    	return key.startsWith("groups.") || key.startsWith("players.") || key.equals("expulsion-location");
+    	return key.startsWith("groups.") || key.startsWith("players.") || key.startsWith("expulsion-location");
     }
     
     /**
