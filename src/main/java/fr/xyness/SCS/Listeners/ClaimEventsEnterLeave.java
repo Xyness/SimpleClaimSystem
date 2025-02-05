@@ -20,6 +20,7 @@ import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 import fr.xyness.SCS.Types.CustomSet;
+import fr.xyness.SCS.Types.WorldMode;
 
 /**
  * This class handles events related to players entering and leaving claims.
@@ -383,7 +384,7 @@ public class ClaimEventsEnterLeave implements Listener {
      * @param world The world name.
      */
     private void handleAutoDelChunk(Player player, CPlayer cPlayer, Chunk chunk, String world) {
-        if (instance.getSettings().isWorldDisabled(world)) {
+        if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             player.sendMessage(instance.getLanguage().getMessage("autodelchunk-world-disabled").replace("%world%", world));
             cPlayer.setClaimAuto("");
         } else {
@@ -418,7 +419,7 @@ public class ClaimEventsEnterLeave implements Listener {
      * @param world The world name.
      */
     private void handleAutoAddChunk(Player player, CPlayer cPlayer, Chunk chunk, String world) {
-        if (instance.getSettings().isWorldDisabled(world)) {
+        if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             player.sendMessage(instance.getLanguage().getMessage("autoaddchunk-world-disabled").replace("%world%", world));
             cPlayer.setClaimAuto("");
         } else {
@@ -490,7 +491,7 @@ public class ClaimEventsEnterLeave implements Listener {
      * @param world The world name.
      */
     private void handleAutoUnclaim(Player player, CPlayer cPlayer, Chunk chunk, String world) {
-        if (instance.getSettings().isWorldDisabled(world)) {
+        if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             player.sendMessage(instance.getLanguage().getMessage("autounclaim-world-disabled").replace("%world%", world));
             cPlayer.setClaimAuto("");
         } else {
@@ -548,7 +549,7 @@ public class ClaimEventsEnterLeave implements Listener {
      * @param world The world name.
      */
     private void handleAutoClaim(Player player, CPlayer cPlayer, Chunk chunk, String world) {
-        if (instance.getSettings().isWorldDisabled(world)) {
+        if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             player.sendMessage(instance.getLanguage().getMessage("autoclaim-world-disabled").replace("%world%", world));
             cPlayer.setClaimAuto("");
         } else {
@@ -612,7 +613,7 @@ public class ClaimEventsEnterLeave implements Listener {
      * @param world The world name.
      */
     private void handleAutoMap(Player player, CPlayer cPlayer, Chunk chunk, String world) {
-        if (instance.getSettings().isWorldDisabled(world)) {
+        if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             player.sendMessage(instance.getLanguage().getMessage("automap-world-disabled").replace("%world%", world));
             cPlayer.setClaimAutomap(false);
         } else {

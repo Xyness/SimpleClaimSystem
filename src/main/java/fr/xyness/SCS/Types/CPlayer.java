@@ -461,7 +461,7 @@ public class CPlayer {
             n = (int) Math.round(groupsSettings.get("default").get("teleportation-delay"));
             for (Map.Entry<String, String> entry : groups.entrySet()) {
                 if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("teleportation-delay")));
+                    n = Math.min(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("teleportation-delay")));
                 }
             }
         }
@@ -514,15 +514,15 @@ public class CPlayer {
         
         Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
         if (playerConfig != null && playerConfig.containsKey("claim-cost")) {
-            return (int) Math.round(playerConfig.get("claim-cost"));
+            return playerConfig.get("claim-cost");
         }
 
-        int n = player.getEffectivePermissions().stream()
+        double n = player.getEffectivePermissions().stream()
             .map(PermissionAttachmentInfo::getPermission)
             .map(CPlayerMain.COST_PATTERN::matcher)
             .filter(Matcher::find)
-            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
+            .mapToDouble(matcher -> Double.parseDouble(matcher.group(1)))
+            .min().orElse(-1);
 
         if (n == -1) {
 
@@ -531,7 +531,7 @@ public class CPlayer {
             n = (int) Math.round(groupsSettings.get("default").get("claim-cost"));
             for (Map.Entry<String, String> entry : groups.entrySet()) {
                 if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("claim-cost")));
+                    n = Math.min(n, groupsSettings.get(entry.getKey()).get("claim-cost"));
                 }
             }
         }
@@ -549,15 +549,15 @@ public class CPlayer {
         
         Map<String, Double> playerConfig = instance.getPlayerMain().getPlayerConfig(playerId);
         if (playerConfig != null && playerConfig.containsKey("chunk-cost")) {
-            return (int) Math.round(playerConfig.get("chunk-cost"));
+            return playerConfig.get("chunk-cost");
         }
 
-        int n = player.getEffectivePermissions().stream()
+        double n = player.getEffectivePermissions().stream()
             .map(PermissionAttachmentInfo::getPermission)
             .map(CPlayerMain.CHUNK_COST_PATTERN::matcher)
             .filter(Matcher::find)
-            .mapToInt(matcher -> Integer.parseInt(matcher.group(1)))
-            .max().orElse(-1);
+            .mapToDouble(matcher -> Double.parseDouble(matcher.group(1)))
+            .min().orElse(-1);
 
         if (n == -1) {
 
@@ -566,7 +566,7 @@ public class CPlayer {
             n = (int) Math.round(groupsSettings.get("default").get("chunk-cost"));
             for (Map.Entry<String, String> entry : groups.entrySet()) {
                 if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("chunk-cost")));
+                    n = Math.min(n, groupsSettings.get(entry.getKey()).get("chunk-cost"));
                 }
             }
         }
@@ -706,7 +706,7 @@ public class CPlayer {
             n = (int) Math.round(groupsSettings.get("default").get("claim-distance"));
             for (Map.Entry<String, String> entry : groups.entrySet()) {
                 if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("claim-distance")));
+                    n = Math.min(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("claim-distance")));
                 }
             }
         }

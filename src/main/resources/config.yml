@@ -15,13 +15,6 @@ database-settings:
   database_name: test_server
   username: root
   password: pass
-  
-# Autopurge claims
-# auto-purge-checking is in minutes (every x minutes the plugin will purge the claims)
-# auto-purge-time-without-login accepts this format : 5s, 5m, 5h, 5d, 5w (5 is for example)
-auto-purge: true
-auto-purge-checking: 60
-auto-purge-time-without-login: 14d
 
 # Aliases
 # Configure the aliases of the main commands.
@@ -40,16 +33,30 @@ command-aliases:
 # ********************
 
 
+# Autopurge claims
+# auto-purge-checking is in minutes (every x minutes the plugin will purge the claims)
+# auto-purge-time-without-login accepts this format : 5s, 5m, 5h, 5d, 5w (5 is for example)
+auto-purge: true
+auto-purge-checking: 60
+auto-purge-time-without-login: 14d
+
+# Mode for claims per world
+# Modes:
+# - SURVIVAL: Classic mode, claims are available, you can build inside/outside your claims
+# - SURVIVAL_REQUIRING_CLAIMS: Advanced mode, claims are available, you can build only inside your claims
+# /!\ PERMS outside claims for this mode are configurable, see below (in permissions section)
+# - DISABLED: Claims are completely disabled
+# By default, if a world doesn't appear in the list, the plugin will use Survival mode.
+claims-worlds-mode:
+  world: SURVIVAL
+  world_nether: SURVIVAL
+  world_the_end: SURVIVAL
+  example_world: DISABLED
+  example_only_claims: SURVIVAL_REQUIRING_CLAIMS
+
 # Where the protection messages are displayed
 # Allowed type : ACTION_BAR (default), BOSSBAR, SUBTITLE, TITLE and CHAT
 protection-message: ACTION_BAR
-
-# Worlds where claims are disabled
-worlds-disabled:
-- example_world
-
-# Preload chunks when starting plugin?
-preload-chunks: true
 
 # Keep chunks loaded even if no players in
 keep-chunks-loaded: false
@@ -149,7 +156,7 @@ teleportation-delay-moving: false
 # Available types : CHAT and SCOREBOARD.
 map-type: SCOREBOARD
 
-# Location when a player is banned/kicked from a clail
+# Location when a player is banned/kicked from a claim
 expulsion-location: {}
 
 
@@ -180,9 +187,9 @@ pl3xmap-settings:
   claim-hover-text: "%claim-name% - Owner: %owner%"
 
 
-# *************************
-# *  Permission settings  *
-# *************************
+# **************************
+# *  Permissions settings  *
+# **************************
 
 
 # Groups settings with permissions
@@ -365,12 +372,45 @@ default-values-settings:
     Monsters: true
     Pvp: false
 
+# List of permissions to use when world mode is SurvivalRequiringClaims (outside the claims)
+permissions-on-SurvivalRequiringClaims:
+  Build: false
+  Destroy: false
+  Buttons: false
+  Items: true
+  InteractBlocks: false
+  Levers: false
+  Plates: false
+  Doors: false
+  Trapdoors: false
+  Fencegates: false
+  Tripwires: false
+  RepeatersComparators: false
+  Bells: false
+  Entities: false
+  Frostwalker: true
+  Teleportations: true
+  Damages: false
+  Portals: false
+  ItemsPickup: true
+  ItemsDrop: true
+  SpecialBlocks: false
+  Elytra: true
+  Windcharges: true
+  Explosions: false
+  Liquids: false
+  Redstone: false
+  Firespread: false
+  Monsters: true
+  Pvp: false
+
 # List of blocked containers for the setting "Interact with blocks"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 blocked-interact-blocks:
 - FURNACE
 - BLAST_FURNACE
 - ANVIL
+- DAMAGED_ANVIL
 - BREWING_STAND
 - CHISELED_BOOKSHELF
 - COMPOSTER
@@ -469,6 +509,8 @@ blocked-interact-blocks:
 - BAMBOO_WALL_HANGING_SIGN
 - CRIMSON_WALL_SIGN
 - WARPED_WALL_SIGN
+- LOOM
+- SMOKER
 
 # List of blocked items for the setting "Use items"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
@@ -488,7 +530,6 @@ blocked-items:
 - ENDER_EYE
 - FISHING_ROD
 - LEAD
-- WIND_CHARGE
 
 # List of blocked entity type for the setting "Entities"
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/entity/EntityType.html
