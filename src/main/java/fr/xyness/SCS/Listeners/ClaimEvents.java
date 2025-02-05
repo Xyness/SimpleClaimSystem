@@ -75,6 +75,7 @@ import org.bukkit.util.Vector;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
+import fr.xyness.SCS.Types.WorldMode;
 
 /**
  * Event listener for claim-related events.
@@ -134,7 +135,8 @@ public class ClaimEvents implements Listener {
 	
     /**
      * Handles player command pre process.
-     * @param event
+     * 
+     * @param event The PlayerCommandPreprocessEvent event.
      */
     @EventHandler
     public void onCommandPreprocess(PlayerCommandPreprocessEvent event) {
@@ -149,7 +151,8 @@ public class ClaimEvents implements Listener {
     
 	/**
 	 * Handles player chat events for claim chat.
-	 * @param event the player chat event.
+	 * 
+	 * @param event AsyncPlayerChatEvent event.
 	 */
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onPlayerChat(AsyncPlayerChatEvent event) {
@@ -174,6 +177,7 @@ public class ClaimEvents implements Listener {
 	 */
     @EventHandler
     public void onPlayerToggleGlide(EntityToggleGlideEvent event) {
+    	WorldMode mode = instance.getSettings().getWorldMode(event.getEntity().getWorld().getName());
         if (event.getEntity() instanceof Player) {
             if (event.isGliding()) {
             	Player player = (Player) event.getEntity();
@@ -185,6 +189,9 @@ public class ClaimEvents implements Listener {
                     	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra"), instance.getSettings().getSetting("protection-message"));
                     	event.setCancelled(true);
                     }
+                } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Elytra")) {
+                	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra-mode"), instance.getSettings().getSetting("protection-message"));
+                	event.setCancelled(true);
                 }
             }
         }
@@ -196,6 +203,8 @@ public class ClaimEvents implements Listener {
 	 */
 	@EventHandler
 	public void onPotionSplash(PotionSplashEvent event) {
+		
+		WorldMode mode = instance.getSettings().getWorldMode(event.getEntity().getWorld().getName());
 
 	    if (event.getEntity() instanceof ThrownPotion) {
 	        ThrownPotion thrownPotion = (ThrownPotion) event.getEntity();
@@ -219,6 +228,9 @@ public class ClaimEvents implements Listener {
 	                                    instance.getMain().sendMessage(damager, instance.getLanguage().getMessage("pvp"), instance.getSettings().getSetting("protection-message"));
 	                                    event.setIntensity(player, 0.0);
 	                                }
+	                            } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Pvp")) {
+	                            	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("pvp-mode"), instance.getSettings().getSetting("protection-message"));
+	                            	event.setCancelled(true);
 	                            }
 	                        }
 	                    }
@@ -255,6 +267,7 @@ public class ClaimEvents implements Listener {
 
 	    Player player = (Player) event.getEntity();
 	    Chunk chunk = player.getLocation().getChunk();
+	    WorldMode mode = instance.getSettings().getWorldMode(player.getWorld().getName());
 	    
 	    if(instance.getMain().checkIfClaimExists(chunk)) {
 	    	Claim claim = instance.getMain().getClaim(chunk);
@@ -279,7 +292,20 @@ public class ClaimEvents implements Listener {
 	                }
 	            }
 	        }
-	    }
+	    } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Pvp")) {
+	    	if (event.getDamager() instanceof Player damager) {
+    	    	instance.getMain().sendMessage(damager, instance.getLanguage().getMessage("pvp-mode"), instance.getSettings().getSetting("protection-message"));
+            	event.setCancelled(true);
+	        } else if (event.getDamager() instanceof Projectile) {
+	            Projectile projectile = (Projectile) event.getDamager();
+	            ProjectileSource shooter = projectile.getShooter();
+	            if (shooter instanceof Player damager) {
+	    	    	instance.getMain().sendMessage(damager, instance.getLanguage().getMessage("pvp-mode"), instance.getSettings().getSetting("protection-message"));
+	            	event.setCancelled(true);
+	            }
+	        }
+
+        }
 	}
 
     /**
@@ -288,6 +314,7 @@ public class ClaimEvents implements Listener {
      */
 	@EventHandler(priority = EventPriority.LOWEST)
     public void onCreatureSpawn(CreatureSpawnEvent event) {
+		WorldMode mode = instance.getSettings().getWorldMode(event.getLocation().getWorld().getName());
 		Chunk chunk = event.getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
@@ -297,7 +324,9 @@ public class ClaimEvents implements Listener {
 				event.setCancelled(true);
 				return;
 			}
-		}
+		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Monsters")) {
+        	event.setCancelled(true);
+        }
     }
     
     /**
@@ -308,6 +337,7 @@ public class ClaimEvents implements Listener {
     public void onPlayerDropItem(PlayerDropItemEvent event) {
     	Chunk chunk = event.getItemDrop().getLocation().getChunk();
     	Player player = event.getPlayer();
+    	WorldMode mode = instance.getSettings().getWorldMode(player.getWorld().getName());
     	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
@@ -316,7 +346,10 @@ public class ClaimEvents implements Listener {
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("itemsdrop"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
-		}
+		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("ItemsDrop")) {
+        	event.setCancelled(true);
+        	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("itemsdrop-mode"), instance.getSettings().getSetting("protection-message"));
+        }
     }
     
     /**
@@ -327,6 +360,7 @@ public class ClaimEvents implements Listener {
     public void onPlayerPickupItem(PlayerPickupItemEvent event) {
     	Chunk chunk = event.getItem().getLocation().getChunk();
     	Player player = event.getPlayer();
+    	WorldMode mode = instance.getSettings().getWorldMode(player.getWorld().getName());
     	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
@@ -335,17 +369,22 @@ public class ClaimEvents implements Listener {
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("itemspickup"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
-		}
+		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("ItemsPickup")) {
+        	event.setCancelled(true);
+        	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("itemspickup-mode"), instance.getSettings().getSetting("protection-message"));
+        }
     }
     
     /**
      * Handles player portal events to prevent player using portals in claims.
-     * @param event the portal event.
+     * 
+     * @param event The PlayerPortalEvent event.
      */
     @EventHandler
     public void onPlayerUsePortal(PlayerPortalEvent event) {
     	Chunk chunk = event.getFrom().getChunk();
     	Player player = event.getPlayer();
+    	WorldMode mode = instance.getSettings().getWorldMode(player.getWorld().getName());
     	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
@@ -354,21 +393,28 @@ public class ClaimEvents implements Listener {
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("portals"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
-		}
+		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Portals")) {
+        	event.setCancelled(true);
+        	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("portals-mode"), instance.getSettings().getSetting("protection-message"));
+        }
     }
 	
     /**
      * Handles entity explosion events to prevent explosions in claims.
-     * @param event the entity explosion event.
+     * 
+     * @param event The EntityExplodeEvent event.
      */
     @EventHandler
     public void onEntityExplode(EntityExplodeEvent event) {
+    	WorldMode mode = instance.getSettings().getWorldMode(event.getLocation().getWorld().getName());
         Iterator<Block> blockIterator = event.blockList().iterator();
         while (blockIterator.hasNext()) {
             Block block = blockIterator.next();
             Chunk chunk = block.getLocation().getChunk();
             if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
                 blockIterator.remove();
+            } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
+            	blockIterator.remove();
             }
         }
         if (event.getEntityType() == EntityType.WIND_CHARGE) {
@@ -383,6 +429,11 @@ public class ClaimEvents implements Listener {
                         	entity.setVelocity(new Vector(0, 0, 0));
                         });
         			}
+        		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Windcharges")) {
+    				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("windcharges-mode"), instance.getSettings().getSetting("protection-message"));
+                    event.getEntity().getNearbyEntities(5, 5, 5).forEach(entity -> {
+                    	entity.setVelocity(new Vector(0, 0, 0));
+                    });
         		}
         		return;
         	}
@@ -396,11 +447,14 @@ public class ClaimEvents implements Listener {
      */
     @EventHandler
     public void onProjectileHit(ProjectileHitEvent event) {
-        if (event.getEntityType() == EntityType.WITHER_SKULL) {
+    	WorldMode mode = instance.getSettings().getWorldMode(event.getEntity().getWorld().getName());
+		if (event.getEntityType() == EntityType.WITHER_SKULL) {
             if (event.getHitBlock() != null) {
             	Block block = event.getHitBlock();
             	Chunk chunk = block.getLocation().getChunk();
                 if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
+                	event.setCancelled(true);
+                } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
                 	event.setCancelled(true);
                 }
             }
@@ -408,12 +462,16 @@ public class ClaimEvents implements Listener {
         		Chunk chunk = event.getHitEntity().getLocation().getChunk();
         		if(instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
         			event.setCancelled(true);
-        		}
+        		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
+                	event.setCancelled(true);
+                }
             }
             event.getEntity().getNearbyEntities(5, 5, 5).forEach(entity -> {
             	Chunk chunk = entity.getLocation().getChunk();
             	if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
                     entity.setVelocity(new Vector(0, 0, 0));
+                } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
+                	entity.setVelocity(new Vector(0, 0, 0));
                 }
             });
         } else if (event.getEntityType() == EntityType.WIND_CHARGE) {
@@ -422,13 +480,17 @@ public class ClaimEvents implements Listener {
             	Chunk chunk = block.getLocation().getChunk();
                 if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
                 	event.setCancelled(true);
+                } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
+                	event.setCancelled(true);
                 }
             }
             if (event.getHitEntity() != null) {
         		Chunk chunk = event.getHitEntity().getLocation().getChunk();
         		if(instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
         			event.setCancelled(true);
-        		}
+        		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
+                	event.setCancelled(true);
+                }
             }
         } else if (event.getEntityType() == EntityType.ENDER_PEARL && instance.isFolia()) {
             if (event.getEntity().getShooter() instanceof Player player) {
@@ -454,12 +516,15 @@ public class ClaimEvents implements Listener {
      */
     @EventHandler
     public void onBlockExplode(BlockExplodeEvent event) {
+    	WorldMode mode = instance.getSettings().getWorldMode(event.getBlock().getWorld().getName());
         Iterator<Block> blockIterator = event.blockList().iterator();
         while (blockIterator.hasNext()) {
             Block block = blockIterator.next();
             Chunk chunk = block.getLocation().getChunk();
             if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
                 blockIterator.remove();
+            } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
+            	blockIterator.remove();
             }
         }
     }
@@ -470,13 +535,17 @@ public class ClaimEvents implements Listener {
      */
     @EventHandler
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
+    	WorldMode mode = instance.getSettings().getWorldMode(event.getBlock().getLocation().getWorld().getName());
         if (event.getEntityType() == EntityType.WITHER || event.getEntityType() == EntityType.WITHER_SKULL) {
             Block block = event.getBlock();
             Chunk chunk = block.getLocation().getChunk();
             if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
             	event.setCancelled(true);
+            } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
+            	event.setCancelled(true);
             }
         }
+
     }
 	
     /**
@@ -486,6 +555,7 @@ public class ClaimEvents implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
 	public void onPlayerBreak(BlockBreakEvent event){
 		Player player = event.getPlayer();
+		WorldMode mode = instance.getSettings().getWorldMode(player.getLocation().getWorld().getName());
 		if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
@@ -500,6 +570,17 @@ public class ClaimEvents implements Listener {
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("specialblocks"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
+		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS) {
+			if(!instance.getSettings().getSettingSRC("Destroy")) {
+				event.setCancelled(true);
+				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy-mode"), instance.getSettings().getSetting("protection-message"));
+				return;
+			}
+			if(instance.getSettings().isSpecialBlock(event.getBlock().getType()) && !instance.getSettings().getSettingSRC("SpecialBlocks")) {
+				event.setCancelled(true);
+				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("specialblocks-mode"), instance.getSettings().getSetting("protection-message"));
+				return;
+			}
 		}
 	}
 	
@@ -510,23 +591,34 @@ public class ClaimEvents implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
 	public void onVehicleDamage(VehicleDamageEvent event){
 		Entity damager = event.getAttacker();
+		WorldMode mode = instance.getSettings().getWorldMode(damager.getLocation().getWorld().getName());
 		Chunk chunk = event.getVehicle().getLocation().getChunk();
-		if(!instance.getMain().checkIfClaimExists(chunk)) return;
-		if(damager instanceof Player) {
-			Player player = (Player) damager;
-			if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
-			Claim claim = instance.getMain().getClaim(chunk);
-			if(!claim.getPermissionForPlayer("Destroy", player)) {
-				event.setCancelled(true);
-				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
+		if(instance.getMain().checkIfClaimExists(chunk)) {
+			if(damager instanceof Player) {
+				Player player = (Player) damager;
+				if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+				Claim claim = instance.getMain().getClaim(chunk);
+				if(!claim.getPermissionForPlayer("Destroy", player)) {
+					event.setCancelled(true);
+					instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
+					return;
+				}
 				return;
 			}
-			return;
-		}
-		if(!instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
+			if(!instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
+				event.setCancelled(true);
+				return;
+			}
+		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Destroy")) {
+			if(damager instanceof Player player) {
+				if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+				event.setCancelled(true);
+				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy-mode"), instance.getSettings().getSetting("protection-message"));
+				return;
+			}
 			event.setCancelled(true);
-			return;
 		}
+
 	}
 	
     /**
@@ -537,6 +629,7 @@ public class ClaimEvents implements Listener {
 	public void onPlayerPlace(BlockPlaceEvent event){
 		Player player = event.getPlayer();
 		if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+		WorldMode mode = instance.getSettings().getWorldMode(player.getLocation().getWorld().getName());
 		Block block = event.getBlock();
 		Chunk chunk = block.getLocation().getChunk();
 		
@@ -555,6 +648,10 @@ public class ClaimEvents implements Listener {
 	                        instance.getMain().sendMessage(player, instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 	                        return;
 	                    }
+	                } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Build")) {
+                        event.setCancelled(true);
+                        instance.getMain().sendMessage(player, instance.getLanguage().getMessage("build-mode"), instance.getSettings().getSetting("protection-message"));
+                        return;
 	                }
 	            }
 	        }
@@ -567,6 +664,10 @@ public class ClaimEvents implements Listener {
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
+		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Build")) {
+            event.setCancelled(true);
+            instance.getMain().sendMessage(player, instance.getLanguage().getMessage("build-mode"), instance.getSettings().getSetting("protection-message"));
+            return;
 		}
 	}
 	
@@ -579,6 +680,7 @@ public class ClaimEvents implements Listener {
 		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
 		if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+		WorldMode mode = instance.getSettings().getWorldMode(player.getLocation().getWorld().getName());
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
@@ -587,6 +689,9 @@ public class ClaimEvents implements Listener {
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
+		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Build")) {
+			event.setCancelled(true);
+			instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build-mode"), instance.getSettings().getSetting("protection-message"));
 		}
 	}
 	
@@ -597,13 +702,21 @@ public class ClaimEvents implements Listener {
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onHangingBreak(HangingBreakEvent event) {
 		Chunk chunk = event.getEntity().getChunk();
+		WorldMode mode = instance.getSettings().getWorldMode(event.getEntity().getLocation().getWorld().getName());
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			if(event.getCause() == HangingBreakEvent.RemoveCause.PHYSICS && !instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
 				event.setCancelled(true);
 			} else if (event.getCause() == HangingBreakEvent.RemoveCause.EXPLOSION && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
 				event.setCancelled(true);
 			}
+		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS) {
+			if(event.getCause() == HangingBreakEvent.RemoveCause.PHYSICS && !instance.getSettings().getSettingSRC("Destroy")) {
+				event.setCancelled(true);
+			} else if (event.getCause() == HangingBreakEvent.RemoveCause.EXPLOSION && !instance.getSettings().getSettingSRC("Explosions")) {
+				event.setCancelled(true);
+			}
 		}
+
 	}
 	
     /**
@@ -615,10 +728,10 @@ public class ClaimEvents implements Listener {
         if (event.getEntity().getType() == EntityType.PAINTING
         		|| event.getEntity().getType() == EntityType.ITEM_FRAME 
         		|| event.getEntity().getType() == EntityType.GLOW_ITEM_FRAME) {
+        	WorldMode mode = instance.getSettings().getWorldMode(event.getEntity().getLocation().getWorld().getName());
         	Chunk chunk = event.getEntity().getLocation().getChunk();
-            if (event.getRemover() instanceof Player) {
-                if(instance.getMain().checkIfClaimExists(chunk)) {
-                	Player player = (Player) event.getRemover();
+        	if(instance.getMain().checkIfClaimExists(chunk)) {
+                if (event.getRemover() instanceof Player player) {
                 	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
                 	Claim claim = instance.getMain().getClaim(chunk);
                 	if(!claim.getPermissionForPlayer("Destroy", player)) {
@@ -626,12 +739,20 @@ public class ClaimEvents implements Listener {
                 		instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
                 		return;
                 	}
+                    return;
                 }
-                return;
-            }
-           	if(!instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
+               	if(!instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
+            		event.setCancelled(true);
+            		return;
+            	}
+        	} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Destroy")) {
+        		if (event.getRemover() instanceof Player player) {
+        			if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+            		event.setCancelled(true);
+            		instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy-mode"), instance.getSettings().getSetting("protection-message"));
+            		return;
+        		}
         		event.setCancelled(true);
-        		return;
         	}
         }
     }
@@ -645,6 +766,7 @@ public class ClaimEvents implements Listener {
 		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
 		if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+		WorldMode mode = instance.getSettings().getWorldMode(player.getLocation().getWorld().getName());
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
@@ -653,6 +775,9 @@ public class ClaimEvents implements Listener {
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
+		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Build")) {
+			event.setCancelled(true);
+			instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build-mode"), instance.getSettings().getSetting("protection-message"));
 		}
     }
 	
@@ -665,6 +790,7 @@ public class ClaimEvents implements Listener {
 		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
 		if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+		WorldMode mode = instance.getSettings().getWorldMode(player.getLocation().getWorld().getName());
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
@@ -673,7 +799,11 @@ public class ClaimEvents implements Listener {
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
+		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Destroy")) {
+			event.setCancelled(true);
+			instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy-mode"), instance.getSettings().getSetting("protection-message"));
 		}
+
     }
 	
 	/**
@@ -685,6 +815,7 @@ public class ClaimEvents implements Listener {
 	public void onPlayerFish(PlayerFishEvent event) {
 		Player player = event.getPlayer();
 		if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+		WorldMode mode = instance.getSettings().getWorldMode(player.getLocation().getWorld().getName());
 		if(event.getCaught() instanceof Entity) {
 			Entity entity = event.getCaught();
 			if(entity != null) {
@@ -696,9 +827,13 @@ public class ClaimEvents implements Listener {
 		        		instance.getMain().sendMessage(player,instance.getLanguage().getMessage("entities"), instance.getSettings().getSetting("protection-message"));
 		        		return;
 					}
+				} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Entities")) {
+					event.setCancelled(true);
+					instance.getMain().sendMessage(player,instance.getLanguage().getMessage("entities-mode"), instance.getSettings().getSetting("protection-message"));
 				}
 			}
 		}
+
 	}
 	
     /**
@@ -710,6 +845,7 @@ public class ClaimEvents implements Listener {
 		if(event.isCancelled()) return;
 		Player player = event.getPlayer();
 		if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+		WorldMode mode = instance.getSettings().getWorldMode(player.getLocation().getWorld().getName());
 		Chunk chunk = event.getBlock().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
@@ -718,6 +854,9 @@ public class ClaimEvents implements Listener {
 				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
 				return;
 			}
+		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Build")) {
+			event.setCancelled(true);
+			instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build-mode"), instance.getSettings().getSetting("protection-message"));
 		}
 	}
 	
@@ -729,6 +868,7 @@ public class ClaimEvents implements Listener {
     public void onPlayerInteract(PlayerInteractEvent event) {
 		Player player = event.getPlayer();
 		if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+		WorldMode mode = instance.getSettings().getWorldMode(player.getLocation().getWorld().getName());
 		Block block = event.getClickedBlock();
 		Chunk chunk;
 		if(block == null) {
@@ -819,6 +959,88 @@ public class ClaimEvents implements Listener {
                 }
 	        }
 	        return;
+		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS) {
+	        if ((event.getAction() == Action.RIGHT_CLICK_BLOCK || event.getAction() == Action.LEFT_CLICK_BLOCK)) {
+	            Material mat = event.getClickedBlock().getType();
+	            if (mat.name().contains("BUTTON") && !instance.getSettings().getSettingSRC("Buttons")) {
+	            	event.setCancelled(true);
+	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("buttons-mode"), instance.getSettings().getSetting("protection-message"));
+	                return;
+	            }
+	            if (mat.name().contains("TRAPDOOR") && !instance.getSettings().getSettingSRC("Trapdoors")) {
+	            	event.setCancelled(true);
+	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("trapdoors-mode"), instance.getSettings().getSetting("protection-message"));
+	                return;
+	            }
+	            if (mat.name().contains("DOOR") && !instance.getSettings().getSettingSRC("Doors")) {
+	            	event.setCancelled(true);
+	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("doors-mode"), instance.getSettings().getSetting("protection-message"));
+	                return;
+	            }
+	            if (mat.name().contains("FENCE_GATE") && !instance.getSettings().getSettingSRC("Fencegates")) {
+	            	event.setCancelled(true);
+	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("fencegates-mode"), instance.getSettings().getSetting("protection-message"));
+	                return;
+	            }
+	            if (mat.equals(Material.LEVER) && !instance.getSettings().getSettingSRC("Levers")) {
+	            	event.setCancelled(true);
+	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("levers-mode"), instance.getSettings().getSetting("protection-message"));
+	                return;
+	            }
+	            if (mat.equals(Material.REPEATER) && !instance.getSettings().getSettingSRC("RepeatersComparators")) {
+	            	event.setCancelled(true);
+	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("repeaters-mode"), instance.getSettings().getSetting("protection-message"));
+	                return;
+	            }
+	            if (mat.equals(Material.COMPARATOR) && !instance.getSettings().getSettingSRC("RepeatersComparators")) {
+	            	event.setCancelled(true);
+	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("comparators-mode"), instance.getSettings().getSetting("protection-message"));
+	                return;
+	            }
+	            if (mat.equals(Material.BELL) && !instance.getSettings().getSettingSRC("Bells")) {
+	            	event.setCancelled(true);
+	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("bells-mode"), instance.getSettings().getSetting("protection-message"));
+	                return;
+	            }
+	            if(!instance.getSettings().getSettingSRC("InteractBlocks")) {
+	            	Material item = block.getType();
+	            	if(instance.getSettings().isRestrictedContainer(item)) {
+                        event.setCancelled(true);
+                        instance.getMain().sendMessage(player,instance.getLanguage().getMessage("interactblocks-mode"), instance.getSettings().getSetting("protection-message"));
+                        return;
+	            	}
+	            }
+	            if(!instance.getSettings().getSettingSRC("Items")) {
+	                Material item = event.getMaterial();
+	                if(instance.getSettings().isRestrictedItem(item)) {
+                        event.setCancelled(true);
+                        instance.getMain().sendMessage(player,instance.getLanguage().getMessage("items-mode"), instance.getSettings().getSetting("protection-message"));
+                        return;
+	                }
+	            }
+	            return;
+	        }
+	        if (event.getAction() == Action.PHYSICAL) {
+	        	if(block != null && block.getType().name().contains("PRESSURE_PLATE") && !instance.getSettings().getSettingSRC("Plates")) {
+	            	event.setCancelled(true);
+	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("plates-mode"), instance.getSettings().getSetting("protection-message"));
+	                return;
+	        	}
+	        	if (block.getType() == Material.TRIPWIRE && !instance.getSettings().getSettingSRC("Tripwires")) {
+	            	event.setCancelled(true);
+	            	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("tripwires-mode"), instance.getSettings().getSetting("protection-message"));
+	                return;
+	            }
+	        }
+	        if(!instance.getSettings().getSettingSRC("Items")) {
+                Material item = event.getMaterial();
+                if(instance.getSettings().isRestrictedItem(item)) {
+                    event.setCancelled(true);
+                    instance.getMain().sendMessage(player,instance.getLanguage().getMessage("items-mode"), instance.getSettings().getSetting("protection-message"));
+                    return;
+                }
+	        }
+	        return;
 		}
     }
 	
@@ -828,13 +1050,13 @@ public class ClaimEvents implements Listener {
      */
 	@EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity(PlayerInteractAtEntityEvent event) {
-        Chunk chunk = event.getRightClicked().getLocation().getChunk();
+    	Player player = event.getPlayer();
+    	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+		WorldMode mode = instance.getSettings().getWorldMode(event.getRightClicked().getLocation().getWorld().getName());
+		Chunk chunk = event.getRightClicked().getLocation().getChunk();
         if(instance.getMain().checkIfClaimExists(chunk)) {
-        	Player player = event.getPlayer();
-        	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
         	Claim claim = instance.getMain().getClaim(chunk);
         	Entity entity = event.getRightClicked();
-        	
         	EntityType e = event.getRightClicked().getType();
         	if(!instance.getSettings().isRestrictedEntityType(e)) return;
         	if(!claim.getPermissionForPlayer("Entities", player)) {
@@ -854,8 +1076,25 @@ public class ClaimEvents implements Listener {
                     return;
                 }
             }
+        } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS) {
+        	EntityType e = event.getRightClicked().getType();
+        	if(!instance.getSettings().isRestrictedEntityType(e)) return;
+        	if(!instance.getSettings().getSettingSRC("Entities")) {
+        		event.setCancelled(true);
+        		instance.getMain().sendMessage(player,instance.getLanguage().getMessage("entities-mode"), instance.getSettings().getSetting("protection-message"));
+        		return;
+        	}
+        	
+            ItemStack itemInHand = player.getInventory().getItem(event.getHand());
+            if (itemInHand != null) {
+            	if(!instance.getSettings().isRestrictedItem(itemInHand.getType())) return;
+                if (!instance.getSettings().getSettingSRC("Items")) {
+                    event.setCancelled(true);
+                    instance.getMain().sendMessage(player,instance.getLanguage().getMessage("items-mode"), instance.getSettings().getSetting("protection-message"));
+                    return;
+                }
+            }
         }
-        return;
     }
 	
     /**
@@ -864,13 +1103,13 @@ public class ClaimEvents implements Listener {
      */
 	@EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteractEntity2(PlayerInteractEntityEvent event) {
-        Chunk chunk = event.getRightClicked().getLocation().getChunk();
+    	Player player = event.getPlayer();
+    	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+		WorldMode mode = instance.getSettings().getWorldMode(event.getRightClicked().getLocation().getWorld().getName());
+		Chunk chunk = event.getRightClicked().getLocation().getChunk();
         if(instance.getMain().checkIfClaimExists(chunk)) {
-        	Player player = event.getPlayer();
-        	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
         	Claim claim = instance.getMain().getClaim(chunk);
         	Entity entity = event.getRightClicked();
-        	
         	EntityType e = event.getRightClicked().getType();
         	if(!instance.getSettings().isRestrictedEntityType(e)) return;
         	if(!claim.getPermissionForPlayer("Entities", player)) {
@@ -890,8 +1129,25 @@ public class ClaimEvents implements Listener {
                     return;
                 }
             }
+        } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS) {
+        	EntityType e = event.getRightClicked().getType();
+        	if(!instance.getSettings().isRestrictedEntityType(e)) return;
+        	if(!instance.getSettings().getSettingSRC("Entities")) {
+        		event.setCancelled(true);
+        		instance.getMain().sendMessage(player,instance.getLanguage().getMessage("entities-mode"), instance.getSettings().getSetting("protection-message"));
+        		return;
+        	}
+        	
+            ItemStack itemInHand = player.getInventory().getItem(event.getHand());
+            if (itemInHand != null) {
+            	if(!instance.getSettings().isRestrictedItem(itemInHand.getType())) return;
+                if (!instance.getSettings().getSettingSRC("Items")) {
+                    event.setCancelled(true);
+                    instance.getMain().sendMessage(player,instance.getLanguage().getMessage("items-mode"), instance.getSettings().getSetting("protection-message"));
+                    return;
+                }
+            }
         }
-        return;
     }
 	
     /**
@@ -903,11 +1159,36 @@ public class ClaimEvents implements Listener {
     	Block block = event.getBlock();
     	Block toBlock = event.getToBlock();
     	Chunk chunk = toBlock.getLocation().getChunk();
+    	WorldMode mode = instance.getSettings().getWorldMode(toBlock.getLocation().getWorld().getName());
     	if(block.getLocation().getChunk().equals(chunk)) return;
     	if(instance.getMain().checkIfClaimExists(chunk)) {
     		if(instance.getMain().getOwnerInClaim(chunk).equals(instance.getMain().getOwnerInClaim(block.getLocation().getChunk()))) return;
     		if(instance.getMain().canPermCheck(chunk, "Liquids", "Natural")) return;
             if (block.isLiquid()) {
+                if (toBlock.getBlockData() instanceof Waterlogged) {
+                    Waterlogged waterlogged = (Waterlogged) toBlock.getBlockData();
+                    if (waterlogged.isWaterlogged()) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+                if (toBlock.isEmpty() || toBlock.isPassable()) {
+                    event.setCancelled(true);
+                }
+            } else {
+                if (block.getBlockData() instanceof Waterlogged) {
+                    Waterlogged waterlogged = (Waterlogged) block.getBlockData();
+                    if (waterlogged.isWaterlogged()) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                }
+                if (toBlock.isEmpty() || toBlock.isPassable()) {
+                    event.setCancelled(true);
+                }
+            }
+    	} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Liquids")) {
+    		if (block.isLiquid()) {
                 if (toBlock.getBlockData() instanceof Waterlogged) {
                     Waterlogged waterlogged = (Waterlogged) toBlock.getBlockData();
                     if (waterlogged.isWaterlogged()) {
@@ -942,11 +1223,14 @@ public class ClaimEvents implements Listener {
     	Block block = event.getBlock();
     	Chunk targetChunk = block.getRelative(((Directional) event.getBlock().getBlockData()).getFacing()).getLocation().getChunk();
     	if(block.getLocation().getChunk().equals(targetChunk)) return;
+    	WorldMode mode = instance.getSettings().getWorldMode(block.getLocation().getWorld().getName());
     	if(instance.getMain().checkIfClaimExists(targetChunk)) {
     		if(instance.getMain().getOwnerInClaim(block.getLocation().getChunk()).equals(instance.getMain().getOwnerInClaim(targetChunk))) return;
     		if(!instance.getMain().canPermCheck(targetChunk, "Redstone", "Natural")) {
     			event.setCancelled(true);
     		}
+    	} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Redstone")) {
+    		event.setCancelled(true);
     	}
     }
     
@@ -991,20 +1275,37 @@ public class ClaimEvents implements Listener {
     @EventHandler
     public void onFrostWalkerUse(EntityBlockFormEvent event) {
     	Chunk chunk = event.getBlock().getLocation().getChunk();
-    	if(!instance.getMain().checkIfClaimExists(chunk)) return;
-    	Claim claim = instance.getMain().getClaim(chunk);
-        if (event.getNewState().getType() == Material.FROSTED_ICE) {
-            Entity entity = event.getEntity();
-            if (entity instanceof Player) {
-                Player player = (Player) entity;
-                if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
-                if(claim.getPermissionForPlayer("FrostWalker", player)) return;
-                ItemStack boots = player.getInventory().getBoots();
-                if (boots != null && boots.containsEnchantment(Enchantment.FROST_WALKER)) {
-                    event.setCancelled(true);
+    	WorldMode mode = instance.getSettings().getWorldMode(event.getBlock().getLocation().getWorld().getName());
+    	if(instance.getMain().checkIfClaimExists(chunk)) {
+        	Claim claim = instance.getMain().getClaim(chunk);
+            if (event.getNewState().getType() == Material.FROSTED_ICE) {
+                Entity entity = event.getEntity();
+                if (entity instanceof Player) {
+                    Player player = (Player) entity;
+                    if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+                    if(claim.getPermissionForPlayer("FrostWalker", player)) return;
+                    ItemStack boots = player.getInventory().getBoots();
+                    if (boots != null && boots.containsEnchantment(Enchantment.FROST_WALKER)) {
+                    	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("frostwalker"), instance.getSettings().getSetting("protection-message"));
+                        event.setCancelled(true);
+                    }
                 }
             }
-        }
+    	} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("FrostWalker")) {
+            if (event.getNewState().getType() == Material.FROSTED_ICE) {
+                Entity entity = event.getEntity();
+                if (entity instanceof Player) {
+                    Player player = (Player) entity;
+                    if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+                    ItemStack boots = player.getInventory().getBoots();
+                    if (boots != null && boots.containsEnchantment(Enchantment.FROST_WALKER)) {
+                    	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("frostwalker-mode"), instance.getSettings().getSetting("protection-message"));
+                        event.setCancelled(true);
+                    }
+                }
+            }
+    	}
+
     }
     
     /**
@@ -1015,9 +1316,13 @@ public class ClaimEvents implements Listener {
     public void onBlockSpread(BlockSpreadEvent event) {
         if (event.getNewState().getType() == Material.FIRE) {
             Chunk chunk = event.getBlock().getLocation().getChunk();
-            if(!instance.getMain().checkIfClaimExists(chunk)) return;
-            if(instance.getMain().canPermCheck(chunk, "Firespread", "Natural")) return;
-            event.setCancelled(true);
+            WorldMode mode = instance.getSettings().getWorldMode(event.getBlock().getLocation().getWorld().getName());
+            if(instance.getMain().checkIfClaimExists(chunk)) {
+                if(instance.getMain().canPermCheck(chunk, "Firespread", "Natural")) return;
+                event.setCancelled(true);
+            } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Firespread")) {
+            	event.setCancelled(true);
+            }
         }
     }
     
@@ -1028,20 +1333,36 @@ public class ClaimEvents implements Listener {
     @EventHandler
     public void onBlockIgnite(BlockIgniteEvent event) {
         Chunk chunk = event.getBlock().getLocation().getChunk();
-        if(!instance.getMain().checkIfClaimExists(chunk)) return;
-        Claim claim = instance.getMain().getClaim(chunk);
-        Player player = event.getPlayer();
-        if(player != null) {
-        	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
-			if(!claim.getPermissionForPlayer("Build", player)) {
-				event.setCancelled(true);
-				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
-				return;
-			}
-			return;
+        WorldMode mode = instance.getSettings().getWorldMode(event.getBlock().getLocation().getWorld().getName());
+        if(instance.getMain().checkIfClaimExists(chunk)) {
+            Claim claim = instance.getMain().getClaim(chunk);
+            Player player = event.getPlayer();
+            if(player != null) {
+            	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+    			if(!claim.getPermissionForPlayer("Build", player)) {
+    				event.setCancelled(true);
+    				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build"), instance.getSettings().getSetting("protection-message"));
+    				return;
+    			}
+    			return;
+            }
+            if(instance.getMain().canPermCheck(chunk, "Firespread", "Natural")) return;
+            event.setCancelled(true);
+        } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS) {
+            Player player = event.getPlayer();
+            if(player != null) {
+            	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+    			if(!instance.getSettings().getSettingSRC("Build")) {
+    				event.setCancelled(true);
+    				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("build-mode"), instance.getSettings().getSetting("protection-message"));
+    				return;
+    			}
+    			return;
+            }
+            if(!instance.getSettings().getSettingSRC("Firespread")) {
+            	event.setCancelled(true);
+            }
         }
-        if(instance.getMain().canPermCheck(chunk, "Firespread", "Natural")) return;
-        event.setCancelled(true);
     }
     
     /**
@@ -1051,9 +1372,14 @@ public class ClaimEvents implements Listener {
     @EventHandler
     public void onBlockBurn(BlockBurnEvent event) {
         Chunk chunk = event.getBlock().getLocation().getChunk();
-        if(!instance.getMain().checkIfClaimExists(chunk)) return;
-        if(instance.getMain().canPermCheck(chunk, "Firespread", "Natural")) return;
-        event.setCancelled(true);
+        WorldMode mode = instance.getSettings().getWorldMode(event.getBlock().getLocation().getWorld().getName());
+        if(instance.getMain().checkIfClaimExists(chunk)) {
+            if(instance.getMain().canPermCheck(chunk, "Firespread", "Natural")) return;
+            event.setCancelled(true);
+        } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Firespread")) {
+        	event.setCancelled(true);
+        }
+
     }
     
     /**
@@ -1065,20 +1391,35 @@ public class ClaimEvents implements Listener {
     	Entity entity = event.getEntity();
     	if(entity instanceof ArmorStand || entity instanceof ItemFrame || entity instanceof GlowItemFrame) {
             Entity damager = event.getDamager();
+            WorldMode mode = instance.getSettings().getWorldMode(damager.getLocation().getWorld().getName());
             Chunk chunk = entity.getLocation().getChunk();
-            if (!instance.getMain().checkIfClaimExists(chunk)) return;
-            if (damager instanceof Player) {
-            	Claim claim = instance.getMain().getClaim(chunk);
-            	Player player = (Player) damager;
-            	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
-                if (!claim.getPermissionForPlayer("Destroy", player)) {
-                	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
-                    event.setCancelled(true);
+            if (instance.getMain().checkIfClaimExists(chunk)) {
+                if (damager instanceof Player) {
+                	Claim claim = instance.getMain().getClaim(chunk);
+                	Player player = (Player) damager;
+                	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+                    if (!claim.getPermissionForPlayer("Destroy", player)) {
+                    	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
+                        event.setCancelled(true);
+                    }
+                	return;
                 }
-            	return;
-            }
-            if (!instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
-            	event.setCancelled(true);
+                if (!instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
+                	event.setCancelled(true);
+                }
+            } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS) {
+                if (damager instanceof Player) {
+                	Player player = (Player) damager;
+                	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+                    if (!instance.getSettings().getSettingSRC("Destroy")) {
+                    	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy-mode"), instance.getSettings().getSetting("protection-message"));
+                        event.setCancelled(true);
+                    }
+                	return;
+                }
+                if (!instance.getSettings().getSettingSRC("Destroy")) {
+                	event.setCancelled(true);
+                }
             }
         }
     }
@@ -1091,22 +1432,39 @@ public class ClaimEvents implements Listener {
     public void onEntityDamageByEntity(EntityDamageByEntityEvent event) {
         Entity entity = event.getEntity();
         Chunk chunk = entity.getLocation().getChunk();
+        WorldMode mode = instance.getSettings().getWorldMode(entity.getLocation().getWorld().getName());
+        if(instance.getMain().checkIfClaimExists(chunk)) {
+            if (!(entity instanceof Player) && !(entity instanceof Monster) && !(entity instanceof ArmorStand) && !(entity instanceof ItemFrame) ) {
+                Entity damager = event.getDamager();
 
-        if(!instance.getMain().checkIfClaimExists(chunk)) return;
-
-        if (!(entity instanceof Player) && !(entity instanceof Monster) && !(entity instanceof ArmorStand) && !(entity instanceof ItemFrame) ) {
-            Entity damager = event.getDamager();
-
-            if (damager instanceof Player) {
-                processDamageByPlayer((Player) damager, chunk, event);
-            } else if (damager instanceof Projectile) {
-                Projectile projectile = (Projectile) damager;
-                ProjectileSource shooter = projectile.getShooter();
-                if (shooter instanceof Player) {
-                    processDamageByPlayer((Player) shooter, chunk, event);
+                if (damager instanceof Player) {
+                    processDamageByPlayer((Player) damager, chunk, event);
+                } else if (damager instanceof Projectile) {
+                    Projectile projectile = (Projectile) damager;
+                    ProjectileSource shooter = projectile.getShooter();
+                    if (shooter instanceof Player) {
+                        processDamageByPlayer((Player) shooter, chunk, event);
+                    }
+                }
+            }
+        } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Damages")) {
+            if (!(entity instanceof Player) && !(entity instanceof Monster) && !(entity instanceof ArmorStand) && !(entity instanceof ItemFrame) ) {
+                Entity damager = event.getDamager();
+                if (damager instanceof Player player) {
+                	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+                    event.setCancelled(true);
+                    instance.getMain().sendMessage(player, instance.getLanguage().getMessage("damages-mode"), instance.getSettings().getSetting("protection-message"));
+                } else if (damager instanceof Projectile) {
+                    Projectile projectile = (Projectile) damager;
+                    ProjectileSource shooter = projectile.getShooter();
+                    if (shooter instanceof Player player) {
+                        event.setCancelled(true);
+                        instance.getMain().sendMessage(player, instance.getLanguage().getMessage("damages-mode"), instance.getSettings().getSetting("protection-message"));
+                    }
                 }
             }
         }
+
     }
     
     /**
@@ -1119,6 +1477,7 @@ public class ClaimEvents implements Listener {
         if (entity instanceof Player) {
             Player player = (Player) entity;
             if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
+            WorldMode mode = instance.getSettings().getWorldMode(player.getLocation().getWorld().getName());
             Entity vehicle = event.getVehicle();
             EntityType vehicleType = vehicle.getType();
             if(!instance.getSettings().isRestrictedEntityType(vehicleType)) return;
@@ -1128,6 +1487,9 @@ public class ClaimEvents implements Listener {
             	if(claim.getPermissionForPlayer("Entities", player)) return;
                 event.setCancelled(true);
                 instance.getMain().sendMessage(player,instance.getLanguage().getMessage("entities"), instance.getSettings().getSetting("protection-message"));
+            } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Entities")) {
+                event.setCancelled(true);
+                instance.getMain().sendMessage(player,instance.getLanguage().getMessage("entities-mode"), instance.getSettings().getSetting("protection-message"));
             }
         }
     }
@@ -1144,6 +1506,7 @@ public class ClaimEvents implements Listener {
         if (entity.getType() == EntityType.PLAYER && block.getType() == Material.FARMLAND) {
             Player player = (Player) entity;
             Chunk chunk = block.getLocation().getChunk();
+            WorldMode mode = instance.getSettings().getWorldMode(player.getLocation().getWorld().getName());
             if (instance.getMain().checkIfClaimExists(chunk)) {
             	Claim claim = instance.getMain().getClaim(chunk);
             	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
@@ -1151,7 +1514,9 @@ public class ClaimEvents implements Listener {
                 	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy"), instance.getSettings().getSetting("protection-message"));
                     event.setCancelled(true);
                 }
-
+            } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Destroy")) {
+                event.setCancelled(true);
+                instance.getMain().sendMessage(player,instance.getLanguage().getMessage("destroy-mode"), instance.getSettings().getSetting("protection-message"));
             }
         }
     }
@@ -1169,6 +1534,7 @@ public class ClaimEvents implements Listener {
      * @return true if the piston can move the blocks, false otherwise.
      */
     private boolean canPistonMoveBlock(List<Block> blocks, BlockFace direction, Chunk pistonChunk, boolean retractOrNot) {
+    	WorldMode mode = instance.getSettings().getWorldMode(pistonChunk.getWorld().getName());
     	if(retractOrNot) {
 	        for (Block block : blocks) {
 	        	Chunk chunk = block.getLocation().getChunk();
@@ -1178,6 +1544,8 @@ public class ClaimEvents implements Listener {
 	                	if(!instance.getMain().canPermCheck(chunk, "Redstone", "Natural")) {
 	                		return false;
 	                	}
+	                } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Redstone")) {
+	                	return false;
 	                }
 	            }
 	        }
@@ -1191,6 +1559,8 @@ public class ClaimEvents implements Listener {
                 	if(!instance.getMain().canPermCheck(chunk, "Redstone", "Natural")) {
                 		return false;
                 	}
+                } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Redstone")) {
+                	return false;
                 }
             }
         }

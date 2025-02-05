@@ -57,6 +57,7 @@ import fr.xyness.SCS.Config.ClaimPurge;
 import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Listeners.*;
 import fr.xyness.SCS.Support.*;
+import fr.xyness.SCS.Types.WorldMode;
 import net.md_5.bungee.api.ChatColor;
 
 /**
@@ -114,7 +115,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.11.8.9";
+    private String Version = "1.12-BETA";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -610,12 +611,34 @@ public class SimpleClaimSystem extends JavaPlugin {
                 claimSettingsInstance.addSetting("protection-message", "ACTION_BAR");
             }
             
-            // Add disabled worlds
-            Set<String> worlds = new HashSet<>(getConfig().getStringList("worlds-disabled"));
-            claimSettingsInstance.setDisabledWorlds(worlds);
+            // Claims mode
+            ConfigurationSection worldsSection = getConfig().getConfigurationSection("claims-worlds-mode");
+            LinkedHashMap<String, WorldMode> worlds = new LinkedHashMap<>();
+            for (String key : worldsSection.getKeys(false)) {
+            	WorldMode mode;
+            	try {
+                	mode = WorldMode.valueOf(worldsSection.getString(key));
+                	if(mode == null) {
+                        info(ChatColor.RED + "Invalid world mode for '"+key+"', using default mode.");
+                        mode = WorldMode.SURVIVAL;
+                	}
+                } catch (IllegalArgumentException e) {
+                    info(ChatColor.RED + "Invalid world mode for '"+key+"', using default mode.");
+                    mode = WorldMode.SURVIVAL;
+                }
+                worlds.put(key, mode);
+            }
             
-            // Check the preload chunks
-            claimSettingsInstance.addSetting("preload-chunks", getConfig().getString("preload-chunks"));
+            // Check for old disabled worlds setting
+            if(getConfig().contains("worlds-disabled")) {
+            	List<String> disabledWorlds = getConfig().getStringList("worlds-disabled");
+            	for(String world : disabledWorlds) {
+            		getConfig().set("claims-worlds-mode."+world, "DISABLED");
+            		worlds.put(world, WorldMode.DISABLED);
+            	}
+            	getConfig().set("worlds-disabled", null);
+            }
+            claimSettingsInstance.setWorlds(worlds);
             
             // Check the keep chunks loaded
             claimSettingsInstance.addSetting("keep-chunks-loaded", getConfig().getString("keep-chunks-loaded"));
@@ -750,11 +773,11 @@ public class SimpleClaimSystem extends JavaPlugin {
             // Expulsion location
             if(getConfig().contains("expulsion-location")) {
             	if (!config.isSet("expulsion-location") || config.getConfigurationSection("expulsion-location").getKeys(false).isEmpty()) {
-            		getLogger().warning("'expulsion-location' : don't forget to set it with /scs setexpulsionlocation.");
+            		info(ChatColor.RED + "'expulsion-location' : don't forget to set it with /scs setexpulsionlocation.");
             	} else {
 	            	World world = Bukkit.getWorld(config.getString("expulsion-location.world"));
 	                if (world == null) {
-	                    getLogger().warning("'expulsion-location' : the world is incorrect.");
+	                	info(ChatColor.RED + "'expulsion-location' : the world is incorrect.");
 	                    status[0] = false;
 	                    return;
 	                }
@@ -824,6 +847,14 @@ public class SimpleClaimSystem extends JavaPlugin {
             }
             claimSettingsInstance.setEnabledSettings(v);
             
+            // Add enabled/disabled settings
+            v = new LinkedHashMap<>();
+            statusSettings = getConfig().getConfigurationSection("permissions-on-SurvivalRequiringClaims");
+            for (String key : statusSettings.getKeys(false)) {
+                v.put(key, statusSettings.getBoolean(key));
+            }
+            claimSettingsInstance.setSurvivalRequiringClaimsSettings(v);
+            
             // Add blocked items
             claimSettingsInstance.setRestrictedItems(getConfig().getStringList("blocked-items"));
             
@@ -854,6 +885,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Save config
             saveConfig();
+            reloadConfig();
             
             // Load bossbar default settings
             claimBossBarInstance.loadBossbarSettings();
@@ -1144,18 +1176,18 @@ public class SimpleClaimSystem extends JavaPlugin {
             List<String> aliases_claim = getConfig().getStringList("command-aliases.claim");
             List<String> aliases_unclaim = getConfig().getStringList("command-aliases.unclaim");
             List<String> aliases_claims = getConfig().getStringList("command-aliases.claims");
-            if (aliases_claim == null || aliases_claim.isEmpty()) {
-                info(ChatColor.RED + "'aliases_claim' is missing or empty in config. Using default value.");
+            if (aliases_claim == null) {
+                info(ChatColor.RED + "'aliases_claim' is missing in config. Using default value.");
                 aliases_claim = new ArrayList<>();
                 aliases_claim.add("/territory");
             }
-            if (aliases_unclaim == null || aliases_unclaim.isEmpty()) {
-                info(ChatColor.RED + "'aliases_unclaim' is missing or empty in config. Using default value.");
+            if (aliases_unclaim == null) {
+                info(ChatColor.RED + "'aliases_unclaim' is missing in config. Using default value.");
                 aliases_unclaim = new ArrayList<>();
                 aliases_unclaim.add("/unterritory");
             }
-            if (aliases_claims == null || aliases_claims.isEmpty()) {
-                info(ChatColor.RED + "'aliases_claims' is missing or empty in config. Using default value.");
+            if (aliases_claims == null) {
+                info(ChatColor.RED + "'aliases_claims' is missing in config. Using default value.");
                 aliases_claims = new ArrayList<>();
                 aliases_claims.add("/territories");
             }
@@ -1197,12 +1229,34 @@ public class SimpleClaimSystem extends JavaPlugin {
                 claimSettingsInstance.addSetting("protection-message", "ACTION_BAR");
             }
             
-            // Add disabled worlds
-            Set<String> worlds = new HashSet<>(getConfig().getStringList("worlds-disabled"));
-            claimSettingsInstance.setDisabledWorlds(worlds);
+            // Claims mode
+            ConfigurationSection worldsSection = getConfig().getConfigurationSection("claims-worlds-mode");
+            LinkedHashMap<String, WorldMode> worlds = new LinkedHashMap<>();
+            for (String key : worldsSection.getKeys(false)) {
+            	WorldMode mode;
+            	try {
+                	mode = WorldMode.valueOf(worldsSection.getString(key));
+                	if(mode == null) {
+                        info(ChatColor.RED + "Invalid world mode for '"+key+"', using default mode.");
+                        mode = WorldMode.SURVIVAL;
+                	}
+                } catch (IllegalArgumentException e) {
+                    info(ChatColor.RED + "Invalid world mode for '"+key+"', using default mode.");
+                    mode = WorldMode.SURVIVAL;
+                }
+                worlds.put(key, mode);
+            }
             
-            // Check the preload chunks
-            claimSettingsInstance.addSetting("preload-chunks", getConfig().getString("preload-chunks"));
+            // Check for old disabled worlds setting
+            if(getConfig().contains("worlds-disabled")) {
+            	List<String> disabledWorlds = getConfig().getStringList("worlds-disabled");
+            	for(String world : disabledWorlds) {
+            		getConfig().set("claims-worlds-mode."+world, "DISABLED");
+            		worlds.put(world, WorldMode.DISABLED);
+            	}
+            	getConfig().set("worlds-disabled", null);
+            }
+            claimSettingsInstance.setWorlds(worlds);
             
             // Check the keep chunks loaded
             claimSettingsInstance.addSetting("keep-chunks-loaded", getConfig().getString("keep-chunks-loaded"));
@@ -1334,6 +1388,27 @@ public class SimpleClaimSystem extends JavaPlugin {
             // Add teleportation delay moving setting
             claimSettingsInstance.addSetting("teleportation-delay-moving", getConfig().getString("teleportation-delay-moving"));
             
+            // Expulsion location
+            if(getConfig().contains("expulsion-location")) {
+            	if (!config.isSet("expulsion-location") || config.getConfigurationSection("expulsion-location").getKeys(false).isEmpty()) {
+            		info(ChatColor.RED + "'expulsion-location' : don't forget to set it with /scs setexpulsionlocation.");
+            	} else {
+	            	World world = Bukkit.getWorld(config.getString("expulsion-location.world"));
+	                if (world == null) {
+	                	info(ChatColor.RED + "'expulsion-location' : the world is incorrect.");
+	                    status[0] = false;
+	                    return;
+	                }
+	                double x = config.getDouble("expulsion-location.x");
+	                double y = config.getDouble("expulsion-location.y");
+	                double z = config.getDouble("expulsion-location.z");
+	                float yaw = (float) config.getDouble("expulsion-location.yaw");
+	                float pitch = (float) config.getDouble("expulsion-location.pitch");
+	                Location location = new Location(world, x, y, z, yaw, pitch);
+	                claimSettingsInstance.setExpulsionLocation(location);
+            	}
+            }
+            
             // Add group settings
             ConfigurationSection groupsSection = getConfig().getConfigurationSection("groups");
             LinkedHashMap<String, String> groups = new LinkedHashMap<>();
@@ -1384,6 +1459,14 @@ public class SimpleClaimSystem extends JavaPlugin {
             }
             claimSettingsInstance.setEnabledSettings(v);
             
+            // Add enabled/disabled settings
+            v = new LinkedHashMap<>();
+            statusSettings = getConfig().getConfigurationSection("permissions-on-SurvivalRequiringClaims");
+            for (String key : statusSettings.getKeys(false)) {
+                v.put(key, statusSettings.getBoolean(key));
+            }
+            claimSettingsInstance.setSurvivalRequiringClaimsSettings(v);
+            
             // Add blocked items
             claimSettingsInstance.setRestrictedItems(getConfig().getStringList("blocked-items"));
             
@@ -1404,6 +1487,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 
             // Save config
             saveConfig();
+            reloadConfig();
             
             // Load bossbar default settings
             claimBossBarInstance.loadBossbarSettings();
@@ -1578,9 +1662,17 @@ public class SimpleClaimSystem extends JavaPlugin {
     	if(check) sender.sendMessage("The file you indicate doesn't exists. Using default file.");
     	sender.sendMessage("Language file loaded §7("+l+"§7)§f.");
     	
-    	executeAsync(() -> {
-    		Bukkit.getOnlinePlayers().forEach(p -> claimBossBarInstance.activeBossBar(p, p.getLocation().getChunk()));
-    	});
+        if(isFolia) {
+            Bukkit.getOnlinePlayers().forEach(p -> {
+            	Bukkit.getRegionScheduler().run(this, p.getLocation(), task -> {
+            		claimBossBarInstance.activeBossBar(p, p.getLocation().getChunk());
+            	});
+            });
+        } else {
+            Bukkit.getOnlinePlayers().forEach(p -> {
+            	claimBossBarInstance.activeBossBar(p, p.getLocation().getChunk());
+            });
+        }
     }
     
     /**
@@ -1715,7 +1807,8 @@ public class SimpleClaimSystem extends JavaPlugin {
      * @return True if the key must be deleted
      */
     private boolean checkKey(String key) {
-    	return key.startsWith("groups.") || key.startsWith("players.") || key.startsWith("expulsion-location");
+    	return key.startsWith("groups.") || key.startsWith("players.") || key.startsWith("expulsion-location") ||
+    			key.startsWith("claims-worlds-mode") || key.equals("worlds-disabled");
     }
     
     /**

@@ -1847,25 +1847,6 @@ public class ClaimMain {
                             // Dynmap
                             if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(claim);
 
-                            // Preload chunks
-                            if (instance.getSettings().getBooleanSetting("preload-chunks")) {
-                                if (instance.isFolia()) {
-                                    chunks.forEach(c -> Bukkit.getRegionScheduler().execute(instance, world, c.getX(), c.getZ(), () -> c.load(true)));
-                                } else {
-                                    List<CompletableFuture<Void>> loadFutures = chunks.stream()
-                                        .map(chunk -> CompletableFuture.runAsync(() -> {
-                                            Bukkit.getScheduler().callSyncMethod(instance, (Callable<Void>) () -> {
-                                                chunk.load(true);
-                                                return null;
-                                            });
-                                        }))
-                                        .collect(Collectors.toList());
-
-                                    CompletableFuture<Void> allLoaded = CompletableFuture.allOf(loadFutures.toArray(new CompletableFuture[0]));
-                                    allLoaded.join();
-                                }
-                            }
-
                             // Keep chunks loaded
                             if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
                                 if (instance.isFolia()) {

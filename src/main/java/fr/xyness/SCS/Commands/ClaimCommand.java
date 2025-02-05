@@ -39,6 +39,7 @@ import fr.xyness.SCS.Guis.ClaimSettingsGui;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 import fr.xyness.SCS.Types.CustomSet;
+import fr.xyness.SCS.Types.WorldMode;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
@@ -1250,7 +1251,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
         	String world = player.getWorld().getName();
-            if (instance.getSettings().isWorldDisabled(world)) {
+            if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
@@ -1756,7 +1757,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             String world = player.getWorld().getName();
-            if (instance.getSettings().isWorldDisabled(world)) {
+            if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
@@ -1864,7 +1865,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             String world = player.getWorld().getName();
-            if (instance.getSettings().isWorldDisabled(world)) {
+            if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
@@ -1890,7 +1891,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             String world = player.getWorld().getName();
-            if (instance.getSettings().isWorldDisabled(world)) {
+            if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
@@ -2091,7 +2092,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             String world = player.getWorld().getName();
-            if (instance.getSettings().isWorldDisabled(world)) {
+            if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
@@ -2122,7 +2123,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             String world = player.getWorld().getName();
-            if (instance.getSettings().isWorldDisabled(world)) {
+            if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
@@ -2135,7 +2136,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             String world = player.getWorld().getName();
-            if (instance.getSettings().isWorldDisabled(world)) {
+            if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
@@ -2153,7 +2154,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             String world = player.getWorld().getName();
-            if (instance.getSettings().isWorldDisabled(world)) {
+            if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
@@ -2171,7 +2172,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             String world = player.getWorld().getName();
-            if (instance.getSettings().isWorldDisabled(world)) {
+            if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
@@ -2190,7 +2191,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             String world = player.getWorld().getName();
-            if (instance.getSettings().isWorldDisabled(world)) {
+            if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
@@ -2328,7 +2329,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             String world = player.getWorld().getName();
-            if (instance.getSettings().isWorldDisabled(world)) {
+            if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
@@ -2343,7 +2344,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         		player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
                 return;
             }
-            if (instance.getSettings().isWorldDisabled(player.getWorld().getName())) {
+        	String world = player.getWorld().getName();
+        	if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", player.getWorld().getName()));
                 return;
             }
@@ -2500,7 +2502,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     	
         String world = player.getWorld().getName();
 
-        if (instance.getSettings().isWorldDisabled(world)) {
+        if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
             player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
             return;
         }

@@ -14,6 +14,8 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 
+import fr.xyness.SCS.Types.WorldMode;
+
 /**
  * ClaimSettings class handles various settings and configurations for the plugin.
  */
@@ -61,6 +63,9 @@ public class ClaimSettings {
     /** Enabled settings map. */
     private Map<String, Boolean> enabledSettings = new HashMap<>();
     
+    /** SurvivalRequiringClaims settings map. */
+    private Map<String, Boolean> SurvivalRequiringClaimsSettings = new HashMap<>();
+    
     /** General settings map. */
     private Map<String, String> settings = new HashMap<>();
     
@@ -70,8 +75,8 @@ public class ClaimSettings {
     /** Group settings map. */
     private Map<String, Map<String, Double>> groupsSettings = new HashMap<>();
     
-    /** Set of disabled worlds. */
-    private Set<String> disabledWorlds = new HashSet<>();
+    /** Map of mode of worlds. */
+    private Map<String,WorldMode> worlds = new HashMap<>();
     
     /** Location of the expulsion */
     private Location expulsionLocation;
@@ -97,7 +102,7 @@ public class ClaimSettings {
         settings.clear();
         groups.clear();
         groupsSettings.clear();
-        disabledWorlds.clear();
+        worlds.clear();
         aliases.clear();
     }
 
@@ -234,40 +239,23 @@ public class ClaimSettings {
     }
 
     /**
-     * Gets the set of disabled worlds.
-     *
-     * @return The set of disabled worlds.
-     */
-    public Set<String> getDisabledWorlds() {
-        return disabledWorlds;
-    }
-    
-    /**
-     * Adds a disabled world
-     * 
-     * @param world The world to add
-     */
-    public void addDisabledWorld(String world) {
-    	disabledWorlds.add(world);
-    }
-
-    /**
      * Sets the disabled worlds.
      *
      * @param w The set of worlds to disable.
      */
-    public void setDisabledWorlds(Set<String> w) {
-        disabledWorlds = w;
+    public void setWorlds(Map<String,WorldMode> w) {
+        worlds = w;
     }
-
+    
     /**
-     * Checks if a world is disabled.
-     *
-     * @param w The world to check.
-     * @return true if the world is disabled, false otherwise.
+     * Gets a WorldMode.
+     * 
+     * @param world The world.
+     * @return The world mode.
      */
-    public boolean isWorldDisabled(String w) {
-        return disabledWorlds.contains(w);
+    public WorldMode getWorldMode(String world) {
+    	WorldMode mode = worlds.get(world);
+    	return mode == null ? WorldMode.SURVIVAL : mode;
     }
     
     /**
@@ -453,89 +441,102 @@ public class ClaimSettings {
     public void setEnabledSettings(Map<String, Boolean> v) {
         enabledSettings = v;
     }
+    
+    /**
+     * Sets the settings for SurvivalRequiringClaims mode.
+     * 
+     * @param v The settings.
+     */
+    public void setSurvivalRequiringClaimsSettings(Map<String, Boolean> v) {
+    	SurvivalRequiringClaimsSettings = v;
+    }
+    
+    /**
+     * Gets a SurvivalRequiringClaims setting.
+     * 
+     * @param setting The setting to get.
+     * @return True if enabled, false otherwise.
+     */
+    public boolean getSettingSRC(String setting) {
+    	return SurvivalRequiringClaimsSettings.get(setting);
+    }
 
     /**
      * Sets the restricted items.
      *
      * @param mat The list of material names to restrict.
-     * @return The number of restricted items added.
      */
-    public int setRestrictedItems(List<String> mat) {
-        return (int) mat.stream()
-                        .map(Material::matchMaterial)
-                        .filter(Objects::nonNull)
-                        .peek(restrictedItems::add)
-                        .count();
+    public void setRestrictedItems(List<String> mat) {
+    	restrictedItems.clear();
+        mat.stream()
+	        .map(Material::matchMaterial)
+	        .filter(Objects::nonNull)
+	        .peek(restrictedItems::add);
     }
 
     /**
      * Sets the restricted containers.
      *
      * @param mat The list of material names to restrict as containers.
-     * @return The number of restricted containers added.
      */
-    public int setRestrictedContainers(List<String> mat) {
-        return (int) mat.stream()
-                        .map(Material::matchMaterial)
-                        .filter(Objects::nonNull)
-                        .peek(restrictedInteractBlocks::add)
-                        .count();
+    public void setRestrictedContainers(List<String> mat) {
+    	restrictedInteractBlocks.clear();
+        mat.stream()
+	        .map(Material::matchMaterial)
+	        .filter(Objects::nonNull)
+	        .peek(restrictedInteractBlocks::add);
     }
 
     /**
      * Sets the restricted entity types.
      *
      * @param mat The list of entity type names to restrict.
-     * @return The number of restricted entity types added.
      */
-    public int setRestrictedEntityType(List<String> mat) {
-        return (int) mat.stream()
-                        .map(EntityType::fromName)
-                        .filter(Objects::nonNull)
-                        .peek(restrictedEntityType::add)
-                        .count();
+    public void setRestrictedEntityType(List<String> mat) {
+    	restrictedEntityType.clear();
+        mat.stream()
+            .map(EntityType::fromName)
+            .filter(Objects::nonNull)
+            .peek(restrictedEntityType::add);
     }
     
     /**
      * Sets the special blocks.
      *
      * @param mat The list of material names to restrict.
-     * @return The number of restricted blocks added.
      */
-    public int setSpecialBlocks(List<String> mat) {
-        return (int) mat.stream()
-                        .map(Material::matchMaterial)
-                        .filter(Objects::nonNull)
-                        .peek(specialBlocks::add)
-                        .count();
+    public void setSpecialBlocks(List<String> mat) {
+    	specialBlocks.clear();
+        mat.stream()
+            .map(Material::matchMaterial)
+            .filter(Objects::nonNull)
+            .peek(specialBlocks::add);
     }
     
     /**
      * Sets the ignored break blocks.
      *
      * @param mat The list of ignored break blocks.
-     * @return The number of restricted blocks added.
      */
-    public int setBreakBlocksIgnore(List<String> mat) {
-        return (int) mat.stream()
-                        .map(Material::matchMaterial)
-                        .filter(Objects::nonNull)
-                        .peek(BreakBlocksIgnore::add)
-                        .count();
+    public void setBreakBlocksIgnore(List<String> mat) {
+    	BreakBlocksIgnore.clear();
+        mat.stream()
+            .map(Material::matchMaterial)
+            .filter(Objects::nonNull)
+            .peek(BreakBlocksIgnore::add);
     }
     
     /**
      * Sets the ignored place blocks.
      *
      * @param mat The list of ignored place blocks.
-     * @return The number of restricted blocks added.
      */
-    public int setPlaceBlocksIgnore(List<String> mat) {
-        return (int) mat.stream()
-                        .map(Material::matchMaterial)
-                        .filter(Objects::nonNull)
-                        .peek(PlaceBlocksIgnore::add)
-                        .count();
+    public void setPlaceBlocksIgnore(List<String> mat) {
+    	PlaceBlocksIgnore.clear();
+        mat.stream()
+            .map(Material::matchMaterial)
+            .filter(Objects::nonNull)
+            .peek(PlaceBlocksIgnore::add);
     }
 
     /**

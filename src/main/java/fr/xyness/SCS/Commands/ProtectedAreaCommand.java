@@ -29,6 +29,7 @@ import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimsProtectedAreasGui;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 import fr.xyness.SCS.Types.CustomSet;
+import fr.xyness.SCS.Types.WorldMode;
 
 /**
  * This class handles admin commands related to claims.
@@ -937,7 +938,8 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     		new AdminGestionClaimChunksGui(player,claim,1,instance);
             return;
     	}
-        if(instance.getSettings().isWorldDisabled(player.getWorld().getName())) {
+    	String world = player.getWorld().getName();
+    	if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
         	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", player.getWorld().getName()));
         	return;
         }
@@ -992,7 +994,8 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     		new AdminGestionClaimMainGui(player,claim,instance);
     		return;
     	}
-        if(instance.getSettings().isWorldDisabled(player.getWorld().getName())) {
+    	String world = player.getWorld().getName();
+    	if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
         	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", player.getWorld().getName()));
         	return;
         }
