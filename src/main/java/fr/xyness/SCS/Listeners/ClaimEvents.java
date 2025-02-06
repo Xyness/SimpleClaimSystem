@@ -169,12 +169,12 @@ public class ClaimEvents implements Listener {
                     if (!claim.getPermissionForPlayer("Elytra", player)) {
                     	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra"), instance.getSettings().getSetting("protection-message"));
                     	event.setCancelled(true);
-                    	instance.getMain().teleportPlayer(player, player.getLocation().subtract(0, 1, 0));
+                    	instance.getMain().teleportPlayer(player, player.getLocation());
                     }
                 } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Elytra")) {
                 	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra-mode"), instance.getSettings().getSetting("protection-message"));
                 	event.setCancelled(true);
-                	instance.getMain().teleportPlayer(player, player.getLocation().subtract(0, 1, 0));
+                	instance.getMain().teleportPlayer(player, player.getLocation());
                 }
             }
         }
