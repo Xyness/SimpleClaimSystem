@@ -959,9 +959,11 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 		        instance.getMain().createAdminClaimRadius(player, new CustomSet<>(chunks), radius)
 		        	.thenAccept(success -> {
 		        		if (success) {
-		    		        if (instance.getSettings().getBooleanSetting("claim-particles")) instance.executeSync(() -> instance.getMain().displayChunkBorderWithRadius(player, player.getLocation().getChunk(), radius));
-		    		        Claim claim = instance.getMain().getClaim(player.getLocation().getChunk());
-		    		        instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("create-protected-area-radius-success").replace("%number%", instance.getMain().getNumberSeparate(String.valueOf(chunks.size()))).replace("%claim-name%", claim.getName())));
+		    		        if (instance.getSettings().getBooleanSetting("claim-particles")) instance.executeSync(() -> instance.getMain().displayChunkBorderWithRadius(player, radius));
+		    		        instance.executeAsyncLocation(() -> {
+			    		        Claim claim = instance.getMain().getClaim(player.getLocation().getChunk());
+			    		        instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("create-protected-area-radius-success").replace("%number%", instance.getMain().getNumberSeparate(String.valueOf(chunks.size()))).replace("%claim-name%", claim.getName())));
+		    		        }, player.getLocation());
 		        		} else {
 		        			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
 		        		}

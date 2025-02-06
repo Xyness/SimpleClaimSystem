@@ -2123,7 +2123,6 @@ public class ClaimMain {
 	            // Get data
 	            String playerName = player.getName();
 	            UUID playerId = player.getUniqueId();
-	            Chunk chunk = player.getLocation().getChunk();
 	            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
 	
 	            // Get uuid of the player
@@ -2183,7 +2182,7 @@ public class ClaimMain {
 	                stmt.setString(4, claimName);
 	                stmt.setString(5, description);
 	                stmt.setString(6, serializeChunks(chunks));
-	                stmt.setString(7, chunk.getWorld().getName());
+	                stmt.setString(7, player.getWorld().getName());
 	                stmt.setString(8, locationString);
 	                stmt.setString(9, uuid);
 	                stmt.setString(10, instance.getSettings().getDefaultValuesCode("all"));
@@ -2214,7 +2213,6 @@ public class ClaimMain {
             try {
 	    		// Get data
 		        String playerName = "*";
-		        Chunk chunk = player.getLocation().getChunk();
 		        
 		        // Create default values, name, loc, perms and Claim
 		        int id = findFreeIdProtectedArea();
@@ -2267,7 +2265,7 @@ public class ClaimMain {
 	                   stmt.setString(4, claimName);
 	                   stmt.setString(5, description);
 	                   stmt.setString(6, serializeChunks(chunks));
-	                   stmt.setString(7, chunk.getWorld().getName());
+	                   stmt.setString(7, player.getWorld().getName());
 	                   stmt.setString(8, locationString);
 	                   stmt.setString(9, "");
 	                   stmt.setString(10, instance.getSettings().getDefaultValuesCode("all"));
@@ -4179,42 +4177,47 @@ public class ClaimMain {
      * Method to display a chunk when radius claiming.
      *
      * @param player the player claiming the chunk
-     * @param centralChunk the central chunk to be displayed
      * @param radius the radius around the central chunk to be displayed
      */
-    public void displayChunkBorderWithRadius(Player player, Chunk centralChunk, int radius) {
-    	if(chunksParticles.contains(centralChunk)) return;
-    	chunksParticles.add(centralChunk);
+    public void displayChunkBorderWithRadius(Player player, int radius) {
         Particle.DustOptions dustOptions = new Particle.DustOptions(Color.fromRGB(0, 255, 0), 1.5f);
         if (instance.isFolia()) {
-            final int[] counter = {0};
-            Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
-                if (counter[0] >= 10) {
-                    task.cancel();
-                    chunksParticles.remove(centralChunk);
-                    return;
-                }
-                World world = player.getWorld();
-                int xStart = (centralChunk.getX() - radius) << 4;
-                int zStart = (centralChunk.getZ() - radius) << 4;
-                int xEnd = (centralChunk.getX() + radius + 1) << 4;
-                int zEnd = (centralChunk.getZ() + radius + 1) << 4;
-                int yStart = world.getMinHeight();
-                int yEnd = world.getMaxHeight() - 1;
-                for (int y = yStart; y <= yEnd; y+=2) {
-                    for (int x = xStart; x < xEnd; x+=2) {
-                        world.spawnParticle(Particle.REDSTONE, new Location(world, x, y, zStart), 1, 0, 0, 0, 0, dustOptions);
-                        world.spawnParticle(Particle.REDSTONE, new Location(world, x, y, zEnd), 1, 0, 0, 0, 0, dustOptions);
+        	Bukkit.getRegionScheduler().run(instance, player.getLocation(), chunktask -> {
+        		Chunk centralChunk = player.getLocation().getChunk();
+            	if(chunksParticles.contains(centralChunk)) return;
+            	chunksParticles.add(centralChunk);
+        		final int[] counter = {0};
+                Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
+                    if (counter[0] >= 10) {
+                        task.cancel();
+                        chunksParticles.remove(centralChunk);
+                        return;
                     }
-                    for (int z = zStart; z < zEnd; z+=2) {
-                        world.spawnParticle(Particle.REDSTONE, new Location(world, xStart, y, z), 1, 0, 0, 0, 0, dustOptions);
-                        world.spawnParticle(Particle.REDSTONE, new Location(world, xEnd, y, z), 1, 0, 0, 0, 0, dustOptions);
+                    World world = player.getWorld();
+                    int xStart = (centralChunk.getX() - radius) << 4;
+                    int zStart = (centralChunk.getZ() - radius) << 4;
+                    int xEnd = (centralChunk.getX() + radius + 1) << 4;
+                    int zEnd = (centralChunk.getZ() + radius + 1) << 4;
+                    int yStart = world.getMinHeight();
+                    int yEnd = world.getMaxHeight() - 1;
+                    for (int y = yStart; y <= yEnd; y+=2) {
+                        for (int x = xStart; x < xEnd; x+=2) {
+                            world.spawnParticle(Particle.REDSTONE, new Location(world, x, y, zStart), 1, 0, 0, 0, 0, dustOptions);
+                            world.spawnParticle(Particle.REDSTONE, new Location(world, x, y, zEnd), 1, 0, 0, 0, 0, dustOptions);
+                        }
+                        for (int z = zStart; z < zEnd; z+=2) {
+                            world.spawnParticle(Particle.REDSTONE, new Location(world, xStart, y, z), 1, 0, 0, 0, 0, dustOptions);
+                            world.spawnParticle(Particle.REDSTONE, new Location(world, xEnd, y, z), 1, 0, 0, 0, 0, dustOptions);
+                        }
                     }
-                }
-                counter[0]++;
-            }, 0, 500, TimeUnit.MILLISECONDS);
+                    counter[0]++;
+                }, 0, 500, TimeUnit.MILLISECONDS);
+        	});
             return;
         }
+		Chunk centralChunk = player.getLocation().getChunk();
+    	if(chunksParticles.contains(centralChunk)) return;
+    	chunksParticles.add(centralChunk);
         new BukkitRunnable() {
             int counter = 0;
             @Override
