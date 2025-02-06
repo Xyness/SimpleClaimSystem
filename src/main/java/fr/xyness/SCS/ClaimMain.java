@@ -877,46 +877,6 @@ public class ClaimMain {
     	Location loc = instance.getSettings().getExpulsionLocation();
     	teleportPlayer(player,loc == null ? Bukkit.getWorlds().get(0).getSpawnLocation() : loc);
     }
-
-    /**
-     * Teleport player to the ground.
-     * 
-     * @param player The player to teleport.
-     */
-    public void teleportToGround(Player player) {
-        Location loc = player.getLocation();
-        if(instance.isFolia()) {
-        	Bukkit.getRegionScheduler().run(instance, loc, task -> {
-                World world = player.getWorld();
-                int startY = loc.getBlockY();
-                for (int y = startY - 1; y >= Math.max(startY - 10, world.getMinHeight()); y--) {
-                    Block block = world.getBlockAt(loc.getBlockX(), y, loc.getBlockZ());
-                    if (block.getType() != Material.AIR) { 
-                    	Location cloned = loc.clone();
-                    	cloned.setY(block.getLocation().getY());
-                        teleportPlayer(player, cloned);
-                        return;
-                    }
-                }
-                teleportPlayer(player, loc);
-        	});
-        } else {
-            World world = player.getWorld();
-            int startY = loc.getBlockY();
-            for (int y = startY - 1; y >= Math.max(startY - 10, world.getMinHeight()); y--) {
-                Block block = world.getBlockAt(loc.getBlockX(), y, loc.getBlockZ());
-                if (block.getType() != Material.AIR) {
-                	Location cloned = loc.clone();
-                	cloned.setY(block.getLocation().getY());
-                    teleportPlayer(player, cloned);
-                    return;
-                }
-            }
-            teleportPlayer(player, loc);
-        }
-
-    }
-
     
     /**
      * Creates the teleport task for goClaim method.

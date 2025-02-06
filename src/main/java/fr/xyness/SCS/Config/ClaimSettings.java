@@ -467,11 +467,11 @@ public class ClaimSettings {
      * @param mat The list of material names to restrict.
      */
     public void setRestrictedItems(List<String> mat) {
-    	restrictedItems.clear();
+        restrictedItems.clear();
         mat.stream()
-	        .map(Material::matchMaterial)
-	        .filter(Objects::nonNull)
-	        .peek(restrictedItems::add);
+            .map(Material::matchMaterial)
+            .filter(Objects::nonNull)
+            .forEach(restrictedItems::add); // Utilisation de forEach ici
     }
 
     /**
@@ -480,11 +480,11 @@ public class ClaimSettings {
      * @param mat The list of material names to restrict as containers.
      */
     public void setRestrictedContainers(List<String> mat) {
-    	restrictedInteractBlocks.clear();
+        restrictedInteractBlocks.clear();
         mat.stream()
-	        .map(Material::matchMaterial)
-	        .filter(Objects::nonNull)
-	        .peek(restrictedInteractBlocks::add);
+            .map(Material::matchMaterial)
+            .filter(Objects::nonNull)
+            .forEach(restrictedInteractBlocks::add); // Utilisation de forEach ici
     }
 
     /**
@@ -493,50 +493,50 @@ public class ClaimSettings {
      * @param mat The list of entity type names to restrict.
      */
     public void setRestrictedEntityType(List<String> mat) {
-    	restrictedEntityType.clear();
+        restrictedEntityType.clear();
         mat.stream()
             .map(EntityType::fromName)
             .filter(Objects::nonNull)
-            .peek(restrictedEntityType::add);
+            .forEach(restrictedEntityType::add); // Utilisation de forEach ici
     }
-    
+
     /**
      * Sets the special blocks.
      *
      * @param mat The list of material names to restrict.
      */
     public void setSpecialBlocks(List<String> mat) {
-    	specialBlocks.clear();
+        specialBlocks.clear();
         mat.stream()
             .map(Material::matchMaterial)
             .filter(Objects::nonNull)
-            .peek(specialBlocks::add);
+            .forEach(specialBlocks::add); // Utilisation de forEach ici
     }
-    
+
     /**
      * Sets the ignored break blocks.
      *
      * @param mat The list of ignored break blocks.
      */
     public void setBreakBlocksIgnore(List<String> mat) {
-    	BreakBlocksIgnore.clear();
+        BreakBlocksIgnore.clear();
         mat.stream()
             .map(Material::matchMaterial)
             .filter(Objects::nonNull)
-            .peek(BreakBlocksIgnore::add);
+            .forEach(BreakBlocksIgnore::add); // Utilisation de forEach ici
     }
-    
+
     /**
      * Sets the ignored place blocks.
      *
      * @param mat The list of ignored place blocks.
      */
     public void setPlaceBlocksIgnore(List<String> mat) {
-    	PlaceBlocksIgnore.clear();
+        PlaceBlocksIgnore.clear();
         mat.stream()
             .map(Material::matchMaterial)
             .filter(Objects::nonNull)
-            .peek(PlaceBlocksIgnore::add);
+            .forEach(PlaceBlocksIgnore::add); // Utilisation de forEach ici
     }
 
     /**

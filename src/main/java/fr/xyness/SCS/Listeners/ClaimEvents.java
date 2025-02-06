@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Directional;
@@ -18,6 +19,7 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.GlowItemFrame;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Monster;
@@ -45,9 +47,11 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.ProjectileLaunchEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
@@ -145,6 +149,8 @@ public class ClaimEvents implements Listener {
             event.setMessage(newCommand);
         }
     }
+    
+    
 	
 	/**
 	 * Handles player glide event for Elytra.
@@ -163,12 +169,41 @@ public class ClaimEvents implements Listener {
                     if (!claim.getPermissionForPlayer("Elytra", player)) {
                     	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra"), instance.getSettings().getSetting("protection-message"));
                     	event.setCancelled(true);
-                    	instance.getMain().teleportToGround(player);
+                    	instance.getMain().teleportPlayer(player, player.getLocation());
                     }
                 } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Elytra")) {
                 	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra-mode"), instance.getSettings().getSetting("protection-message"));
                 	event.setCancelled(true);
-                	instance.getMain().teleportToGround(player);
+                	instance.getMain().teleportPlayer(player, player.getLocation());
+                }
+            }
+        }
+    }
+    
+    /**
+     * Handles the projectile launch event.
+     * 
+     * @param event The ProjectileLaunchEvent event.
+     */
+    @EventHandler
+    public void onFireworkLaunch(ProjectileLaunchEvent event) {
+    	WorldMode mode = instance.getSettings().getWorldMode(event.getEntity().getWorld().getName());
+        if (event.getEntity() instanceof Firework) {
+            Firework firework = (Firework) event.getEntity();
+            Player player = (Player) firework.getShooter();
+            if (player == null) return;
+            if (player.hasPermission("scs.bypass")) return;
+            if (player.isGliding() || player.getTargetBlockExact(5) == null) {
+            	Chunk chunk = player.getLocation().getChunk();
+                Claim claim = instance.getMain().getClaim(chunk);
+                if (claim != null) {
+                    if (!claim.getPermissionForPlayer("Elytra", player)) {
+                    	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra"), instance.getSettings().getSetting("protection-message"));
+                    	event.setCancelled(true);
+                    }
+                } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Elytra")) {
+                	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra-mode"), instance.getSettings().getSetting("protection-message"));
+                	event.setCancelled(true);
                 }
             }
         }

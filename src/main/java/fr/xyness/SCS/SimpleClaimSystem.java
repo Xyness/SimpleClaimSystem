@@ -115,7 +115,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.12.0.5";
+    private String Version = "1.12.0.6";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -1855,10 +1855,9 @@ public class SimpleClaimSystem extends JavaPlugin {
     }
     
     /**
-     * Checks for updates for the 
+     * Checks for updates for the plugin.
      * 
-     * @param plugin The plugin instance
-     * @return True if an update is available, false otherwise
+     * @return The update message.
      */
     public String checkForUpdates() {
         try {
@@ -1881,6 +1880,38 @@ public class SimpleClaimSystem extends JavaPlugin {
         } catch (Exception e) {
             return "Error when checking new update";
         }
+    }
+    
+    /**
+     * Checks for updates for the plugin, asynchronously.
+     * 
+     * @return The update message.
+     */
+    public CompletableFuture<String> checkForUpdatesAsync() {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                URI uri = URI.create("https://raw.githubusercontent.com/Xyness/SimpleClaimSystem/main/version.yml");
+                URL url = uri.toURL();
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestMethod("GET");
+                connection.setConnectTimeout(5000); // Timeout de 5s
+                connection.setReadTimeout(5000);
+                
+                try (BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()))) {
+                    String response = reader.readLine();
+                    if (!Version.equalsIgnoreCase(response)) {
+                        updateMessage = "§4[SCS] §cUpdate available : §l" + response + " §7(You have "+Version+")";
+                        isUpdateAvailable = true;
+                        return "§cUpdate available : §4" + response;
+                    } else {
+                        isUpdateAvailable = false;
+                        return "You are using the latest version";
+                    }
+                }
+            } catch (Exception e) {
+                return "Error when checking new update";
+            }
+        });
     }
     
     /**
