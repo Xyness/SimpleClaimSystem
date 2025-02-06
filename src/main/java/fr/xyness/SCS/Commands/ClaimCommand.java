@@ -2458,7 +2458,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	                                // Make player pay
 	                                if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
 		                	            instance.getVault().removePlayerBalance(playerName, price[0]);
-		                	            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", instance.getMain().getPrice(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
+		                	            if(price[0] > 0) instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-claim").replace("%price%", instance.getMain().getPrice(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
 	                                }
 		                	            
 	                	            // Create claim
@@ -2466,11 +2466,13 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	        	                    	.thenAccept(success -> {
 	        	                    		if (success) {
 	        	                	            if (instance.getSettings().getBooleanSetting("claim-particles")) {
-	        	                	                instance.getMain().displayChunkBorderWithRadius(player, player.getLocation().getChunk(), radius);
+	        	                	                instance.getMain().displayChunkBorderWithRadius(player, radius);
 	        	                	            }
-	        	                	            Claim claim = instance.getMain().getClaim(player.getLocation().getChunk());
-	        	                	            int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
-	        	                	            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("create-claim-radius-success").replace("%number%", instance.getMain().getNumberSeparate(String.valueOf(chunks.size()))).replace("%remaining-claims%", instance.getMain().getNumberSeparate(String.valueOf(remainingClaims))).replace("%claim-name%", claim.getName())));
+	        	                	            instance.executeAsyncLocation(() -> {
+		        	                	            Claim claim = instance.getMain().getClaim(player.getLocation().getChunk());
+		        	                	            int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
+		        	                	            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("create-claim-radius-success").replace("%number%", instance.getMain().getNumberSeparate(String.valueOf(chunks.size()))).replace("%remaining-claims%", instance.getMain().getNumberSeparate(String.valueOf(remainingClaims))).replace("%claim-name%", claim.getName())));
+	        	                	            }, player.getLocation());
 	        	                    		} else {
 	        	                    			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
 	        	                    		}
@@ -2496,11 +2498,13 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	                        	.thenAccept(success -> {
 	                        		if (success) {
 	                    	            if (instance.getSettings().getBooleanSetting("claim-particles")) {
-	                    	                instance.getMain().displayChunkBorderWithRadius(player, player.getLocation().getChunk(), radius);
+	                    	                instance.getMain().displayChunkBorderWithRadius(player, radius);
 	                    	            }
-	                    	            Claim claim = instance.getMain().getClaim(player.getLocation().getChunk());
-	                    	            int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
-	                    	            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("create-claim-radius-success").replace("%number%", instance.getMain().getNumberSeparate(String.valueOf(chunks.size()))).replace("%remaining-claims%", instance.getMain().getNumberSeparate(String.valueOf(remainingClaims))).replace("%claim-name%", claim.getName())));
+	                    	            instance.executeAsyncLocation(() -> {
+		                    	            Claim claim = instance.getMain().getClaim(player.getLocation().getChunk());
+		                    	            int remainingClaims = cPlayer.getMaxClaims() - cPlayer.getClaimsCount();
+		                    	            instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("create-claim-radius-success").replace("%number%", instance.getMain().getNumberSeparate(String.valueOf(chunks.size()))).replace("%remaining-claims%", instance.getMain().getNumberSeparate(String.valueOf(remainingClaims))).replace("%claim-name%", claim.getName())));
+	                    	            }, player.getLocation());
 	                        		} else {
 	                        			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
 	                        		}

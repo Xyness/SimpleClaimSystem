@@ -115,7 +115,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.12.0.2";
+    private String Version = "1.12.0.3";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -1579,6 +1579,20 @@ public class SimpleClaimSystem extends JavaPlugin {
         } else {
             Bukkit.getScheduler().runTaskAsynchronously(this, gTask);
         }
+    }
+    
+    /**
+     * Executes a task asynchronously at a location (for Folia only).
+     * 
+     * @param gTask The task.
+     * @param location The location
+     */
+    public void executeAsyncLocation(Runnable gTask, Location location) {
+    	if (isFolia) {
+    		Bukkit.getRegionScheduler().run(instance, location, task -> gTask.run());
+    	} else {
+    		Bukkit.getScheduler().runTask(instance, gTask);
+    	}
     }
     
     /**
