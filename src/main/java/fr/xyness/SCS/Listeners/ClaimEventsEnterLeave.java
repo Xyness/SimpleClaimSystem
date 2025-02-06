@@ -394,6 +394,16 @@ public class ClaimEventsEnterLeave implements Listener {
             	player.sendMessage(instance.getLanguage().getMessage("cannot-remove-only-remaining-chunk"));
             	return;
             }
+			Set<Chunk> chunks = new HashSet<>(claim.getChunks());
+			if(!chunks.contains(chunk)) {
+				player.sendMessage(instance.getLanguage().getMessage("chunk-not-in-claim"));
+				return;
+			}
+			chunks.remove(chunk);
+            if(!instance.getMain().isAnyChunkAdjacent(chunks, chunk)) {
+            	player.sendMessage(instance.getLanguage().getMessage("one-chunk-must-be-adjacent-delchunk"));
+            	return;
+            }
             instance.getMain().removeClaimChunk(claim, chunk)
 	        	.thenAccept(success -> {
 	        		if (success) {
@@ -426,7 +436,7 @@ public class ClaimEventsEnterLeave implements Listener {
         	String playerName = player.getName();
         	Claim claim = cPlayer.getTargetClaimChunk();
         	if(claim == null) return;
-        	if(instance.getMain().checkIfClaimExists(chunk)) {
+            if(instance.getMain().checkIfClaimExists(chunk)) {
             	Claim claim_target = instance.getMain().getClaim(chunk);
             	if(claim_target.getOwner().equalsIgnoreCase(playerName)) {
             		if(claim_target.equals(claim)) {
@@ -463,6 +473,18 @@ public class ClaimEventsEnterLeave implements Listener {
             	player.sendMessage(instance.getLanguage().getMessage("one-chunk-must-be-adjacent"));
             	return;
             }
+            double[] price = {0};
+            if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("chunk-cost")) {
+                price[0] = instance.getSettings().getBooleanSetting("chunk-cost-multiplier") ? cPlayer.getChunkMultipliedCost(chunks.size()) : cPlayer.getChunkCost();
+                double balance = instance.getVault().getPlayerBalance(playerName);
+
+                if (balance < price[0]) {
+                	instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replace("%missing-price%", instance.getMain().getPrice(String.valueOf((double) Math.round((price[0] - balance)*100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
+                    return;
+                }
+            }
+            instance.getVault().removePlayerBalance(playerName, price[0]);
+            if (price[0] > 0) instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-chunk").replace("%price%", instance.getMain().getPrice(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
             instance.getMain().addClaimChunk(claim, chunk)
             	.thenAccept(success -> {
             		if (success) {

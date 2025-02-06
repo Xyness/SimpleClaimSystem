@@ -313,6 +313,9 @@ player-invitation-expired-other: "§cThe invitation of %player% has expired."
 player-invitation-all-their-claims: "all their claims"
 player-invitations-system-off: "§cThe invitations system is disabled on this server."
 expulsion-set: "§aThe expulsion location has been defined."
+x-z-must-be-integer: "§cThe X and Z must be a valide integer number."
+one-chunk-must-be-adjacent-delchunk: "§cYou cannot delete this chunk because it joins chunks of the same claim."
+chunk-not-in-claim: "§cThis chunk is not part of this claim."
 
 
 # > Deny messages

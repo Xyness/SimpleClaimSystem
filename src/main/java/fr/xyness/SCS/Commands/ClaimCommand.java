@@ -272,18 +272,70 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("world-does-not-exist"));
             	return;
             }
-            instance.getMain().removeClaimChunk(claim, parts[0]+";"+parts[1]+";"+parts[2])
-            	.thenAccept(success -> {
-            		if (success) {
-            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("delete-chunk-success").replace("%chunk%", "["+args[2]+"]").replace("%claim-name%", claim.getName())));
-            		} else {
-            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error-delete-chunk")));
-            		}
-            	})
-                .exceptionally(ex -> {
-                    ex.printStackTrace();
-                    return null;
-                });
+        	int X_;
+        	int Z_;
+        	try {
+        		X_ = Integer.parseInt(parts[1]);
+        	} catch (NumberFormatException e) {
+        		player.sendMessage(instance.getLanguage().getMessage("x-z-must-be-integer"));
+        		return;
+        	}
+        	try {
+        		Z_ = Integer.parseInt(parts[2]);
+        	} catch (NumberFormatException e) {
+        		player.sendMessage(instance.getLanguage().getMessage("x-z-must-be-integer"));
+        		return;
+        	}
+        	if(instance.isFolia()) {
+        		world.getChunkAtAsync(X_, Z_).thenAccept(chunk -> {
+        			Set<Chunk> chunks = new HashSet<>(claim.getChunks());
+        			if(!chunks.contains(chunk)) {
+        				player.sendMessage(instance.getLanguage().getMessage("chunk-not-in-claim"));
+        				return;
+        			}
+        			chunks.remove(chunk);
+                    if(!instance.getMain().isAnyChunkAdjacent(chunks, chunk)) {
+                    	player.sendMessage(instance.getLanguage().getMessage("one-chunk-must-be-adjacent-delchunk"));
+                    	return;
+                    }
+        			instance.getMain().removeClaimChunk(claim, chunk)
+	                	.thenAccept(success -> {
+	                		if (success) {
+	                			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("delete-chunk-success").replace("%chunk%", "["+args[2]+"]").replace("%claim-name%", claim.getName())));
+	                		} else {
+	                			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error-delete-chunk")));
+	                		}
+	                	})
+	                    .exceptionally(ex -> {
+	                        ex.printStackTrace();
+	                        return null;
+	                    });
+        		});
+        	} else {
+        		Chunk chunk = world.getChunkAt(X_, Z_);
+    			Set<Chunk> chunks = new HashSet<>(claim.getChunks());
+    			if(!chunks.contains(chunk)) {
+    				player.sendMessage(instance.getLanguage().getMessage("chunk-not-in-claim"));
+    				return;
+    			}
+    			chunks.remove(chunk);
+                if(!instance.getMain().isAnyChunkAdjacent(chunks, chunk)) {
+                	player.sendMessage(instance.getLanguage().getMessage("one-chunk-must-be-adjacent-delchunk"));
+                	return;
+                }
+    			instance.getMain().removeClaimChunk(claim, chunk)
+                	.thenAccept(success -> {
+                		if (success) {
+                			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("delete-chunk-success").replace("%chunk%", "["+args[2]+"]").replace("%claim-name%", claim.getName())));
+                		} else {
+                			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error-delete-chunk")));
+                		}
+                	})
+                    .exceptionally(ex -> {
+                        ex.printStackTrace();
+                        return null;
+                    });
+        	}
             return;
     	}
     	if (args[0].equalsIgnoreCase("merge")) {
