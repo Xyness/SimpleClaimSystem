@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -74,11 +75,12 @@ public class ClaimMain {
     private CustomSet<String> commandArgsClaim = new CustomSet<>(Set.of("add", "autoclaim", "automap", "list",
             "map", "members", "remove", "see", "setdesc", "setname", "setspawn", "settings", 
             "tp", "chat", "ban", "unban", "bans", "owner", "autofly", "fly", "merge", "sell",
-            "cancel", "addchunk", "removechunk", "chunks", "main", "kick"));
+            "cancel", "addchunk", "removechunk", "chunks", "main", "kick", "autounclaim", "autoaddchunk", "autodelchunk",
+            "accept", "deny", "cancelinv"));
 
     /** Set of command arguments for /scs. */
     private CustomSet<String> commandArgsScs = new CustomSet<>(Set.of("reload", "config-reload", "transfer", "list", "player", "group", "forceunclaim", "setowner", "set-lang", 
-            "reset-all-player-claims-settings", "reset-all-admin-claims-settings", "admin"));
+            "reset-all-player-claims-settings", "reset-all-admin-claims-settings", "admin", "setexpulsionlocation"));
 
     /** Set of command arguments for /parea. */
     private CustomSet<String> commandArgsParea = new CustomSet<>(Set.of("setdesc", "settings", "setname", "members", "tp",
@@ -1499,32 +1501,95 @@ public class ClaimMain {
      */
     public void transferClaims() {
     	instance.executeAsync(() -> {;
+    	
+    		try (Connection connection = instance.getDataSource().getConnection()) {
+    			
+                try (Statement stmt = connection.createStatement()) {
+                	
+                	String sql = "TRUNCATE TABLE scs_claims_1";
+                	stmt.executeUpdate(sql);
+                	
+                	sql = "TRUNCATE TABLE scs_players";
+                	stmt.executeUpdate(sql);
+                		
+        		} catch (SQLException e) {
+                    e.printStackTrace();
+                }
+    			
+    		} catch (SQLException e) {
+                e.printStackTrace();
+            }
+    	
+    		boolean check = false;
+    		boolean check2 = false;
             HikariConfig localConfig = new HikariConfig();
             localConfig.setJdbcUrl("jdbc:sqlite:plugins/SimpleClaimSystem/storage.db");
             localConfig.setDriverClassName("org.sqlite.JDBC");
             try (HikariDataSource localDataSource = new HikariDataSource(localConfig);
                  Connection localConn = localDataSource.getConnection();
-                 PreparedStatement selectStmt = localConn.prepareStatement("SELECT * FROM scs_claims_1");
+                 PreparedStatement selectStmt = localConn.prepareStatement("SELECT id_claim, owner_uuid, owner_name, claim_name, claim_description, chunks, world_name, location, members, permissions, for_sale, sale_price, bans FROM scs_claims_1");
                  ResultSet rs = selectStmt.executeQuery();
                  Connection remoteConn = instance.getDataSource().getConnection();
                  PreparedStatement insertStmt = remoteConn.prepareStatement(
-                         "INSERT INTO scs_claims_1 (id_claim, owner_uuid, owner_name, claim_name, claim_description, chunks, world_name, location, members, permissions, for_sale, sale_price) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+                         "INSERT INTO scs_claims_1 (id_claim, owner_uuid, owner_name, claim_name, claim_description, chunks, world_name, location, members, permissions, for_sale, sale_price, bans) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
                  )) {
 
                 int count = 0;
                 while (rs.next()) {
-                    for (int i = 1; i <= 12; i++) {
-                        insertStmt.setObject(i, rs.getObject(i));
-                    }
+                    insertStmt.setInt(1, rs.getInt("id_claim"));
+                    insertStmt.setString(2, rs.getString("owner_uuid"));
+                    insertStmt.setString(3, rs.getString("owner_name"));
+                    insertStmt.setString(4, rs.getString("claim_name"));
+                    insertStmt.setString(5, rs.getString("claim_description"));
+                    insertStmt.setString(6, rs.getString("chunks"));
+                    insertStmt.setString(7, rs.getString("world_name"));
+                    insertStmt.setString(8, rs.getString("location"));
+                    insertStmt.setString(9, rs.getString("members"));
+                    insertStmt.setString(10, rs.getString("permissions"));
+                    insertStmt.setInt(11, rs.getInt("for_sale"));
+                    insertStmt.setDouble(12, rs.getDouble("sale_price"));
+                    insertStmt.setString(13, rs.getString("bans"));
                     insertStmt.addBatch();
                     count++;
                 }
                 insertStmt.executeBatch();
                 instance.getLogger().info(getNumberSeparate(String.valueOf(count)) + " claims transferred.");
-                instance.getLogger().info("Safe reloading..");
-                instance.executeSync(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "scs reload"));
+                check = true;
             } catch (SQLException e) {
                 e.printStackTrace();
+                check = false;
+            }
+            
+            try (HikariDataSource localDataSource = new HikariDataSource(localConfig);
+                    Connection localConn = localDataSource.getConnection();
+                    PreparedStatement selectStmt = localConn.prepareStatement("SELECT uuid_server, uuid_mojang, player_name, player_head, player_textures FROM scs_players");
+                    ResultSet rs = selectStmt.executeQuery();
+                    Connection remoteConn = instance.getDataSource().getConnection();
+                    PreparedStatement insertStmt = remoteConn.prepareStatement(
+                            "INSERT INTO scs_players (uuid_server, uuid_mojang, player_name, player_head, player_textures) VALUES (?, ?, ?, ?, ?)"
+                    )) {
+
+                   int count = 0;
+                   while (rs.next()) {
+                       insertStmt.setString(1, rs.getString("uuid_server"));
+                       insertStmt.setString(2, rs.getString("uuid_mojang"));
+                       insertStmt.setString(3, rs.getString("player_name"));
+                       insertStmt.setString(4, rs.getString("player_head"));
+                       insertStmt.setString(5, rs.getString("player_textures"));
+                       insertStmt.addBatch();
+                       count++;
+                   }
+                   insertStmt.executeBatch();
+                   instance.getLogger().info(getNumberSeparate(String.valueOf(count)) + " players transferred.");
+                   check2 = true;
+               } catch (SQLException e) {
+                   e.printStackTrace();
+                   check2 = false;
+               }
+            
+            if(check && check2) {
+                instance.getLogger().info("Safe reloading..");
+                instance.executeSync(() -> Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "scs reload"));
             }
     	});
     }
