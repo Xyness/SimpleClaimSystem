@@ -73,9 +73,11 @@ public class ClaimEventsEnterLeave implements Listener {
         instance.getPlayerMain().addPlayerPermSetting(player);
         instance.getPlayerMain().checkPlayer(player);
         if (player.hasPermission("scs.admin")) {
-            if (instance.isUpdateAvailable()) {
-                player.sendMessage(instance.getUpdateMessage());
-            }
+        	instance.checkForUpdatesAsync().thenAccept(update -> {
+        		if(instance.isUpdateAvailable()) {
+        			instance.executeEntitySync(player, () -> player.sendMessage(instance.getUpdateMessage()));
+        		}
+        	});
         }
         Chunk chunk = player.getLocation().getChunk();
         handleWeatherSettings(player, chunk, chunk);
