@@ -249,4 +249,9 @@ public class SimpleClaimSystemAPI_Impl implements SimpleClaimSystemAPI {
 		instance.getMain().getMap(player, chunk, false);
 	}
 	
+	@Override
+	public void updateBossBar(Player player, Chunk chunk) {
+		instance.getBossBars().activeBossBar(player, chunk);
+	}
+	
 }

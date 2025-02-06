@@ -336,4 +336,12 @@ public interface SimpleClaimSystemAPI {
      * @param chunk the chunk
      */
     void getMap(Player player, Chunk chunk);
+    
+    /**
+     * Updates the player bossbar.
+     * 
+     * @param player The player.
+     * @param chunk The chunk.
+     */
+    void updateBossBar(Player player, Chunk chunk);
 }
