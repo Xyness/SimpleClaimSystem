@@ -47,6 +47,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
@@ -63,6 +64,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
@@ -508,6 +510,20 @@ public class ClaimEvents implements Listener {
                 });
             }
         }
+    }
+    
+    /**
+     * Handles the player death event when a player dies.
+     * 
+     * @param event The PlayerDeathEvent event.
+     */
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+    	if(instance.isFolia()) {
+    		Player player = event.getPlayer();
+    		PlayerRespawnEvent e = new PlayerRespawnEvent(player,player.getRespawnLocation(), false);
+    		Bukkit.getPluginManager().callEvent(e);
+    	}
     }
     
     /**
