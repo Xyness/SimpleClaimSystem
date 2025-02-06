@@ -291,7 +291,6 @@ set-group-claim-distance-success: "§e%group%§f can claim with a distance of §
 can-not-buy-your-own-claim: "§cYou can not buy your own claim."
 claim-already-in-sale: "§cThis claim is already in sale."
 no-claim-can-be-merged: "§cThere are no claims to merge."
-
 player-invite-other-player: "§e%sender%§f sent you an invitation to join §e%claim-name%"
 player-invite-other: "§aInvitation sent to %player%."
 player-already-invite-other: |
@@ -316,6 +315,17 @@ expulsion-set: "§aThe expulsion location has been defined."
 x-z-must-be-integer: "§cThe X and Z must be a valide integer number."
 one-chunk-must-be-adjacent-delchunk: "§cYou cannot delete this chunk because it joins chunks of the same claim."
 chunk-not-in-claim: "§cThis chunk is not part of this claim."
+
+
+# > Formatted numbers
+
+formatted-1000: "k"
+formatted-1000000: "m"
+formatted-1000000000: "M"
+formatted-1000000000000: "b"
+formatted-1000000000000000: "B"
+formatted-1000000000000000000: "t"
+formatted-1000000000000000000000: "T"
 
 
 # > Deny messages

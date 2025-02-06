@@ -1393,8 +1393,10 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             		new ChunkConfirmationGui(player,instance,price[0]);
             	}
             } else {
-                instance.getVault().removePlayerBalance(playerName, price[0]);
-                if (price[0] > 0) instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-chunk").replace("%price%", instance.getMain().getPrice(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
+            	if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
+                    instance.getVault().removePlayerBalance(playerName, price[0]);
+                    if (price[0] > 0) instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-chunk").replace("%price%", instance.getMain().getPrice(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
+            	}
                 instance.getMain().addClaimChunk(claim, chunk)
 	            	.thenAccept(success -> {
 	            		if (success) {

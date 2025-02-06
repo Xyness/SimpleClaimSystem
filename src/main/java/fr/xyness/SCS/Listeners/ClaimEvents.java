@@ -20,7 +20,6 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.GlowItemFrame;
 import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
@@ -47,13 +46,11 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
-import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.hanging.HangingPlaceEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
@@ -62,9 +59,7 @@ import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.event.player.PlayerPortalEvent;
-import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
@@ -150,28 +145,6 @@ public class ClaimEvents implements Listener {
             event.setMessage(newCommand);
         }
     }
-    
-	/**
-	 * Handles player chat events for claim chat.
-	 * 
-	 * @param event AsyncPlayerChatEvent event.
-	 */
-	@EventHandler(priority = EventPriority.LOWEST)
-	public void onPlayerChat(AsyncPlayerChatEvent event) {
-		Player player = event.getPlayer();
-		String playerName = player.getName();
-		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
-		if(cPlayer == null) return;
-		if(cPlayer.getClaimChat()) {
-			event.setCancelled(true);
-			String msg = instance.getLanguage().getMessage("chat-format").replace("%player%",playerName).replace("%message%", event.getMessage());
-			player.sendMessage(msg);
-			for(String p : instance.getMain().getAllMembersWithPlayerParallel(playerName)) {
-				Player target = Bukkit.getPlayer(p);
-				if(target != null) target.sendMessage(msg);
-			}
-		}
-	}
 	
 	/**
 	 * Handles player glide event for Elytra.
@@ -355,29 +328,6 @@ public class ClaimEvents implements Listener {
     }
     
     /**
-     * Handles player pickup items events to prevent player pickuping in claims.
-     * @param event the pickup items event.
-     */
-    @EventHandler
-    public void onPlayerPickupItem(PlayerPickupItemEvent event) {
-    	Chunk chunk = event.getItem().getLocation().getChunk();
-    	Player player = event.getPlayer();
-    	WorldMode mode = instance.getSettings().getWorldMode(player.getWorld().getName());
-    	if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
-		if(instance.getMain().checkIfClaimExists(chunk)) {
-			Claim claim = instance.getMain().getClaim(chunk);
-			if(!claim.getPermissionForPlayer("ItemsPickup", player)) {
-				event.setCancelled(true);
-				instance.getMain().sendMessage(player,instance.getLanguage().getMessage("itemspickup"), instance.getSettings().getSetting("protection-message"));
-				return;
-			}
-		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("ItemsPickup")) {
-        	event.setCancelled(true);
-        	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("itemspickup-mode"), instance.getSettings().getSetting("protection-message"));
-        }
-    }
-    
-    /**
      * Handles player portal events to prevent player using portals in claims.
      * 
      * @param event The PlayerPortalEvent event.
@@ -510,20 +460,6 @@ public class ClaimEvents implements Listener {
                 });
             }
         }
-    }
-    
-    /**
-     * Handles the player death event when a player dies.
-     * 
-     * @param event The PlayerDeathEvent event.
-     */
-    @EventHandler
-    public void onPlayerDeath(PlayerDeathEvent event) {
-    	if(instance.isFolia()) {
-    		Player player = event.getPlayer();
-    		PlayerRespawnEvent e = new PlayerRespawnEvent(player,player.getRespawnLocation(), false);
-    		Bukkit.getPluginManager().callEvent(e);
-    	}
     }
     
     /**
