@@ -288,31 +288,31 @@ public class ClaimMain {
         if (length >= 4 && length <= 6) {
             mainPart = text.substring(0, length - 3);
             decimalPart = text.substring(length - 3, length - 2);
-            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "k";
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + instance.getLanguage().getMessage("formatted-1000");
         } else if (length >= 7 && length <= 9) {
             mainPart = text.substring(0, length - 6);
             decimalPart = text.substring(length - 6, length - 5);
-            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "m";
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + instance.getLanguage().getMessage("formatted-1000000");
         } else if (length >= 10 && length <= 12) {
             mainPart = text.substring(0, length - 9);
             decimalPart = text.substring(length - 9, length - 8);
-            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "M";
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + instance.getLanguage().getMessage("formatted-1000000000");
         } else if (length >= 13 && length <= 15) {
             mainPart = text.substring(0, length - 12);
             decimalPart = text.substring(length - 12, length - 11);
-            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "b";
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + instance.getLanguage().getMessage("formatted-1000000000000");
         } else if (length >= 16 && length <= 18) {
             mainPart = text.substring(0, length - 15);
             decimalPart = text.substring(length - 15, length - 14);
-            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "B";
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + instance.getLanguage().getMessage("formatted-1000000000000000");
         } else if (length >= 19 && length <= 21) {
             mainPart = text.substring(0, length - 18);
             decimalPart = text.substring(length - 18, length - 17);
-            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "t";
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + instance.getLanguage().getMessage("formatted-1000000000000000000");
         } else if (length >= 22 && length <= 24) {
             mainPart = text.substring(0, length - 21);
             decimalPart = text.substring(length - 21, length - 20);
-            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + "T";
+            return mainPart + (decimalPart.equals("0") ? "" : "," + decimalPart) + instance.getLanguage().getMessage("formatted-1000000000000000000000");
         } else {
             return text;
         }

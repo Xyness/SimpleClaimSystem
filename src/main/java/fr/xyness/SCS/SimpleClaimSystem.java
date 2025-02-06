@@ -115,13 +115,16 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.12.0.1";
+    private String Version = "1.12.0.2";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
     
     /** Whether the server is using Folia */
     private boolean isFolia = false;
+    
+    /** Whether the server is using Paper/Purpur */
+    private boolean isPaper = false;
     
     /** Whether an update is available for the plugin */
     private boolean isUpdateAvailable;
@@ -245,6 +248,8 @@ public class SimpleClaimSystem extends JavaPlugin {
             updateConfigWithDefaults();
             // Check Folia
             checkFolia();
+            // Check Paper
+            checkPaper();
             
             // Check GriefPrevention
             if (Bukkit.getPluginManager().getPlugin("GriefPrevention") != null) {
@@ -838,6 +843,13 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Register listener for guis
             getServer().getPluginManager().registerEvents(new ClaimGuiEvents(this), this);
+            
+            // Register other listeners
+            if(isPaper) {
+            	getServer().getPluginManager().registerEvents(new PaperClaimEvents(this), this);
+            } else {
+            	getServer().getPluginManager().registerEvents(new SpigotClaimEvents(this), this);
+            }
             
             // Add enabled/disabled settings
             v = new LinkedHashMap<>();
@@ -1573,12 +1585,13 @@ public class SimpleClaimSystem extends JavaPlugin {
      * Executes a task asynchronously.
      * 
      * @param gTask The task to execute
+     * @param delay The delay.
      */
     public void executeAsyncLater(Runnable gTask, long delay) {
         if (isFolia) {
-            Bukkit.getAsyncScheduler().runDelayed(instance, task -> gTask.run(), delay, TimeUnit.MILLISECONDS);
+            Bukkit.getAsyncScheduler().runDelayed(this, task -> gTask.run(), delay, TimeUnit.MILLISECONDS);
         } else {
-            Bukkit.getScheduler().runTaskLaterAsynchronously(instance, gTask, (delay/1000)*20);
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, gTask, (delay/1000)*20);
         }
     }
     
@@ -1613,7 +1626,7 @@ public class SimpleClaimSystem extends JavaPlugin {
      * Checks if the server is using Folia.
      */
     public void checkFolia() {
-        if (Bukkit.getVersion().contains("folia")) {
+        if (Bukkit.getVersion().toLowerCase().contains("folia")) {
             isFolia = true;
             return;
         }
@@ -1622,6 +1635,22 @@ public class SimpleClaimSystem extends JavaPlugin {
             isFolia = true;
         } catch (ClassNotFoundException e) {
             isFolia = false;
+        }
+    }
+    
+    /**
+     * Checks if the server is using Paper/Purpur or a fork of Paper
+     */
+    public void checkPaper() {
+    	if(Bukkit.getVersion().toLowerCase().contains("paper")) {
+    		isPaper = true;
+    		return;
+    	}
+        try {
+            Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
+            isPaper = true;
+        } catch (ClassNotFoundException e) {
+        	isPaper = false;
         }
     }
     
