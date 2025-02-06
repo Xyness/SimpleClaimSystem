@@ -115,7 +115,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.12.0.3";
+    private String Version = "1.12.0.4";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -398,7 +398,7 @@ public class SimpleClaimSystem extends JavaPlugin {
                     		    + "permissions VARCHAR(510) NOT NULL, "
                     		    + "for_sale TINYINT(1) NOT NULL DEFAULT 0, "
                     		    + "sale_price DOUBLE NOT NULL DEFAULT 0, "
-                    		    + "bans TEXT NOT NULL)";
+                    		    + "bans TEXT NOT NULL DEFAULT '')";
                     		stmt.executeUpdate(sql);
 
                     		sql = "CREATE TABLE IF NOT EXISTS scs_players ("

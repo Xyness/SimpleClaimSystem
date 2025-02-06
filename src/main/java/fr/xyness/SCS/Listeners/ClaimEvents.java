@@ -163,10 +163,12 @@ public class ClaimEvents implements Listener {
                     if (!claim.getPermissionForPlayer("Elytra", player)) {
                     	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra"), instance.getSettings().getSetting("protection-message"));
                     	event.setCancelled(true);
+                    	instance.getMain().teleportPlayer(player, player.getLocation());
                     }
                 } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Elytra")) {
                 	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra-mode"), instance.getSettings().getSetting("protection-message"));
                 	event.setCancelled(true);
+                	instance.getMain().teleportPlayer(player, player.getLocation());
                 }
             }
         }
@@ -543,6 +545,7 @@ public class ClaimEvents implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
 	public void onVehicleDamage(VehicleDamageEvent event){
 		Entity damager = event.getAttacker();
+		if(damager == null) return;
 		WorldMode mode = instance.getSettings().getWorldMode(damager.getLocation().getWorld().getName());
 		Chunk chunk = event.getVehicle().getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
