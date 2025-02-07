@@ -115,7 +115,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.12.0.6";
+    private String Version = "1.12.0.7";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -777,20 +777,20 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Expulsion location
             if(getConfig().contains("expulsion-location")) {
-            	if (!config.isSet("expulsion-location") || config.getConfigurationSection("expulsion-location").getKeys(false).isEmpty()) {
+            	if (getConfig().getConfigurationSection("expulsion-location").getKeys(false).isEmpty()) {
             		info(ChatColor.RED + "'expulsion-location' : don't forget to set it with /scs setexpulsionlocation.");
             	} else {
-	            	World world = Bukkit.getWorld(config.getString("expulsion-location.world"));
+	            	World world = Bukkit.getWorld(getConfig().getString("expulsion-location.world"));
 	                if (world == null) {
 	                	info(ChatColor.RED + "'expulsion-location' : the world is incorrect.");
 	                    status[0] = false;
 	                    return;
 	                }
-	                double x = config.getDouble("expulsion-location.x");
-	                double y = config.getDouble("expulsion-location.y");
-	                double z = config.getDouble("expulsion-location.z");
-	                float yaw = (float) config.getDouble("expulsion-location.yaw");
-	                float pitch = (float) config.getDouble("expulsion-location.pitch");
+	                double x = getConfig().getDouble("expulsion-location.x");
+	                double y = getConfig().getDouble("expulsion-location.y");
+	                double z = getConfig().getDouble("expulsion-location.z");
+	                float yaw = (float) getConfig().getDouble("expulsion-location.yaw");
+	                float pitch = (float) getConfig().getDouble("expulsion-location.pitch");
 	                Location location = new Location(world, x, y, z, yaw, pitch);
 	                claimSettingsInstance.setExpulsionLocation(location);
             	}
@@ -1402,20 +1402,20 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Expulsion location
             if(getConfig().contains("expulsion-location")) {
-            	if (!config.isSet("expulsion-location") || config.getConfigurationSection("expulsion-location").getKeys(false).isEmpty()) {
+            	if (getConfig().getConfigurationSection("expulsion-location").getKeys(false).isEmpty()) {
             		info(ChatColor.RED + "'expulsion-location' : don't forget to set it with /scs setexpulsionlocation.");
             	} else {
-	            	World world = Bukkit.getWorld(config.getString("expulsion-location.world"));
+	            	World world = Bukkit.getWorld(getConfig().getString("expulsion-location.world"));
 	                if (world == null) {
 	                	info(ChatColor.RED + "'expulsion-location' : the world is incorrect.");
 	                    status[0] = false;
 	                    return;
 	                }
-	                double x = config.getDouble("expulsion-location.x");
-	                double y = config.getDouble("expulsion-location.y");
-	                double z = config.getDouble("expulsion-location.z");
-	                float yaw = (float) config.getDouble("expulsion-location.yaw");
-	                float pitch = (float) config.getDouble("expulsion-location.pitch");
+	                double x = getConfig().getDouble("expulsion-location.x");
+	                double y = getConfig().getDouble("expulsion-location.y");
+	                double z = getConfig().getDouble("expulsion-location.z");
+	                float yaw = (float) getConfig().getDouble("expulsion-location.yaw");
+	                float pitch = (float) getConfig().getDouble("expulsion-location.pitch");
 	                Location location = new Location(world, x, y, z, yaw, pitch);
 	                claimSettingsInstance.setExpulsionLocation(location);
             	}
