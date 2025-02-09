@@ -1,0 +1,901 @@
+# ***********************
+# *  Language settings  *
+# ***********************
+
+# > Mensagens do console
+
+command-only-by-players: "§cEste comando só pode ser usado por jogadores."
+reload-attempt: |
+  §6Tentativa de recarregar.. Por favor, aguarde.
+  §7Você pode continuar o que estava fazendo.
+reload-complete: "§aRecarregamento concluído."
+reload-not-complete: "§cRecarregamento falhou."
+config-reload-attempt: |
+  §6Tentativa de recarregar a configuração.. Por favor, aguarde.
+  §7Você pode continuar o que estava fazendo.
+config-reload-complete: "§aRecarregamento da configuração concluído."
+config-reload-not-complete: "§cRecarregamento da configuração falhou."
+
+# > Mensagens da barra de chefe
+
+bossbar-protected-area-message: "§fVocê está em uma §eárea protegida§f!"
+bossbar-owner-message: "§fVocê está no seu território §e%owner% §b(%name%)"
+bossbar-member-message: "§fVocê está no território de §e%owner% §b(%name%)"
+bossbar-visitor-message: "§fVocê está visitando o território de §e%owner% §b(%name%)"
+
+bossbar-protected-area-for-sale-message: "§f§eÁrea protegida§f - §6§l À VENDA §b/claim buy §a(%price%%money-symbol%)"
+bossbar-owner-for-sale-message: "§eSeu território §f- §b%name%§f - §6§lÀ VENDA §7/claim cancel §a(%price%%money-symbol%)"
+bossbar-member-for-sale-message: "§fTerritório §b%name%§f de §e%owner%§f - §6§lÀ VENDA §b/claim buy §a(%price%%money-symbol%)"
+bossbar-visitor-for-sale-message: "§fTerritório §b%name%§f de §e%owner%§f - §6§lÀ VENDA §b/claim buy §a(%price%%money-symbol%)"
+
+# > Mensagens dos jogadores
+
+free-territory: "§cEste território não pertence a ninguém."
+territory-not-yours: "§cEste território não pertence a você."
+already-member: "§c%player% já tem acesso ao seu território."
+add-member-success: "§e%player%§f adicionado com sucesso a §e%claim-name%§f."
+error: "§cOcorreu um erro, por favor, contate um administrador."
+not-member: "§c%player% não é um membro deste claim."
+cant-remove-owner: "§cVocê não pode remover o proprietário deste território (você)."
+remove-member-success: "§e%player%§f removido com sucesso de §e%claim-name%§f."
+create-error-protected-area: "§cVocê está em uma área protegida do servidor."
+create-already-yours: "§cVocê já está na sua propriedade."
+create-already-claim: "§cVocê está na propriedade de %player%."
+create-protected-area-success: "§aVocê criou uma área protegida.\n§fUse §e/parea settings§f para configurar esta área."
+create-protected-area-radius-success: "§aVocê criou a área protegida §b(%number% chunks)§a.\n§fUse §e/parea settings %claim-name%§f para configurar esta área."
+create-claim-success: "§aVocê agora é o proprietário deste território.\n§fUse §e/claim settings§f para configurar seu território."
+create-claim-radius-success: "§aVocê agora é o proprietário deste território §b(%number% chunks)§a.\n§fUse §e/claim settings %claim-name%§f para configurar seu território."
+cant-radius-claim-already-claim: "§cAlguns claims neste raio pertencem a alguém."
+delete-all-claims-success: "§fTodos os seus claims foram excluídos com sucesso."
+territory-delete-success: "§aClaim excluído com sucesso."
+territory-delete-error: "§cAlguns dos claims não puderam ser excluídos (%number%/%number-max%), isso pode ser porque não pertencem a você."
+cant-claim-anymore: "§cVocê atingiu o número máximo de claims por jogador."
+cant-claim-anymore-other: "§c%player% atingiu o número máximo de claims por jogador."
+cant-radius-claim: "§cVocê não pode usar este raio para seus claims."
+world-disabled: "§cClaims estão desativados no mundo '%world%'."
+name-change-ask: "§fUse §e/claim setname <claim-name> <new-name>§f para mudar."
+name-change-success: "§fO novo nome do claim: §e%name%§f."
+loc-change-success: "§fA nova localização do spawn do claim: §e%coords%§f."
+claim-confirmation-ask: "§fClique para confirmar seu claim "
+claim-confirmation-button: "§a[Confirmar]"
+error-name-exists: "§cO claim '%name%' já existe."
+error-name-space: "§cO novo nome não deve conter espaços."
+teleportation-in-progress: "§fTeleportação em §e%delay% segundos§f, por favor, não se mova."
+teleportation-canceled-moving: "§cTeleportação cancelada porque você se moveu."
+apply-all-settings-success: "§eAs configurações§f foram aplicadas a§e todos os seus claims§f."
+apply-all-admin-settings-success: "§eAs configurações§f foram aplicadas a§e todas as áreas protegidas§f."
+error-claim-visitors-deny: "§cEste claim não permite visitantes."
+error-not-right-claim: "§cVocê deve estar no claim correspondente."
+claim-player-not-found: "§cEste claim não existe."
+cmd-no-permission: "§cVocê não tem acesso a este comando."
+max-chunks-per-claim-must-be-positive: "§cO limite de chunks deve ser positivo."
+max-chunks-per-claim-must-be-number: "§cO limite de chunks deve ser um número."
+claim-limit-must-be-positive: "§cO limite de claims deve ser positivo."
+claim-limit-must-be-number: "§cO limite de claims deve ser um número."
+claim-limit-radius-must-be-positive: "§cO limite de raio de claims deve ser positivo."
+claim-limit-radius-must-be-number: "§cO limite de raio de claims deve ser um número."
+teleportation-delay-must-be-positive: "§cO atraso de teleportação deve ser positivo."
+teleportation-delay-must-be-number: "§cO atraso de teleportação deve ser um número."
+set-player-teleportation-delay-success: "§eO atraso de teleportação de %player%§f agora é §e%amount%s§f."
+set-player-max-claim-success: "§e%player%§f pode ter no máximo §e%amount% claims§f."
+set-player-max-radius-claim-success: "§e%player%§f pode claimar em um raio de §e%amount%§f."
+worldguard-cannot-claim-in-region: "§cVocê não pode claimar nesta área."
+claim-set-description-success: "§fDescrição de §e%name%§f definida para:\n§7%description%"
+claim-price-must-be-number: "§cO preço da sua venda deve ser um número correto."
+claim-for-sale-success: "§fSeu claim §e%name%§f agora está à venda por §e%price%%money-symbol%§f."
+claim-in-sale-cancel: "§fSeu claim §e%name%§f não está mais à venda."
+claim-is-not-in-sale: "§cEste claim não está à venda."
+buy-but-not-enough-money: "§cVocê não tem dinheiro suficiente."
+buy-claim-success: "§fVocê comprou o claim §e%name%§f de §e%owner%§f por §e%price%%money-symbol%§f."
+economy-disabled: "§cA economia para claims está desativada."
+sell-claim-price-syntax: "§cO preço deve estar entre 0%money-symbol% e %max-price%%money-symbol%."
+the-claim-does-not-exists-anymore: "§cO claim que você está tentando acessar não existe mais."
+claim-has-been-sold: "§fSeu claim §e%name%§f foi vendido para §e%buyer%§f."
+autoclaim-off: "§fAuto-claim desativado."
+autoclaim-on: "§fAuto-claim ativado."
+autoaddchunk-off: "§fAuto-addchunk desativado."
+autoaddchunk-on: "§fAuto-addchunk ativado para o claim §7%claim-name%§f."
+
+autodelchunk-off: "§fAuto-delchunk desativado."
+autodelchunk-on: "§fAuto-delchunk ativado para o claim §7%claim-name%§f."
+autounclaim-off: "§fAuto-unclaim desativado."
+autounclaim-on: "§fAuto-unclaim ativado."
+autoaddchunk-not-enabled: "§cAuto-addchunk já está desativado."
+autodelchunk-not-enabled: "§cAuto-delchunk já está desativado."
+there-is-a-claim-not-adjacent: "§cPelo menos um claim não é adjacente aos outros."
+group-does-not-exists: "§cEste grupo não existe."
+set-group-teleportation-delay-success: "§fO atraso de teletransporte do grupo §e%group%§f agora é §e%amount%s§f."
+set-group-max-claim-success: "§fO grupo §e%group%§f pode ter no máximo §e%amount% claims§f."
+set-group-max-radius-claim-success: "§fO grupo §e%group%§f pode claimar em um raio de §e%amount%§f."
+forceunclaim-success: "§fO claim de §e%owner%§f foi desclaimado."
+setowner-success: "§e%owner%§f agora é o novo proprietário do claim onde você está."
+setowner-all-other-success: "§e%owner%§f agora é o novo proprietário de §etodos os claims§f de §e%old-owner%§f."
+setowner-claim-other-success: "§e%owner%§f agora é o novo proprietário do claim §e%claim-name%§f de §e%old-owner%§f."
+setowner-all-success: "§e%owner%§f agora é o novo proprietário de §etodos os seus claims§f."
+setowner-claim-success: "§e%owner%§f agora é o novo proprietário do seu claim §e%claim-name%§f."
+setting-changed-via-command: "§fConfiguração §e%setting%§f definida para §e%value%§f."
+setting-must-be-boolean: "§cO valor desta configuração deve ser verdadeiro ou falso."
+setting-must-be-protection-message: "§cO valor desta configuração deve ser: ACTION_BAR, TITLE, SUBTITLE ou CHAT."
+max-sell-price-must-be-positive: "§cO preço máximo de venda deve ser > 0."
+max-sell-price-must-be-number: "§cO preço máximo de venda deve ser um número."
+bossbar-color-incorrect: "§cEsta cor de barra não existe."
+bossbar-style-incorrect: "§cEste estilo de barra não existe."
+mat-incorrect: "§cEste material não existe."
+entity-incorrect: "§cEste tipo de entidade não existe."
+setting-list-changed-via-command: "§fMaterial §e%material%§f adicionado a §e%setting%§f."
+setting-list-changeda-via-command: "§fMaterial §e%material%§f removido de §e%setting%§f."
+setting-incorrect: "§cEsta configuração não existe."
+material-already-in-list: "§cEste material já está na lista."
+material-not-in-list: "§cEste material não está na lista."
+entity-already-in-list: "§cEsta entidade já está na lista."
+entity-not-in-list: "§cEsta entidade não está na lista."
+setting-list-changed-via-command-entity: "§fEntidade §e%entity%§f adicionada a §e%setting%§f."
+setting-list-changeda-via-command-entity: "§fEntidade §e%entity%§f removida de §e%setting%§f."
+world-already-in-list: "§cEste mundo já está na lista."
+world-not-in-list: "§cEste mundo não está na lista."
+world-list-changed-via-command: "§fMundo §e%name%§f adicionado aos §emundos desativados§f."
+world-list-changeda-via-command: "§fMundo §e%name%§f removido dos §emundos desativados§f."
+cant-add-member-anymore: "§cVocê atingiu o número máximo de membros por claim."
+you-cannot-use-this-name: "§cVocê não pode usar 'claim-' no seu novo nome de claim."
+incorrect-characters-name: "§cVocê deve usar um nome com apenas letras e números."
+incorrect-characters-description: "§cVocê deve usar uma descrição com apenas letras e números."
+claim-not-an-admin-claim: "§cEste claim não é uma área protegida."
+not-using-database: "§cO banco de dados está desativado no config.yml."
+member-limit-must-be-positive: "§cO limite de membros deve ser positivo."
+member-limit-must-be-number: "§cO limite de membros deve ser um número."
+set-player-member-limit-success: "§e%player%§f pode ter no máximo §e%amount% membros por claim§f."
+set-group-member-limit-success: "§fO grupo §e%group%§f pode ter no máximo §e%amount% membros por claim§f."
+claim-was-sold: "§fSeu claim §e%name%§f foi comprado por §e%buyer%§f por §e%price%%money-symbol%§f."
+target-does-not-have-claim: "§cO jogador '%name%' não tem claims."
+you-paid-claim: "§fVocê pagou §e%price%%money-symbol%§f pelo claim."
+you-paid-chunk: "§fVocê pagou §e%price%%money-symbol%§f por adicionar um chunk."
+buy-but-not-enough-money-claim: "§cVocê não tem dinheiro suficiente. Faltam %missing-price%%money-symbol%."
+claim-cost-must-be-positive: "§cO custo do claim deve ser positivo."
+claim-cost-must-be-number: "§cO custo do claim deve ser um número."
+chunk-cost-must-be-positive: "§cO custo do chunk deve ser positivo."
+chunk-cost-must-be-number: "§cO custo do chunk deve ser um número."
+set-player-claim-cost-success: "§e%player%§f pagará §e%amount%§f pelo claim."
+set-player-chunk-cost-success: "§e%player%§f pagará §e%amount%§f por adicionar um chunk."
+set-player-max-chunks-per-claim-success: "§e%player%§f pode ter §e%amount%§f chunks por claim."
+set-group-chunk-cost-success: "§fO grupo §e%group%§f pagará §e%amount%§f por adicionar um chunk."
+set-group-claim-cost-success: "§fO grupo §e%group%§f pagará §e%amount%§f pelo claim."
+set-group-max-chunks-per-claim-success: "§fO grupo §e%group%§f pode ter §e%amount%§f chunks por claim."
+claim-cost-multiplier-must-be-positive: "§cO multiplicador de custo do claim deve ser positivo."
+claim-cost-multiplier-must-be-number: "§cO multiplicador de custo do claim deve ser um número."
+set-player-claim-cost-multiplier-success: "§fO multiplicador §e%amount%§f será usado para o custo do claim para §e%player%§f."
+set-group-claim-cost-multiplier-success: "§fO multiplicador §e%amount%§f será usado para o custo do claim para o grupo §e%group%§f."
+chunk-cost-multiplier-must-be-positive: "§cO multiplicador de custo do chunk deve ser positivo."
+chunk-cost-multiplier-must-be-number: "§cO multiplicador de custo do chunk deve ser um número."
+set-player-chunk-cost-multiplier-success: "§fO multiplicador §e%amount%§f será usado para o custo do chunk para §e%player%§f."
+set-group-chunk-cost-multiplier-success: "§fO multiplicador §e%amount%§f será usado para o custo do chunk para o grupo §e%group%§f."
+automap-on: "§fAuto-map ativado."
+automap-off: "§fAuto-map desativado."
+player-has-no-claim: "§cVocê não tem nenhum claim."
+player-never-played: "§cO jogador '%player%' nunca jogou neste servidor."
+cant-add-yourself: "§cVocê não pode se adicionar."
+claim-for-sale-success-broadcast: "§e%player%§f colocou à venda seu claim §e%name%§f por §e%price%%money-symbol%§f."
+claim-name-too-long: "§cEste nome é muito longo."
+claim-description-too-long: "§cEsta descrição é muito longa."
+player-not-online: "§cO jogador '%player%' não está online."
+cant-buy-your-own-claim: "§cVocê não pode comprar seu próprio claim."
+claim-name-length-must-be-positive: "§cO comprimento do nome do claim deve ser positivo."
+claim-name-length-must-be-number: "O comprimento do nome do claim deve ser um número."
+claim-description-length-must-be-positive: "§cO comprimento da descrição do claim deve ser positivo."
+claim-description-length-must-be-number: "§cO comprimento da descrição do claim deve ser um número."
+set-max-length-claim-name-success: "§fO comprimento do nome do claim agora é §e%amount% caracteres§f."
+set-max-length-claim-description-success: "§fO comprimento da descrição do claim agora é §e%amount% caracteres§f."
+player-does-not-have-claim: "§cEste jogador não tem claim."
+player-teleport-to-other-claim-aclaim: "§fVocê foi teletransportado para o claim §e%name%§f de §e%player%§f."
+player-unclaim-other-claim-aclaim: "§fVocê excluiu o claim §e%name%§f de §e%player%§f."
+player-claim-unclaimed-by-admin: "§fSeu claim §e%name%§f foi excluído por §c%player%§f."
+player-unclaim-other-all-claim-aclaim: "§fVocê excluiu §etodos os claims§f de §e%player%§f."
+player-all-claim-unclaimed-by-admin: "§eTodos os seus claims§f foram excluídos por §c%player%§f."
+player-banned: "§cVocê está banido deste claim."
+cant-ban-yourself: "§cVocê não pode se banir."
+add-ban-success: "§e%player%§f agora está banido do claim §e%claim-name%§f."
+add-ban-all-success: "§e%player%§f agora está banido de todos os seus claims."
+remove-ban-success: "§e%player%§f agora está desbanido do claim §e%claim-name%§f."
+remove-ban-all-success: "§e%player%§f agora está desbanido de todos os seus claims."
+not-banned: "§c%player% não está banido deste claim."
+
+already-banned: "§c%player% já está banido deste claim."
+automap-world-disabled: "§cO auto-map está desativado no mundo '%world%'. Auto-map desativado."
+autoclaim-world-disabled: "§cO auto-claim está desativado no mundo '%world%'. Auto-claim desativado."
+autounclaim-world-disabled: "§cO auto-unclaim está desativado no mundo '%world%'. Auto-unclaim desativado."
+autodelchunk-world-disabled: "§cO auto-delchunk está desativado no mundo '%world%'. Auto-delchunk desativado."
+autoaddchunk-world-disabled: "§cO auto-addchunk está desativado no mundo '%world%'. Auto-addchunk desativado."
+no-admin-claim: "§cNão há áreas protegidas."
+remove-all-claim-player: "§c%owner%§f removeu você de §ctodos os claims§f."
+remove-claim-player: "§c%owner%§f removeu você do claim §c%claim-name%§f."
+add-all-claim-player: "§a%owner%§f adicionou você a §atodos os claims§f."
+add-claim-player: "§a%owner%§f adicionou você ao claim §a%claim-name%§f."
+remove-all-claim-protected-area-player: "§fVocê foi removido de §ctodas as áreas protegidas§f."
+remove-claim-protected-area-player: "§fVocê foi removido da área protegida §c%claim-name%§f."
+add-all-claim-protected-area-player: "§fVocê foi adicionado a §atodas as áreas protegidas§f."
+add-claim-protected-area-player: "§fVocê foi adicionado à área protegida §a%claim-name%§f."
+cant-transfer-ownership-yourself: "§cVocê não pode transferir a propriedade para si mesmo."
+fly-disabled-on-this-server: "§cO voo em claims está desativado neste servidor."
+fly-enabled: "§fVoo ativado."
+fly-disabled: "§fVoo desativado."
+autofly-enabled: "§fAuto-voo ativado."
+autofly-disabled: "§fAuto-voo desativado."
+cant-fly-in-this-claim: "§cVocê não pode voar neste território."
+reset-of-player-claims-settings-successful: "§eTodas as configurações de todos os claims dos jogadores§f foram redefinidas."
+reset-of-admin-claims-settings-successful: "§eTodas as configurações de todas as áreas protegidas§f foram redefinidas."
+claims-are-now-merged: "§fOs claims agora estão §dfundidos§f em um só §e%claim-name%§f."
+cant-merge-same-claim: "§cVocê não pode fundir o mesmo claim."
+cant-claim-with-so-many-chunks: "§cVocê não pode claimar com tantos chunks."
+cant-claim-with-so-many-chunks-other: "§c%player% não pode claimar com tantos chunks."
+apply-all-settings-success-aclaim: "§eAs configurações§f foram aplicadas a§e todos os claims§f de §e%player%§f."
+remove-member-success-aclaim: "§e%player%§f removido com sucesso do claim §e%claim-name%§f de §e%owner%§f."
+remove-ban-success-aclaim: "§e%player%§f foi desbanido do claim §e%claim-name%§f de §e%owner%§f."
+claim-in-sale-cancel-aclaim: "§fO claim §e%name%§f de §e%player%§f não está mais à venda."
+protected-area-title: "áreas protegidas"
+all-your-claims-title: "todos os seus claims"
+banned-all-claim-protected-area-player: "§fVocê foi banido de §ctodas as áreas protegidas§f."
+banned-all-claim-player: "§c%owner%§f baniu você de §ctodos os claims§f."
+unbanned-all-claim-protected-area-player: "§fVocê foi desbanido de §atodas as áreas protegidas§f."
+unbanned-all-claim-player: "§a%owner%§f desbaniu você de §atodos os claims§f."
+unbanned-claim-player: "§a%owner%§f desbaniu você do claim §a%claim-name%§f."
+banned-claim-protected-area-player: "§fVocê foi banido da área protegida §c%claim-name%§f."
+banned-claim-player: "§c%owner%§f baniu você do claim §c%claim-name%§f."
+unbanned-claim-protected-area-player: "§fVocê foi desbanido da área protegida §a%claim-name%§f."
+chunks-must-be-from-same-world: "§cOs claims devem ser do mesmo mundo."
+vault-required: "§cVocê precisa do plugin Vault para configurar a economia."
+money-symbol: "$"
+delete-claim-protected-area: "§aÁrea protegida excluída com sucesso."
+delete-claim-all-protected-areas: "§aTodas as áreas protegidas excluídas com sucesso."
+delete-chunk-success: "§aChunk §f%chunk% §aexcluído com sucesso de §f%claim-name%§a."
+cannot-remove-only-remaining-chunk-gui: "§cVocê não pode remover o único chunk restante."
+cannot-remove-only-remaining-chunk: "§cVocê não pode remover o único chunk restante."
+world-does-not-exist: "§cEste mundo não existe."
+error-delete-chunk: "§cOcorreu um erro, verifique o mundo e as coordenadas do chunk. Caso contrário, contate um administrador."
+one-chunk-must-be-adjacent: "§cPelo menos um chunk deve ser adjacente ao novo."
+one-chunk-of-claim-must-be-adjacent: "§cPelo menos um chunk do novo claim deve ser adjacente a um chunk do claim alvo."
+add-chunk-already-owner: |
+  §fEste já é um dos seus claims.
+  §fUse §d/claim merge %claim-name% %claim-name-1%§f para fundi-los.
+add-chunk-not-owner: "§cEste chunk já pertence a um claim."
+add-chunk-already-in-claim: "§cEste chunk já pertence ao seu claim '%claim-name%'."
+add-chunk-successful: "§fO chunk §a%chunk%§f foi adicionado ao §e%claim-name%§f."
+add-chunk-already-owner-protected-area: |
+  §fEsta já é uma área protegida.
+  §fUse §d/parea merge %claim-name% %claim-name-1%§f para fundi-las.
+add-chunk-already-in-claim-protected-area: "§cEste chunk já pertence à área protegida '%claim-name%'."
+chunk-are-loading: "§fCálculo e carregamento de §b%chunks-count% chunks§f.."
+chunk-while-loading: "§fChunks carregados: §a%loaded-chunks%§2/%chunks-count%§f."
+griefprevention-needed: "§cVocê precisa do GriefPrevention para importar claims deste plugin."
+player-not-in-the-claim: "§cO jogador '%player%' não está no seu claim %claim-name%."
+player-not-in-the-protected-area: "§cO jogador '%player%' não está na área protegida %claim-name%."
+kicked-from-claim: "§fVocê foi expulso do claim §c%claim-name%§f de §c%player%§f."
+kicked-from-protected-area: "§fVocê foi expulso da área protegida §c%claim-name%§f."
+kick-success: "§fVocê expulsou §e%player%§f do seu claim §e%claim-name%§f."
+kick-success-protected-area: "§fVocê expulsou §e%player%§f da área protegida §e%claim-name%§f"
+can-not-kick-yourself: "§cVocê não pode se expulsar."
+player-not-in-any-claim: "§cO jogador '%player%' não está em nenhum dos seus claims."
+player-not-in-any-protected-areas: "§cO jogador '%player%' não está em nenhuma das áreas protegidas."
+kick-success-all-claims: "§fVocê expulsou §e%player%§f de §etodos os seus claims§f."
+kicked-from-all-claims: "§fVocê foi expulso de §ctodos os claims§f de §c%player%§f."
+kick-success-all-protected-areas: "§fVocê expulsou §e%player%§f de §etodas as áreas protegidas§f."
+kicked-from-all-protected-areas: "§fVocê foi expulso de §ctodas as áreas protegidas§f."
+cannot-claim-because-claim-near: "§cVocê não pode claimar porque há um claim próximo."
+set-player-max-chunks-total-success: "§e%player%§f pode ter um total de §e%amount%§f chunks."
+max-chunks-total-must-be-positive: "§cO limite total de chunks deve ser positivo."
+max-chunks-total-must-be-number: "§cO limite total de chunks deve ser um número."
+set-player-claim-distance-success: "§e%player%§f pode claimar com uma distância de §e%amount%§f chunks."
+claim-distance-must-be-positive: "§cA distância do claim deve ser positiva."
+claim-distance-must-be-number: "§cA distância do claim deve ser um número."
+set-group-max-chunks-total-success: "§e%group%§f pode ter um total de §e%amount%§f chunks."
+set-group-claim-distance-success: "§e%group%§f pode claimar com uma distância de §e%amount%§f chunks."
+can-not-buy-your-own-claim: "§cVocê não pode comprar seu próprio claim."
+claim-already-in-sale: "§cEste claim já está à venda."
+no-claim-can-be-merged: "§cNão há claims para fundir."
+player-invite-other-player: "§e%sender%§f enviou um convite para você se juntar ao §e%claim-name%"
+player-invite-other: "§aConvite enviado para %player%."
+player-already-invite-other: |
+  §cVocê já enviou um convite para %player%.
+  §cUse /claim cancelinv %player% para cancelar o convite antigo.
+player-invite-accept-button: "§a[Aceitar]"
+player-invite-deny-button: "§c[Negar]"
+player-invite-accept-button-hover: "§aClique para aceitar"
+player-invite-deny-button-hover: "§cClique para negar"
+player-accept-invitation: "§aVocê aceitou o convite."
+player-cancel-invitation: "§cVocê cancelou o convite de %player%."
+player-deny-invitation: "§cVocê recusou o convite."
+player-accept-invitation-other: "§a%player%§f aceitou o convite."
+player-deny-invitation-other: "§c%player%§f recusou o convite."
+player-no-invitation: "§c%player% não convidou você."
+player-do-not-invite: "§cVocê não convidou %player%."
+player-invitation-expired: "§cSeu convite para %player% expirou."
+player-invitation-expired-other: "§cO convite de %player% expirou."
+player-invitation-all-their-claims: "todos os seus claims"
+player-invitations-system-off: "§cO sistema de convites está desativado neste servidor."
+expulsion-set: "§aA localização de expulsão foi definida."
+x-z-must-be-integer: "§cO X e Z devem ser números inteiros válidos."
+one-chunk-must-be-adjacent-delchunk: "§cVocê não pode excluir este chunk porque ele conecta chunks do mesmo claim."
+chunk-not-in-claim: "§cEste chunk não faz parte deste claim."
+
+# > Formatted numbers
+
+formatted-1000: "k"
+formatted-1000000: "m"
+formatted-1000000000: "M"
+formatted-1000000000000: "b"
+formatted-1000000000000000: "B"
+formatted-1000000000000000000: "t"
+formatted-1000000000000000000000: "T"
+
+# > Deny messages
+
+destroy: "§cVocê não pode destruir neste território"
+build: "§cVocê não pode construir neste território"
+buttons: "§cVocê não pode usar botões neste território"
+trapdoors: "§cVocê não pode usar alçapões neste território"
+doors: "§cVocê não pode usar portas neste território"
+fencegates: "§cVocê não pode usar portões de cerca neste território"
+levers: "§cVocê não pode usar alavancas neste território"
+repeaters: "§cVocê não pode usar repetidores neste território"
+comparators: "§cVocê não pode usar comparadores neste território"
+bells: "§cVocê não pode usar sinos neste território"
+interactblocks: "§cVocê não pode interagir com isso neste território"
+items: "§cVocê não pode usar este item neste território"
+plates: "§cVocê não pode usar placas de pressão neste território"
+tripwires: "§cVocê não pode ativar fios de armadilha neste território"
+entities: "§cVocê não pode interagir com esta entidade"
+damages: "§cVocê não pode causar danos neste território"
+teleportations: "§cVocê não pode se teletransportar para este território"
+enter: "§cVocê não pode entrar neste território"
+guiteleport: "§cVocê não pode se teletransportar para este território"
+portals: "§cVocê não pode usar portais neste território"
+itemspickup: "§cVocê não pode pegar itens neste território"
+itemsdrop: "§cVocê não pode soltar itens neste território"
+pvp: "§cVocê não pode lutar neste território"
+elytra: "§cVocê não pode usar elytra neste território."
+specialblocks: "§cVocê não pode destruir este bloco neste território."
+windcharges: "§cVocê não pode usar cargas de vento neste território."
+frostwalker: "§cVocê não pode congelar água neste território."
+claim-fly-disabled-on-damage: "§cVoo em claim desativado porque você recebeu dano"
+destroy-mode: "§cVocê não pode destruir blocos fora do seu território."
+build-mode: "§cVocê não pode construir fora do seu território."
+buttons-mode: "§cVocê não pode usar botões fora do seu território."
+trapdoors-mode: "§cVocê não pode usar alçapões fora do seu território."
+doors-mode: "§cVocê não pode usar portas fora do seu território."
+fencegates-mode: "§cVocê não pode usar portões de cerca fora do seu território."
+levers-mode: "§cVocê não pode usar alavancas fora do seu território."
+repeaters-mode: "§cVocê não pode usar repetidores de redstone fora do seu território."
+comparators-mode: "§cVocê não pode usar comparadores de redstone fora do seu território."
+bells-mode: "§cVocê não pode tocar sinos fora do seu território."
+interactblocks-mode: "§cVocê não pode interagir com blocos fora do seu território."
+items-mode: "§cVocê não pode usar este item fora do seu território."
+plates-mode: "§cVocê não pode pisar em placas de pressão fora do seu território."
+tripwires-mode: "§cVocê não pode ativar fios de armadilha fora do seu território."
+entities-mode: "§cVocê não pode interagir com entidades fora do seu território."
+damages-mode: "§cVocê não pode causar dano fora do seu território."
+teleportations-mode: "§cVocê não pode se teletransportar fora do seu território."
+portals-mode: "§cVocê não pode usar portais fora do seu território."
+itemspickup-mode: "§cVocê não pode pegar itens fora do seu território."
+itemsdrop-mode: "§cVocê não pode soltar itens fora do seu território."
+pvp-mode: "§cVocê não pode lutar fora do seu território."
+elytra-mode: "§cVocê não pode usar uma elytra fora do seu território."
+specialblocks-mode: "§cVocê não pode quebrar este bloco fora do seu território."
+windcharges-mode: "§cVocê não pode usar cargas de vento fora do seu território."
+frostwalker-mode: "§cVocê não pode congelar água fora do seu território."
+
+# > Enter/Leave messages
+# Use %owner% para o nome do proprietário
+# Use %player% para o nome do jogador
+# Use %name% para o nome do claim
+
+enter-protected-area: "§fVocê entrou em uma §eárea protegida"
+enter-protected-area-for-sale: "§fVocê entrou em uma §eárea protegida§f - §6§l À VENDA §b/claim buy §a(%price%%money-symbol%)"
+leave-protected-area: "§fVocê saiu de uma §eárea protegida"
+
+enter-territory: "§fVocê entrou no território de §e%owner%§f"
+enter-territory-for-sale: "§fVocê entrou no território de §e%owner%§f - §6§lÀ VENDA §b/claim buy §a(%price%%money-symbol%)"
+leave-territory: "§fVocê saiu do território de §e%owner%§f"
+
+enter-protected-area-title: ""
+enter-protected-area-subtitle: "§fVocê entrou em uma §eárea protegida"
+
+enter-protected-area-for-sale-title: "§6§lÀ VENDA"
+enter-protected-area-for-sale-subtitle: "§fVocê entrou em uma §eárea protegida§f - §b/claim buy §a(%price%%money-symbol%)"
+leave-protected-area-title: ""
+leave-protected-area-subtitle: "§fVocê saiu de uma §eárea protegida"
+
+enter-territory-title: "§e%owner%"
+enter-territory-subtitle: "§fVocê entrou no território de"
+enter-territory-for-sale-title: "§e%owner%"
+enter-territory-for-sale-subtitle: "§fTerritório §6§lÀ VENDA §b/claim buy §a(%price%%money-symbol%)"
+leave-territory-title: "§e%owner%"
+leave-territory-subtitle: "§fVocê saiu do território de"
+
+enter-protected-area-chat: "§fVocê entrou em uma §eárea protegida§f."
+enter-protected-area-for-sale-chat: |
+  §fVocê entrou em uma §eárea protegida§f.
+  §6§lÀ VENDA §b/claim buy §a(%price%%money-symbol%)
+leave-protected-area-chat: "§fVocê saiu de uma §eárea protegida§f."
+enter-territory-chat: "§fVocê entrou no território de §e%owner%§f."
+enter-territory-for-sale-chat: |
+  §fVocê entrou no território de §e%owner%§f.
+  §fEste território está §6§lÀ VENDA §b/claim buy §a(%price%%money-symbol%)
+leave-territory-chat: "§fVocê saiu do território de §e%owner%§f."
+# > Gui messages
+# Use \n para nova linha apenas para mensagens de lore
+
+gui-claim-confirm-title: "Confirmar claim?"
+gui-chunk-confirm-title: "Confirmar adição de chunk?"
+gui-bans-title: "Banidos: %name% (Página %page%)"
+gui-chunks-title: "Chunks: %name% (Página %page%)"
+gui-list-title: "Meus claims (Página %page%)"
+gui-main-title: "%name%"
+gui-members-title: "Membros: %name% (Página %page%)"
+gui-settings-new-title: "Configurações: %name% (%role%)"
+gui-claims-title: "Claims (Página %page%)"
+gui-claims-owner-title: "Claims: %owner% (Página %page%)"
+
+gui-button-no-permission: "§cVocê não tem permissão"
+
+to-unban: " para desbanir"
+to-remove-chunk: " para remover este chunk"
+to-teleport: " para teletransportar"
+to-remove: " para remover"
+to-manage: " para gerenciar"
+to-remove-member: " para remover este membro"
+to-use-setting: " para usar esta configuração"
+to-buy: " para comprar"
+
+confirm-title: "§aConfirmar"
+cancel-title: "§cCancelar"
+claim-confirm-info-title: "§eInformações"
+claim-confirm-info-lore-economy: "§7Preço: §6%price%%money-symbol%\n "
+claim-confirm-info-lore: "§7▸ §fFaça uma escolha para o claim"
+chunk-confirm-info-title: "§eInformações"
+chunk-confirm-info-lore-economy: "§7Preço: §6%price%%money-symbol%\n "
+chunk-confirm-info-lore: "§7▸ §fFaça uma escolha para o claim"
+
+owner-claim-title: "§e%owner%"
+owner-claim-lore: "§7Claims: §b%claim-amount%"
+owner-claim-access: "§7▸ §fExibir seus claims"
+
+access-all-claim-title: "§e%name% §b(Território de %owner%)"
+access-all-claim-lore: "§7%description%\n \n§7Membros:\n%members%\n \n"
+access-all-claim-lore-deny-visitors: "§cEste claim não permite visitantes"
+access-all-claim-lore-allow-visitors: "§7▸ §fClique com o botão esquerdo para teletransportar"
+all-claim-buyable-price: "§7O claim está à venda!\n§7Preço: §6%price%%money-symbol%\n \n" # Visível apenas se estiver à venda
+all-claim-is-buyable: "§7▸ §fShift-clique com o botão esquerdo para comprar" # Visível apenas se estiver à venda
+
+access-claim-title: "§e%name% §b(%coords%)"
+access-claim-lore: "§7%description%\n \n§7Membros:\n%members%\n \n§7Jogadores banidos:\n%bans%\n \n"
+access-claim-not-owner-lore: "§7Proprietário: §4%owner%\n§7%description%\n \n§7Membros:\n%members%\n \n§7Jogadores banidos:\n%bans%\n \n"
+
+access-claim-clickable-tp: "§7▸ §fClique com o botão esquerdo para teletransportar"
+access-claim-clickable-remove: "§7▸ §fShift-clique com o botão esquerdo para remover"
+access-claim-clickable-manage: "§7▸ §fClique com o botão direito para gerenciar"
+access-claim-clickable-removemember: "§7▸ §fRemover este membro"
+access-claim-clickable-removechunk: "§7▸ §fRemover este chunk"
+
+teleportation-success: "§fVocê foi teletransportado para o spawn do claim."
+claim-list-no-member: "§8sem membros"
+claim-list-no-ban: "§8sem jogadores banidos"
+my-claims-buyable-price: "§7Seu claim está à venda!\n§7Preço: §6%price%%money-symbol%\n \n" # Visível apenas se estiver à venda
+
+territory-access-lore-new: "§7Tem acesso ao seu território"
+player-banned-lore: "§7Está banido do seu território"
+unban-this-player-button: "§7▸§f Desbanir este jogador"
+player-member-title: "§e%player%"
+player-ban-title: "§4%player%"
+owner-territory-lore: "§dProprietário do território"
+
+previous-page-title: "§ePágina anterior"
+previous-page-lore: "§7Ir para a página %page%\n§7▸ §fClique para acessar"
+
+next-page-title: "§ePróxima página"
+next-page-lore: "§7Ir para a página %page%\n§7▸ §fClique para acessar"
+
+previous-page-claims-lore: "§7Voltar para a lista de claims"
+
+back-page-main-title: "§6Principal"
+back-page-main-lore: "§7Voltar para o menu principal de %claim-name%\n§7▸ §fClique para acessar"
+
+status-disabled: "§cDesativado ✘"
+status-enabled: "§aAtivado ✔"
+choice-disabled: "§7▸ §fClique para §nativar"
+choice-enabled: "§7▸ §fClique para §ndesativar"
+choice-setting-disabled: "§cEsta configuração não pode ser modificada"
+
+apply-all-claims-title: "§eAplicar configurações a todos os claims"
+apply-all-claims-lore: "§7Aplicar essas configurações a todos os meus claims\n§7▸ §fClique para executar"
+
+build-title: "§eConstruir §7(%status%§7)"
+build-lore: "§7Permitir construir"
+
+destroy-title: "§eDestruir §7(%status%§7)"
+destroy-lore: "§7Permitir destruir"
+
+buttons-title: "§eUsar botões §7(%status%§7)"
+buttons-lore: "§7Permitir usar botões"
+
+items-title: "§eUsar itens §7(%status%§7)"
+items-lore: "§7Permitir usar itens"
+
+interactblocks-title: "§eInteragir com blocos §7(%status%§7)"
+interactblocks-lore: "§7Permitir interagir com blocos (baú..)"
+
+levers-title: "§eUsar alavancas §7(%status%§7)"
+levers-lore: "§7Permitir usar alavancas"
+
+plates-title: "§eUsar placas de pressão §7(%status%§7)"
+plates-lore: "§7Permitir usar placas de pressão"
+
+doors-title: "§eAbrir portas §7(%status%§7)"
+doors-lore: "§7Permitir abrir portas"
+
+trapdoors-title: "§eAbrir alçapões §7(%status%§7)"
+trapdoors-lore: "§7Permitir abrir alçapões"
+
+fencegates-title: "§eAbrir portões de cerca §7(%status%§7)"
+fencegates-lore: "§7Permitir abrir portões de cerca"
+
+tripwires-title: "§eAtivar fios de armadilha §7(%status%§7)"
+tripwires-lore: "§7Permitir ativar fios de armadilha"
+
+repeaterscomparators-title: "§eUsar repetidores/comparadores §7(%status%§7)"
+repeaterscomparators-lore: "§7Permitir usar repetidores/comparadores"
+
+bells-title: "§eUsar sinos §7(%status%§7)"
+bells-lore: "§7Permitir usar sinos"
+
+entities-title: "§eInteragir com entidades §7(%status%§7)"
+entities-lore: "§7Permitir interagir com entidades"
+
+explosions-title: "§eExplosões §7(%status%§7)"
+explosions-lore: "§7Permitir explosões de qualquer tipo"
+
+liquids-title: "§eLíquidos §7(%status%§7)"
+liquids-lore: "§7Permitir que líquidos externos fluam para o território"
+
+redstone-title: "§eRedstone §7(%status%§7)"
+redstone-lore: "§7Permitir que redstone externa influencie o território\n§7(pistões, dispensadores, etc)."
+
+frostwalker-title: "§eAndarilho do gelo §7(%status%§7)"
+frostwalker-lore: "§7Permitir que visitantes congelem água com um encantamento"
+
+firespread-title: "§ePropagação de fogo §7(%status%§7)"
+firespread-lore: "§7Permitir que o fogo se espalhe no território"
+
+teleportations-title: "§eTeletransportes naturais §7(%status%§7)"
+teleportations-lore: "§7Permitir teletransportes naturais (pérola do ender,\n§7fruta coral, etc)"
+
+damages-title: "§eDano a entidades §7(%status%§7)"
+damages-lore: "§7Permitir causar dano a entidades"
+
+pvp-title: "§ePvP §7(%status%§7)"
+pvp-lore: "§7Permitir jogadores lutarem"
+
+monsters-title: "§eMonstros §7(%status%§7)"
+monsters-lore: "§7Permitir o surgimento de monstros"
+
+weather-title: "§eClima §7(%status%§7)"
+weather-lore: "§7Permitir chuva/neve/trovões para jogadores"
+
+fly-title: "§eVoo §7(%status%§7)"
+fly-lore: "§7Permitir voar"
+
+guiteleport-title: "§eTeletransporte via GUI §7(%status%§7)"
+guiteleport-lore: "§7Permitir usar /claims para teletransportar"
+
+enter-title: "§eEntrar §7(%status%§7)"
+enter-lore: "§7Permitir entrar fisicamente no claim"
+
+portals-title: "§eUsar portais §7(%status%§7)"
+portals-lore: "§7Permitir usar portais"
+
+itemspickup-title: "§ePegar itens §7(%status%§7)"
+itemspickup-lore: "§7Permitir pegar itens no chão"
+
+itemsdrop-title: "§eSoltar itens §7(%status%§7)"
+itemsdrop-lore: "§7Permitir soltar itens no chão"
+
+elytra-title: "§eElytra §7(%status%§7)"
+elytra-lore: "§7Permitir usar elytra"
+
+specialblocks-title: "§eDestruir blocos especiais §7(%status%§7)"
+specialblocks-lore: "§7Permitir destruir os blocos especiais"
+
+windcharges-title: "§eUsar cargas de vento §7(%status%§7)"
+windcharges-lore: "§7Permitir usar cargas de vento"
+
+manage-members-title: "§aMembros"
+manage-members-lore: "§7Gerenciar membros"
+
+manage-bans-title: "§cBanidos"
+manage-bans-lore: "§7Gerenciar jogadores banidos"
+
+manage-chunks-title: "§6Chunks"
+manage-chunks-lore: "§7Gerenciar chunks"
+
+manage-settings-title: "§3Configurações"
+manage-settings-lore: "§7Gerenciar configurações"
+
+unclaim-title: "§4Desclaimar"
+unclaim-lore: "§7Excluir este claim?"
+
+teleport-claim-title: "§5Teletransportar"
+teleport-claim-lore: "§7Teletransportar para o spawn do claim"
+
+claim-info-title: "§6%claim-name% §7(%description%)"
+claim-info-lore: |
+  §7Chunks: §b%chunks-count%
+  §7
+  §7Membros: §a%members-count%
+  §7Banidos: §c%bans-count%
+  §7
+  §7%sale-status%
+  §7
+  §7Quer ver seus outros claims?
+
+claim-info-lore-sale-status-true: "§a✔ Claim à venda §7(%price%%money-symbol%)"
+claim-info-lore-sale-status-false: "§c✘ Claim não está à venda"
+
+chunk-title: "§6Chunk §7(%coords%)"
+chunk-lore: "§7O chunk faz parte do claim"
+
+access-button: "§7▸ §fClique para executar"
+
+filter-title: "§eFiltro"
+filter-new-lore: "§7Alterar filtro\n%status_color_1%➲ Todos os proprietários\n%status_color_2%➲ Proprietários com claims à venda\n%status_color_3%➲ Proprietários online\n%status_color_4%➲ Proprietários offline\n§7▸ §fClique para alterar"
+filter-owner-lore: "§7Alterar filtro\n%status_color_1%➲ Todos os claims\n%status_color_2%➲ Claims à venda\n§7▸ §fClique para alterar"
+filter-list-lore: "§7Alterar filtro\n%status_color_1%➲ Meus claims\n%status_color_2%➲ Claims de membros\n§7▸ §fClique para alterar"
+status_color_active_filter: "§a"
+status_color_inactive_filter: "§8"
+
+role-title: "§eFunção"
+role-lore: "§7Alterar a função alvo\n%status_color_1%➲ Visitantes\n%status_color_2%➲ Membros\n%status_color_3%➲ Natural\n§7▸ §fClique para alterar"
+role-members: "Membros"
+role-visitors: "Visitantes"
+role-natural: "Natural"
+
+# > Placeholders messages
+
+claim_name-if-no-claim: "§cSem claim"
+claim_owner-if-no-claim: "§cNenhum"
+claim_description-if-no-claim: "§cNenhum"
+claim_sale_price-if-no-claim: "§cNenhum"
+claim_is_in_sale-if-no-claim: "§cNenhum"
+claim_sale_price-if-not-in-sale: "§cNão está à venda"
+claim_members_count-if-no-claim: "0"
+claim_members_online-if-no-claim: "0"
+claim_spawn-if-no-claim: "§cNenhum"
+claim_setting-if-no-claim: "§cNenhum"
+claim_distance-if-zero: "§cNenhum"
+
+# > Map messages
+
+map-coords-message: "§7Coordenadas: %coords% (%direction%)"
+map-actual-claim-name-message: "§b%name%"
+map-actual-claim-name-message-owner: "§7(§4%owner%§7)"
+map-no-claim-name-message: "§cSem claim"
+map-claim-relation-member: "§a"
+map-claim-relation-visitor: "§7"
+map-no-claim-color: "§f"
+map-cursor: "⬛"
+map-cursor-color: "§6"
+map-symbol-no-claim: "⬛"
+map-symbol-claim: "⬛"
+map-direction-south: "Sul"
+map-direction-north: "Norte"
+map-direction-east: "Leste"
+map-direction-west: "Oeste"
+map-legend-you: "%cursor-color%⬛ Você"
+map-legend-free: "%no-claim-color%⬛ Claim livre"
+map-legend-yours: "%claim-relation-member%⬛ Seus claims"
+map-legend-other: "%claim-relation-visitor%⬛ Claims de outros"
+
+# > Claims messages
+
+default-description: "§7Sem descrição"
+
+# > Help messages
+
+help-separator: "§e§m                                                                      "
+
+help-command:
+  claim-claim: |
+    §bSintaxe : §f/claim [<raio>]
+    §bDescrição : §fClaimar alguns chunks
+  claim-see: |
+    §bSintaxe : §f/claim see [<jogador>]
+    §bDescrição : §fFazer partículas aparecerem ao redor do chunk em que você está/nos claims do jogador
+  claim-list: |
+    §bSintaxe : §f/claim list
+    §bDescrição : §fAbrir a GUI com a lista dos seus claims
+  claim-members: |
+    §bSintaxe : §f/claim members [<nome-do-claim>]
+    §bDescrição : §fAbrir a GUI com os membros do claim em que você está/do claim especificado
+  claim-settings: |
+    §bSintaxe : §f/claim settings [<nome-do-claim>]
+    §bDescrição : §fAbrir a GUI com as configurações do claim em que você está/do claim especificado
+  claim-setspawn: |
+    §bSintaxe : §f/claim setspawn
+    §bDescrição : §fDefinir o novo spawn do claim em que você está
+  claim-autoclaim: |
+    §bSintaxe : §f/claim autoclaim
+    §bDescrição : §fAtivar ou desativar o auto-claim quando você mudar de chunk
+  claim-automap: |
+    §bSintaxe : §f/claim map/automap
+    §bDescrição : §fVer o mapa dos claims / automaticamente quando você mudar de chunk
+  claim-autofly: |
+    §bSintaxe : §f/claim fly/autofly
+    §bDescrição : §fAtivar o voo em claim / automaticamente quando você mudar de chunk
+  claim-tp: |
+    §bSintaxe : §f/claim tp <nome-do-claim>
+    §bDescrição : §fTeletransportar para um dos seus claims
+  claim-setname: |
+    §bSintaxe : §f/claim setname <nome-antigo-do-claim> <nome-novo-do-claim>
+    §bDescrição : §fMudar o nome do claim especificado
+  claim-add: |
+    §bSintaxe : §f/claim add [<*|nome-do-claim>] <jogador>
+    §bDescrição : §fAdicionar um jogador a um claim/todos os seus claims
+  claim-remove: |
+    §bSintaxe : §f/claim remove [<*|nome-do-claim>] <jogador>
+    §bDescrição : §fRemover um jogador de um claim/todos os seus claims
+  claim-setdesc: |
+    §bSintaxe : §f/claim setdesc <nome-do-claim> <descrição>
+    §bDescrição : §fMudar a descrição do claim especificado
+  claim-chat: |
+    §bSintaxe : §f/claim chat <nome-do-claim>
+    §bDescrição : §fMudar seu modo de chat
+  claim-ban: |
+    §bSintaxe : §f/claim ban [<*|nome-do-claim>] <jogador>
+    §bDescrição : §fBanir um jogador do seu claim
+  claim-unban: |
+    §bSintaxe : §f/claim unban [<*|nome-do-claim>] <jogador>
+    §bDescrição : §fDesbanir um jogador do seu claim
+  claim-bans: |
+    §bSintaxe : §f/claim bans [<nome-do-claim>]
+    §bDescrição : §fAbrir a GUI de banidos de um claim
+  claim-owner: |
+    §bSintaxe : §f/claim owner [<*|nome-do-claim>] <jogador>
+    §bDescrição : §fTransferir a propriedade do(s) claim(s) para um jogador
+  claim-merge: |
+    §bSintaxe : §f/claim merge <nome-do-claim-1> <nome-do-claim-2>
+    §bDescrição : §fFundir dois claims em um
+  claim-sell: |
+    §bSintaxe : §f/claim sell <nome-do-claim> <preço>
+    §bDescrição : §fColocar um claim à venda
+  claim-cancel: |
+    §bSintaxe : §f/claim cancel <nome-do-claim>
+    §bDescrição : §fCancelar a venda do claim especificado
+  claim-kick: |
+    §bSintaxe : §f/claim kick [<*|nome-do-claim>] <jogador>
+    §bDescrição : §fExpulsar fisicamente um jogador de um claim
+  claim-addchunk: |
+    §bSintaxe : §f/claim addchunk <nome-do-claim>
+    §bDescrição : §fAdicionar um chunk a um claim
+  claim-delchunk: |
+    §bSintaxe : §f/claim delchunk <nome-do-claim> <chunk>
+    §bDescrição : §fRemover um chunk de um claim, use o argumento chunk como mundo;x;z
+  claim-main: |
+    §bSintaxe : §f/claim main <nome-do-claim>
+    §bDescrição : §fAbrir o menu principal de um claim
+  claim-cancelinv: |
+    §bSintaxe : §f/claim cancelinv <jogador>
+    §bDescrição : §fCancelar o convite de um jogador
+  claim-accept: |
+    §bSintaxe : §f/claim accept <jogador>
+    §bDescrição : §fAceitar o convite de um jogador
+  claim-deny: |
+    §bSintaxe : §f/claim deny <jogador>
+    §bDescrição : §fRecusar o convite de um jogador
+  unclaim-unclaim: |
+    %help-separator%
+    §bSintaxe : §f/unclaim [<nome-do-claim|*>]
+    §bDescrição :§f Desclaimar alguns chunks
+    %help-separator%
+  claims-claims: |
+    §bSintaxe : §f/claims
+    §bDescrição : §fAbrir a GUI com todos os claims
+  parea-setdesc: |
+    §bSintaxe : §f/parea setdesc <nome-do-claim> <descrição>
+    §bDescrição : §fDefinir a descrição de uma área protegida
+  parea-settings: |
+    §bSintaxe : §f/parea settings <nome-do-claim>
+    §bDescrição : §fAbrir a GUI de configurações de uma área protegida
+  parea-setname: |
+    §bSintaxe : §f/parea setname <nome-do-claim> <novo-nome>
+    §bDescrição : §fDefinir o nome de uma área protegida
+  parea-members: |
+    §bSintaxe : §f/parea members <nome-do-claim>
+    §bDescrição : §fGerenciar os membros de uma área protegida
+  parea-tp: |
+    §bSintaxe : §f/parea tp <nome-do-claim>
+    §bDescrição : §fTeletransportar para uma área protegida
+  parea-list: |
+    §bSintaxe : §f/parea list
+    §bDescrição : §fListar todas as áreas protegidas
+  parea-ban: |
+    §bSintaxe : §f/parea ban <nome-do-claim> <jogador>
+    §bDescrição : §fBanir um jogador de uma área protegida
+  parea-unban: |
+    §bSintaxe : §f/parea unban <nome-do-claim> <jogador>
+    §bDescrição : §fDesbanir um jogador de uma área protegida
+  parea-bans: |
+    §bSintaxe : §f/parea bans <nome-do-claim>
+    §bDescrição : §fListar todos os jogadores banidos de uma área protegida
+  parea-add: |
+    §bSintaxe : §f/parea add <nome-do-claim> <jogador>
+    §bDescrição : §fAdicionar um jogador a uma área protegida
+  parea-remove: |
+    §bSintaxe : §f/parea remove <nome-do-claim> <jogador>
+    §bDescrição : §fRemover um jogador de uma área protegida
+  parea-unclaim: |
+    §bSintaxe : §f/parea unclaim <nome-do-claim>
+    §bDescrição : §fDesclaimar uma área protegida
+  parea-main: |
+    §bSintaxe : §f/parea main
+    §bDescrição : §fAbrir a GUI principal
+  parea-merge: |
+    §bSintaxe : §f/parea merge <claim1> <claim2>
+    §bDescrição : §fFundir duas áreas protegidas
+  parea-addchunk: |
+    §bSintaxe : §f/parea addchunk <nome-do-claim> <chunk>
+    §bDescrição : §fAdicionar um chunk a uma área protegida
+  parea-delchunk: |
+    §bSintaxe : §f/parea delchunk <nome-do-claim> <chunk>
+    §bDescrição : §fRemover um chunk de uma área protegida
+  parea-kick: |
+    §bSintaxe : §f/parea kick <*|nome-do-claim> <jogador>
+    §bDescrição : §fExpulsar fisicamente um jogador de uma área protegida
+  scs-transfer: |
+    §bSintaxe : §f/scs transfer
+    §bDescrição : §fTransferir banco de dados local para banco de dados remoto
+  scs-player: |
+    §bSintaxe : §f/scs player <tp|unclaim|main|list> <jogador> [<claim>]
+    §bDescrição : §fGerenciar claims de jogadores
+  scs-cplayer: |
+    §bSintaxe : §f/scs cplayer <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|set-claim-distance|set-max-chunks-total> <args>
+    §bDescrição : §fGerenciar configurações de jogadores
+  scs-group: |
+    §bSintaxe : §f/scs group <add-limit|add-radius|add-members|set-limit|set-radius|set-delay|set-members|set-claim-cost|set-claim-cost-multiplier|set-claim-distance|set-max-chunks-total> <args>
+    §bDescrição : §fGerenciar configurações e claims de grupos
+  scs-forceunclaim: |
+    §bSintaxe : §f/scs forceunclaim <claim>
+    §bDescrição : §fForçar desclaimar um claim
+  scs-setowner: |
+    §bSintaxe : §f/scs setowner <claim> <jogador>
+    §bDescrição : §fDefinir o proprietário de um claim
+  scs-set-lang: |
+    §bSintaxe : §f/scs set-lang <idioma>
+    §bDescrição : §fDefinir o idioma do plugin
+  scs-reset-all-player-claims-settings: |
+    §bSintaxe : §f/scs reset-all-player-claims-settings
+    §bDescrição : §fRedefinir todas as configurações de claims dos jogadores para o padrão
+  scs-reset-all-admin-claims-settings: |
+    §bSintaxe : §f/scs reset-all-admin-claims-settings
+    §bDescrição : §fRedefinir todas as configurações de claims de admin para o padrão
+  scs-admin: |
+    §bSintaxe : §f/scs admin
+    §bDescrição : §fAbrir a GUI de admin
+  scs-setexpulsionlocation: |
+    §bSintaxe : §f/scs setexpulsionlocation
+    §bDescrição : §fDefinir a localização de expulsão
+  next-page: §7Página %page% - clique para acessar a próxima página
+  previous-page: §7Página %page% - clique para acessar a página anterior
+
+sub-arg-not-found: |
+  %help-separator%
+  §fSub-arg '§c%arg%§f' não encontrado, args disponíveis:
+  §7%args%§f.
+  %help-separator%
+
+available-args: |
+  %help-separator%
+  §fArgs disponíveis:
+  §7%args%§f.
+  %help-separator%
+
+# > Private chat messages
+
+chat-format: "§b[ClaimChat]§e %player%§7: §f%message%"
+talking-now-in-claim: "§fVocê está agora falando no §echat de claims§f."
+talking-now-in-public: "§fVocê está agora falando no §achat público§f."
