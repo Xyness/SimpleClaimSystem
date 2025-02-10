@@ -82,7 +82,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 completions.addAll(getSecondaryCompletions(sender, args));
             } else if (args.length == 3) {
                 completions.addAll(getTertiaryCompletions(sender, args));
-            } else if (args.length == 4 && args[0].equalsIgnoreCase("player") && (args[1].equalsIgnoreCase("tp") || args[1].equalsIgnoreCase("unclaim"))) {
+            } else if (args.length == 4 && args[0].equalsIgnoreCase("player") && (args[1].equalsIgnoreCase("tp") || args[1].equalsIgnoreCase("unclaim") || args[1].equalsIgnoreCase("main"))) {
             	String partialInput = args.length > 3 ? args[3].toLowerCase() : "";
             	completions.addAll(instance.getMain().getClaimsNameFromOwner(args[2]));
                 if (args[1].equalsIgnoreCase("unclaim")) {

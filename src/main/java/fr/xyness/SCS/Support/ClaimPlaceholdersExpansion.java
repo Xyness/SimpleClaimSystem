@@ -122,6 +122,10 @@ public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
                 int remainingChunks = max_chunks - instance.getMain().getAllChunksFromAllClaims(player.getName()).size();
                 return remainingChunks >= 0 ? String.valueOf(remainingChunks) : "0";
                 
+            case "player_chunks_count":
+            	
+            	return String.valueOf(instance.getMain().getAllChunksFromAllClaims(player.getName()).size());
+                
             case "player_max_radius_claims":
                 int maxRadiusClaims = cPlayer.getMaxRadiusClaims();
                 return maxRadiusClaims > 0 ? String.valueOf(maxRadiusClaims) : "∞";

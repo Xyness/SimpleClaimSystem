@@ -115,7 +115,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.12.0.7";
+    private String Version = "1.12.0.8";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -125,6 +125,9 @@ public class SimpleClaimSystem extends JavaPlugin {
     
     /** Whether the server is using Paper/Purpur */
     private boolean isPaper = false;
+    
+    /** Minecraft version */
+    private String minecraftVersion;
     
     /** Whether an update is available for the plugin */
     private boolean isUpdateAvailable;
@@ -250,6 +253,8 @@ public class SimpleClaimSystem extends JavaPlugin {
             checkFolia();
             // Check Paper
             checkPaper();
+            // Check version of Minecraft
+            checkMinecraftVersion();
             
             // Check GriefPrevention
             if (Bukkit.getPluginManager().getPlugin("GriefPrevention") != null) {
@@ -1555,6 +1560,13 @@ public class SimpleClaimSystem extends JavaPlugin {
     public boolean isFolia() { return isFolia; }
     
     /**
+     * Gets the Minecraft version.
+     * 
+     * @return The Minecraft version.
+     */
+    public String getMinecraftVersion() { return minecraftVersion; }
+    
+    /**
      * Returns the update message.
      * 
      * @return The update message
@@ -1641,7 +1653,12 @@ public class SimpleClaimSystem extends JavaPlugin {
      */
     public void checkFolia() {
         if (Bukkit.getVersion().toLowerCase().contains("folia")) {
-            isFolia = true;
+            try {
+                Class.forName("io.papermc.paper.threadedregions.RegionizedServerInitEvent");
+                isFolia = true;
+            } catch (ClassNotFoundException e) {
+                isFolia = false;
+            }
             return;
         }
         try {
@@ -1657,11 +1674,16 @@ public class SimpleClaimSystem extends JavaPlugin {
      */
     public void checkPaper() {
     	if(Bukkit.getVersion().toLowerCase().contains("paper")) {
-    		isPaper = true;
-    		return;
+            try {
+                Class.forName("io.papermc.paper.threadedregions.scheduler.ScheduledTask");
+                isPaper = true;
+            } catch (ClassNotFoundException e) {
+            	isPaper = false;
+            }
+            return;
     	}
         try {
-            Class.forName("io.papermc.paper.event.player.AsyncChatEvent");
+            Class.forName("io.papermc.paper.threadedregions.scheduler.ScheduledTask");
             isPaper = true;
         } catch (ClassNotFoundException e) {
         	isPaper = false;
@@ -2080,5 +2102,20 @@ public class SimpleClaimSystem extends JavaPlugin {
             saveConfig();
             reloadConfig();
     	});
+    }
+    
+    /**
+     * Gets the main Minecraft version (e.g., "1.21" for "1.21.4").
+     *
+     * @return The main version as a string (e.g., "1.21").
+     */
+    public void checkMinecraftVersion() {
+    	String version = Bukkit.getBukkitVersion();
+        String[] parts = version.split("\\.");
+        if (parts.length >= 2) {
+        	this.minecraftVersion = parts[0] + "." + parts[1];
+        } else {
+        	this.minecraftVersion = version.split("-")[0];
+        }
     }
 }
