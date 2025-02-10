@@ -101,6 +101,16 @@ public class ClaimGuis {
         guis_items_perms_clicked_slots.get("natural").put(16, "Pvp");
     }
     
+    /**
+     * A map containing the key-to-slot mappings.
+     */
+    public static final Map<String, Integer> keyToSlotMap = new HashMap<>();
+
+    /**
+     * A map containing the key-to-material mappings.
+     */
+    public static final Map<String, Material> keyToMaterialMap = new HashMap<>();
+    
     /** Set of settings names */
     private Map<String,Set<String>> settings_name = new HashMap<>();
     
@@ -131,6 +141,76 @@ public class ClaimGuis {
                 "Weather","Fly", "Portals", "ItemsPickup", "ItemsDrop", "SpecialBlocks", "Elytra", "Windcharges"));
     	
     	settings_name.put("natural", Set.of("Explosions","Liquids","Redstone","Firespread","Monsters","Pvp"));
+    
+        keyToSlotMap.put("Build", 1);
+        keyToSlotMap.put("Destroy", 2);
+        keyToSlotMap.put("Buttons", 3);
+        keyToSlotMap.put("Items", 4);
+        keyToSlotMap.put("InteractBlocks", 5);
+        keyToSlotMap.put("Levers", 6);
+        keyToSlotMap.put("Plates", 7);
+        keyToSlotMap.put("Doors", 10);
+        keyToSlotMap.put("Trapdoors", 11);
+        keyToSlotMap.put("Fencegates", 12);
+        keyToSlotMap.put("Tripwires", 13);
+        keyToSlotMap.put("RepeatersComparators", 14);
+        keyToSlotMap.put("Bells", 15);
+        keyToSlotMap.put("Entities", 16);
+        keyToSlotMap.put("Teleportations", 19);
+        keyToSlotMap.put("Damages", 20);
+        keyToSlotMap.put("Fly", 21);
+        keyToSlotMap.put("Frostwalker", 22);
+        keyToSlotMap.put("Weather", 23);
+        keyToSlotMap.put("GuiTeleport", 24);
+        keyToSlotMap.put("Portals", 25);
+        keyToSlotMap.put("Elytra", 28);
+        keyToSlotMap.put("Enter", 29);
+        keyToSlotMap.put("ItemsPickup", 30);
+        keyToSlotMap.put("ItemsDrop", 32);
+        keyToSlotMap.put("SpecialBlocks", 33);
+        keyToSlotMap.put("Windcharges", 34);
+        
+        keyToSlotMap.put("Explosions", 10);
+        keyToSlotMap.put("Liquids", 11);
+        keyToSlotMap.put("Redstone", 12);
+        keyToSlotMap.put("Firespread", 14);
+        keyToSlotMap.put("Monsters", 15);
+        keyToSlotMap.put("Pvp", 16);
+
+        keyToMaterialMap.put("Build", Material.OAK_STAIRS);
+        keyToMaterialMap.put("Destroy", Material.IRON_PICKAXE);
+        keyToMaterialMap.put("Buttons", Material.STONE_BUTTON);
+        keyToMaterialMap.put("Items", Material.BOW);
+        keyToMaterialMap.put("InteractBlocks", Material.RED_SHULKER_BOX);
+        keyToMaterialMap.put("Levers", Material.LEVER);
+        keyToMaterialMap.put("Plates", Material.STONE_PRESSURE_PLATE);
+        keyToMaterialMap.put("Doors", Material.OAK_DOOR);
+        keyToMaterialMap.put("Trapdoors", Material.OAK_TRAPDOOR);
+        keyToMaterialMap.put("Fencegates", Material.OAK_FENCE_GATE);
+        keyToMaterialMap.put("Tripwires", Material.TRIPWIRE_HOOK);
+        keyToMaterialMap.put("RepeatersComparators", Material.REPEATER);
+        keyToMaterialMap.put("Bells", Material.BELL);
+        keyToMaterialMap.put("Entities", Material.ARMOR_STAND);
+        keyToMaterialMap.put("Explosions", Material.TNT);
+        keyToMaterialMap.put("Liquids", Material.WATER_BUCKET);
+        keyToMaterialMap.put("Redstone", Material.REDSTONE);
+        keyToMaterialMap.put("Frostwalker", Material.DIAMOND_BOOTS);
+        keyToMaterialMap.put("Firespread", Material.CAMPFIRE);
+        keyToMaterialMap.put("Teleportations", Material.ENDER_PEARL);
+        keyToMaterialMap.put("Damages", Material.APPLE);
+        keyToMaterialMap.put("Monsters", Material.STRING);
+        keyToMaterialMap.put("GuiTeleport", Material.COMPASS);
+        keyToMaterialMap.put("Fly", Material.PRISMARINE_SHARD);
+        keyToMaterialMap.put("Pvp", Material.DIAMOND_SWORD);
+        keyToMaterialMap.put("Weather", Material.SNOWBALL);
+        keyToMaterialMap.put("Portals", Material.END_PORTAL_FRAME);
+        keyToMaterialMap.put("Enter", Material.BIRCH_DOOR);
+        keyToMaterialMap.put("ItemsPickup", Material.HOPPER);
+        keyToMaterialMap.put("ItemsDrop", Material.FEATHER);
+        keyToMaterialMap.put("Elytra", Material.ELYTRA);
+        keyToMaterialMap.put("SpecialBlocks", Material.SPAWNER);
+        keyToMaterialMap.put("Windcharges", Material.WHITE_DYE);
+        
     }
     
 

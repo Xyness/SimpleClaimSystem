@@ -7,7 +7,10 @@ import java.util.UUID;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.WeatherType;
+import org.bukkit.entity.Boat;
+import org.bukkit.entity.Minecart;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Vehicle;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -15,6 +18,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.vehicle.VehicleMoveEvent;
 
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.CPlayer;
@@ -212,6 +216,106 @@ public class ClaimEventsEnterLeave implements Listener {
 
         if (cPlayer.getClaimAutomap()) {
             handleAutoMap(player, cPlayer, to, world);
+        }
+    }
+    
+    /**
+     * Handles the Vehicle Move Events.
+     * 
+     * @param event The VehicleMoveEvent triggered when a vehicle moves.
+     */
+    @EventHandler
+    public void onVehicleMove(VehicleMoveEvent event) {
+    	if (!hasChangedChunk(event)) return;
+    	Vehicle vehicle = event.getVehicle();
+    	if(vehicle == null) return;
+        if (vehicle instanceof Boat || vehicle instanceof Minecart) {
+        	if(vehicle.getPassengers().isEmpty()) {
+                Chunk to = event.getTo().getChunk();
+                Claim claim = instance.getMain().getClaim(to);
+                if(claim != null) {
+        	        if (!instance.getMain().canPermCheck(to, "Enter", "Visitors")) {
+        	        	vehicle.remove();
+        	        	return;
+        	        }
+                }
+                return;
+        	}
+        	vehicle.getPassengers().forEach(passenger -> {
+                if (passenger instanceof Player) {
+                    Player player = (Player) passenger;
+                    Chunk to = event.getTo().getChunk();
+                    Chunk from = event.getFrom().getChunk();
+                    UUID playerId = player.getUniqueId();
+                    String playerName = player.getName();
+                    CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
+                    if(cPlayer == null) return;
+                    String ownerTO = instance.getMain().getOwnerInClaim(to);
+                    String ownerFROM = instance.getMain().getOwnerInClaim(from);
+
+                    Claim claim = instance.getMain().getClaim(to);
+                    if(claim != null) {
+            	        if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
+            	        	playersRejected.add(player);
+            	        	instance.getMain().teleportPlayer(player, event.getFrom());
+            	        	vehicle.remove();
+            	            instance.getMain().sendMessage(player, instance.getLanguage().getMessage("player-banned"), instance.getSettings().getSetting("protection-message"));
+            	        	if(instance.getSettings().getBooleanSetting("claim-particles-not-enter")) {
+            	        		instance.getMain().displayChunksNotEnter(player, new CustomSet<>(claim.getChunks()));
+            	        	}
+            	            return;
+            	        }
+            	        if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
+            	        	playersRejected.add(player);
+            	        	instance.getMain().teleportPlayer(player, event.getFrom());
+            	        	vehicle.remove();
+            	        	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("enter"), instance.getSettings().getSetting("protection-message"));
+            	        	if(instance.getSettings().getBooleanSetting("claim-particles-not-enter")) {
+            	        		instance.getMain().displayChunksNotEnter(player, new CustomSet<>(claim.getChunks()));
+            	        	}
+            	        	return;
+            	        }
+            	        
+            	        if (cPlayer.getClaimAutofly() && (ownerTO.equals(playerName) || claim.getPermissionForPlayer("Fly",player)) && !instance.isFolia()) {
+            	            instance.getPlayerMain().activePlayerFly(player);
+            	            if (instance.getSettings().getBooleanSetting("claim-fly-message-auto-fly")) {
+            	                instance.getMain().sendMessage(player, instance.getLanguage().getMessage("fly-enabled"), "CHAT");
+            	            }
+            	        } else if (!claim.getPermissionForPlayer("Fly",player) && !ownerTO.equals(playerName) && cPlayer.getClaimFly() && !instance.isFolia()) {
+            	            instance.getPlayerMain().removePlayerFly(player);
+            	            if (instance.getSettings().getBooleanSetting("claim-fly-message-auto-fly")) {
+            	                instance.getMain().sendMessage(player, instance.getLanguage().getMessage("fly-disabled"), "CHAT");
+            	            }
+            	        }
+                    } else {
+                    	instance.getPlayerMain().removePlayerFly(player);
+                    }
+
+                    handleWeatherSettings(player,to,from);
+
+                    instance.getBossBars().activeBossBar(player, to);
+
+                    String world = player.getWorld().getName();
+                    
+                    if (!ownerTO.equals(ownerFROM)) {
+                        handleEnterLeaveMessages(player, to, from, ownerTO, ownerFROM);
+                    }
+                    
+                    if (cPlayer.getClaimAuto().equals("addchunk")) {
+                        handleAutoAddChunk(player, cPlayer, to, world);
+                    } else if (cPlayer.getClaimAuto().equals("delchunk")) {
+                        handleAutoDelChunk(player, cPlayer, to, world);
+                    } else if (cPlayer.getClaimAuto().equals("claim")) {
+                        handleAutoClaim(player, cPlayer, to, world);
+                    } else if (cPlayer.getClaimAuto().equals("unclaim")) {
+                        handleAutoUnclaim(player, cPlayer, to, world);
+                    }
+
+                    if (cPlayer.getClaimAutomap()) {
+                        handleAutoMap(player, cPlayer, to, world);
+                    }
+                }
+            });
         }
     }
 
@@ -862,6 +966,20 @@ public class ClaimEventsEnterLeave implements Listener {
      * @return true if the player has changed chunk, false otherwise.
      */
     private boolean hasChangedChunk(PlayerMoveEvent event) {
+        int fromChunkX = event.getFrom().getChunk().getX();
+        int fromChunkZ = event.getFrom().getChunk().getZ();
+        int toChunkX = event.getTo().getChunk().getX();
+        int toChunkZ = event.getTo().getChunk().getZ();
+        return fromChunkX != toChunkX || fromChunkZ != toChunkZ;
+    }
+    
+    /**
+     * Checks if the player has changed chunk.
+     *
+     * @param event the player move event.
+     * @return true if the vehicle has changed chunk, false otherwise.
+     */
+    private boolean hasChangedChunk(VehicleMoveEvent event) {
         int fromChunkX = event.getFrom().getChunk().getX();
         int fromChunkZ = event.getFrom().getChunk().getZ();
         int toChunkX = event.getTo().getChunk().getX();

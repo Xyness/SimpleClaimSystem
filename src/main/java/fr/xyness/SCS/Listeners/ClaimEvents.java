@@ -404,7 +404,7 @@ public class ClaimEvents implements Listener {
             	blockIterator.remove();
             }
         }
-        if (event.getEntityType() == EntityType.WIND_CHARGE) {
+        if (instance.getMinecraftVersion().contains("1.21") && event.getEntityType() == EntityType.WIND_CHARGE) {
         	Projectile wind = (Projectile) event.getEntity();
         	if(wind.getShooter() instanceof Player player) {
         		Chunk chunk = event.getEntity().getLocation().getChunk();
@@ -461,7 +461,7 @@ public class ClaimEvents implements Listener {
                 	entity.setVelocity(new Vector(0, 0, 0));
                 }
             });
-        } else if (event.getEntityType() == EntityType.WIND_CHARGE) {
+        } else if (instance.getMinecraftVersion().contains("1.21") && event.getEntityType() == EntityType.WIND_CHARGE) {
             if (event.getHitBlock() != null) {
             	Block block = event.getHitBlock();
             	Chunk chunk = block.getLocation().getChunk();
