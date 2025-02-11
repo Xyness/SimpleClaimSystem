@@ -3,6 +3,10 @@
 # **********************
 
 
+# Update settings
+check-for-updates: true
+updates-notifications: true
+
 # You can copy the file "en_US.yml" and paste it with another name to create your custom language
 # You have to change just below with the name of your custom language file to apply changes
 lang: "en_US.yml"

@@ -115,7 +115,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.12.0.8";
+    private String Version = "1.12.0.9";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -149,18 +149,12 @@ public class SimpleClaimSystem extends JavaPlugin {
      */
     @Override
     public void onEnable() {
-    	// Message for console
-    	info("==========================================================================");
-        info(ChatColor.AQUA + "  ___   ___   ___ ");
-        info(ChatColor.AQUA + " / __| / __| / __|  " + ChatColor.DARK_GREEN + "SimpleClaimSystem " + ChatColor.AQUA + "v" + Version);
-        info(ChatColor.AQUA + " \\__ \\ ∣(__  \\__ \\  " + ChatColor.GRAY + checkForUpdates());
-        info(ChatColor.AQUA + " |___/ \\___| |___/  " + ChatColor.DARK_GRAY + "Running on " + Bukkit.getVersion());
-        info(" ");
         
         // Register plugin instance
         this.instance = this;
         
         // Load config and send finale message
+        info("==========================================================================");
         if (loadConfig(false, Bukkit.getConsoleSender())) {
             info(" ");
             info("SimpleClaimSystem is enabled !");
@@ -228,6 +222,17 @@ public class SimpleClaimSystem extends JavaPlugin {
             // Save and reload config
             saveDefaultConfig();
             reloadConfig();
+            
+        	// Message for console
+            info(ChatColor.AQUA + "  ___   ___   ___ ");
+            info(ChatColor.AQUA + " / __| / __| / __|  " + ChatColor.DARK_GREEN + "SimpleClaimSystem " + ChatColor.AQUA + "v" + Version);
+            if(getConfig().getBoolean("check-for-updates")) {
+            	info(ChatColor.AQUA + " \\__ \\ ∣(__  \\__ \\  " + ChatColor.GRAY + checkForUpdates());
+            } else {
+            	info(ChatColor.AQUA + " \\__ \\ ∣(__  \\__ \\  " + ChatColor.GRAY + "Updates checker is disabled");
+            } 
+            info(ChatColor.AQUA + " |___/ \\___| |___/  " + ChatColor.DARK_GRAY + "Running on " + Bukkit.getVersion());
+            info(" ");
             
             // Unregister all handlers
             if(reload) {
@@ -321,6 +326,10 @@ public class SimpleClaimSystem extends JavaPlugin {
             if (!dossier.exists()) {
                 dossier.mkdirs();
             }
+            
+            // Add update settings
+            claimSettingsInstance.addSetting("check-for-updates", getConfig().getString("check-for-updates"));
+            claimSettingsInstance.addSetting("updates-notifications", getConfig().getString("updates-notifications"));
             
             // Check default language file for additions
             checkAndSaveResource("langs/en_US.yml");

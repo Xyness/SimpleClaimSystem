@@ -216,7 +216,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
      * @param player The player who opened the GUI.
      */
     private void addVisitorLore(Claim claim, List<String> lore, Player player) {
-        String visitorMessage = claim.getPermissionForPlayer("GuiTeleport",player) || claim.getOwner().equals(player.getName()) ? 
+        String visitorMessage = claim.getPermissionForPlayer("GuiTeleport",player) || claim.getOwner().equals(player.getName()) || instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.guiteleport") ? 
             instance.getLanguage().getMessage("access-all-claim-lore-allow-visitors") : 
             instance.getLanguage().getMessage("access-all-claim-lore-deny-visitors");
         lore.add(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp") ? visitorMessage : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-teleport"));

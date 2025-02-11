@@ -428,6 +428,7 @@ leave-territory-chat: "§fYou leave the territory of §e%owner%§f."
 # > Gui messages
 # Use \n for new line only for lores messages
 
+gui-unclaim-confirm-title: "Confirm unclaiming?"
 gui-claim-confirm-title: "Confirm claiming?"
 gui-chunk-confirm-title: "Confirm adding chunk?"
 gui-bans-title: "Bans: %name% (Page %page%)"
@@ -452,6 +453,8 @@ to-buy: " to buy"
 
 confirm-title: "§aConfirm"
 cancel-title: "§cCancel"
+unclaim-confirm-info-title: "§eInformations"
+unclaim-confirm-info-lore: "§7▸ §fMake a choice for the claim"
 claim-confirm-info-title: "§eInformations"
 claim-confirm-info-lore-economy: "§7Price: §6%price%%money-symbol%\n "
 claim-confirm-info-lore: "§7▸ §fMake a choice for the claim"

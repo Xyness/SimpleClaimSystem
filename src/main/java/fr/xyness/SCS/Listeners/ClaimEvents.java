@@ -8,7 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Directional;
@@ -23,6 +22,7 @@ import org.bukkit.entity.Firework;
 import org.bukkit.entity.GlowItemFrame;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Monster;
+import org.bukkit.entity.Phantom;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.ThrownPotion;
@@ -47,7 +47,6 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
-import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -329,13 +328,17 @@ public class ClaimEvents implements Listener {
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
 			Entity entity = event.getEntity();
-			if(!(entity instanceof Monster)) return;
-			if(!claim.getPermission("Monsters", "Natural")) {
-				event.setCancelled(true);
-				return;
+			if(entity instanceof Monster || entity instanceof Phantom) {
+				if(!claim.getPermission("Monsters", "Natural")) {
+					event.setCancelled(true);
+					return;
+				}
 			}
 		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Monsters")) {
-        	event.setCancelled(true);
+			Entity entity = event.getEntity();
+			if(entity instanceof Monster || entity instanceof Phantom) {
+				event.setCancelled(true);
+			}
         }
     }
     
