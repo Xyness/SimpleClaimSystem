@@ -76,7 +76,8 @@ public class ClaimEventsEnterLeave implements Listener {
         Player player = event.getPlayer();
         instance.getPlayerMain().addPlayerPermSetting(player);
         instance.getPlayerMain().checkPlayer(player);
-        if (player.hasPermission("scs.admin")) {
+        if (player.hasPermission("scs.admin") && instance.getSettings().getBooleanSetting("check-for-updates")
+        		&& instance.getSettings().getBooleanSetting("updates-notifications")) {
         	instance.checkForUpdatesAsync().thenAccept(update -> {
         		if(instance.isUpdateAvailable()) {
         			instance.executeEntitySync(player, () -> player.sendMessage(instance.getUpdateMessage()));

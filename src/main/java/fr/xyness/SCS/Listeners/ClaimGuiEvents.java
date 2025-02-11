@@ -18,6 +18,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Commands.ClaimCommand;
+import fr.xyness.SCS.Commands.UnclaimCommand;
 import fr.xyness.SCS.Guis.ChunkConfirmationGui;
 import fr.xyness.SCS.Guis.ClaimBansGui;
 import fr.xyness.SCS.Guis.ClaimChunksGui;
@@ -28,6 +29,7 @@ import fr.xyness.SCS.Guis.ClaimMembersGui;
 import fr.xyness.SCS.Guis.ClaimSettingsGui;
 import fr.xyness.SCS.Guis.ClaimsGui;
 import fr.xyness.SCS.Guis.ClaimsOwnerGui;
+import fr.xyness.SCS.Guis.UnclaimConfirmationGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimBansGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimChunksGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimGui;
@@ -86,6 +88,10 @@ public class ClaimGuiEvents implements Listener {
     	InventoryHolder holder = inv.getHolder();
     	if(holder instanceof ClaimConfirmationGui) {
     		instance.executeAsyncLater(() -> ClaimCommand.isOnCreate.remove(player), 500);
+    	} else if (holder instanceof ChunkConfirmationGui) {
+    		instance.executeAsyncLater(() -> ClaimCommand.isOnAdd.remove(player), 500);
+    	} else if (holder instanceof UnclaimConfirmationGui) {
+    		instance.executeAsyncLater(() -> UnclaimCommand.isOnDelete.remove(player), 500);
     	}
     }
     
@@ -159,6 +165,12 @@ public class ClaimGuiEvents implements Listener {
                     return;
                 }
         		handleClaimConfirmationGuiClick(event, player, cPlayer);
+        	} else if (holder instanceof UnclaimConfirmationGui) {
+                if (!inv.equals(openInventory)) {
+                    event.setCancelled(true);
+                    return;
+                }
+        		handleUnclaimConfirmationGuiClick(event, player, cPlayer);
         	} else if (holder instanceof ChunkConfirmationGui) {
                 if (!inv.equals(openInventory)) {
                     event.setCancelled(true);
@@ -253,6 +265,31 @@ public class ClaimGuiEvents implements Listener {
         if(ClaimConfirmationGui.cancel_int.contains(clickedSlot)) {
         	player.closeInventory();
         	ClaimCommand.isOnCreate.remove(player);
+        	return;
+        }
+        return;
+    }
+    
+	/**
+     * Handles claim confirmation GUI click events.
+     * @param event the inventory click event.
+     * @param player the player clicking in the inventory.
+     * @param cPlayer the CPlayer object for the player.
+     */
+    private void handleUnclaimConfirmationGuiClick(InventoryClickEvent event, Player player, CPlayer cPlayer) {
+    	event.setCancelled(true);
+        ItemStack clickedItem = event.getCurrentItem();
+        if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
+        int clickedSlot = event.getSlot();
+        if(UnclaimConfirmationGui.confirm_int.contains(clickedSlot)) {
+        	player.closeInventory();
+        	String claimName = UnclaimCommand.isOnDelete.get(player);
+        	Bukkit.dispatchCommand(player, "unclaim "+claimName);
+        	return;
+        }
+        if(ClaimConfirmationGui.cancel_int.contains(clickedSlot)) {
+        	player.closeInventory();
+        	UnclaimCommand.isOnDelete.remove(player);
         	return;
         }
         return;
@@ -813,7 +850,7 @@ public class ClaimGuiEvents implements Listener {
         	Claim claim = cPlayer.getMapClaim(clickedSlot);
         	if(event.getClick() == ClickType.LEFT) {
         		if(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) {
-		            if(!claim.getPermissionForPlayer("GuiTeleport",player) && !claim.getOwner().equals(player.getName())) return;
+		            if(!claim.getPermissionForPlayer("GuiTeleport",player) && !claim.getOwner().equals(player.getName()) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.guiteleport")) return;
 		            instance.executeEntitySync(player, () -> player.closeInventory());
 		        	instance.getMain().goClaim(player, cPlayer.getMapLoc(clickedSlot));
 		        	return;

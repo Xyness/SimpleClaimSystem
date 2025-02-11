@@ -1,7 +1,9 @@
 package fr.xyness.SCS.Commands;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
@@ -14,6 +16,8 @@ import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 
 import fr.xyness.SCS.SimpleClaimSystem;
+import fr.xyness.SCS.Guis.ClaimConfirmationGui;
+import fr.xyness.SCS.Guis.UnclaimConfirmationGui;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 import fr.xyness.SCS.Types.WorldMode;
@@ -28,6 +32,9 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
     // *  Variables  *
     // ***************
 	
+	
+    /** A map of players currently in the process of deleting a claim. */
+    public static Map<Player, String> isOnDelete = new HashMap<>();
 	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
@@ -137,7 +144,27 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
                 	player.sendMessage(instance.getLanguage().getMessage("player-has-no-claim"));
                     return false;
                 }
-                instance.getMain().deleteAllClaims(playerName)
+                if (instance.getSettings().getBooleanSetting("claim-confirmation")) {
+                    if (isOnDelete.containsKey(player)) {
+                        isOnDelete.remove(player);
+                        instance.getMain().deleteAllClaims(playerName)
+	                    	.thenAccept(success -> {
+	                    		if (success) {
+	                    			player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
+	                    		} else {
+	                    			player.sendMessage(instance.getLanguage().getMessage("error"));
+	                    		}
+	                    	})
+	                        .exceptionally(ex -> {
+	                            ex.printStackTrace();
+	                            return null;
+	                        });
+                    } else {
+                        isOnDelete.put(player,"*");
+                        new UnclaimConfirmationGui(player,instance);
+                    }
+                } else {
+                    instance.getMain().deleteAllClaims(playerName)
                 	.thenAccept(success -> {
                 		if (success) {
                 			player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
@@ -149,6 +176,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
                         ex.printStackTrace();
                         return null;
                     });
+                }
                 return true;
             }
             Claim claim = instance.getMain().getClaimByName(args[0], player);
@@ -156,18 +184,39 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
                 return false;
             }
-            instance.getMain().deleteClaim(claim)
-            	.thenAccept(success -> {
-            		if (success) {
-            			player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
-            		} else {
-            			player.sendMessage(instance.getLanguage().getMessage("error"));
-            		}
-            	})
-                .exceptionally(ex -> {
-                    ex.printStackTrace();
-                    return null;
-                });
+            if (instance.getSettings().getBooleanSetting("claim-confirmation")) {
+                if (isOnDelete.containsKey(player)) {
+                    isOnDelete.remove(player);
+                    instance.getMain().deleteClaim(claim)
+    	            	.thenAccept(success -> {
+    	            		if (success) {
+    	            			player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
+    	            		} else {
+    	            			player.sendMessage(instance.getLanguage().getMessage("error"));
+    	            		}
+    	            	})
+    	                .exceptionally(ex -> {
+    	                    ex.printStackTrace();
+    	                    return null;
+    	                });
+                } else {
+                    isOnDelete.put(player,claim.getName());
+                    new UnclaimConfirmationGui(player,instance);
+                }
+            } else {
+                instance.getMain().deleteClaim(claim)
+	            	.thenAccept(success -> {
+	            		if (success) {
+	            			player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
+	            		} else {
+	            			player.sendMessage(instance.getLanguage().getMessage("error"));
+	            		}
+	            	})
+	                .exceptionally(ex -> {
+	                    ex.printStackTrace();
+	                    return null;
+	                });
+            }
             return true;
         }
         
@@ -202,7 +251,27 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
             return false;
         }
         
-        instance.getMain().deleteClaim(claim)
+        if (instance.getSettings().getBooleanSetting("claim-confirmation")) {
+            if (isOnDelete.containsKey(player)) {
+                isOnDelete.remove(player);
+                instance.getMain().deleteClaim(claim)
+	            	.thenAccept(success -> {
+	            		if (success) {
+	            			player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
+	            		} else {
+	            			player.sendMessage(instance.getLanguage().getMessage("error"));
+	            		}
+	            	})
+	                .exceptionally(ex -> {
+	                    ex.printStackTrace();
+	                    return null;
+	                });
+            } else {
+                isOnDelete.put(player,claim.getName());
+                new UnclaimConfirmationGui(player,instance);
+            }
+        } else {
+            instance.getMain().deleteClaim(claim)
         	.thenAccept(success -> {
         		if (success) {
         			player.sendMessage(instance.getLanguage().getMessage("territory-delete-success"));
@@ -214,6 +283,8 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
                 ex.printStackTrace();
                 return null;
             });
+        }
+
         
         return true;
     }
