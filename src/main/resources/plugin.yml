@@ -1,5 +1,5 @@
 name: SimpleClaimSystem
-version: 1.12.0.9
+version: 1.12.0.10
 main: fr.xyness.SCS.SimpleClaimSystem
 authors: [Xyness]
 softdepend: [PlaceholderAPI, WorldGuard, Vault, dynmap, BlueMap, pl3xmap, GriefPrevention]
@@ -42,4 +42,4 @@ permissions:
     default: op
   scs.command.claims:
     description: All claims GUI
-    default: false
+    default: true

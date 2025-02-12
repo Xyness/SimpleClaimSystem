@@ -115,7 +115,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.12.0.9";
+    private String Version = "1.12.0.10";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -833,25 +833,6 @@ public class SimpleClaimSystem extends JavaPlugin {
             claimSettingsInstance.setGroups(groups);
             claimSettingsInstance.setGroupsSettings(groupsSettings);
             
-            // Add player settings
-            ConfigurationSection playersSection = getConfig().getConfigurationSection("players");
-            Map<UUID, Map<String, Double>> playersSettings = new HashMap<>();
-            for (String key : playersSection.getKeys(false)) {
-                Map<String, Double> settings = new HashMap<>();
-                if (getConfig().isSet("players." + key + ".max-claims")) settings.put("max-claims", getConfig().getDouble("players." + key + ".max-claims"));
-                if (getConfig().isSet("players." + key + ".max-radius-claims")) settings.put("max-radius-claims", getConfig().getDouble("players." + key + ".max-radius-claims"));
-                if (getConfig().isSet("players." + key + ".teleportation-delay")) settings.put("teleportation-delay", getConfig().getDouble("players." + key + ".teleportation-delay"));
-                if (getConfig().isSet("players." + key + ".claim-cost")) settings.put("claim-cost", getConfig().getDouble("players." + key + ".claim-cost"));
-                if (getConfig().isSet("players." + key + ".claim-cost-multiplier")) settings.put("claim-cost-multiplier", getConfig().getDouble("players." + key + ".claim-cost-multiplier"));
-                if (getConfig().isSet("players." + key + ".max-chunks-per-claim")) settings.put("max-chunks-per-claim", getConfig().getDouble("players." + key + ".max-chunks-per-claim"));
-                if (getConfig().isSet("players." + key + ".claim-distance")) settings.put("claim-distance", getConfig().getDouble("players." + key + ".claim-distance"));
-                if (getConfig().isSet("players." + key + ".max-chunks-total")) settings.put("max-chunks-total", getConfig().getDouble("players." + key + ".max-chunks-total"));
-                if (getConfig().isSet("players." + key + ".chunk-cost")) settings.put("chunk-cost", getConfig().getDouble("players." + key + ".chunk-cost"));
-                if (getConfig().isSet("players." + key + ".chunk-cost-multiplier")) settings.put("chunk-cost-multiplier", getConfig().getDouble("players." + key + ".chunk-cost-multiplier"));
-                if (!settings.isEmpty()) playersSettings.put(Bukkit.getOfflinePlayer(key).getUniqueId(), settings);
-            }
-            cPlayerMainInstance.setPlayersConfigSettings(playersSettings);
-            
             // Register listener for entering/leaving claims
             getServer().getPluginManager().registerEvents(new ClaimEventsEnterLeave(this), this);
             
@@ -921,6 +902,30 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Load players
             cPlayerMainInstance.loadPlayers();
+            
+            // Add player settings
+            ConfigurationSection playersSection = getConfig().getConfigurationSection("players");
+            Map<UUID, Map<String, Double>> playersSettings = new HashMap<>();
+            for (String key : playersSection.getKeys(false)) {
+                Map<String, Double> settings = new HashMap<>();
+                if (getConfig().isSet("players." + key + ".max-claims")) settings.put("max-claims", getConfig().getDouble("players." + key + ".max-claims"));
+                if (getConfig().isSet("players." + key + ".max-radius-claims")) settings.put("max-radius-claims", getConfig().getDouble("players." + key + ".max-radius-claims"));
+                if (getConfig().isSet("players." + key + ".teleportation-delay")) settings.put("teleportation-delay", getConfig().getDouble("players." + key + ".teleportation-delay"));
+                if (getConfig().isSet("players." + key + ".claim-cost")) settings.put("claim-cost", getConfig().getDouble("players." + key + ".claim-cost"));
+                if (getConfig().isSet("players." + key + ".claim-cost-multiplier")) settings.put("claim-cost-multiplier", getConfig().getDouble("players." + key + ".claim-cost-multiplier"));
+                if (getConfig().isSet("players." + key + ".max-chunks-per-claim")) settings.put("max-chunks-per-claim", getConfig().getDouble("players." + key + ".max-chunks-per-claim"));
+                if (getConfig().isSet("players." + key + ".claim-distance")) settings.put("claim-distance", getConfig().getDouble("players." + key + ".claim-distance"));
+                if (getConfig().isSet("players." + key + ".max-chunks-total")) settings.put("max-chunks-total", getConfig().getDouble("players." + key + ".max-chunks-total"));
+                if (getConfig().isSet("players." + key + ".chunk-cost")) settings.put("chunk-cost", getConfig().getDouble("players." + key + ".chunk-cost"));
+                if (getConfig().isSet("players." + key + ".chunk-cost-multiplier")) settings.put("chunk-cost-multiplier", getConfig().getDouble("players." + key + ".chunk-cost-multiplier"));
+                if (!settings.isEmpty()) {
+                	UUID uuid = cPlayerMainInstance.getPlayerUUID(key);
+                	if(uuid != null) {
+                		playersSettings.put(uuid, settings);
+                	}
+                }
+            }
+            cPlayerMainInstance.setPlayersConfigSettings(playersSettings);
             
             // Add players setting and active their bossbar (/reload prevention)
             if(isFolia) {
@@ -1000,6 +1005,10 @@ public class SimpleClaimSystem extends JavaPlugin {
             if (!dossier.exists()) {
                 dossier.mkdirs();
             }
+            
+            // Add update settings
+            claimSettingsInstance.addSetting("check-for-updates", getConfig().getString("check-for-updates"));
+            claimSettingsInstance.addSetting("updates-notifications", getConfig().getString("updates-notifications"));
             
             // Check default language file for additions
             checkAndSaveResource("langs/en_US.yml");
@@ -1473,7 +1482,12 @@ public class SimpleClaimSystem extends JavaPlugin {
                 if (getConfig().isSet("players." + key + ".max-chunks-total")) settings.put("max-chunks-total", getConfig().getDouble("players." + key + ".max-chunks-total"));
                 if (getConfig().isSet("players." + key + ".chunk-cost")) settings.put("chunk-cost", getConfig().getDouble("players." + key + ".chunk-cost"));
                 if (getConfig().isSet("players." + key + ".chunk-cost-multiplier")) settings.put("chunk-cost-multiplier", getConfig().getDouble("players." + key + ".chunk-cost-multiplier"));
-                if (!settings.isEmpty()) playersSettings.put(Bukkit.getOfflinePlayer(key).getUniqueId(), settings);
+                if (!settings.isEmpty() && cPlayerMainInstance != null) {
+                	UUID uuid = cPlayerMainInstance.getPlayerUUID(key);
+                	if(uuid != null) {
+                		playersSettings.put(uuid, settings);
+                	}
+                }
             }
             cPlayerMainInstance.setPlayersConfigSettings(playersSettings);
             
