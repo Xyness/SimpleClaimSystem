@@ -692,7 +692,7 @@ public class ClaimEvents implements Listener {
      */
 	@EventHandler(priority = EventPriority.LOWEST)
 	public void onHangingBreak(HangingBreakEvent event) {
-		Chunk chunk = event.getEntity().getChunk();
+		Chunk chunk = event.getEntity().getLocation().getChunk();
 		WorldMode mode = instance.getSettings().getWorldMode(event.getEntity().getLocation().getWorld().getName());
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			if(event.getCause() == HangingBreakEvent.RemoveCause.PHYSICS && !instance.getMain().canPermCheck(chunk, "Destroy", "Visitors")) {
