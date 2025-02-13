@@ -1,9 +1,7 @@
 package fr.xyness.SCS.Guis;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
@@ -31,10 +29,13 @@ public class ClaimSettingsGui implements InventoryHolder {
 
     
     /** Inventory for the GUI. */
-    private Inventory inv;
+    private final Inventory inv;
+    
+    /** Player */
+    private final Player player;
     
     /** Instance of SimpleClaimSystem */
-    private SimpleClaimSystem instance;
+    private final SimpleClaimSystem instance;
 
     
     // ******************
@@ -52,6 +53,7 @@ public class ClaimSettingsGui implements InventoryHolder {
      */
     public ClaimSettingsGui(Player player, Claim claim, SimpleClaimSystem instance, String role) {
     	this.instance = instance;
+    	this.player = player;
     	
     	String role_displayed;
     	switch(role) {
@@ -75,7 +77,7 @@ public class ClaimSettingsGui implements InventoryHolder {
         inv = Bukkit.createInventory(this, 54, title);
         
         // Load the items asynchronously
-        loadItems(player, claim, role).thenAccept(success -> {
+        loadItems(claim, role).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
@@ -97,12 +99,11 @@ public class ClaimSettingsGui implements InventoryHolder {
     /**
      * Initializes items for the GUI.
      *
-     * @param player The player for whom the GUI is being initialized.
      * @param claim  The claim for which the GUI is displayed.
      * @param role   The role associated with permissions.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, String role) {
+    public CompletableFuture<Boolean> loadItems(Claim claim, String role) {
     	
     	return CompletableFuture.supplyAsync(() -> {
     	

@@ -4,9 +4,11 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.geysermc.floodgate.api.FloodgateApi;
 
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Guis.ClaimsGui;
+import fr.xyness.SCS.Guis.Bedrock.BClaimsGui;
 import fr.xyness.SCS.Types.CPlayer;
 
 /**
@@ -68,6 +70,12 @@ public class ClaimsCommand implements CommandExecutor {
         
         // Open the claims GUI for the player
         cPlayer.setGuiPage(1);
+        if(instance.getSettings().getBooleanSetting("floodgate")) {
+        	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+        		new BClaimsGui(player,instance,"all");
+        		return true;
+        	}
+        }
         new ClaimsGui(player, 1, "all",instance);
         
         return true;

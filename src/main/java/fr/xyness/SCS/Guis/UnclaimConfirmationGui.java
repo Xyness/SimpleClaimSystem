@@ -26,10 +26,13 @@ public class UnclaimConfirmationGui implements InventoryHolder {
 
 	
     /** Inventory for the GUI. */
-    private Inventory inv;
+    private final Inventory inv;
+    
+    /** Player */
+    private final Player player;
 
     /** Instance of SimpleClaimSystem */
-    private SimpleClaimSystem instance;
+    private final SimpleClaimSystem instance;
     
     /** Slots of confirm and cancel buttons */
     public static Set<Integer> confirm_int = Set.of(0,1,2,9,10,11,18,19,20);
@@ -49,6 +52,7 @@ public class UnclaimConfirmationGui implements InventoryHolder {
      */
     public UnclaimConfirmationGui(Player player, SimpleClaimSystem instance) {
     	this.instance = instance;
+    	this.player = player;
     	
     	// Get title
     	String title = instance.getLanguage().getMessage("gui-unclaim-confirm-title");
@@ -57,7 +61,7 @@ public class UnclaimConfirmationGui implements InventoryHolder {
         inv = Bukkit.createInventory(this, 27, title);
         
         // Load the items asynchronously
-        loadItems(player).thenAccept(success -> {
+        loadItems().thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
@@ -79,10 +83,9 @@ public class UnclaimConfirmationGui implements InventoryHolder {
     /**
      * Initializes items for the GUI.
      *
-     * @param player The player for whom the GUI is being initialized.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Player player) {
+    public CompletableFuture<Boolean> loadItems() {
     	
     	return CompletableFuture.supplyAsync(() -> {
 	        
@@ -110,14 +113,5 @@ public class UnclaimConfirmationGui implements InventoryHolder {
     @Override
     public Inventory getInventory() {
         return inv;
-    }
-
-    /**
-     * Opens the inventory for the player.
-     *
-     * @param player The player for whom the inventory is opened.
-     */
-    public void openInventory(Player player) {
-        player.openInventory(inv);
     }
 }

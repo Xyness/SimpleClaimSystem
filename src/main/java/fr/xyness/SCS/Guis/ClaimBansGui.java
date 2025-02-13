@@ -2,16 +2,13 @@ package fr.xyness.SCS.Guis;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -19,16 +16,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import dev.lone.itemsadder.api.CustomStack;
-import fr.xyness.SCS.CPlayerMain;
-import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
-import fr.xyness.SCS.Config.ClaimGuis;
-import fr.xyness.SCS.Config.ClaimLanguage;
-import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
-import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
  * Class representing the Claim Bans GUI.
@@ -42,10 +32,13 @@ public class ClaimBansGui implements InventoryHolder {
 
 	
     /** Inventory for the GUI. */
-    private Inventory inv;
+    private final Inventory inv;
+    
+    /** Player */
+    private final Player player;
 
     /** Instance of SimpleClaimSystem */
-    private SimpleClaimSystem instance;
+    private final SimpleClaimSystem instance;
     
     
     // ******************
@@ -63,6 +56,7 @@ public class ClaimBansGui implements InventoryHolder {
      */
     public ClaimBansGui(Player player, Claim claim, int page, SimpleClaimSystem instance) {
     	this.instance = instance;
+    	this.player = player;
     	
     	// Get title
     	String title = instance.getLanguage().getMessage("gui-bans-title")
@@ -73,7 +67,7 @@ public class ClaimBansGui implements InventoryHolder {
         inv = Bukkit.createInventory(this, 54, title);
         
         // Load the items asynchronously
-        loadItems(player, claim, page).thenAccept(success -> {
+        loadItems(claim, page).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
@@ -95,12 +89,11 @@ public class ClaimBansGui implements InventoryHolder {
     /**
      * Initializes items for the GUI.
      *
-     * @param player The player for whom the GUI is being initialized.
      * @param claim  The claim for which the GUI is being initialized.
      * @param page   The page number of the GUI.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, int page) {
+    public CompletableFuture<Boolean> loadItems(Claim claim, int page) {
     	
     	return CompletableFuture.supplyAsync(() -> {
     	

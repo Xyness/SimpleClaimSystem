@@ -32,10 +32,13 @@ public class ClaimMembersGui implements InventoryHolder {
     
 	
 	/** Inventory for the GUI. */
-    private Inventory inv;
+    private final Inventory inv;
+    
+    /** Player */
+    private final Player player;
     
     /** Instance of SimpleClaimSystem */
-    private SimpleClaimSystem instance;
+    private final SimpleClaimSystem instance;
     
     
     // ******************
@@ -53,6 +56,7 @@ public class ClaimMembersGui implements InventoryHolder {
      */
     public ClaimMembersGui(Player player, Claim claim, int page, SimpleClaimSystem instance) {
     	this.instance = instance;
+    	this.player = player;
     	
     	// Get title
     	String title = instance.getLanguage().getMessage("gui-members-title")
@@ -63,7 +67,7 @@ public class ClaimMembersGui implements InventoryHolder {
         inv = Bukkit.createInventory(this, 54, title);
         
         // Load the items asynchronously
-        loadItems(player, claim, page).thenAccept(success -> {
+        loadItems(claim, page).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
@@ -85,12 +89,11 @@ public class ClaimMembersGui implements InventoryHolder {
     /**
      * Initializes the items for the GUI.
      * 
-     * @param player The player for whom the GUI is being initialized.
      * @param claim  The claim for which the GUI is displayed.
      * @param page   The page number of the GUI.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, int page) {
+    public CompletableFuture<Boolean> loadItems(Claim claim, int page) {
     	
     	return CompletableFuture.supplyAsync(() -> {
     	
@@ -231,15 +234,6 @@ public class ClaimMembersGui implements InventoryHolder {
     @Override
     public Inventory getInventory() {
         return inv;
-    }
-    
-    /**
-     * Opens the inventory for the player.
-     * 
-     * @param player The player.
-     */
-    public void openInventory(Player player) {
-        player.openInventory(inv);
     }
 
 }

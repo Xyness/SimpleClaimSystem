@@ -27,6 +27,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.geysermc.floodgate.api.FloodgateApi;
 
 import fr.xyness.SCS.CScoreboard;
 import fr.xyness.SCS.ClaimMain;
@@ -36,6 +37,14 @@ import fr.xyness.SCS.Guis.ClaimBansGui;
 import fr.xyness.SCS.Guis.ClaimChunksGui;
 import fr.xyness.SCS.Guis.ClaimConfirmationGui;
 import fr.xyness.SCS.Guis.ClaimSettingsGui;
+import fr.xyness.SCS.Guis.Bedrock.BChunkConfirmationGui;
+import fr.xyness.SCS.Guis.Bedrock.BClaimBansGui;
+import fr.xyness.SCS.Guis.Bedrock.BClaimChunksGui;
+import fr.xyness.SCS.Guis.Bedrock.BClaimConfirmationGui;
+import fr.xyness.SCS.Guis.Bedrock.BClaimListGui;
+import fr.xyness.SCS.Guis.Bedrock.BClaimMainGui;
+import fr.xyness.SCS.Guis.Bedrock.BClaimMembersGui;
+import fr.xyness.SCS.Guis.Bedrock.BClaimSettingsGui;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 import fr.xyness.SCS.Types.CustomSet;
@@ -1294,6 +1303,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
                 return;
             }
+            if(instance.getSettings().getBooleanSetting("floodgate")) {
+            	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+            		new BClaimMainGui(player,claim,instance);
+            		return;
+            	}
+            }
             new ClaimMainGui(player,claim,instance);
             return;
     	}
@@ -1390,6 +1405,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     
             	} else {
             		isOnAdd.put(player,claim.getName());
+                    if(instance.getSettings().getBooleanSetting("floodgate")) {
+                    	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+                    		new BChunkConfirmationGui(player,instance,price[0]);
+                    		return;
+                    	}
+                    }
             		new ChunkConfirmationGui(player,instance,price[0]);
             	}
             } else {
@@ -1856,6 +1877,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
                 return;
             }
+            if(instance.getSettings().getBooleanSetting("floodgate")) {
+            	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+            		new BClaimSettingsGui(player, claim, instance);
+            		return;
+            	}
+            }
             new ClaimSettingsGui(player, claim, instance, "visitors");
             return;
         }
@@ -1868,6 +1895,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             if (claim == null) {
             	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
                 return;
+            }
+            if(instance.getSettings().getBooleanSetting("floodgate")) {
+            	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+            		new BClaimChunksGui(player, claim, instance);
+            		return;
+            	}
             }
             new ClaimChunksGui(player, claim, 1, instance);
             return;
@@ -1883,6 +1916,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             cPlayer.setGuiPage(1);
+            if(instance.getSettings().getBooleanSetting("floodgate")) {
+            	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+            		new BClaimMembersGui(player, claim, instance);
+            		return;
+            	}
+            }
             new ClaimMembersGui(player, claim, 1, instance);
             return;
         }
@@ -1897,6 +1936,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             cPlayer.setGuiPage(1);
+            if(instance.getSettings().getBooleanSetting("floodgate")) {
+            	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+            		new BClaimBansGui(player, claim, instance);
+            		return;
+            	}
+            }
             new ClaimBansGui(player, claim, 1, instance);
             return;
         }
@@ -2305,6 +2350,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("territory-not-yours"));
                 return;
             }
+            if(instance.getSettings().getBooleanSetting("floodgate")) {
+            	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+            		new BClaimSettingsGui(player, claim, instance);
+            		return;
+            	}
+            }
             new ClaimSettingsGui(player, claim, instance, "visitors");
             return;
         }
@@ -2323,6 +2374,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             if (!owner.equals(playerName)) {
             	player.sendMessage(instance.getLanguage().getMessage("territory-not-yours"));
                 return;
+            }
+            if(instance.getSettings().getBooleanSetting("floodgate")) {
+            	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+            		new BClaimChunksGui(player, claim, instance);
+            		return;
+            	}
             }
             new ClaimChunksGui(player, claim, 1, instance);
             return;
@@ -2344,6 +2401,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             cPlayer.setGuiPage(1);
+            if(instance.getSettings().getBooleanSetting("floodgate")) {
+            	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+            		new BClaimMembersGui(player, claim, instance);
+            		return;
+            	}
+            }
             new ClaimMembersGui(player, claim, 1, instance);
             return;
         }
@@ -2364,6 +2427,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             cPlayer.setGuiPage(1);
+            if(instance.getSettings().getBooleanSetting("floodgate")) {
+            	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+            		new BClaimBansGui(player, claim, instance);
+            		return;
+            	}
+            }
             new ClaimBansGui(player, claim, 1, instance);
             return;
         }
@@ -2374,6 +2443,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             cPlayer.setGuiPage(1);
             cPlayer.setClaim(null);
+            if(instance.getSettings().getBooleanSetting("floodgate")) {
+            	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+            		new BClaimListGui(player, instance, "owner");
+            		return;
+            	}
+            }
             new ClaimListGui(player, 1, "owner", instance);
             return;
         }
@@ -2484,6 +2559,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	                                return;
 	                            }
 	                            isOnCreate.put(player,radius);
+	                            if(instance.getSettings().getBooleanSetting("floodgate")) {
+	                            	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+	                            		new BClaimConfirmationGui(player,instance,price[0]);
+	                            		return;
+	                            	}
+	                            }
 	                            new ClaimConfirmationGui(player,instance,price[0]);
 	                            return;
 	                        }
@@ -2547,6 +2628,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 player.sendMessage(instance.getLanguage().getMessage("create-error-protected-area"));
             } else if (owner.equals(player.getName())) {
             	if(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.main")) {
+                    if(instance.getSettings().getBooleanSetting("floodgate")) {
+                    	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+                    		new BClaimMainGui(player,claim,instance);
+                    		return;
+                    	}
+                    }
             		new ClaimMainGui(player,claim,instance);
             	} else {
             		player.sendMessage(instance.getLanguage().getMessage("create-already-yours"));
@@ -2626,6 +2713,12 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	                });
                         } else {
                             isOnCreate.put(player,0);
+                            if(instance.getSettings().getBooleanSetting("floodgate")) {
+                            	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+                            		new BClaimConfirmationGui(player,instance,price[0]);
+                            		return;
+                            	}
+                            }
                             new ClaimConfirmationGui(player,instance,price[0]);
                         }
             		} else {

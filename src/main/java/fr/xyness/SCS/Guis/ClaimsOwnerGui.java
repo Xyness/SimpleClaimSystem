@@ -8,12 +8,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import dev.lone.itemsadder.api.CustomStack;
+
 import fr.xyness.SCS.*;
-import fr.xyness.SCS.Config.*;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
-import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
  * Class representing the Claims Owner GUI.
@@ -29,8 +27,11 @@ public class ClaimsOwnerGui implements InventoryHolder {
     /** The inventory for this GUI. */
     private final Inventory inv;
     
+    /** Player */
+    private final Player player;
+    
     /** Instance of SimpleClaimSystem */
-    private SimpleClaimSystem instance;
+    private final SimpleClaimSystem instance;
     
     
     // ******************
@@ -49,6 +50,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
      */
     public ClaimsOwnerGui(Player player, int page, String filter, String owner, SimpleClaimSystem instance) {
     	this.instance = instance;
+    	this.player = player;
     	
     	// Get title
     	String title = instance.getLanguage().getMessage("gui-claims-owner-title")
@@ -59,7 +61,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
         inv = Bukkit.createInventory(this, 54, title);
         
         // Load the items asynchronously
-        loadItems(player, page, filter, owner).thenAccept(success -> {
+        loadItems(page, filter, owner).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
@@ -75,13 +77,12 @@ public class ClaimsOwnerGui implements InventoryHolder {
     /**
      * Load items into the inventory.
      * 
-     * @param player The player who opened the GUI.
      * @param page   The current page of the GUI.
      * @param filter The filter applied to the claims.
      * @param owner  The owner of the claims.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    private CompletableFuture<Boolean> loadItems(Player player, int page, String filter, String owner) {
+    private CompletableFuture<Boolean> loadItems(int page, String filter, String owner) {
     	
     	return CompletableFuture.supplyAsync(() -> {
     	
