@@ -34,10 +34,13 @@ public class ClaimListGui implements InventoryHolder {
 
 	
     /** Inventory for the GUI. */
-    private Inventory inv;
+    private final Inventory inv;
+    
+    /** Player */
+    private final Player player;
 
     /** Instance of SimpleClaimSystem */
-    private SimpleClaimSystem instance;
+    private final SimpleClaimSystem instance;
     
     
     // ******************
@@ -55,6 +58,7 @@ public class ClaimListGui implements InventoryHolder {
      */
     public ClaimListGui(Player player, int page, String filter, SimpleClaimSystem instance) {
     	this.instance = instance;
+    	this.player = player;
     	
     	// Get title
     	String title = instance.getLanguage().getMessage("gui-list-title")
@@ -64,7 +68,7 @@ public class ClaimListGui implements InventoryHolder {
         inv = Bukkit.createInventory(this, 54, title);
         
         // Load the items asynchronously
-        loadItems(player, page, filter).thenAccept(success -> {
+        loadItems(page, filter).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
@@ -86,12 +90,11 @@ public class ClaimListGui implements InventoryHolder {
     /**
      * Initializes items for the GUI.
      *
-     * @param player The player for whom the GUI is being initialized.
      * @param page   The current page of the GUI.
      * @param filter The filter applied to the list.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Player player, int page, String filter) {
+    public CompletableFuture<Boolean> loadItems(int page, String filter) {
     	
     	return CompletableFuture.supplyAsync(() -> {
     	

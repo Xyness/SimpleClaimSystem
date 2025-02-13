@@ -26,10 +26,13 @@ public class ClaimConfirmationGui implements InventoryHolder {
 
 	
     /** Inventory for the GUI. */
-    private Inventory inv;
+    private final Inventory inv;
+    
+    /** Player */
+    private final Player player;
 
     /** Instance of SimpleClaimSystem */
-    private SimpleClaimSystem instance;
+    private final SimpleClaimSystem instance;
     
     /** Slots of confirm and cancel buttons */
     public static Set<Integer> confirm_int = Set.of(0,1,2,9,10,11,18,19,20);
@@ -46,9 +49,11 @@ public class ClaimConfirmationGui implements InventoryHolder {
      *
      * @param player The player for whom the GUI is being created.
      * @param instance The instance of the SimpleClaimSystem plugin.
+     * @param price The price of the future claim.
      */
     public ClaimConfirmationGui(Player player, SimpleClaimSystem instance, double price) {
     	this.instance = instance;
+    	this.player = player;
     	
     	// Get title
     	String title = instance.getLanguage().getMessage("gui-claim-confirm-title");
@@ -57,7 +62,7 @@ public class ClaimConfirmationGui implements InventoryHolder {
         inv = Bukkit.createInventory(this, 27, title);
         
         // Load the items asynchronously
-        loadItems(player, price).thenAccept(success -> {
+        loadItems(price).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
@@ -79,10 +84,10 @@ public class ClaimConfirmationGui implements InventoryHolder {
     /**
      * Initializes items for the GUI.
      *
-     * @param player The player for whom the GUI is being initialized.
+     * @price price The price of the future claim.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Player player, double price) {
+    public CompletableFuture<Boolean> loadItems(double price) {
     	
     	return CompletableFuture.supplyAsync(() -> {
 	        
@@ -115,14 +120,5 @@ public class ClaimConfirmationGui implements InventoryHolder {
     @Override
     public Inventory getInventory() {
         return inv;
-    }
-
-    /**
-     * Opens the inventory for the player.
-     *
-     * @param player The player for whom the inventory is opened.
-     */
-    public void openInventory(Player player) {
-        player.openInventory(inv);
     }
 }

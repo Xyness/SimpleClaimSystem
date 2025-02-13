@@ -1,7 +1,6 @@
 package fr.xyness.SCS.Listeners;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -579,19 +578,19 @@ public class ClaimGuiEvents implements Listener {
         	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.delchunk")) return;
         	if (claim.getChunks().size() == 1) return;
         	instance.getMain().removeClaimChunk(claim, chunk)
-    		.thenAccept(success -> {
-    			if (success) {
-    				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("delete-chunk-success").replace("%chunk%", "["+chunk+"]").replace("%claim-name%", claim.getName())));
-    	            int page = cPlayer.getGuiPage();
-    	        	new ClaimChunksGui(player,claim,page,instance);
-    			} else {
-    				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
-    			}
-    		})
-            .exceptionally(ex -> {
-                ex.printStackTrace();
-                return null;
-            });
+	    		.thenAccept(success -> {
+	    			if (success) {
+	    				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("delete-chunk-success").replace("%chunk%", "["+chunk+"]").replace("%claim-name%", claim.getName())));
+	    	            int page = cPlayer.getGuiPage();
+	    	        	new ClaimChunksGui(player,claim,page,instance);
+	    			} else {
+	    				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+	    			}
+	    		})
+	            .exceptionally(ex -> {
+	                ex.printStackTrace();
+	                return null;
+	            });
             return;
         }
         return;

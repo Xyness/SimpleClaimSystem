@@ -115,7 +115,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.12.0.10";
+    private String Version = "1.12.1";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -295,6 +295,14 @@ public class SimpleClaimSystem extends JavaPlugin {
                 }
             } else {
                 claimSettingsInstance.addSetting("vault", "false");
+            }
+            
+            // Check Floodgate
+            Plugin floodgate = Bukkit.getPluginManager().getPlugin("floodgate");
+            if (floodgate != null) {
+                claimSettingsInstance.addSetting("floodgate", "true");
+            } else {
+                claimSettingsInstance.addSetting("floodgate", "false");
             }
             
             // Check Dynmap

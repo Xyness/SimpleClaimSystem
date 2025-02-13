@@ -2,6 +2,7 @@ package fr.xyness.SCS.Config;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -112,7 +113,7 @@ public class ClaimGuis {
     public static final Map<String, Material> keyToMaterialMap = new HashMap<>();
     
     /** Set of settings names */
-    private Map<String,Set<String>> settings_name = new HashMap<>();
+    private Map<String,LinkedHashSet<String>> settings_name = new HashMap<>();
     
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
@@ -132,15 +133,21 @@ public class ClaimGuis {
     	this.instance = instance;
     	
     	// Set settings_name
-    	settings_name.put("members", Set.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", "Trapdoors",
-            "Fencegates","Tripwires","RepeatersComparators","Bells","Entities","Frostwalker","Teleportations","Damages","Enter", "GuiTeleport",
-            "Weather","Fly", "Portals", "ItemsPickup", "ItemsDrop", "SpecialBlocks", "Elytra", "Windcharges"));
+    	LinkedHashSet<String> permissions = new LinkedHashSet<>();
+    	permissions.addAll(List.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", 
+    	    "Trapdoors", "Fencegates", "Tripwires", "RepeatersComparators", "Bells", "Entities", "Frostwalker", "Teleportations", 
+    	    "Damages", "Enter", "GuiTeleport", "Weather", "Fly", "Portals", "ItemsPickup", "ItemsDrop", "SpecialBlocks", "Elytra", "Windcharges"));
+    	settings_name.put("members", permissions);
     	
-    	settings_name.put("visitors", Set.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", "Trapdoors",
-                "Fencegates","Tripwires","RepeatersComparators","Bells","Entities","Frostwalker","Teleportations","Damages","Enter", "GuiTeleport",
-                "Weather","Fly", "Portals", "ItemsPickup", "ItemsDrop", "SpecialBlocks", "Elytra", "Windcharges"));
-    	
-    	settings_name.put("natural", Set.of("Explosions","Liquids","Redstone","Firespread","Monsters","Pvp"));
+    	permissions = new LinkedHashSet<>();
+    	permissions.addAll(List.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", 
+    	    "Trapdoors", "Fencegates", "Tripwires", "RepeatersComparators", "Bells", "Entities", "Frostwalker", "Teleportations", 
+    	    "Damages", "Enter", "GuiTeleport", "Weather", "Fly", "Portals", "ItemsPickup", "ItemsDrop", "SpecialBlocks", "Elytra", "Windcharges"));
+    	settings_name.put("visitors", permissions);
+
+    	permissions = new LinkedHashSet<>();
+    	permissions.addAll(List.of("Explosions","Liquids","Redstone","Firespread","Monsters","Pvp"));
+    	settings_name.put("natural", permissions);
     
         keyToSlotMap.put("Build", 1);
         keyToSlotMap.put("Destroy", 2);
@@ -273,7 +280,7 @@ public class ClaimGuis {
      * @param role The role to get permissions for.
      * @return The set of permission settings names.
      */
-    public Set<String> getPerms(String role) {
+    public LinkedHashSet<String> getPerms(String role) {
         return settings_name.get(role);
     }
 

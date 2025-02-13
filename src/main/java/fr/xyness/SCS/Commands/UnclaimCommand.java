@@ -14,16 +14,17 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
+import org.geysermc.floodgate.api.FloodgateApi;
 
 import fr.xyness.SCS.SimpleClaimSystem;
-import fr.xyness.SCS.Guis.ClaimConfirmationGui;
 import fr.xyness.SCS.Guis.UnclaimConfirmationGui;
+import fr.xyness.SCS.Guis.Bedrock.BUnclaimConfirmationGui;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 import fr.xyness.SCS.Types.WorldMode;
 
 /**
- * Handles the /unclaim command for unclaiming territory.
+ * Handles the /unclaim command to unclaim territory.
  */
 public class UnclaimCommand implements CommandExecutor, TabCompleter {
 
@@ -161,6 +162,12 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
 	                        });
                     } else {
                         isOnDelete.put(player,"*");
+                        if(instance.getSettings().getBooleanSetting("floodgate")) {
+                        	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+                        		new BUnclaimConfirmationGui(player,instance);
+                        		return true;
+                        	}
+                        }
                         new UnclaimConfirmationGui(player,instance);
                     }
                 } else {
@@ -201,6 +208,12 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
     	                });
                 } else {
                     isOnDelete.put(player,claim.getName());
+                    if(instance.getSettings().getBooleanSetting("floodgate")) {
+                    	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+                    		new BUnclaimConfirmationGui(player,instance);
+                    		return true;
+                    	}
+                    }
                     new UnclaimConfirmationGui(player,instance);
                 }
             } else {
@@ -268,6 +281,12 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
 	                });
             } else {
                 isOnDelete.put(player,claim.getName());
+                if(instance.getSettings().getBooleanSetting("floodgate")) {
+                	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+                		new BUnclaimConfirmationGui(player,instance);
+                		return true;
+                	}
+                }
                 new UnclaimConfirmationGui(player,instance);
             }
         } else {

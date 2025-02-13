@@ -2520,6 +2520,61 @@ public class ClaimMain {
         }
         return "";
     }
+    
+    /**
+     * Updates a claim's permissions.
+     *
+     * @param claim       The claim to update the permissions for
+     * @param permissionsMap The new permissions map structured as {role -> {permission -> value}}
+     * @return CompletableFuture<Boolean> indicating success or failure
+     */
+    public CompletableFuture<Boolean> updatePermsBedrock(Claim claim, Map<String, LinkedHashMap<String, Boolean>> permissionsMap) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+            	// Get the owner's name
+                String owner = claim.getOwner();
+
+                // Updates perms
+                claim.setPermissions(new HashMap<>(permissionsMap));
+
+                // Check if permission is Weather, then update weather for players in the chunks
+                // Check if permission is Fly, then update fly for players in the chunks
+                permissionsMap.forEach((role, perms) -> {
+                    perms.forEach((permission, value) -> {
+                        if (permission.equalsIgnoreCase("Weather")) updateWeatherChunk(claim);
+                        if (permission.equalsIgnoreCase("Fly")) updateFlyChunk(claim);
+                    });
+                });
+
+                // Get the UUID of the owner
+                String uuid = owner.equals("*") ? SERVER_UUID.toString() : instance.getPlayerMain().getPlayerUUID(owner).toString();
+
+                // Build the perms string
+                String permissionsString = permissionsMap.entrySet().stream()
+                        .map(entry -> entry.getKey() + ":" + entry.getValue().entrySet().stream()
+                                .map(subEntry -> subEntry.getValue() ? "1" : "0")
+                                .collect(Collectors.joining()))
+                        .collect(Collectors.joining(";"));
+
+                // Update the database
+                String updateQuery = "UPDATE scs_claims_1 SET permissions = ? WHERE owner_uuid = ? AND claim_name = ?";
+                try (Connection connection = instance.getDataSource().getConnection();
+                     PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+                    preparedStatement.setString(1, permissionsString);
+                    preparedStatement.setString(2, uuid);
+                    preparedStatement.setString(3, claim.getName());
+                    preparedStatement.executeUpdate();
+                    return true;
+                } catch (SQLException e) {
+                    e.printStackTrace();
+                    return false;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        });
+    }
 
     /**
      * Updates a claim's permission.
