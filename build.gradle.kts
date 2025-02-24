@@ -21,6 +21,9 @@ repositories {
     maven("https://ci.ender.zone/plugin/repository/everything/")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
     maven("https://jitpack.io")
+    maven {
+        url = uri("https://repo.opencollab.dev/main/")
+    }
     maven("https://maven.enginehub.org/repo/")
     maven {
         url = uri("https://repo.mikeprimm.com/")
@@ -35,6 +38,7 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    compileOnly("org.geysermc.floodgate:api:2.2.3-SNAPSHOT")
     compileOnly("dev.folia:folia-api:1.20.4-R0.1-SNAPSHOT")
     implementation("com.zaxxer:HikariCP:4.0.3")
     compileOnly(files("libs/PlaceholderAPI-2.11.6.jar"))
