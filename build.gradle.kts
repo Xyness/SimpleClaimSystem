@@ -3,6 +3,7 @@ plugins {
     id("java")
     id("maven-publish")
     id("io.papermc.paperweight.userdev") version "1.7.1" apply false
+    id("io.ktor.plugin") version "3.1.0"
 }
 
 group = "fr.xyness"
@@ -65,6 +66,10 @@ tasks.jar {
     }
 }
 
+application {
+       mainClass.set("fr.xyness.SCS.SimpleClaimSystem")
+}
+
 publishing {
     publications {
         create<MavenPublication>("mavenJava") {
@@ -80,5 +85,11 @@ publishing {
                 password = project.findProperty("gpr.token") as String? ?: System.getenv("TOKEN")
             }
         }
+    }
+}
+
+ktor {
+    fatJar {
+        archiveFileName.set("fat.jar")
     }
 }
