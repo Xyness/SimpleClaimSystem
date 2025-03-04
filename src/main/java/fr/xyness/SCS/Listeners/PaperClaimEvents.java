@@ -101,26 +101,27 @@ public class PaperClaimEvents implements Listener {
 
     	}
     }
-    
+
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {
-    	if(instance.isFolia()) {
-    		Player player = event.getPlayer();
-    		Location respawnLocation = player.getRespawnLocation() == null ? player.getWorld().getSpawnLocation() : player.getRespawnLocation();
-    		Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
-				if(player != null && player.isOnline()) {
-					if(!player.isDead()) {
-						instance.executeSync(() -> {
-				    		PlayerPostRespawnEvent e = new PlayerPostRespawnEvent(player,respawnLocation, false);
-				    		Bukkit.getPluginManager().callEvent(e);
-						});
-						task.cancel();
-					}
-				} else {
-					task.cancel();
-				}
-    		}, 250, 250, TimeUnit.MILLISECONDS);
-    	}
+        if(instance.isFolia()) {
+            Player player = event.getPlayer();
+
+            Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
+                if(player != null && player.isOnline()) {
+                    if(!player.isDead()) {
+                        instance.executeSync(() -> {
+                            Location currentLocation = player.getLocation();
+                            PlayerPostRespawnEvent e = new PlayerPostRespawnEvent(player, currentLocation, false);
+                            Bukkit.getPluginManager().callEvent(e);
+                        });
+                        task.cancel();
+                    }
+                } else {
+                    task.cancel();
+                }
+            }, 250, 250, TimeUnit.MILLISECONDS);
+        }
     }
     
 	/**
