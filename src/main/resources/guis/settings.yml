@@ -1,0 +1,394 @@
+# *****************************
+# *  GUI settings : settings  *
+# *****************************
+
+# ItemsAdder support for material and custom_model_data
+# Make sure the slot is between 0 and (rows-count * 9)
+# Materials : https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+# Don't forget to enable custom_model_data if you're using it
+
+gui-title: "gui-settings-new-title" # in your language file, the key of the message
+rows: 6 # max = 6
+
+items:
+
+  # /!\ DON'T CHANGE NAME OF ITEMS (like "Build" or "Filter"), you can add your customs items if you want to
+
+  # Navigator
+  glass-1:
+    slot: 9
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-2:
+    slot: 10
+    material: ORANGE_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-3:
+    slot: 11
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-4:
+    slot: 12
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-5:
+    slot: 13
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-6:
+    slot: 14
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-7:
+    slot: 15
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-8:
+    slot: 16
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-9:
+    slot: 17
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  Main:
+    slot: 0
+    material: PLAYER_HEAD:90c1823dd9a4f64087be524cc1d2294b76029d0acc2b57e01ce5db67ebc6608c
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "main-title"
+    target-lore: "main-lore"
+  Settings:
+    slot: 1
+    material: PLAYER_HEAD:446d85ce81357789c71499095b69b8b957e24aa9732f55391b5489dcf7b1320c
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "manage-settings-title"
+    target-lore: "manage-settings-lore"
+  Members:
+    slot: 2
+    material: PLAYER_HEAD:90c1823dd9a4f64087be524cc1d2294b76029d0acc2b57e01ce5db67ebc6608c
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "manage-members-title"
+    target-lore: "manage-members-lore"
+  Bans:
+    slot: 3
+    material: PLAYER_HEAD:7c3f4aae7a6804ab77b8fa762c9122f4948e8855ee21d898afecf654d607cc5a
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "manage-bans-title"
+    target-lore: "manage-bans-lore"
+  Chunks:
+    slot: 4
+    material: PLAYER_HEAD:e85dafe68e7e8335578b1f469c587c05f0a8bb131abba79713f4563b5f64d80d
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "manage-chunks-title"
+    target-lore: "manage-chunks-lore"
+  Teleport:
+    slot: 5
+    material: PLAYER_HEAD:4657dc455b1e8146f1d91baeee8528e90b9acbed2ebe287d2a755ef075be6794
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "teleport-claim-title"
+    target-lore: "teleport-claim-lore"
+  Unclaim:
+    slot: 6
+    material: PLAYER_HEAD:409d70de5d9e2539521072616e2deb58376d2bf60b04b633fe5795fda6fa24b
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "unclaim-title"
+    target-lore: "unclaim-lore"
+  List:
+    slot: 8
+    material: PLAYER_HEAD:69a28ba3ba79be1954710d4db2a3fd22773f619f18fecf5982353fb7ac18393a
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "list-title"
+    target-lore: "list-lore"
+
+  # Settings
+  Build:
+    slot: 18
+    material: OAK_STAIRS
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "build-title"
+    target-lore: "build-lore"
+  Destroy:
+    slot: 19
+    material: IRON_PICKAXE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "destroy-title"
+    target-lore: "destroy-lore"
+  Buttons:
+    slot: 20
+    material: STONE_BUTTON
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "buttons-title"
+    target-lore: "buttons-lore"
+  Items:
+    slot: 21
+    material: BOW
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "items-title"
+    target-lore: "items-lore"
+  InteractBlocks:
+    slot: 22
+    material: RED_SHULKER_BOX
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "interactblocks-title"
+    target-lore: "interactblocks-lore"
+  Levers:
+    slot: 23
+    material: LEVER
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "levers-title"
+    target-lore: "levers-lore"
+  Plates:
+    slot: 24
+    material: STONE_PRESSURE_PLATE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "plates-title"
+    target-lore: "plates-lore"
+  Doors:
+    slot: 27
+    material: OAK_DOOR
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "doors-title"
+    target-lore: "doors-lore"
+  Trapdoors:
+    slot: 28
+    material: OAK_TRAPDOOR
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "trapdoors-title"
+    target-lore: "trapdoors-lore"
+  Fencegates:
+    slot: 29
+    material: OAK_FENCE_GATE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "fencegates-title"
+    target-lore: "fencegates-lore"
+  Tripwires:
+    slot: 30
+    material: TRIPWIRE_HOOK
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "tripwires-title"
+    target-lore: "tripwires-lore"
+  RepeatersComparators:
+    slot: 31
+    material: REPEATER
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "repeaterscomparators-title"
+    target-lore: "repeaterscomparators-lore"
+  Bells:
+    slot: 32
+    material: BELL
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "bells-title"
+    target-lore: "bells-lore"
+  Entities:
+    slot: 33
+    material: ARMOR_STAND
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "entities-title"
+    target-lore: "entities-lore"
+  Frostwalker:
+    slot: 36
+    material: DIAMOND_BOOTS
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "frostwalker-title"
+    target-lore: "frostwalker-lore"
+  Teleportations:
+    slot: 37
+    material: ENDER_PEARL
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "teleportations-title"
+    target-lore: "teleportations-lore"
+  Damages:
+    slot: 38
+    material: APPLE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "damages-title"
+    target-lore: "damages-lore"
+  GuiTeleport:
+    slot: 39
+    material: COMPASS
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "guiteleport-title"
+    target-lore: "guiteleport-lore"
+  Fly:
+    slot: 40
+    material: PRISMARINE_SHARD
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "fly-title"
+    target-lore: "fly-lore"
+  Weather:
+    slot: 41
+    material: SNOWBALL
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "weather-title"
+    target-lore: "weather-lore"
+  Portals:
+    slot: 42
+    material: END_PORTAL_FRAME
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "portals-title"
+    target-lore: "portals-lore"
+  Enter:
+    slot: 45
+    material: BIRCH_DOOR
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "enter-title"
+    target-lore: "enter-lore"
+  ItemsPickup:
+    slot: 46
+    material: HOPPER
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "itemspickup-title"
+    target-lore: "itemspickup-lore"
+  ItemsDrop:
+    slot: 47
+    material: FEATHER
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "itemsdrop-title"
+    target-lore: "itemsdrop-lore"
+  Elytra:
+    slot: 48
+    material: ELYTRA
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "elytra-title"
+    target-lore: "elytra-lore"
+  SpecialBlocks:
+    slot: 49
+    material: SPAWNER
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "specialblocks-title"
+    target-lore: "specialblocks-lore"
+  Windcharges:
+    slot: 50
+    material: WHITE_DYE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "windcharges-title"
+    target-lore: "windcharges-lore"
+  Explosions:
+    slot: 28
+    material: TNT
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "explosions-title"
+    target-lore: "explosions-lore"
+  Liquids:
+    slot: 29
+    material: WATER_BUCKET
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "liquids-title"
+    target-lore: "liquids-lore"
+  Redstone:
+    slot: 30
+    material: REDSTONE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "redstone-title"
+    target-lore: "redstone-lore"
+  Firespread:
+    slot: 37
+    material: CAMPFIRE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "firespread-title"
+    target-lore: "firespread-lore"
+  Monsters:
+    slot: 38
+    material: STRING
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "monsters-title"
+    target-lore: "monsters-lore"
+  Pvp:
+    slot: 39
+    material: DIAMOND_SWORD
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "pvp-title"
+    target-lore: "pvp-lore"
+  
+  # Other items
+  Filter:
+    slot: 53
+    material: END_CRYSTAL
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "role-title"
+    target-lore: "role-lore"
+  Apply:
+    slot: 44
+    material: GREEN_CONCRETE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "apply-all-claims-title"
+    target-lore: "apply-all-claims-lore"

@@ -115,7 +115,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.12.1";
+    private String Version = "1.12.2";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -328,6 +328,14 @@ public class SimpleClaimSystem extends JavaPlugin {
             } else {
                 claimSettingsInstance.addSetting("pl3xmap", "false");
             }
+            
+            // Check ItemsAdder
+            Plugin itemsadder = Bukkit.getPluginManager().getPlugin("ItemsAdder");
+            if (itemsadder != null) {
+                claimSettingsInstance.addSetting("itemsadder", "true");
+            } else {
+                claimSettingsInstance.addSetting("itemsadder", "false");
+            }
 
             // Check "langs" folder
             File dossier = new File(getDataFolder(), "langs");
@@ -384,6 +392,64 @@ public class SimpleClaimSystem extends JavaPlugin {
             	defaultSettings.put(key.toLowerCase(), v);
             }
             claimSettingsInstance.setDefaultValues(defaultSettings);
+            
+            // Load guis
+            File check_gui = new File(getDataFolder() + File.separator + "guis", "chunk_confirmation.yml");
+            if (!check_gui.exists()) {
+                check_gui.getParentFile().mkdirs();
+                saveResource("guis/chunk_confirmation.yml", false);
+            }
+            check_gui = new File(getDataFolder() + File.separator + "guis", "claim_confirmation.yml");
+            if (!check_gui.exists()) {
+                check_gui.getParentFile().mkdirs();
+                saveResource("guis/claim_confirmation.yml", false);
+            }
+            check_gui = new File(getDataFolder() + File.separator + "guis", "unclaim_confirmation.yml");
+            if (!check_gui.exists()) {
+                check_gui.getParentFile().mkdirs();
+                saveResource("guis/unclaim_confirmation.yml", false);
+            }
+            check_gui = new File(getDataFolder() + File.separator + "guis", "settings.yml");
+            if (!check_gui.exists()) {
+                check_gui.getParentFile().mkdirs();
+                saveResource("guis/settings.yml", false);
+            }
+            check_gui = new File(getDataFolder() + File.separator + "guis", "members.yml");
+            if (!check_gui.exists()) {
+                check_gui.getParentFile().mkdirs();
+                saveResource("guis/members.yml", false);
+            }
+            check_gui = new File(getDataFolder() + File.separator + "guis", "bans.yml");
+            if (!check_gui.exists()) {
+                check_gui.getParentFile().mkdirs();
+                saveResource("guis/bans.yml", false);
+            }
+            check_gui = new File(getDataFolder() + File.separator + "guis", "chunks.yml");
+            if (!check_gui.exists()) {
+                check_gui.getParentFile().mkdirs();
+                saveResource("guis/chunks.yml", false);
+            }
+            check_gui = new File(getDataFolder() + File.separator + "guis", "claims.yml");
+            if (!check_gui.exists()) {
+                check_gui.getParentFile().mkdirs();
+                saveResource("guis/claims.yml", false);
+            }
+            check_gui = new File(getDataFolder() + File.separator + "guis", "claims_owner.yml");
+            if (!check_gui.exists()) {
+                check_gui.getParentFile().mkdirs();
+                saveResource("guis/claims_owner.yml", false);
+            }
+            check_gui = new File(getDataFolder() + File.separator + "guis", "list.yml");
+            if (!check_gui.exists()) {
+                check_gui.getParentFile().mkdirs();
+                saveResource("guis/list.yml", false);
+            }
+            check_gui = new File(getDataFolder() + File.separator + "guis", "main.yml");
+            if (!check_gui.exists()) {
+                check_gui.getParentFile().mkdirs();
+                saveResource("guis/main.yml", false);
+            }
+            claimGuisInstance.loadGuiSettings(claimSettingsInstance.getBooleanSetting("itemsadder"));
             
             // Check database
             String configC = getConfig().getString("database");
@@ -848,7 +914,9 @@ public class SimpleClaimSystem extends JavaPlugin {
             getServer().getPluginManager().registerEvents(new ClaimGuiEvents(this), this);
             
             // Register other listeners
-            if(isPaper) {
+            if(isFolia) {
+            	getServer().getPluginManager().registerEvents(new FoliaClaimEvents(this), this);
+            } else if(isPaper) {
             	getServer().getPluginManager().registerEvents(new PaperClaimEvents(this), this);
             } else {
             	getServer().getPluginManager().registerEvents(new SpigotClaimEvents(this), this);
@@ -1798,7 +1866,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             // Remove obsolete keys
             Set<String> customConfigKeys = new HashSet<>(customConfig.getKeys(true));
             for (String key : customConfigKeys) {
-                if (!defConfig.contains(key)) {
+                if (!defConfig.contains(key) && !key.startsWith("custom-")) {
                     customConfig.set(key, null);
                     needSave = true;
                 }

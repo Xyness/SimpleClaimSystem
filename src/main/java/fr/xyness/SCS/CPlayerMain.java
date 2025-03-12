@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -403,6 +404,37 @@ public class CPlayerMain {
                     textures.setSkin(url);
                     profile.setTextures(textures);
                     meta.setOwnerProfile(profile);
+                    head.setItemMeta(meta);
+                } catch (MalformedURLException e) {
+                    return head;
+                }
+            }
+        }
+        return head;
+    }
+    
+    /**
+     * Creates an ItemStack of a player head with the specified texture.
+     *
+     * @param texture The texture of the player's head
+     * @return An ItemStack representing the player's head with the applied texture.
+     */
+    public ItemStack createPlayerHeadWithTexture(String texture, String title, List<String> lore) {
+        ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1);
+        SkullMeta meta = (SkullMeta) head.getItemMeta();
+
+        if (meta != null && texture != null && !texture.isBlank()) {
+            PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+            if(texture != null) {
+                try {
+                	URI uri = URI.create("http://textures.minecraft.net/texture/"+texture);
+                    URL url = uri.toURL();
+                    PlayerTextures textures = profile.getTextures();
+                    textures.setSkin(url);
+                    profile.setTextures(textures);
+                    meta.setOwnerProfile(profile);
+                    if(title != null) meta.setDisplayName(title);
+                    if(lore != null && !lore.isEmpty()) meta.setLore(lore);
                     head.setItemMeta(meta);
                 } catch (MalformedURLException e) {
                     return head;

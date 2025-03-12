@@ -3,26 +3,31 @@ package fr.xyness.SCS.Listeners;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.WeatherType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.jetbrains.annotations.NotNull;
+
+import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
 
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 import fr.xyness.SCS.Types.CustomSet;
 import fr.xyness.SCS.Types.WorldMode;
+import io.papermc.paper.event.player.AsyncChatEvent;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
-public class SpigotClaimEvents implements Listener {
+public class FoliaClaimEvents implements Listener {
 
 	
     // ***************
@@ -44,7 +49,7 @@ public class SpigotClaimEvents implements Listener {
      *
      * @param instance The instance of the SimpleClaimSystem plugin.
      */
-    public SpigotClaimEvents(SimpleClaimSystem instance) {
+    public FoliaClaimEvents(SimpleClaimSystem instance) {
     	this.instance = instance;
     }
     
@@ -54,20 +59,84 @@ public class SpigotClaimEvents implements Listener {
     // *******************
     
     
+    /**
+     * Handles the player post respawn event.
+     * 
+     * @param event The PlayerPostRespawnEvent event.
+     */
+    @EventHandler
+    public void onPlayerRespawn(PlayerPostRespawnEvent event) {
+    	if(instance.isFolia()) {
+        	Player player = event.getPlayer();
+            
+        	Bukkit.getRegionScheduler().run(instance, event.getRespawnedLocation(), task -> {
+                Chunk to = event.getRespawnedLocation().getChunk();
+                
+                instance.executeSync(() -> {
+                    String ownerTO = instance.getMain().getOwnerInClaim(to);
+                    
+                    CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+                    if(cPlayer == null) return;
+                    
+                    String world = player.getWorld().getName();
+                    
+                    handleWeatherSettings(player, to, null);
+                    instance.getBossBars().activeBossBar(player, to);
+                    handleAutoFly(player, cPlayer, to, ownerTO);
+
+                    if (cPlayer.getClaimAuto().equals("addchunk")) {
+                        handleAutoAddChunk(player, cPlayer, to, world);
+                    } else if (cPlayer.getClaimAuto().equals("delchunk")) {
+                        handleAutoDelChunk(player, cPlayer, to, world);
+                    } else if (cPlayer.getClaimAuto().equals("claim")) {
+                        handleAutoClaim(player, cPlayer, to, world);
+                    } else if (cPlayer.getClaimAuto().equals("unclaim")) {
+                        handleAutoUnclaim(player, cPlayer, to, world);
+                    }
+
+                    if (cPlayer.getClaimAutomap()) {
+                        handleAutoMap(player, cPlayer, to, world);
+                    }
+                });
+
+        	});
+
+    	}
+    }
+    
+    @EventHandler
+    public void onPlayerDeath(PlayerDeathEvent event) {
+		Player player = event.getPlayer();
+		Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
+			if(player != null && player.isOnline()) {
+				if(!player.isDead()) {
+					instance.executeSync(() -> {
+                        Location currentLocation = player.getLocation();
+                        PlayerPostRespawnEvent e = new PlayerPostRespawnEvent(player, currentLocation, false);
+			    		Bukkit.getPluginManager().callEvent(e);
+					});
+					task.cancel();
+				}
+			} else {
+				task.cancel();
+			}
+		}, 250, 250, TimeUnit.MILLISECONDS);
+    }
+    
 	/**
 	 * Handles player chat events for claim chat.
 	 * 
 	 * @param event AsyncPlayerChatEvent event.
 	 */
 	@EventHandler(priority = EventPriority.LOWEST)
-	public void onPlayerChat(AsyncPlayerChatEvent event) {
+	public void onPlayerChat(AsyncChatEvent event) {
 		Player player = event.getPlayer();
 		String playerName = player.getName();
 		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
 		if(cPlayer == null) return;
 		if(cPlayer.getClaimChat()) {
 			event.setCancelled(true);
-			String msg = instance.getLanguage().getMessage("chat-format").replace("%player%",playerName).replace("%message%", event.getMessage());
+			String msg = instance.getLanguage().getMessage("chat-format").replace("%player%",playerName).replace("%message%", PlainTextComponentSerializer.plainText().serialize(event.originalMessage()));
 			player.sendMessage(msg);
 			for(String p : instance.getMain().getAllMembersWithPlayerParallel(playerName)) {
 				Player target = Bukkit.getPlayer(p);
@@ -80,10 +149,11 @@ public class SpigotClaimEvents implements Listener {
 	
     /**
      * Handles player pickup items events to prevent player pickuping in claims.
-     * @param event the pickup items event.
+     * 
+     * @param event The PlayerAttemptPickupItemEvent event.
      */
     @EventHandler
-    public void onPlayerPickupItem(PlayerPickupItemEvent event) {
+    public void onPlayerPickupItem(PlayerAttemptPickupItemEvent event) {
     	Chunk chunk = event.getItem().getLocation().getChunk();
     	Player player = event.getPlayer();
     	WorldMode mode = instance.getSettings().getWorldMode(player.getWorld().getName());
@@ -108,61 +178,69 @@ public class SpigotClaimEvents implements Listener {
      */
     @EventHandler
     public void onPlayerTeleport(PlayerTeleportEvent event) {
-        Chunk to = event.getTo().getChunk();
-        Chunk from = event.getFrom().getChunk();
-        Player player = event.getPlayer();
-        if (!instance.getMain().checkIfClaimExists(to)) {
-        	instance.getBossBars().disableBossBar(player);
-        	return;
-        }
+    	Bukkit.getRegionScheduler().run(instance, event.getTo(), task -> {
+    		Chunk to = event.getTo().getChunk();
+    		Bukkit.getRegionScheduler().run(instance, event.getFrom(), subtask -> {
+    			Chunk from = event.getFrom().getChunk();
+    			Bukkit.getGlobalRegionScheduler().run(instance, maintask -> {
+    				Player player = event.getPlayer();
+                    if (!instance.getMain().checkIfClaimExists(to)) {
+                    	instance.getBossBars().disableBossBar(player);
+                    	return;
+                    }
 
-        UUID playerId = player.getUniqueId();
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
-        if(cPlayer == null) return;
-        
-        String ownerTO = instance.getMain().getOwnerInClaim(to);
-        String ownerFROM = instance.getMain().getOwnerInClaim(from);
-        
-        Claim claim = instance.getMain().getClaim(to);
-        if(claim != null) {
-	        if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
-	            cancelTeleport(event, player, "player-banned");
-	            return;
-	        }
-	        
-	        if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
-	            cancelTeleport(event, player, "enter");
-	            return;
-	        }
-	
-	        if (isTeleportBlocked(event, player, claim)) {
-	            cancelTeleport(event, player, "teleportations");
-	            return;
-	        }
-        }
-        
-        instance.getBossBars().activeBossBar(player, to);
-        handleAutoFly(player, cPlayer, to, ownerTO);
-        handleWeatherSettings(player, to, from);
-        
-        String world = player.getWorld().getName();
+                    UUID playerId = player.getUniqueId();
+                    CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
+                    if(cPlayer == null) return;
+                    
+                    String ownerTO = instance.getMain().getOwnerInClaim(to);
+                    String ownerFROM = instance.getMain().getOwnerInClaim(from);
+                    
+                    Claim claim = instance.getMain().getClaim(to);
+                    if(claim != null) {
+            	        if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
+            	            cancelTeleport(event, player, "player-banned");
+            	            return;
+            	        }
+            	        
+            	        if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
+            	            cancelTeleport(event, player, "enter");
+            	            return;
+            	        }
+            	
+            	        if (isTeleportBlocked(event, player, claim)) {
+            	            cancelTeleport(event, player, "teleportations");
+            	            return;
+            	        }
+                    }
+                    
+                    instance.getBossBars().activeBossBar(player, to);
+                    handleAutoFly(player, cPlayer, to, ownerTO);
+                    handleWeatherSettings(player, to, from);
+                    
+                    String world = player.getWorld().getName();
 
-        if (!ownerTO.equals(ownerFROM)) {
-            handleEnterLeaveMessages(player, to, from, ownerTO, ownerFROM);
-            if (cPlayer.getClaimAuto().equals("addchunk")) {
-                handleAutoAddChunk(player, cPlayer, to, world);
-            } else if (cPlayer.getClaimAuto().equals("delchunk")) {
-                handleAutoDelChunk(player, cPlayer, to, world);
-            } else if (cPlayer.getClaimAuto().equals("claim")) {
-                handleAutoClaim(player, cPlayer, to, world);
-            } else if (cPlayer.getClaimAuto().equals("unclaim")) {
-                handleAutoUnclaim(player, cPlayer, to, world);
-            }
-        }
+                    if (!ownerTO.equals(ownerFROM)) {
+                        handleEnterLeaveMessages(player, to, from, ownerTO, ownerFROM);
+                        if (cPlayer.getClaimAuto().equals("addchunk")) {
+                            handleAutoAddChunk(player, cPlayer, to, world);
+                        } else if (cPlayer.getClaimAuto().equals("delchunk")) {
+                            handleAutoDelChunk(player, cPlayer, to, world);
+                        } else if (cPlayer.getClaimAuto().equals("claim")) {
+                            handleAutoClaim(player, cPlayer, to, world);
+                        } else if (cPlayer.getClaimAuto().equals("unclaim")) {
+                            handleAutoUnclaim(player, cPlayer, to, world);
+                        }
+                    }
 
-        if (cPlayer.getClaimAutomap()) {
-        	handleAutoMap(player, cPlayer, to, world);
-        }
+                    if (cPlayer.getClaimAutomap()) {
+                    	handleAutoMap(player, cPlayer, to, world);
+                    }
+    			});
+                
+    		});
+            
+    	});
     }
     
     
@@ -179,11 +257,7 @@ public class SpigotClaimEvents implements Listener {
      * @param message The message key to send.
      */
     private void cancelTeleport(PlayerTeleportEvent event, Player player, String message) {
-    	if(instance.isFolia()) {
-    		instance.executeAsyncLater(() -> instance.getMain().teleportPlayer(player, event.getFrom()), 50);
-    	} else {
-    		event.setCancelled(true);
-    	}
+    	instance.executeAsyncLater(() -> instance.getMain().teleportPlayer(player, event.getFrom()), 50);
         instance.getMain().sendMessage(player, instance.getLanguage().getMessage(message), instance.getSettings().getSetting("protection-message"));
     }
 

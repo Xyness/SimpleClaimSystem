@@ -14,9 +14,13 @@ import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.SimpleClaimSystem;
+import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
+import fr.xyness.SCS.Types.GuiSettings;
+import fr.xyness.SCS.Types.GuiSlot;
 
 /**
  * Class representing the Claim Members GUI.
@@ -57,12 +61,13 @@ public class ClaimChunksGui implements InventoryHolder {
     	this.player = player;
     	
     	// Get title
-    	String title = instance.getLanguage().getMessage("gui-chunks-title")
+    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("chunks");
+    	String title = guiSettings.getTitle()
     			.replace("%name%", claim.getName())
     			.replace("%page%", String.valueOf(page));
     	
     	// Create the inventory
-        inv = Bukkit.createInventory(this, 54, title);
+    	inv = Bukkit.createInventory(this, guiSettings.getRows()*9, title);
         
         // Load the items asynchronously
         loadItems(claim, page).thenAccept(success -> {
@@ -103,11 +108,44 @@ public class ClaimChunksGui implements InventoryHolder {
 	        // Update player data (gui)
 	        cPlayer.setClaim(claim);
 	        cPlayer.clearMapString();
+	        cPlayer.setGuiPage(page);
 	        
-	        // Set bottom items
-	        if (page > 1) inv.setItem(48, backPage(page - 1));
-	        inv.setItem(49, backPageMain(claim));
-	        if (chunksCount > (page*45)) inv.setItem(50, nextPage(page + 1));
+	        GuiSettings guiSettings = ClaimGuis.gui_settings.get("chunks");
+	        int max = guiSettings.getEndSlot() - guiSettings.getStartSlot();
+	        
+	        // Items
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("chunks"));
+    		for(GuiSlot slot : slots) {
+    			int slot_int = slot.getSlot();
+    			String key = slot.getKey();
+    			String title = slot.getTitle();
+    			String lore_string = slot.getLore();
+    			if(key.equals("BackPage")) {
+    				if(page == 1) continue;
+    				title = title.replace("%page%", String.valueOf(page));
+    				lore_string = lore_string.replace("%page%", String.valueOf(page));
+    			}
+    			if(key.equals("NextPage")) {
+    				if(chunksCount <= (page*max)) continue;
+    				title = title.replace("%page%", String.valueOf(page));
+    				lore_string = lore_string.replace("%page%", String.valueOf(page));
+    			}
+    			List<String> lore = instance.getGuis().getLore(lore_string);
+    			if(title.isBlank()) title = null;
+    			if(lore.isEmpty()) lore = null;
+    			if(slot.isCustomModel()) {
+    				CustomStack customItem = CustomStack.getInstance(slot.getCustomModelData());
+    				if(customItem != null) {
+    					Material mat = customItem.getItemStack().getType();
+    					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
+    				}
+    			} else if (slot.isCustomHead()) {
+    				inv.setItem(slot_int, instance.getPlayerMain().createPlayerHeadWithTexture(slot.getCustomTextures(), title, lore));
+    			} else {
+					Material mat = slot.getMaterial();
+					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
+    			}
+    		}
 	        
 	        // Prepare template lore
 	        List<String> lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessage("chunk-lore")));
@@ -116,8 +154,8 @@ public class ClaimChunksGui implements InventoryHolder {
 	                : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-remove-chunk"));
 	        
 	        // Prepare count
-	        int startItem = (page - 1) * 45;
-	        int i = 0;
+	        int startItem = (page - 1) * max;
+	        int i = guiSettings.getStartSlot();
 	        int count = 0;
 	        
 	        // Start loop
@@ -126,8 +164,8 @@ public class ClaimChunksGui implements InventoryHolder {
 	        	// Continue if not in the page
 	            if (count++ < startItem) continue;
 	            
-	            // Break if bigger than 45 to not exceed
-	            if (i == 45) break;
+	            // Break if bigger than max to not exceed
+	            if (i == guiSettings.getEndSlot()+1) break;
 	
 	            // Add the chunk to map string for gui clicking
 	            cPlayer.addMapString(i, String.valueOf(chunk.getWorld().getName()+";"+chunk.getX()+";"+chunk.getZ()));
@@ -150,66 +188,6 @@ public class ClaimChunksGui implements InventoryHolder {
         
     	});
 	        
-    }
-    
-    /**
-     * Creates an item for the back page slot.
-     *
-     * @param page The page number.
-     * @return The created back page item.
-     */
-    private ItemStack backPage(int page) {
-        ItemStack item = new ItemStack(Material.ARROW);
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("previous-page-title").replace("%page%", String.valueOf(page)));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("previous-page-lore").replace("%page%", String.valueOf(page))));
-            meta = instance.getGuis().setItemFlag(meta);
-            item.setItemMeta(meta);
-        }
-
-        return item;
-    }
-
-    /**
-     * Creates the back page main item.
-     * 
-     * @param claim The target claim
-     * @return The back page main item.
-     */
-    private ItemStack backPageMain(Claim claim) {
-        ItemStack item = new ItemStack(Material.DARK_OAK_DOOR);
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("back-page-main-title"));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("back-page-main-lore").replace("%claim-name%", claim.getName())));
-            meta = instance.getGuis().setItemFlag(meta);
-            item.setItemMeta(meta);
-        }
-
-        return item;
-    }
-
-    /**
-     * Creates an item for the next page slot.
-     *
-     * @param page The page number.
-     * @return The created next page item.
-     */
-    private ItemStack nextPage(int page) {
-        ItemStack item = new ItemStack(Material.ARROW);
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("next-page-title").replace("%page%", String.valueOf(page)));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("next-page-lore").replace("%page%", String.valueOf(page))));
-            meta = instance.getGuis().setItemFlag(meta);
-            item.setItemMeta(meta);
-        }
-
-        return item;
     }
     
     @Override

@@ -1,8 +1,9 @@
 package fr.xyness.SCS.Guis;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
@@ -10,9 +11,12 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemStack;
 
+import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.SimpleClaimSystem;
+import fr.xyness.SCS.Config.ClaimGuis;
+import fr.xyness.SCS.Types.GuiSettings;
+import fr.xyness.SCS.Types.GuiSlot;
 
 /**
  * Class representing the Claim Bans GUI.
@@ -34,10 +38,6 @@ public class UnclaimConfirmationGui implements InventoryHolder {
     /** Instance of SimpleClaimSystem */
     private final SimpleClaimSystem instance;
     
-    /** Slots of confirm and cancel buttons */
-    public static Set<Integer> confirm_int = Set.of(0,1,2,9,10,11,18,19,20);
-    public static Set<Integer> cancel_int = Set.of(6,7,8,15,16,17,24,25,26);
-    
     
     // ******************
     // *  Constructors  *
@@ -55,10 +55,11 @@ public class UnclaimConfirmationGui implements InventoryHolder {
     	this.player = player;
     	
     	// Get title
-    	String title = instance.getLanguage().getMessage("gui-unclaim-confirm-title");
+    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("unclaim_confirmation");
+    	String title = guiSettings.getTitle();
     	
     	// Create the inventory
-        inv = Bukkit.createInventory(this, 27, title);
+    	inv = Bukkit.createInventory(this, guiSettings.getRows()*9, title);
         
         // Load the items asynchronously
         loadItems().thenAccept(success -> {
@@ -90,20 +91,26 @@ public class UnclaimConfirmationGui implements InventoryHolder {
     	return CompletableFuture.supplyAsync(() -> {
 	        
 	        // Items
-	        ItemStack confirm = instance.getGuis().createItem(Material.GREEN_STAINED_GLASS_PANE, instance.getLanguage().getMessage("confirm-title"), null);
-	        ItemStack deny = instance.getGuis().createItem(Material.RED_STAINED_GLASS_PANE, instance.getLanguage().getMessage("cancel-title"), null);
-	        for(int i : confirm_int) {
-        		inv.setItem(i, confirm);
-        	}
-        	for(int i : cancel_int) {
-        		inv.setItem(i, deny);
-        	}
-        	
-        	String title = instance.getLanguage().getMessage("unclaim-confirm-info-title");
-        	List<String> lore = new ArrayList<>();
-        	lore.addAll(instance.getGuis().getLore(instance.getLanguage().getMessage("unclaim-confirm-info-lore")));
-        	ItemStack info = instance.getGuis().createItem(Material.BARRIER, title, lore);
-        	inv.setItem(13, info);
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("unclaim_confirmation"));
+    		for(GuiSlot slot : slots) {
+    			int slot_int = slot.getSlot();
+    			String title = slot.getTitle();
+    			String lore_string = slot.getLore();
+    			List<String> lore = instance.getGuis().getLore(lore_string);
+    			if(title.isBlank()) title = null;
+    			if(lore.isEmpty()) lore = null;
+    			if(slot.isCustomModel()) {
+    				CustomStack customItem = CustomStack.getInstance(slot.getCustomModelData());
+    				if(customItem != null) {
+    					Material mat = customItem.getItemStack().getType();
+    					
+    					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
+    				}
+    			} else {
+					Material mat = slot.getMaterial();
+					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
+    			}
+    		}
 	        
 	        return true;
 	        

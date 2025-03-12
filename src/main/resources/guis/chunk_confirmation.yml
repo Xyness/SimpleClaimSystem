@@ -1,0 +1,169 @@
+# ***************************************
+# *  GUI settings : chunk confirmation  *
+# ***************************************
+
+# ItemsAdder support for material and custom_model_data
+# Make sure the slot is between 0 and (rows-count * 9)
+# Materials : https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+# Don't forget to enable custom_model_data if you're using it
+
+gui-title: "gui-chunk-confirm-title" # in your language file, the key of the message
+rows: 3 # max = 6
+
+items:
+
+  # /!\ DON'T CHANGE NAME OF ITEMS (like "confirm-1" or "main-item"), you can add your customs items if you want to
+
+  # Bottom items
+  confirm-1:
+    slot: 0
+    material: GREEN_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "confirm-title"
+    target-lore: ""
+    action: ""
+  confirm-2:
+    slot: 1
+    material: GREEN_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "confirm-title"
+    target-lore: ""
+    action: ""
+  confirm-3:
+    slot: 2
+    material: GREEN_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "confirm-title"
+    target-lore: ""
+    action: ""
+  confirm-4:
+    slot: 9
+    material: GREEN_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "confirm-title"
+    target-lore: ""
+    action: ""
+  confirm-5:
+    slot: 10
+    material: GREEN_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "confirm-title"
+    target-lore: ""
+    action: ""
+  confirm-6:
+    slot: 11
+    material: GREEN_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "confirm-title"
+    target-lore: ""
+    action: ""
+  confirm-7:
+    slot: 18
+    material: GREEN_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "confirm-title"
+    target-lore: ""
+    action: ""
+  confirm-8:
+    slot: 19
+    material: GREEN_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "confirm-title"
+    target-lore: ""
+    action: ""
+  confirm-9:
+    slot: 20
+    material: GREEN_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "confirm-title"
+    target-lore: ""
+    action: ""
+  cancel-1:
+    slot: 6
+    material: RED_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "cancel-title"
+    target-lore: ""
+    action: ""
+  cancel-2:
+    slot: 7
+    material: RED_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "cancel-title"
+    target-lore: ""
+    action: ""
+  cancel-3:
+    slot: 8
+    material: RED_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "cancel-title"
+    target-lore: ""
+    action: ""
+  cancel-4:
+    slot: 15
+    material: RED_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "cancel-title"
+    target-lore: ""
+    action: ""
+  cancel-5:
+    slot: 16
+    material: RED_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "cancel-title"
+    target-lore: ""
+    action: ""
+  cancel-6:
+    slot: 17
+    material: RED_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "cancel-title"
+    target-lore: ""
+    action: ""
+  cancel-7:
+    slot: 24
+    material: RED_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "cancel-title"
+    target-lore: ""
+    action: ""
+  cancel-8:
+    slot: 25
+    material: RED_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "cancel-title"
+    target-lore: ""
+    action: ""
+  cancel-9:
+    slot: 26
+    material: RED_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "cancel-title"
+    target-lore: ""
+    action: ""
+  main-item:
+    slot: 13
+    material: GRASS_BLOCK
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "chunk-confirm-info-title"
+    target-lore: "chunk-confirm-info-lore"
+    action: ""

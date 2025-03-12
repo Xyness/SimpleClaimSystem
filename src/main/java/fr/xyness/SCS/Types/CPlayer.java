@@ -817,7 +817,8 @@ public class CPlayer {
         if (player.hasPermission("scs.admin")) return 0.0;
         Double cost = getCost();
         Double multiplier = getMultiplier();
-        return cost * Math.pow(multiplier, claims_count);
+        Double result = cost * Math.pow(multiplier, claims_count);
+        return Math.round(result * 100.0) / 100.0;
     }
     
     /**
@@ -829,7 +830,8 @@ public class CPlayer {
         if (player.hasPermission("scs.admin")) return 0.0;
         Double cost = getChunkCost();
         Double multiplier = getChunkMultiplier();
-        return cost * Math.pow(multiplier, (nb_chunks - 1));
+        Double result = cost * Math.pow(multiplier, (nb_chunks - 1));
+        return Math.round(result * 100.0) / 100.0;
     }
     
     /**
@@ -848,7 +850,7 @@ public class CPlayer {
             price += cost * Math.pow(multiplier, (n - 1));
             n++;
         }
-        return price;
+        return Math.round(price * 100.0) / 100.0;
     }
     
     /**

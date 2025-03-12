@@ -15,12 +15,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
+import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.SimpleClaimSystem;
+import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
+import fr.xyness.SCS.Types.GuiSettings;
+import fr.xyness.SCS.Types.GuiSlot;
 
 /**
  * Class representing the Claim List GUI.
@@ -61,11 +64,12 @@ public class ClaimListGui implements InventoryHolder {
     	this.player = player;
     	
     	// Get title
-    	String title = instance.getLanguage().getMessage("gui-list-title")
+    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("list");
+    	String title = guiSettings.getTitle()
     			.replace("%page%", String.valueOf(page));
     	
     	// Create the inventory
-        inv = Bukkit.createInventory(this, 54, title);
+    	inv = Bukkit.createInventory(this, guiSettings.getRows()*9, title);
         
         // Load the items asynchronously
         loadItems(page, filter).thenAccept(success -> {
@@ -114,11 +118,51 @@ public class ClaimListGui implements InventoryHolder {
 	        claims = new LinkedHashSet<>(claimList);
 	        int claimsCount = claims.size();
 	        
-	        // Set bottom items
-	        if (page > 1) inv.setItem(48, backPage(page - 1));
-	        if (cPlayer.getClaim() != null) inv.setItem(49, backPageMain(cPlayer.getClaim()));
-	        if (claimsCount > (page*45)) inv.setItem(50, nextPage(page + 1));
-	        inv.setItem(53, filter(filter));
+    		GuiSettings guiSettings = ClaimGuis.gui_settings.get("list");
+	        int max = guiSettings.getEndSlot() - guiSettings.getStartSlot();
+	        
+	        // Items
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("list"));
+    		for(GuiSlot slot : slots) {
+    			int slot_int = slot.getSlot();
+    			String key = slot.getKey();
+    			String title = slot.getTitle();
+    			String lore_string = slot.getLore();
+    			if(key.equals("BackPage")) {
+    				if(page == 1) continue;
+    				title = title.replace("%page%", String.valueOf(page));
+    				lore_string = lore_string.replace("%page%", String.valueOf(page));
+    			}
+    			if(key.equals("NextPage")) {
+    				if(claimsCount <= (page*max)) continue;
+    				title = title.replace("%page%", String.valueOf(page));
+    				lore_string = lore_string.replace("%page%", String.valueOf(page));
+    			}
+    			if (key.equals("Filter")) {
+    	            if (filter.equals("not_owner")) {
+    	                lore_string = lore_string.replace("%status_color_1%", instance.getLanguage().getMessage("status_color_inactive_filter"))
+    	                        .replace("%status_color_2%", instance.getLanguage().getMessage("status_color_active_filter"));
+    	            } else {
+    	                lore_string = lore_string.replace("%status_color_1%", instance.getLanguage().getMessage("status_color_active_filter"))
+    	                        .replace("%status_color_2%", instance.getLanguage().getMessage("status_color_inactive_filter"));
+    	            }
+    			}
+    			List<String> lore = instance.getGuis().getLore(lore_string);
+    			if(title.isBlank()) title = null;
+    			if(lore.isEmpty()) lore = null;
+    			if(slot.isCustomModel()) {
+    				CustomStack customItem = CustomStack.getInstance(slot.getCustomModelData());
+    				if(customItem != null) {
+    					Material mat = customItem.getItemStack().getType();
+    					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
+    				}
+    			} else if (slot.isCustomHead()) {
+    				inv.setItem(slot_int, instance.getPlayerMain().createPlayerHeadWithTexture(slot.getCustomTextures(), title, lore));
+    			} else {
+					Material mat = slot.getMaterial();
+					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
+    			}
+    		}
 	
 	        // Prepare lore
 	        List<String> lore = new ArrayList<>(instance.getGuis().getLore(filter.equals("owner") ? instance.getLanguage().getMessage("access-claim-lore") : instance.getLanguage().getMessage("access-claim-not-owner-lore")));
@@ -133,8 +177,8 @@ public class ClaimListGui implements InventoryHolder {
 	                : instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-manage");
 	
 	        // Prepare count
-	        int startItem = (page - 1) * 45;
-	        int i = 0;
+	        int startItem = (page - 1) * max;
+	        int i = guiSettings.getStartSlot();
 	        int count = 0;
 	        
 	        // Start loop
@@ -143,8 +187,8 @@ public class ClaimListGui implements InventoryHolder {
 	        	// Continue if not in the page
 	            if (count++ < startItem) continue;
 	            
-	            // Break if bigger than 45 to not exceed
-	            if (i == 45) break;
+	            // Break if bigger than end slot to not exceed
+	            if (i == guiSettings.getEndSlot()+1) break;
 	            
 	            // Add the claim and the claim location to map for gui clicking
 	            cPlayer.addMapClaim(i, claim);
@@ -281,104 +325,9 @@ public class ClaimListGui implements InventoryHolder {
         return bansList.toString();
     }
 
-    /**
-     * Creates an item for the back page slot.
-     *
-     * @param page The page number.
-     * @return The created back page item.
-     */
-    private ItemStack backPage(int page) {
-        ItemStack item = new ItemStack(Material.ARROW);
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("previous-page-title").replace("%page%", String.valueOf(page)));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("previous-page-lore").replace("%page%", String.valueOf(page))));
-            meta = instance.getGuis().setItemFlag(meta);
-            item.setItemMeta(meta);
-        }
-
-        return item;
-    }
-
-    /**
-     * Creates the back page main item.
-     * 
-     * @param claim The target claim
-     * @return The back page main item.
-     */
-    private ItemStack backPageMain(Claim claim) {
-        ItemStack item = new ItemStack(Material.DARK_OAK_DOOR);
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("back-page-main-title"));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("back-page-main-lore").replace("%claim-name%", claim.getName())));
-            meta = instance.getGuis().setItemFlag(meta);
-            item.setItemMeta(meta);
-        }
-
-        return item;
-    }
-
-    /**
-     * Creates an item for the next page slot.
-     *
-     * @param page The page number.
-     * @return The created next page item.
-     */
-    private ItemStack nextPage(int page) {
-        ItemStack item = new ItemStack(Material.ARROW);
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("next-page-title").replace("%page%", String.valueOf(page)));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("next-page-lore").replace("%page%", String.valueOf(page))));
-            meta = instance.getGuis().setItemFlag(meta);
-            item.setItemMeta(meta);
-        }
-
-        return item;
-    }
-
-    /**
-     * Creates the filter item.
-     *
-     * @param filter The filter.
-     * @return The filter item.
-     */
-    private ItemStack filter(String filter) {
-        ItemStack item = new ItemStack(Material.END_CRYSTAL);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            String loreFilter = instance.getLanguage().getMessage("filter-list-lore");
-            if (filter.equals("not_owner")) {
-                loreFilter = loreFilter.replace("%status_color_1%", instance.getLanguage().getMessage("status_color_inactive_filter"))
-                        .replace("%status_color_2%", instance.getLanguage().getMessage("status_color_active_filter"));
-            } else {
-                loreFilter = loreFilter.replace("%status_color_1%", instance.getLanguage().getMessage("status_color_active_filter"))
-                        .replace("%status_color_2%", instance.getLanguage().getMessage("status_color_inactive_filter"));
-            }
-            meta.setDisplayName(instance.getLanguage().getMessage("filter-title"));
-            meta.setLore(instance.getGuis().getLore(loreFilter));
-            meta = instance.getGuis().setItemFlag(meta);
-            item.setItemMeta(meta);
-        }
-        return item;
-    }
-
     @Override
     public Inventory getInventory() {
         return inv;
-    }
-
-    /**
-     * Opens the inventory for the player.
-     *
-     * @param player The player.
-     */
-    public void openInventory(Player player) {
-        player.openInventory(inv);
     }
 
 }

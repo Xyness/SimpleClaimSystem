@@ -10,12 +10,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 
+import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.SimpleClaimSystem;
+import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
+import fr.xyness.SCS.Types.GuiSettings;
+import fr.xyness.SCS.Types.GuiSlot;
 
 /**
- * Class representing the Claim GUI.
+ * Class representing the Claim Main GUI.
  */
 public class ClaimMainGui implements InventoryHolder {
 
@@ -52,11 +56,12 @@ public class ClaimMainGui implements InventoryHolder {
     	this.player = player;
     	
     	// Get title
-    	String title = instance.getLanguage().getMessage("gui-main-title")
+    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("main");
+    	String title = guiSettings.getTitle()
     			.replace("%name%", claim.getName());
-
-    	// Create inventory
-        inv = Bukkit.createInventory(this, 54, title);
+    	
+    	// Create the inventory
+    	inv = Bukkit.createInventory(this, guiSettings.getRows()*9, title);
         
         // Load the items asynchronously
         loadItems(claim).thenAccept(success -> {
@@ -93,97 +98,51 @@ public class ClaimMainGui implements InventoryHolder {
 	        
 	        // Update player data (gui)
 	        cPlayer.setClaim(claim);
-	        
-	        // Set items
-	        String lore_string = instance.getLanguage().getMessage("claim-info-lore")
-	            	.replace("%description%", claim.getDescription())
-		    		.replace("%claim-name%", claim.getName())
-		    		.replace("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
-						.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
-						.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))) : instance.getLanguage().getMessage("claim-info-lore-sale-status-false"))
-		    		.replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())))
-					.replace("%members-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size())))
-					.replace("%bans-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size())));
-	        String title = instance.getLanguage().getMessage("claim-info-title")
-	            	.replace("%description%", claim.getDescription())
-		    		.replace("%claim-name%", claim.getName())
-		    		.replace("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
-						.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
-						.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))) : instance.getLanguage().getMessage("claim-info-lore-sale-status-false"))
-		    		.replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())))
-					.replace("%members-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size())))
-					.replace("%bans-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size())));
-	        List<String> lore = new ArrayList<>(instance.getGuis().getLore(lore_string));
-	        lore.add(!checkPermButton(player, "claim-info") ? instance.getLanguage().getMessage("gui-button-no-permission") : instance.getLanguage().getMessage("access-button"));
-	        inv.setItem(13, instance.getGuis().createItem(Material.PAINTING, title, lore));
-	        
-	        lore_string = instance.getLanguage().getMessage("manage-bans-lore");
-	        title = instance.getLanguage().getMessage("manage-bans-title");
-	        lore = new ArrayList<>(instance.getGuis().getLore(lore_string));
-	        lore.add(!checkPermButton(player, "manage-bans") ? instance.getLanguage().getMessage("gui-button-no-permission") : instance.getLanguage().getMessage("access-button"));
-	        inv.setItem(20, instance.getGuis().createItem(Material.LECTERN, title, lore));
-	        
-	        lore_string = instance.getLanguage().getMessage("manage-settings-lore");
-	        title = instance.getLanguage().getMessage("manage-settings-title");
-	        lore = new ArrayList<>(instance.getGuis().getLore(lore_string));
-	        lore.add(!checkPermButton(player, "manage-settings") ? instance.getLanguage().getMessage("gui-button-no-permission") : instance.getLanguage().getMessage("access-button"));
-	        inv.setItem(29, instance.getGuis().createItem(Material.REPEATER, title, lore));
-	        
-	        lore_string = instance.getLanguage().getMessage("manage-members-lore");
-	        title = instance.getLanguage().getMessage("manage-members-title");
-	        lore = new ArrayList<>(instance.getGuis().getLore(lore_string));
-	        lore.add(!checkPermButton(player, "manage-members") ? instance.getLanguage().getMessage("gui-button-no-permission") : instance.getLanguage().getMessage("access-button"));
-	        inv.setItem(30, instance.getGuis().createItem(Material.TOTEM_OF_UNDYING, title, lore));
-	        
-	        lore_string = instance.getLanguage().getMessage("manage-chunks-lore");
-	        title = instance.getLanguage().getMessage("manage-chunks-title");
-	        lore = new ArrayList<>(instance.getGuis().getLore(lore_string));
-	        lore.add(!checkPermButton(player, "manage-chunks") ? instance.getLanguage().getMessage("gui-button-no-permission") : instance.getLanguage().getMessage("access-button"));
-	        inv.setItem(32, instance.getGuis().createItem(Material.RED_MUSHROOM_BLOCK, title, lore));
-	        
-	        lore_string = instance.getLanguage().getMessage("teleport-claim-lore");
-	        title = instance.getLanguage().getMessage("teleport-claim-title");
-	        lore = new ArrayList<>(instance.getGuis().getLore(lore_string));
-	        lore.add(!checkPermButton(player, "teleport-claim") ? instance.getLanguage().getMessage("gui-button-no-permission") : instance.getLanguage().getMessage("access-button"));
-	        inv.setItem(33, instance.getGuis().createItem(Material.ENDER_PEARL, title, lore));
-	        
-	        lore_string = instance.getLanguage().getMessage("unclaim-lore");
-	        title = instance.getLanguage().getMessage("unclaim-title");
-	        lore = new ArrayList<>(instance.getGuis().getLore(lore_string));
-	        lore.add(!checkPermButton(player, "unclaim") ? instance.getLanguage().getMessage("gui-button-no-permission") : instance.getLanguage().getMessage("access-button"));
-	        inv.setItem(24, instance.getGuis().createItem(Material.RED_CONCRETE, title, lore));
-        
+
+	        // Items
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("main"));
+    		for(GuiSlot slot : slots) {
+    			int slot_int = slot.getSlot();
+    			String key = slot.getKey();
+    			String title = slot.getTitle();
+    			String lore_string = slot.getLore();
+    			if(key.equals("Info")) {
+    				title = title.replace("%description%", claim.getDescription())
+    			    		.replace("%claim-name%", claim.getName())
+    			    		.replace("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
+    							.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+    							.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))) : instance.getLanguage().getMessage("claim-info-lore-sale-status-false"))
+    			    		.replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())))
+    						.replace("%members-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size())))
+    						.replace("%bans-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size())));
+    				lore_string = lore_string.replace("%description%", claim.getDescription())
+    			    		.replace("%claim-name%", claim.getName())
+    			    		.replace("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
+    							.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
+    							.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))) : instance.getLanguage().getMessage("claim-info-lore-sale-status-false"))
+    			    		.replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())))
+    						.replace("%members-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size())))
+    						.replace("%bans-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size())));
+    			}
+    			List<String> lore = instance.getGuis().getLore(lore_string);
+    			if(title.isBlank()) title = null;
+    			if(lore.isEmpty()) lore = null;
+    			if(slot.isCustomModel()) {
+    				CustomStack customItem = CustomStack.getInstance(slot.getCustomModelData());
+    				if(customItem != null) {
+    					Material mat = customItem.getItemStack().getType();
+    					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
+    				}
+    			} else if (slot.isCustomHead()) {
+    				inv.setItem(slot_int, instance.getPlayerMain().createPlayerHeadWithTexture(slot.getCustomTextures(), title, lore));
+    			} else {
+					Material mat = slot.getMaterial();
+					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
+    			}
+    		}
 	        return true;
 	        
     	});
-    }
-
-    /**
-     * Checks if the player has the permission for the specified key.
-     *
-     * @param player The player to check.
-     * @param key    The key to check permission for.
-     * @return True if the player has the permission, otherwise false.
-     */
-    public boolean checkPermButton(Player player, String key) {
-        switch (key) {
-        	case "unclaim":
-        		return instance.getPlayerMain().checkPermPlayer(player, "scs.command.unclaim");
-            case "manage-members":
-                return instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.members");
-            case "manage-bans":
-                return instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.bans");
-            case "manage-settings":
-                return instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.settings");
-            case "manage-chunks":
-                return instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.chunks");
-            case "claim-info":
-                return instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.list");
-            case "teleport-claim":
-            	return instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp");
-            default:
-                return false;
-        }
     }
 
     @Override

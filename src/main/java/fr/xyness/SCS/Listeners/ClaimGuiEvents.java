@@ -18,6 +18,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Commands.ClaimCommand;
 import fr.xyness.SCS.Commands.UnclaimCommand;
+import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Guis.ChunkConfirmationGui;
 import fr.xyness.SCS.Guis.ClaimBansGui;
 import fr.xyness.SCS.Guis.ClaimChunksGui;
@@ -40,6 +41,8 @@ import fr.xyness.SCS.Guis.AdminGestion.AdminGestionClaimsProtectedAreasGui;
 import fr.xyness.SCS.Guis.AdminGestion.AdminGestionMainGui;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
+import fr.xyness.SCS.Types.GuiSettings;
+import fr.xyness.SCS.Types.GuiSlot;
 
 /**
  * Event listener for claim guis events.
@@ -251,26 +254,34 @@ public class ClaimGuiEvents implements Listener {
         ItemStack clickedItem = event.getCurrentItem();
         if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
         int clickedSlot = event.getSlot();
-        if(ClaimConfirmationGui.confirm_int.contains(clickedSlot)) {
-        	player.closeInventory();
-        	int radius = ClaimCommand.isOnCreate.get(player);
-        	if(radius == 0) {
-        		Bukkit.dispatchCommand(player, "claim");
-        	} else {
-        		Bukkit.dispatchCommand(player, "claim "+String.valueOf(radius));
-        	}
-        	return;
-        }
-        if(ClaimConfirmationGui.cancel_int.contains(clickedSlot)) {
-        	player.closeInventory();
-        	ClaimCommand.isOnCreate.remove(player);
-        	return;
+        GuiSlot guiSlot = instance.getGuis().getGuiSlotByClickedSlot("claim_confirmation", clickedSlot);
+        if(guiSlot != null) {
+            if(guiSlot.getKey().startsWith("confirm-")) {
+            	player.closeInventory();
+            	int radius = ClaimCommand.isOnCreate.get(player);
+            	if(radius == 0) {
+            		Bukkit.dispatchCommand(player, "claim");
+            	} else {
+            		Bukkit.dispatchCommand(player, "claim "+String.valueOf(radius));
+            	}
+            	return;
+            }
+            if(guiSlot.getKey().startsWith("cancel-")) {
+            	player.closeInventory();
+            	ClaimCommand.isOnCreate.remove(player);
+            	return;
+            }
+            String action = guiSlot.getAction();
+            if(action != null && !action.isBlank()) {
+            	instance.getGuis().executeAction(player, guiSlot, event.getClick());
+            }
         }
         return;
     }
     
 	/**
-     * Handles claim confirmation GUI click events.
+     * Handles unclaim confirmation GUI click events.
+     * 
      * @param event the inventory click event.
      * @param player the player clicking in the inventory.
      * @param cPlayer the CPlayer object for the player.
@@ -280,16 +291,23 @@ public class ClaimGuiEvents implements Listener {
         ItemStack clickedItem = event.getCurrentItem();
         if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
         int clickedSlot = event.getSlot();
-        if(UnclaimConfirmationGui.confirm_int.contains(clickedSlot)) {
-        	player.closeInventory();
-        	String claimName = UnclaimCommand.isOnDelete.get(player);
-        	Bukkit.dispatchCommand(player, "unclaim "+claimName);
-        	return;
-        }
-        if(ClaimConfirmationGui.cancel_int.contains(clickedSlot)) {
-        	player.closeInventory();
-        	UnclaimCommand.isOnDelete.remove(player);
-        	return;
+        GuiSlot guiSlot = instance.getGuis().getGuiSlotByClickedSlot("unclaim_confirmation", clickedSlot);
+        if(guiSlot != null) {
+            if(guiSlot.getKey().startsWith("confirm-")) {
+            	player.closeInventory();
+            	String claimName = UnclaimCommand.isOnDelete.get(player);
+            	Bukkit.dispatchCommand(player, "unclaim "+claimName);
+            	return;
+            }
+            if(guiSlot.getKey().startsWith("cancel-")) {
+            	player.closeInventory();
+            	UnclaimCommand.isOnDelete.remove(player);
+            	return;
+            }
+            String action = guiSlot.getAction();
+            if(action != null && !action.isBlank()) {
+            	instance.getGuis().executeAction(player, guiSlot, event.getClick());
+            }
         }
         return;
     }
@@ -305,16 +323,23 @@ public class ClaimGuiEvents implements Listener {
         ItemStack clickedItem = event.getCurrentItem();
         if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
         int clickedSlot = event.getSlot();
-        if(ChunkConfirmationGui.confirm_int.contains(clickedSlot)) {
-        	player.closeInventory();
-        	String claimName = ClaimCommand.isOnAdd.get(player);
-        	Bukkit.dispatchCommand(player, "claim addchunk "+claimName);
-        	return;
-        }
-        if(ChunkConfirmationGui.cancel_int.contains(clickedSlot)) {
-        	player.closeInventory();
-        	ClaimCommand.isOnAdd.remove(player);
-        	return;
+        GuiSlot guiSlot = instance.getGuis().getGuiSlotByClickedSlot("chunk_confirmation", clickedSlot);
+        if(guiSlot != null) {
+            if(guiSlot.getKey().startsWith("confirm-")) {
+            	player.closeInventory();
+            	String claimName = ClaimCommand.isOnAdd.get(player);
+            	Bukkit.dispatchCommand(player, "claim addchunk "+claimName);
+            	return;
+            }
+            if(guiSlot.getKey().startsWith("cancel-")) {
+            	player.closeInventory();
+            	ClaimCommand.isOnAdd.remove(player);
+            	return;
+            }
+            String action = guiSlot.getAction();
+            if(action != null && !action.isBlank()) {
+            	instance.getGuis().executeAction(player, guiSlot, event.getClick());
+            }
         }
         return;
     }
@@ -334,47 +359,52 @@ public class ClaimGuiEvents implements Listener {
         Claim claim = cPlayer.getClaim();
         if(claim == null) return;
         
-        switch(clickedSlot) {
-        	case 13:
-            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.list")) return;
-            	cPlayer.setGuiPage(1);
-            	new ClaimListGui(player,1,"owner",instance);
-            	break;
-        	case 20:
-            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.bans")) return;
-            	cPlayer.setGuiPage(1);
-            	new ClaimBansGui(player,claim,1,instance);
-            	break;
-        	case 29:
-            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.settings")) return;
-            	new ClaimSettingsGui(player,claim,instance,"visitors");
-            	break;
-        	case 30:
-            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.members")) return;
-            	cPlayer.setGuiPage(1);
-            	new ClaimMembersGui(player,claim,1,instance);
-            	break;
-        	case 32:
-            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.chunks")) return;
-            	cPlayer.setGuiPage(1);
-            	new ClaimChunksGui(player,claim,1,instance);
-            	break;
-        	case 33:
-            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) return;
-            	player.closeInventory();
-            	instance.getMain().goClaim(player, claim.getLocation());
-            	break;
-        	case 24:
-            	if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.unclaim")) return;
-            	player.closeInventory();
-            	Bukkit.dispatchCommand(player, "unclaim "+claim.getName());
-            	break;
+        GuiSlot guiSlot = instance.getGuis().getGuiSlotByClickedSlot("main", clickedSlot);
+        if(guiSlot != null) {
+        	String key = guiSlot.getKey();
+        	switch(key) {
+        		case "Settings":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.settings")) return;
+        			new ClaimSettingsGui(player,claim,instance,"visitors");
+        			return;
+        		case "Members":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.members")) return;
+        			new ClaimMembersGui(player,claim,1,instance);
+        			return;
+        		case "Bans":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.bans")) return;
+        			new ClaimBansGui(player,claim,1,instance);
+        			return;
+        		case "Chunks":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.chunks")) return;
+        			new ClaimChunksGui(player,claim,1,instance);
+        			return;
+        		case "Teleport":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) return;
+                	player.closeInventory();
+                	instance.getMain().goClaim(player, claim.getLocation());
+        			return;
+        		case "List":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.list")) return;
+        			new ClaimListGui(player,1,"owner", instance);
+        			return;
+        		case "Unclaim":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.unclaim")) return;
+                	player.closeInventory();
+                	Bukkit.dispatchCommand(player, "unclaim "+claim.getName());
+        			return;
+        	}
+            String action = guiSlot.getAction();
+            if(action != null && !action.isBlank()) {
+            	instance.getGuis().executeAction(player, guiSlot, event.getClick());
+            }
         }
         return;
     }
     
 	/**
      * Handles claim GUI click events.
+     * 
      * @param event the inventory click event.
      * @param player the player clicking in the inventory.
      * @param cPlayer the CPlayer object for the player.
@@ -389,40 +419,72 @@ public class ClaimGuiEvents implements Listener {
         String role = cPlayer.getFilter();
         if(claim == null || role == null) return;
         
-        if(clickedSlot == 50) {
-        	instance.getMain().applyAllSettings(claim)
-        		.thenAccept(success -> {
-        			if (success) {
-        				instance.executeEntitySync(player, () -> {
-            				player.closeInventory();
-            				player.sendMessage(instance.getLanguage().getMessage("apply-all-settings-success"));
-        				});
-        			} else {
-        				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
-        			}
-        		})
-                .exceptionally(ex -> {
-                    ex.printStackTrace();
-                    return null;
-                });
-        	return;
-        }
-        
-        if(clickedSlot == 49) {
-        	new ClaimMainGui(player,claim,instance);
-        	return;
-        }
-        
-        if (clickedSlot == 48) {
-        	if(role.equals("visitors")) {
-        		role = "members";
-        	} else if (role.equals("members")) {
-        		role = "natural";
-        	} else {
-        		role = "visitors";
+        GuiSlot guiSlot = instance.getGuis().getGuiSlotByClickedSlot("settings", clickedSlot);
+        if(guiSlot != null) {
+        	String key = guiSlot.getKey();
+        	switch(key) {
+        		case "Filter":
+                	if(role.equals("visitors")) {
+                		role = "members";
+                	} else if (role.equals("members")) {
+                		role = "natural";
+                	} else {
+                		role = "visitors";
+                	}
+                    new ClaimSettingsGui(player,claim,instance,role);
+                    return;
+        		case "Apply":
+                	instance.getMain().applyAllSettings(claim)
+            		.thenAccept(success -> {
+            			if (success) {
+            				instance.executeEntitySync(player, () -> {
+                				player.closeInventory();
+                				player.sendMessage(instance.getLanguage().getMessage("apply-all-settings-success"));
+            				});
+            			} else {
+            				instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+            			}
+            		})
+                    .exceptionally(ex -> {
+                        ex.printStackTrace();
+                        return null;
+                    });
+                	return;
+        		case "Main":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.main")) return;
+        			new ClaimMainGui(player,claim,instance);
+        			return;
+        		case "Members":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.members")) return;
+        			new ClaimMembersGui(player,claim,1,instance);
+        			return;
+        		case "Bans":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.bans")) return;
+        			new ClaimBansGui(player,claim,1,instance);
+        			return;
+        		case "Chunks":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.chunks")) return;
+        			new ClaimChunksGui(player,claim,1,instance);
+        			return;
+        		case "Teleport":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) return;
+                	player.closeInventory();
+                	instance.getMain().goClaim(player, claim.getLocation());
+        			return;
+        		case "List":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.list")) return;
+        			new ClaimListGui(player,1,"owner", instance);
+        			return;
+        		case "Unclaim":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.unclaim")) return;
+                	player.closeInventory();
+                	Bukkit.dispatchCommand(player, "unclaim "+claim.getName());
+        			return;
         	}
-            new ClaimSettingsGui(player,claim,instance,role);
-            return;
+            String action = guiSlot.getAction();
+            if(action != null && !action.isBlank()) {
+            	instance.getGuis().executeAction(player, guiSlot, event.getClick());
+            }
         }
         
         if(instance.getGuis().isAllowedSlot(clickedSlot,role)) {
@@ -490,26 +552,59 @@ public class ClaimGuiEvents implements Listener {
         Claim claim = cPlayer.getClaim();
         if(claim == null) return;
         
-        if (clickedSlot == 48) {
-        	int page = cPlayer.getGuiPage();
-        	cPlayer.setGuiPage(page-1);
-            new ClaimMembersGui(player,claim,page-1,instance);
-            return;
+        GuiSettings guiSettings = ClaimGuis.gui_settings.get("members");
+        GuiSlot guiSlot = instance.getGuis().getGuiSlotByClickedSlot("members", clickedSlot);
+        if(guiSlot != null) {
+        	String key = guiSlot.getKey();
+        	switch(key) {
+        		case "Main":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.main")) return;
+        			new ClaimMainGui(player,claim,instance);
+        			return;
+        		case "Settings":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.settings")) return;
+        			new ClaimSettingsGui(player,claim,instance,"visitors");
+        			return;
+        		case "Bans":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.bans")) return;
+        			new ClaimBansGui(player,claim,1,instance);
+        			return;
+        		case "Chunks":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.chunks")) return;
+        			new ClaimChunksGui(player,claim,1,instance);
+        			return;
+        		case "Teleport":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) return;
+                	player.closeInventory();
+                	instance.getMain().goClaim(player, claim.getLocation());
+        			return;
+        		case "List":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.list")) return;
+        			new ClaimListGui(player,1,"owner", instance);
+        			return;
+        		case "Unclaim":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.unclaim")) return;
+                	player.closeInventory();
+                	Bukkit.dispatchCommand(player, "unclaim "+claim.getName());
+        			return;
+        		case "BackPage":
+                	int page = cPlayer.getGuiPage();
+                	cPlayer.setGuiPage(page-1);
+                    new ClaimMembersGui(player,claim,page-1,instance);
+                    return;
+        		case "NextPage":
+                	page = cPlayer.getGuiPage()+1;
+                	cPlayer.setGuiPage(page);
+                    new ClaimMembersGui(player,claim,page,instance);
+                    return;
+        	}
+            String action = guiSlot.getAction();
+            if(action != null && !action.isBlank()) {
+            	instance.getGuis().executeAction(player, guiSlot, event.getClick());
+            }
         }
         
-        if (clickedSlot == 49) {
-            new ClaimMainGui(player,claim,instance);
-            return;
-        }
-        
-        if (clickedSlot == 50) {
-        	int page = cPlayer.getGuiPage()+1;
-        	cPlayer.setGuiPage(page);
-            new ClaimMembersGui(player,claim,page,instance);
-            return;
-        }
-        
-        if(clickedSlot >= 0 && clickedSlot <= 44) {
+        if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
         	String targetName = cPlayer.getMapString(clickedSlot);
         	String owner_claim = claim.getOwner();
         	String playerName = player.getName();
@@ -554,26 +649,59 @@ public class ClaimGuiEvents implements Listener {
         Claim claim = cPlayer.getClaim();
         if(claim == null) return;
         
-        if (clickedSlot == 48) {
-        	int page = cPlayer.getGuiPage();
-        	cPlayer.setGuiPage(page-1);
-            new ClaimChunksGui(player,claim,page-1,instance);
-            return;
+        GuiSettings guiSettings = ClaimGuis.gui_settings.get("chunks");
+        GuiSlot guiSlot = instance.getGuis().getGuiSlotByClickedSlot("chunks", clickedSlot);
+        if(guiSlot != null) {
+        	String key = guiSlot.getKey();
+        	switch(key) {
+        		case "Main":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.main")) return;
+        			new ClaimMainGui(player,claim,instance);
+        			return;
+        		case "Settings":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.settings")) return;
+        			new ClaimSettingsGui(player,claim,instance,"visitors");
+        			return;
+        		case "Bans":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.bans")) return;
+        			new ClaimBansGui(player,claim,1,instance);
+        			return;
+        		case "Members":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.members")) return;
+        			new ClaimMembersGui(player,claim,1,instance);
+        			return;
+        		case "Teleport":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) return;
+                	player.closeInventory();
+                	instance.getMain().goClaim(player, claim.getLocation());
+        			return;
+        		case "List":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.list")) return;
+        			new ClaimListGui(player,1,"owner", instance);
+        			return;
+        		case "Unclaim":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.unclaim")) return;
+                	player.closeInventory();
+                	Bukkit.dispatchCommand(player, "unclaim "+claim.getName());
+        			return;
+        		case "BackPage":
+                	int page = cPlayer.getGuiPage();
+                	cPlayer.setGuiPage(page-1);
+                    new ClaimChunksGui(player,claim,page-1,instance);
+                    return;
+        		case "NextPage":
+                	page = cPlayer.getGuiPage()+1;
+                	cPlayer.setGuiPage(page);
+                    new ClaimChunksGui(player,claim,page,instance);
+                    return;
+        	}
+            String action = guiSlot.getAction();
+            if(action != null && !action.isBlank()) {
+            	instance.getGuis().executeAction(player, guiSlot, event.getClick());
+            }
         }
         
-        if (clickedSlot == 49) {
-            new ClaimMainGui(player,claim,instance);
-            return;
-        }
-        
-        if (clickedSlot == 50) {
-        	int page = cPlayer.getGuiPage()+1;
-        	cPlayer.setGuiPage(page);
-            new ClaimChunksGui(player,claim,page,instance);
-            return;
-        }
-        
-        if(clickedSlot >= 0 && clickedSlot <= 44) {
+        if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
         	String chunk = cPlayer.getMapString(clickedSlot);
         	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.delchunk")) return;
         	if (claim.getChunks().size() == 1) return;
@@ -611,26 +739,59 @@ public class ClaimGuiEvents implements Listener {
         Claim claim = cPlayer.getClaim();
         if(claim == null) return;
         
-        if (clickedSlot == 48) {
-        	int page = cPlayer.getGuiPage();
-        	cPlayer.setGuiPage(page-1);
-            new ClaimBansGui(player,claim,page-1,instance);
-            return;
+        GuiSettings guiSettings = ClaimGuis.gui_settings.get("bans");
+        GuiSlot guiSlot = instance.getGuis().getGuiSlotByClickedSlot("bans", clickedSlot);
+        if(guiSlot != null) {
+        	String key = guiSlot.getKey();
+        	switch(key) {
+        		case "Main":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.main")) return;
+        			new ClaimMainGui(player,claim,instance);
+        			return;
+        		case "Settings":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.settings")) return;
+        			new ClaimSettingsGui(player,claim,instance,"visitors");
+        			return;
+        		case "Members":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.members")) return;
+        			new ClaimMembersGui(player,claim,1,instance);
+        			return;
+        		case "Chunks":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.chunks")) return;
+        			new ClaimChunksGui(player,claim,1,instance);
+        			return;
+        		case "Teleport":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) return;
+                	player.closeInventory();
+                	instance.getMain().goClaim(player, claim.getLocation());
+        			return;
+        		case "List":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.list")) return;
+        			new ClaimListGui(player,1,"owner", instance);
+        			return;
+        		case "Unclaim":
+        			if(!instance.getPlayerMain().checkPermPlayer(player, "scs.command.unclaim")) return;
+                	player.closeInventory();
+                	Bukkit.dispatchCommand(player, "unclaim "+claim.getName());
+        			return;
+        		case "BackPage":
+                	int page = cPlayer.getGuiPage();
+                	cPlayer.setGuiPage(page-1);
+                    new ClaimBansGui(player,claim,page-1,instance);
+                    return;
+        		case "NextPage":
+                	page = cPlayer.getGuiPage()+1;
+                	cPlayer.setGuiPage(page);
+                    new ClaimBansGui(player,claim,page,instance);
+                    return;
+        	}
+            String action = guiSlot.getAction();
+            if(action != null && !action.isBlank()) {
+            	instance.getGuis().executeAction(player, guiSlot, event.getClick());
+            }
         }
         
-        if (clickedSlot == 49) {
-            new ClaimMainGui(player,claim,instance);
-            return;
-        }
-        
-        if (clickedSlot == 50) {
-        	int page = cPlayer.getGuiPage()+1;
-        	cPlayer.setGuiPage(page);
-            new ClaimBansGui(player,claim,page,instance);
-            return;
-        }
-        
-        if(clickedSlot >= 0 && clickedSlot <= 44) {
+        if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
         	String targetName = cPlayer.getMapString(clickedSlot);
         	String playerName = player.getName();
         	if(targetName.equals(playerName)) return;
@@ -671,43 +832,39 @@ public class ClaimGuiEvents implements Listener {
         if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
         int clickedSlot = event.getSlot();
         
-        if (clickedSlot == 48) {
-        	int page = cPlayer.getGuiPage()-1;
-        	cPlayer.setGuiPage(page);
-            new ClaimListGui(player,page,cPlayer.getFilter(),instance);
-            return;
-        }
-        
-        if (clickedSlot == 49) {
-    		if(!instance.getMain().checkIfClaimExists(cPlayer.getClaim())) {
-    			player.sendMessage(instance.getLanguage().getMessage("the-claim-does-not-exists-anymore"));
-    			player.closeInventory();
-    			return;
-    		}
-    		new ClaimMainGui(player,cPlayer.getClaim(),instance);
-    		return;
-        }
-        
-        if (clickedSlot == 53) {
-        	cPlayer.setGuiPage(1);
-        	String filter = cPlayer.getFilter();
-        	if(filter.equals("owner")) {
-        		filter = "not_owner";
-        	} else {
-        		filter = "owner";
+        GuiSettings guiSettings = ClaimGuis.gui_settings.get("list");
+        GuiSlot guiSlot = instance.getGuis().getGuiSlotByClickedSlot("list", clickedSlot);
+        if(guiSlot != null) {
+        	String key = guiSlot.getKey();
+        	switch(key) {
+	        	case "Filter":
+	            	cPlayer.setGuiPage(1);
+	            	String filter = cPlayer.getFilter();
+	            	if(filter.equals("owner")) {
+	            		filter = "not_owner";
+	            	} else {
+	            		filter = "owner";
+	            	}
+	                new ClaimListGui(player,1,filter,instance);
+	                return;
+        		case "BackPage":
+                	int page = cPlayer.getGuiPage()-1;
+                	cPlayer.setGuiPage(page);
+                    new ClaimListGui(player,page,cPlayer.getFilter(),instance);
+                    return;
+        		case "NextPage":
+                	page = cPlayer.getGuiPage()+1;
+                	cPlayer.setGuiPage(page);
+                    new ClaimListGui(player,page,cPlayer.getFilter(),instance);
+                    return;
         	}
-            new ClaimListGui(player,1,filter,instance);
-            return;
+            String action = guiSlot.getAction();
+            if(action != null && !action.isBlank()) {
+            	instance.getGuis().executeAction(player, guiSlot, event.getClick());
+            }
         }
         
-        if (clickedSlot == 50) {
-        	int page = cPlayer.getGuiPage()+1;
-        	cPlayer.setGuiPage(page);
-            new ClaimListGui(player,page,cPlayer.getFilter(),instance);
-            return;
-        }
-        
-        if(clickedSlot >= 0 && clickedSlot <= 44) {
+        if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
             if(event.getClick() == ClickType.LEFT) {
             	if(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) {
             		Claim claim = cPlayer.getMapClaim(clickedSlot);
@@ -760,37 +917,43 @@ public class ClaimGuiEvents implements Listener {
         if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
         int clickedSlot = event.getSlot();
         
-        if (clickedSlot == 48) {
-        	int page = cPlayer.getGuiPage()-1;
-        	cPlayer.setGuiPage(page);
-            new ClaimsGui(player,page,cPlayer.getFilter(),instance);
-            return;
-        }
-        
-        if (clickedSlot == 50) {
-        	int page = cPlayer.getGuiPage()+1;
-        	cPlayer.setGuiPage(page);
-            new ClaimsGui(player,page,cPlayer.getFilter(),instance);
-            return;
-        }
-        
-        if (clickedSlot == 49) {
-        	cPlayer.setGuiPage(1);
-        	String filter = cPlayer.getFilter();
-        	if(filter.equals("all")) {
-        		filter = "sales";
-        	} else if (filter.equals("sales")) {
-        		filter = "online";
-        	} else if (filter.equals("online")) {
-        		filter = "offline";
-        	} else {
-        		filter = "all";
+        GuiSettings guiSettings = ClaimGuis.gui_settings.get("claims");
+        GuiSlot guiSlot = instance.getGuis().getGuiSlotByClickedSlot("claims", clickedSlot);
+        if(guiSlot != null) {
+        	String key = guiSlot.getKey();
+        	switch(key) {
+	        	case "Filter":
+	            	cPlayer.setGuiPage(1);
+	            	String filter = cPlayer.getFilter();
+	            	if(filter.equals("all")) {
+	            		filter = "sales";
+	            	} else if (filter.equals("sales")) {
+	            		filter = "online";
+	            	} else if (filter.equals("online")) {
+	            		filter = "offline";
+	            	} else {
+	            		filter = "all";
+	            	}
+	                new ClaimsGui(player,1,filter,instance);
+	                return;
+        		case "BackPage":
+                	int page = cPlayer.getGuiPage()-1;
+                	cPlayer.setGuiPage(page);
+                    new ClaimsGui(player,page,cPlayer.getFilter(),instance);
+                    return;
+        		case "NextPage":
+                	page = cPlayer.getGuiPage()+1;
+                	cPlayer.setGuiPage(page);
+                    new ClaimsGui(player,page,cPlayer.getFilter(),instance);
+                    return;
         	}
-            new ClaimsGui(player,1,filter,instance);
-            return;
+            String action = guiSlot.getAction();
+            if(action != null && !action.isBlank()) {
+            	instance.getGuis().executeAction(player, guiSlot, event.getClick());
+            }
         }
         
-        if(clickedSlot >= 0 && clickedSlot <= 44) {
+        if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
         	String filter = cPlayer.getFilter();
         	cPlayer.setGuiPage(1);
         	if(filter.equals("sales")) {
@@ -815,37 +978,44 @@ public class ClaimGuiEvents implements Listener {
         if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
         int clickedSlot = event.getSlot();
         
-        if (clickedSlot == 48) {
-        	if(cPlayer.getGuiPage() == 1) {
-        		new ClaimsGui(player,1,"all",instance);
-        		return;
+        GuiSettings guiSettings = ClaimGuis.gui_settings.get("claims");
+        GuiSlot guiSlot = instance.getGuis().getGuiSlotByClickedSlot("claims", clickedSlot);
+        if(guiSlot != null) {
+        	String key = guiSlot.getKey();
+        	switch(key) {
+	        	case "Filter":
+	            	cPlayer.setGuiPage(1);
+	            	String filter = cPlayer.getFilter();
+	            	if(filter.equals("all")) {
+	            		filter = "sales";
+	            	} else {
+	            		filter = "all";
+	            	}
+	                new ClaimsOwnerGui(player,1,filter,cPlayer.getOwner(),instance);
+	                return;
+	        	case "BackPageOther":
+	            	if(cPlayer.getGuiPage() == 1) {
+	            		new ClaimsGui(player,1,"all",instance);
+	            		return;
+	            	}
+        		case "BackPage":
+                	int page = cPlayer.getGuiPage()-1;
+                	cPlayer.setGuiPage(page);
+                    new ClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner(),instance);
+                    return;
+        		case "NextPage":
+                	page = cPlayer.getGuiPage()+1;
+                	cPlayer.setGuiPage(page);
+                	new ClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner(),instance);
+                    return;
         	}
-        	int page = cPlayer.getGuiPage()-1;
-        	cPlayer.setGuiPage(page);
-            new ClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner(),instance);
-            return;
+            String action = guiSlot.getAction();
+            if(action != null && !action.isBlank()) {
+            	instance.getGuis().executeAction(player, guiSlot, event.getClick());
+            }
         }
         
-        if (clickedSlot == 50) {
-        	int page = cPlayer.getGuiPage()+1;
-        	cPlayer.setGuiPage(page);
-        	new ClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner(),instance);
-            return;
-        }
-        
-        if (clickedSlot == 49) {
-        	cPlayer.setGuiPage(1);
-        	String filter = cPlayer.getFilter();
-        	if(filter.equals("all")) {
-        		filter = "sales";
-        	} else {
-        		filter = "all";
-        	}
-            new ClaimsOwnerGui(player,1,filter,cPlayer.getOwner(),instance);
-            return;
-        }
-        
-        if(clickedSlot >= 0 && clickedSlot <= 44) {
+        if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
         	Claim claim = cPlayer.getMapClaim(clickedSlot);
         	if(event.getClick() == ClickType.LEFT) {
         		if(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) {
@@ -1162,7 +1332,7 @@ public class ClaimGuiEvents implements Listener {
             return;
         }
         
-        if(instance.getGuis().isAllowedSlot(clickedSlot,role)) {
+        if(instance.getGuis().isAdminAllowedSlot(clickedSlot,role)) {
         	ItemMeta meta = clickedItem.getItemMeta();
             if (meta != null && meta.hasLore()) {
             	String title = meta.getDisplayName();
