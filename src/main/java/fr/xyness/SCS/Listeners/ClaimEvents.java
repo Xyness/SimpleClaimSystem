@@ -187,20 +187,22 @@ public class ClaimEvents implements Listener {
     	WorldMode mode = instance.getSettings().getWorldMode(event.getEntity().getWorld().getName());
         if (event.getEntity() instanceof Firework) {
             Firework firework = (Firework) event.getEntity();
-            Player player = (Player) firework.getShooter();
-            if (player == null) return;
-            if (player.hasPermission("scs.bypass")) return;
-            if (player.isGliding() || player.getTargetBlockExact(5) == null) {
-            	Chunk chunk = player.getLocation().getChunk();
-                Claim claim = instance.getMain().getClaim(chunk);
-                if (claim != null) {
-                    if (!claim.getPermissionForPlayer("Elytra", player)) {
-                    	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra"), instance.getSettings().getSetting("protection-message"));
+            if(firework.getShooter() instanceof Player) {
+                Player player = (Player) firework.getShooter();
+                if (player == null) return;
+                if (player.hasPermission("scs.bypass")) return;
+                if (player.isGliding() || player.getTargetBlockExact(5) == null) {
+                	Chunk chunk = player.getLocation().getChunk();
+                    Claim claim = instance.getMain().getClaim(chunk);
+                    if (claim != null) {
+                        if (!claim.getPermissionForPlayer("Elytra", player)) {
+                        	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra"), instance.getSettings().getSetting("protection-message"));
+                        	event.setCancelled(true);
+                        }
+                    } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Elytra")) {
+                    	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra-mode"), instance.getSettings().getSetting("protection-message"));
                     	event.setCancelled(true);
                     }
-                } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Elytra")) {
-                	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("elytra-mode"), instance.getSettings().getSetting("protection-message"));
-                	event.setCancelled(true);
                 }
             }
         }

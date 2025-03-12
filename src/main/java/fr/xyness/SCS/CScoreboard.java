@@ -1,6 +1,8 @@
 package fr.xyness.SCS;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -98,15 +100,14 @@ public class CScoreboard {
      * @param linesMap The map where keys are scores and values are the new lines to set.
      */
     public void updateLines(Map<Integer, String> linesMap) {
+        Set<String> existingEntries = new HashSet<>(scoreboard.getEntries());
         for (Map.Entry<Integer, String> entry : linesMap.entrySet()) {
             int score = entry.getKey();
             String newLine = entry.getValue();
-            for (String existingEntry : scoreboard.getEntries()) {
-                if (objective.getScore(existingEntry).getScore() == score) {
-                    scoreboard.resetScores(existingEntry);
-                    break;
-                }
-            }
+            existingEntries.stream()
+                .filter(line -> objective.getScore(line).getScore() == score)
+                .findFirst()
+                .ifPresent(scoreboard::resetScores);
             addLine(newLine, score);
         }
     }

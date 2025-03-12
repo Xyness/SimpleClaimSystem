@@ -229,9 +229,9 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("claim-description-too-long"));
                 return;
             }
-            if (!description.matches("^[a-zA-Z0-9]+$")) {
-            	player.sendMessage(instance.getLanguage().getMessage("incorrect-characters-description"));
-            	return;
+            if (!description.matches("^[a-zA-Z0-9\\s]+$")) {
+                player.sendMessage(instance.getLanguage().getMessage("incorrect-characters-description"));
+                return;
             }
             Claim claim = instance.getMain().getClaimByName(args[1], player);
             instance.getMain().setClaimDescription(claim, description)
@@ -303,8 +303,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         				return;
         			}
         			chunks.remove(chunk);
-                    if(!instance.getMain().isAnyChunkAdjacent(chunks, chunk)) {
-                    	player.sendMessage(instance.getLanguage().getMessage("one-chunk-must-be-adjacent-delchunk"));
+                    if(!instance.getMain().areChunksConnected(chunks)) {
+                    	player.sendMessage(instance.getLanguage().getMessage("chunks-are-not-connected-delchunk"));
                     	return;
                     }
         			instance.getMain().removeClaimChunk(claim, chunk)
@@ -328,8 +328,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     				return;
     			}
     			chunks.remove(chunk);
-                if(!instance.getMain().isAnyChunkAdjacent(chunks, chunk)) {
-                	player.sendMessage(instance.getLanguage().getMessage("one-chunk-must-be-adjacent-delchunk"));
+                if(!instance.getMain().areChunksConnected(chunks)) {
+                	player.sendMessage(instance.getLanguage().getMessage("chunks-are-not-connected-delchunk"));
                 	return;
                 }
     			instance.getMain().removeClaimChunk(claim, chunk)
@@ -429,9 +429,9 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 	player.sendMessage(instance.getLanguage().getMessage("you-cannot-use-this-name"));
                     return;
                 }
-                if (!args[2].matches("^[a-zA-Z0-9]+$")) {
-                	player.sendMessage(instance.getLanguage().getMessage("incorrect-characters-name"));
-                	return;
+                if (!args[2].matches("^[a-zA-Z0-9_\\-\\s]+$")) {
+                    player.sendMessage(instance.getLanguage().getMessage("incorrect-characters-name"));
+                    return;
                 }
                 if (instance.getMain().checkName(player.getUniqueId(), args[2])) {
                 	Claim claim = instance.getMain().getClaimByName(args[1], player);
@@ -1375,66 +1375,79 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     return;
                 }
             }
-            if (instance.getSettings().getBooleanSetting("claim-confirmation")) {
-            	if(isOnAdd.containsKey(player)) {
-            		isOnAdd.remove(player);
-            		
-                    // Make the player pay
-                    if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
-                        instance.getVault().removePlayerBalance(playerName, price[0]);
-                        if (price[0] > 0) instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-chunk").replace("%price%", instance.getMain().getPrice(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
-                    }
-                    
-                    // Add the chunk
-                    instance.getMain().addClaimChunk(claim, chunk)
-    	            	.thenAccept(success -> {
-    	            		if (success) {
-    	            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("add-chunk-successful")
-    	            					.replace("%chunk%", "["+chunk.getWorld().getName()+";"+String.valueOf(chunk.getX())+";"+String.valueOf(chunk.getZ())+"]")
-    	            					.replace("%claim-name%", claim.getName())));
-    	            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, new CustomSet<>(claim.getChunks()), true, false);
-    	            			return;
-    	            		} else {
-    	            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
-    	            		}
-    	            	})
-    	                .exceptionally(ex -> {
-    	                    ex.printStackTrace();
-    	                    return null;
-    	                });
-                    
-            	} else {
-            		isOnAdd.put(player,claim.getName());
-                    if(instance.getSettings().getBooleanSetting("floodgate")) {
-                    	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
-                    		new BChunkConfirmationGui(player,instance,price[0]);
-                    		return;
-                    	}
-                    }
-            		new ChunkConfirmationGui(player,instance,price[0]);
-            	}
-            } else {
-            	if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
-                    instance.getVault().removePlayerBalance(playerName, price[0]);
-                    if (price[0] > 0) instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-chunk").replace("%price%", instance.getMain().getPrice(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
-            	}
-                instance.getMain().addClaimChunk(claim, chunk)
-	            	.thenAccept(success -> {
-	            		if (success) {
-	            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("add-chunk-successful")
-	            					.replace("%chunk%", "["+chunk.getWorld().getName()+";"+String.valueOf(chunk.getX())+";"+String.valueOf(chunk.getZ())+"]")
-	            					.replace("%claim-name%", claim.getName())));
-	            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, new CustomSet<>(claim.getChunks()), true, false);
-	            			return;
-	            		} else {
-	            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
-	            		}
-	            	})
-	                .exceptionally(ex -> {
-	                    ex.printStackTrace();
-	                    return null;
-	                });
-            }
+            // Check if there is chunk near
+            instance.getMain().isAreaClaimFree(chunk, cPlayer.getClaimDistance(), playerName)
+            	.thenAccept(successs -> {
+            		if (successs) {
+            			if (instance.getSettings().getBooleanSetting("claim-confirmation")) {
+                        	if(isOnAdd.containsKey(player)) {
+                        		isOnAdd.remove(player);
+                        		
+                                // Make the player pay
+                                if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
+                                    instance.getVault().removePlayerBalance(playerName, price[0]);
+                                    if (price[0] > 0) instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-chunk").replace("%price%", instance.getMain().getPrice(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
+                                }
+                                
+                                // Add the chunk
+                                instance.getMain().addClaimChunk(claim, chunk)
+                	            	.thenAccept(success -> {
+                	            		if (success) {
+                	            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("add-chunk-successful")
+                	            					.replace("%chunk%", "["+chunk.getWorld().getName()+";"+String.valueOf(chunk.getX())+";"+String.valueOf(chunk.getZ())+"]")
+                	            					.replace("%claim-name%", claim.getName())));
+                	            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, new CustomSet<>(claim.getChunks()), true, false);
+                	            			return;
+                	            		} else {
+                	            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+                	            		}
+                	            	})
+                	                .exceptionally(ex -> {
+                	                    ex.printStackTrace();
+                	                    return null;
+                	                });
+                                
+                        	} else {
+                        		isOnAdd.put(player,claim.getName());
+                                if(instance.getSettings().getBooleanSetting("floodgate")) {
+                                	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
+                                		new BChunkConfirmationGui(player,instance,price[0]);
+                                		return;
+                                	}
+                                }
+                        		new ChunkConfirmationGui(player,instance,price[0]);
+                        	}
+                        } else {
+                        	if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
+                                instance.getVault().removePlayerBalance(playerName, price[0]);
+                                if (price[0] > 0) instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-chunk").replace("%price%", instance.getMain().getPrice(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
+                        	}
+                            instance.getMain().addClaimChunk(claim, chunk)
+            	            	.thenAccept(success -> {
+            	            		if (success) {
+            	            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("add-chunk-successful")
+            	            					.replace("%chunk%", "["+chunk.getWorld().getName()+";"+String.valueOf(chunk.getX())+";"+String.valueOf(chunk.getZ())+"]")
+            	            					.replace("%claim-name%", claim.getName())));
+            	            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, new CustomSet<>(claim.getChunks()), true, false);
+            	            			return;
+            	            		} else {
+            	            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+            	            		}
+            	            	})
+            	                .exceptionally(ex -> {
+            	                    ex.printStackTrace();
+            	                    return null;
+            	                });
+                        }
+            		} else {
+            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("cannot-claim-because-claim-near")));
+                    	return;
+            		}
+            	})
+                .exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
             return;
     	}
     	if (args[0].equalsIgnoreCase("kick")) {
@@ -2082,25 +2095,39 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 	player.sendMessage(instance.getLanguage().getMessage("cant-claim-with-so-many-chunks"));
                     return;
                 }
-    			instance.getMain().sellChunk(player, claim)
-    				.thenAccept(success -> {
-    					if (success) {
-    						instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("buy-claim-success").replace("%name%", old_name).replace("%price%", instance.getMain().getPrice(price)).replace("%owner%", old_owner.equalsIgnoreCase("*") ? "protected areas" : old_owner).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
-        	                if(!old_owner.equalsIgnoreCase("*")) {
-            	                Player target = Bukkit.getPlayer(old_owner);
-            	                if(target != null && target.isOnline()) {
-            	                	instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("claim-was-sold").replace("%name%", old_name).replace("%buyer%", playerName).replace("%price%", instance.getMain().getPrice(price)).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
-            	                }
-        	                }
-    					} else {
-    						instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
-    					}
-    				})
+                // Check if there is chunk near
+                instance.getMain().isAreaClaimFree(chunk, cPlayer.getClaimDistance(), playerName)
+                	.thenAccept(successs -> {
+                		if (successs) {
+                			instance.getMain().sellChunk(player, claim)
+	            				.thenAccept(success -> {
+	            					if (success) {
+	            						instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("buy-claim-success").replace("%name%", old_name).replace("%price%", instance.getMain().getPrice(price)).replace("%owner%", old_owner.equalsIgnoreCase("*") ? "protected areas" : old_owner).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
+	                	                if(!old_owner.equalsIgnoreCase("*")) {
+	                    	                Player target = Bukkit.getPlayer(old_owner);
+	                    	                if(target != null && target.isOnline()) {
+	                    	                	instance.executeEntitySync(target, () -> target.sendMessage(instance.getLanguage().getMessage("claim-was-sold").replace("%name%", old_name).replace("%buyer%", playerName).replace("%price%", instance.getMain().getPrice(price)).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
+	                    	                }
+	                	                }
+	            					} else {
+	            						instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+	            					}
+	            				})
+	                            .exceptionally(ex -> {
+	                                ex.printStackTrace();
+	                                return null;
+	                            });
+                			return;
+                		} else {
+                			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("cannot-claim-because-claim-near")));
+                        	return;
+                		}
+                	})
                     .exceptionally(ex -> {
                         ex.printStackTrace();
                         return null;
                     });
-    			return;
+                return;
     		}
     		player.sendMessage(instance.getLanguage().getMessage("claim-is-not-in-sale"));
     		return;

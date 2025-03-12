@@ -1,0 +1,154 @@
+# *************************
+# *  GUI settings : main  *
+# *************************
+
+# ItemsAdder support for material and custom_model_data
+# Make sure the slot is between 0 and (rows-count * 9)
+# Materials : https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+# Don't forget to enable custom_model_data if you're using it
+
+gui-title: "gui-main-title" # in your language file, the key of the message
+rows: 6 # max = 6
+
+items:
+
+  # /!\ DON'T CHANGE NAME OF ITEMS (like "Build" or "Filter"), you can add your customs items if you want to
+
+  # Navigator
+  glass-1:
+    slot: 9
+    material: ORANGE_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-2:
+    slot: 10
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-3:
+    slot: 11
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-4:
+    slot: 12
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-5:
+    slot: 13
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-6:
+    slot: 14
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-7:
+    slot: 15
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-8:
+    slot: 16
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-9:
+    slot: 17
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  Main:
+    slot: 0
+    material: PLAYER_HEAD:90c1823dd9a4f64087be524cc1d2294b76029d0acc2b57e01ce5db67ebc6608c
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "main-title"
+    target-lore: "main-lore"
+  Settings:
+    slot: 1
+    material: PLAYER_HEAD:446d85ce81357789c71499095b69b8b957e24aa9732f55391b5489dcf7b1320c
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "manage-settings-title"
+    target-lore: "manage-settings-lore"
+  Members:
+    slot: 2
+    material: PLAYER_HEAD:90c1823dd9a4f64087be524cc1d2294b76029d0acc2b57e01ce5db67ebc6608c
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "manage-members-title"
+    target-lore: "manage-members-lore"
+  Bans:
+    slot: 3
+    material: PLAYER_HEAD:7c3f4aae7a6804ab77b8fa762c9122f4948e8855ee21d898afecf654d607cc5a
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "manage-bans-title"
+    target-lore: "manage-bans-lore"
+  Chunks:
+    slot: 4
+    material: PLAYER_HEAD:e85dafe68e7e8335578b1f469c587c05f0a8bb131abba79713f4563b5f64d80d
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "manage-chunks-title"
+    target-lore: "manage-chunks-lore"
+  Teleport:
+    slot: 5
+    material: PLAYER_HEAD:4657dc455b1e8146f1d91baeee8528e90b9acbed2ebe287d2a755ef075be6794
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "teleport-claim-title"
+    target-lore: "teleport-claim-lore"
+  Unclaim:
+    slot: 6
+    material: PLAYER_HEAD:409d70de5d9e2539521072616e2deb58376d2bf60b04b633fe5795fda6fa24b
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "unclaim-title"
+    target-lore: "unclaim-lore"
+  List:
+    slot: 8
+    material: PLAYER_HEAD:69a28ba3ba79be1954710d4db2a3fd22773f619f18fecf5982353fb7ac18393a
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "list-title"
+    target-lore: "list-lore"
+
+  # Settings
+  Info:
+    slot: 31
+    material: PAPER
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "claim-info-title-main"
+    target-lore: "claim-info-lore-main"

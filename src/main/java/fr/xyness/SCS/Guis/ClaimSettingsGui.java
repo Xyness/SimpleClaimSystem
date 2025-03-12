@@ -9,13 +9,14 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
+import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
+import fr.xyness.SCS.Types.GuiSettings;
+import fr.xyness.SCS.Types.GuiSlot;
 
 /**
  * Class representing the Claim GUI.
@@ -69,12 +70,13 @@ public class ClaimSettingsGui implements InventoryHolder {
     	}
     	
     	// Get title
-    	String title = instance.getLanguage().getMessage("gui-settings-new-title")
+    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("settings");
+    	String title = guiSettings.getTitle()
     			.replace("%name%", claim.getName())
-    			.replace("%role%", role_displayed);
+    			.replace("%role%", role_displayed);;
     	
     	// Create the inventory
-        inv = Bukkit.createInventory(this, 54, title);
+        inv = Bukkit.createInventory(this, guiSettings.getRows()*9, title);
         
         // Load the items asynchronously
         loadItems(claim, role).thenAccept(success -> {
@@ -120,67 +122,48 @@ public class ClaimSettingsGui implements InventoryHolder {
 	        String default_choix_disabled = instance.getLanguage().getMessage("choice-disabled");
 	        String default_choix_enabled = instance.getLanguage().getMessage("choice-enabled");
 	        
-	        // Set role item
-	        inv.setItem(48, role(role));
-	
-	        // Set settings items
-	        for (String key : instance.getGuis().getPerms(role)) {
-	        	
-	        	// Get lower name
-	            String lower_name = key.toLowerCase();
-	            
-	            // Get lore of setting
-	            List<String> lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessage(lower_name + "-lore")));
-	            
-	            // Check setting status
-	            boolean permission = claim.getPermission(key,role);
-	            
-	            // Set status and choice message depending on permission variable
-	            String statut = permission ? default_statut_enabled : default_statut_disabled;
-	            String choix = permission ? default_choix_enabled : default_choix_disabled;
-	            
-	            // Add the click button depending on permission of player
-	            lore.add(instance.getSettings().isEnabled(key) ? checkPermPerm(player,key) ? choix : instance.getLanguage().getMessage("gui-button-no-permission")+instance.getLanguage().getMessage("to-use-setting") : instance.getLanguage().getMessage("choice-setting-disabled"));
-	
-	            // Set the item
-	            inv.setItem(getSlotByKey(key), instance.getGuis().createItem(
-	                    getMaterialByKey(key),
-	                    instance.getLanguage().getMessage(lower_name + "-title").replace("%status%", statut),
-	                    lore));
-	        }
-	        
-	        // Back main page
-	        inv.setItem(49, backPageMain(claim));
-	        
-	        // Apply all settings
-	        List<String> lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessage("apply-all-claims-lore")));
-	        inv.setItem(50, instance.getGuis().createItem(
-	                Material.GREEN_CONCRETE,
-	                instance.getLanguage().getMessage("apply-all-claims-title"),lore));
+	        // Items
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("settings"));
+    		for(GuiSlot slot : slots) {
+    			int slot_int = slot.getSlot();
+    			String key = slot.getKey();
+    			String title = slot.getTitle();
+    			String lore_string = slot.getLore();
+    			List<String> lore = instance.getGuis().getLore(lore_string);
+    			if(instance.getGuis().isAPerm(key)) {
+    				if(!instance.getGuis().isAPerm(key, role)) {
+    					continue;
+    				}
+    	            boolean permission = claim.getPermission(key,role);
+    	            String statut = permission ? default_statut_enabled : default_statut_disabled;
+    	            String choix = permission ? default_choix_enabled : default_choix_disabled;
+    	            lore.add(instance.getSettings().isEnabled(key) ? checkPermPerm(player,key) ? choix : instance.getLanguage().getMessage("gui-button-no-permission")+instance.getLanguage().getMessage("to-use-setting") : instance.getLanguage().getMessage("choice-setting-disabled"));
+    	            title = title.replace("%status%", statut);
+    			} else if (key.equals("Filter")) {
+    	            String loreFilter = instance.getLanguage().getMessage("role-lore")
+    	                    .replaceAll("%status_color_" + getStatusIndex(role) + "%", instance.getLanguage().getMessage("status_color_active_filter"))
+    	                    .replaceAll("%status_color_[^" + getStatusIndex(role) + "]%", instance.getLanguage().getMessage("status_color_inactive_filter"));
+    	            lore = instance.getGuis().getLore(loreFilter);
+    			}
+    			if(title.isBlank()) title = null;
+    			if(lore.isEmpty()) lore = null;
+    			if(slot.isCustomModel()) {
+    				CustomStack customItem = CustomStack.getInstance(slot.getCustomModelData());
+    				if(customItem != null) {
+    					Material mat = customItem.getItemStack().getType();
+    					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
+    				}
+    			} else if (slot.isCustomHead()) {
+    				inv.setItem(slot_int, instance.getPlayerMain().createPlayerHeadWithTexture(slot.getCustomTextures(), title, lore));
+    			} else {
+					Material mat = slot.getMaterial();
+					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
+    			}
+    		}
 	        return true;
 	        
     	});
 	        
-    }
-    
-    /**
-     * Gets the slot number associated with the given key.
-     *
-     * @param key The key to lookup.
-     * @return The slot number associated with the key, or -1 if the key is not found.
-     */
-    public static int getSlotByKey(String key) {
-        return ClaimGuis.keyToSlotMap.getOrDefault(key, -1);
-    }
-
-    /**
-     * Gets the material associated with the given key.
-     *
-     * @param key The key to lookup.
-     * @return The material associated with the key, or null if the key is not found.
-     */
-    public static Material getMaterialByKey(String key) {
-        return ClaimGuis.keyToMaterialMap.getOrDefault(key, null);
     }
     
     /**
@@ -192,47 +175,6 @@ public class ClaimSettingsGui implements InventoryHolder {
      */
     public boolean checkPermPerm(Player player, String perm) {
     	return instance.getPlayerMain().checkPermPlayer(player, "scs.setting."+perm) || player.hasPermission("scs.setting.*");
-    }
-    
-    /**
-     * Creates the back page main item.
-     * 
-     * @param claim The target claim
-     * @return The back page main item.
-     */
-    private ItemStack backPageMain(Claim claim) {
-        ItemStack item = new ItemStack(Material.DARK_OAK_DOOR);
-        ItemMeta meta = item.getItemMeta();
-
-        if (meta != null) {
-            meta.setDisplayName(instance.getLanguage().getMessage("back-page-main-title"));
-            meta.setLore(instance.getGuis().getLore(instance.getLanguage().getMessage("back-page-main-lore").replace("%claim-name%", claim.getName())));
-            meta = instance.getGuis().setItemFlag(meta);
-            item.setItemMeta(meta);
-        }
-
-        return item;
-    }
-    
-    /**
-     * Create a role item.
-     * 
-     * @param role The current role.
-     * @return The created ItemStack.
-     */
-    private ItemStack role(String role) {
-        ItemStack item = new ItemStack(Material.END_CRYSTAL);
-        ItemMeta meta = item.getItemMeta();
-        if (meta != null) {
-            String loreFilter = instance.getLanguage().getMessage("role-lore")
-                    .replaceAll("%status_color_" + getStatusIndex(role) + "%", instance.getLanguage().getMessage("status_color_active_filter"))
-                    .replaceAll("%status_color_[^" + getStatusIndex(role) + "]%", instance.getLanguage().getMessage("status_color_inactive_filter"));
-            meta.setDisplayName(instance.getLanguage().getMessage("role-title"));
-            meta.setLore(instance.getGuis().getLore(loreFilter));
-            meta = instance.getGuis().setItemFlag(meta);
-            item.setItemMeta(meta);
-        }
-        return item;
     }
     
     /**
@@ -255,15 +197,6 @@ public class ClaimSettingsGui implements InventoryHolder {
     @Override
     public Inventory getInventory() {
         return inv;
-    }
-
-    /**
-     * Opens the inventory for the player.
-     *
-     * @param player The player for whom the inventory is opened.
-     */
-    public void openInventory(Player player) {
-        player.openInventory(inv);
     }
 
 }

@@ -1,0 +1,121 @@
+# *************************
+# *  GUI settings : list  *
+# *************************
+
+# ItemsAdder support for material and custom_model_data
+# Make sure the slot is between 0 and (rows-count * 9)
+# Materials : https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
+# Don't forget to enable custom_model_data if you're using it
+
+gui-title: "gui-list-title" # in your language file, the key of the message
+rows: 6 # max = 6
+list-start-slot: 18
+list-end-slot: 53
+
+items:
+
+  # /!\ DON'T CHANGE NAME OF ITEMS (like "BackPage" or "NextPage"), you can add your customs items if you want to
+  
+  # Navigator
+  glass-1:
+    slot: 9
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-2:
+    slot: 10
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-3:
+    slot: 11
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-4:
+    slot: 12
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-5:
+    slot: 13
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-6:
+    slot: 14
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-7:
+    slot: 15
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-8:
+    slot: 16
+    material: GRAY_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  glass-9:
+    slot: 17
+    material: ORANGE_STAINED_GLASS_PANE
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "empty-glass"
+    target-lore: ""
+    action: ""
+  List:
+    slot: 8
+    material: PLAYER_HEAD:69a28ba3ba79be1954710d4db2a3fd22773f619f18fecf5982353fb7ac18393a
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "list-title"
+    target-lore: "list-lore"
+  
+  # Other items
+  BackPage:
+    slot: 3
+    material: ARROW
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "previous-page-title"
+    target-lore: "previous-page-lore"
+  NextPage:
+    slot: 5
+    material: ARROW
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "next-page-title"
+    target-lore: "next-page-lore"
+  Filter:
+    slot: 0
+    material: END_CRYSTAL
+    custom_model_data: false
+    custom_model_data_value: 0
+    target-title: "filter-title"
+    target-lore: "filter-list-lore"

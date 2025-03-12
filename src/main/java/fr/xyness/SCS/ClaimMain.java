@@ -21,12 +21,11 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import org.bukkit.*;
-import org.bukkit.block.Block;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.Vehicle;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -39,8 +38,11 @@ import fr.xyness.SCS.API.Listeners.UnclaimallEvent;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 import fr.xyness.SCS.Types.CustomSet;
+
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
+
 import me.ryanhamshire.GriefPrevention.GriefPrevention;
+
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
@@ -784,6 +786,47 @@ public class ClaimMain {
 
         return false;
     }
+    
+    /**
+     * Checks if all chunks in a set are adjacent (connected).
+     * 
+     * @param chunks The set of chunks to check.
+     * @return true if all chunks are connected, false otherwise.
+     */
+    public boolean areChunksConnected(Set<Chunk> chunks) {
+        if (chunks.size() < 2) return true; // 0 or 1 chunk => always connected
+
+        // Create a mutable set to track unvisited chunks
+        Set<Chunk> remainingChunks = new HashSet<>(chunks);
+        Queue<Chunk> queue = new ArrayDeque<>();
+        Chunk start = remainingChunks.iterator().next();
+        
+        queue.add(start);
+        remainingChunks.remove(start);
+
+        // Perform BFS (Breadth-First Search) to check adjacency
+        while (!queue.isEmpty()) {
+            Chunk current = queue.poll();
+            int x = current.getX(), z = current.getZ();
+
+            // Check and add adjacent chunks
+            remainingChunks.removeIf(chunk -> {
+                if ((chunk.getX() == x + 1 && chunk.getZ() == z) ||
+                    (chunk.getX() == x - 1 && chunk.getZ() == z) ||
+                    (chunk.getX() == x && chunk.getZ() == z + 1) ||
+                    (chunk.getX() == x && chunk.getZ() == z - 1)) {
+                    queue.add(chunk);
+                    return true;
+                }
+                return false;
+            });
+
+            // Stop early if all chunks are visited
+            if (remainingChunks.isEmpty()) return true;
+        }
+
+        return false;
+    }
 
     /**
      * Checks if at least one chunk in the first set is adjacent to any chunk in the second set.
@@ -863,7 +906,13 @@ public class ClaimMain {
      */
     public void teleportPlayer(Player player, Location loc) {
         if (instance.isFolia()) {
-            player.teleportAsync(loc).thenAccept(success -> instance.getBossBars().activeBossBar(player, loc.getChunk()));
+        	Location playerLoc = player.getLocation();
+            player.teleportAsync(loc).thenAccept(success -> {
+				Bukkit.getGlobalRegionScheduler().run(instance, subtask -> {
+		    		PlayerTeleportEvent e = new PlayerTeleportEvent(player, playerLoc, loc);
+		    		Bukkit.getPluginManager().callEvent(e);
+				});
+            });
         } else {
             player.teleport(loc);
         }
@@ -1731,11 +1780,13 @@ public class ClaimMain {
                         // Check permissions for update
                         String perms = resultSet.getString("permissions");
                         parts = perms.split(";");
+                        if(parts.length != 3) continue;
                         
                         // Set into map
                         Map<String,String> permList = new HashMap<>();
                         for(String s : parts) {
                         	String[] parts2 = s.split(":");
+                        	if(parts2.length != 2) continue;
                         	permList.put(parts2[0], parts2[1]);
                         }
                         
@@ -1877,9 +1928,11 @@ public class ClaimMain {
                         // Permissions data
                         Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>();
                         parts = permissions.split(";");
+                        if(parts.length != 3) continue;
                         Map<String,String> permList = new HashMap<>();
                         for(String s : parts) {
                         	String[] parts2 = s.split(":");
+                        	if(parts2.length != 2) continue;
                         	permList.put(parts2[0], parts2[1]);
                         }
                         
@@ -3180,7 +3233,7 @@ public class ClaimMain {
 	            if(!owner.equals("*")) {
 	            	Player player = Bukkit.getPlayer(owner);
 		            if (player != null && player.isOnline()) {
-			            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(uuid);
+			            CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
 			            cPlayer.setClaimsCount(0);
 		            }
 	            }

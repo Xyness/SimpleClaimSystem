@@ -17,8 +17,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.vehicle.VehicleMoveEvent;
+import org.bukkit.util.Vector;
 
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.CPlayer;
@@ -39,7 +39,7 @@ public class ClaimEventsEnterLeave implements Listener {
     
 	
     /** Set of players when they are rejected from a claim */
-	private Set<Player> playersRejected = new HashSet<>();
+	public static Set<Player> playersRejected = new HashSet<>();
     
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
@@ -92,13 +92,13 @@ public class ClaimEventsEnterLeave implements Listener {
         Claim claim = instance.getMain().getClaim(chunk);
         if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
         	playersRejected.add(player);
-            instance.getMain().teleportPlayer(player, Bukkit.getWorlds().get(0).getSpawnLocation());
+        	instance.getMain().teleportPlayerToExpulsion(player);
             return;
         }
         
         if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
         	playersRejected.add(player);
-        	instance.getMain().teleportPlayer(player, Bukkit.getWorlds().get(0).getSpawnLocation());
+        	instance.getMain().teleportPlayerToExpulsion(player);
             return;
         }
         
@@ -118,70 +118,6 @@ public class ClaimEventsEnterLeave implements Listener {
         instance.getMain().clearDataForPlayer(player);
         instance.getBossBars().removePlayer(player);
         if(playersRejected.contains(player)) playersRejected.remove(player);
-    }
-
-    /**
-     * Handles the player teleport event.
-     *
-     * @param event The player teleport event.
-     */
-    @EventHandler
-    public void onPlayerTeleport(PlayerTeleportEvent event) {
-        Chunk to = event.getTo().getChunk();
-        Chunk from = event.getFrom().getChunk();
-        Player player = event.getPlayer();
-        if (!instance.getMain().checkIfClaimExists(to)) {
-        	instance.getBossBars().disableBossBar(player);
-        	return;
-        }
-
-        UUID playerId = player.getUniqueId();
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
-        if(cPlayer == null) return;
-        
-        String ownerTO = instance.getMain().getOwnerInClaim(to);
-        String ownerFROM = instance.getMain().getOwnerInClaim(from);
-        
-        Claim claim = instance.getMain().getClaim(to);
-        if(claim != null) {
-	        if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
-	            cancelTeleport(event, player, "player-banned");
-	            return;
-	        }
-	        
-	        if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
-	            cancelTeleport(event, player, "enter");
-	            return;
-	        }
-	
-	        if (isTeleportBlocked(event, player, claim)) {
-	            cancelTeleport(event, player, "teleportations");
-	            return;
-	        }
-        }
-        
-        instance.getBossBars().activeBossBar(player, to);
-        handleAutoFly(player, cPlayer, to, ownerTO);
-        handleWeatherSettings(player, to, from);
-        
-        String world = player.getWorld().getName();
-
-        if (!ownerTO.equals(ownerFROM)) {
-            handleEnterLeaveMessages(player, to, from, ownerTO, ownerFROM);
-            if (cPlayer.getClaimAuto().equals("addchunk")) {
-                handleAutoAddChunk(player, cPlayer, to, world);
-            } else if (cPlayer.getClaimAuto().equals("delchunk")) {
-                handleAutoDelChunk(player, cPlayer, to, world);
-            } else if (cPlayer.getClaimAuto().equals("claim")) {
-                handleAutoClaim(player, cPlayer, to, world);
-            } else if (cPlayer.getClaimAuto().equals("unclaim")) {
-                handleAutoUnclaim(player, cPlayer, to, world);
-            }
-        }
-
-        if (cPlayer.getClaimAutomap()) {
-        	handleAutoMap(player, cPlayer, to, world);
-        }
     }
 
     /**
@@ -234,9 +170,15 @@ public class ClaimEventsEnterLeave implements Listener {
         	if(vehicle.getPassengers().isEmpty()) {
                 Chunk to = event.getTo().getChunk();
                 Claim claim = instance.getMain().getClaim(to);
+                Chunk from = event.getFrom().getChunk();
+                Claim claimFrom = instance.getMain().getClaim(from);
                 if(claim != null) {
+                	if(claimFrom != null && claim.getOwner().equals(claimFrom.getOwner())) {
+                		return;
+                	}
         	        if (!instance.getMain().canPermCheck(to, "Enter", "Visitors")) {
-        	        	vehicle.remove();
+        	        	Vector velocity = vehicle.getVelocity();
+        	        	vehicle.setVelocity(velocity.multiply(-1));
         	        	return;
         	        }
                 }
@@ -401,47 +343,10 @@ public class ClaimEventsEnterLeave implements Listener {
     }
 
     
-    // ********************
-    // *  Others Methods  *
-    // ********************
-    
-    
-    /**
-     * Cancels the teleport event and sends a message to the player.
-     *
-     * @param event   The player teleport event.
-     * @param player  The player.
-     * @param message The message key to send.
-     */
-    private void cancelTeleport(PlayerTeleportEvent event, Player player, String message) {
-    	if(instance.isFolia()) {
-    		instance.executeAsyncLater(() -> instance.getMain().teleportPlayer(player, event.getFrom()), 50);
-    	} else {
-    		event.setCancelled(true);
-    	}
-        instance.getMain().sendMessage(player, instance.getLanguage().getMessage(message), instance.getSettings().getSetting("protection-message"));
-    }
+    // *******************
+    // *  Other methods  *
+    // *******************
 
-    /**
-     * Checks if the teleport is blocked based on permissions and teleport causes.
-     *
-     * @param event   The player teleport event.
-     * @param player  The player.
-     * @param toChunk The destination chunk.
-     * @return True if the teleport is blocked, false otherwise.
-     */
-    private boolean isTeleportBlocked(PlayerTeleportEvent event, Player player, Claim claim) {
-        if (!instance.getPlayerMain().checkPermPlayer(player, "scs.bypass") && !claim.getPermissionForPlayer("Teleportations",player)) {
-            switch (event.getCause()) {
-                case ENDER_PEARL:
-                case CHORUS_FRUIT:
-                    return true;
-                default:
-                    return false;
-            }
-        }
-        return false;
-    }
     
     /**
      * Handles weather settings for the player.
@@ -580,28 +485,41 @@ public class ClaimEventsEnterLeave implements Listener {
             	player.sendMessage(instance.getLanguage().getMessage("one-chunk-must-be-adjacent"));
             	return;
             }
-            double[] price = {0};
-            if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("chunk-cost")) {
-                price[0] = instance.getSettings().getBooleanSetting("chunk-cost-multiplier") ? cPlayer.getChunkMultipliedCost(chunks.size()) : cPlayer.getChunkCost();
-                double balance = instance.getVault().getPlayerBalance(playerName);
+            // Check if there is chunk near
+            instance.getMain().isAreaClaimFree(chunk, cPlayer.getClaimDistance(), playerName)
+            	.thenAccept(successs -> {
+            		if (successs) {
+            			double[] price = {0};
+                        if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("chunk-cost")) {
+                            price[0] = instance.getSettings().getBooleanSetting("chunk-cost-multiplier") ? cPlayer.getChunkMultipliedCost(chunks.size()) : cPlayer.getChunkCost();
+                            double balance = instance.getVault().getPlayerBalance(playerName);
 
-                if (balance < price[0]) {
-                	instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replace("%missing-price%", instance.getMain().getPrice(String.valueOf((double) Math.round((price[0] - balance)*100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
-                    return;
-                }
-                instance.getVault().removePlayerBalance(playerName, price[0]);
-                if (price[0] > 0) instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-chunk").replace("%price%", instance.getMain().getPrice(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
-            }
-            instance.getMain().addClaimChunk(claim, chunk)
-            	.thenAccept(success -> {
-            		if (success) {
-            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("add-chunk-successful")
-            					.replace("%chunk%", "["+chunk.getWorld().getName()+";"+String.valueOf(chunk.getX())+";"+String.valueOf(chunk.getZ())+"]")
-            					.replace("%claim-name%", claim.getName())));
-            			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, new CustomSet<>(claim.getChunks()), true, false);
-            			return;
+                            if (balance < price[0]) {
+                            	instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("buy-but-not-enough-money-claim").replace("%missing-price%", instance.getMain().getPrice(String.valueOf((double) Math.round((price[0] - balance)*100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
+                                return;
+                            }
+                            instance.getVault().removePlayerBalance(playerName, price[0]);
+                            if (price[0] > 0) instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("you-paid-chunk").replace("%price%", instance.getMain().getPrice(String.valueOf((double) Math.round(price[0] * 100.0)/100.0))).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
+                        }
+                        instance.getMain().addClaimChunk(claim, chunk)
+                        	.thenAccept(success -> {
+                        		if (success) {
+                        			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("add-chunk-successful")
+                        					.replace("%chunk%", "["+chunk.getWorld().getName()+";"+String.valueOf(chunk.getX())+";"+String.valueOf(chunk.getZ())+"]")
+                        					.replace("%claim-name%", claim.getName())));
+                        			if (instance.getSettings().getBooleanSetting("claim-particles")) instance.getMain().displayChunks(player, new CustomSet<>(claim.getChunks()), true, false);
+                        			return;
+                        		} else {
+                        			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+                        		}
+                        	})
+                            .exceptionally(ex -> {
+                                ex.printStackTrace();
+                                return null;
+                            });
             		} else {
-            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+            			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("cannot-claim-because-claim-near")));
+                    	return;
             		}
             	})
                 .exceptionally(ex -> {

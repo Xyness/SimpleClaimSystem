@@ -313,6 +313,7 @@ expulsion-set: "§aThe expulsion location has been defined."
 x-z-must-be-integer: "§cThe X and Z must be a valide integer number."
 one-chunk-must-be-adjacent-delchunk: "§cYou cannot delete this chunk because it joins chunks of the same claim."
 chunk-not-in-claim: "§cThis chunk is not part of this claim."
+chunks-are-not-connected-delchunk: "§cYou can not remove this chunk because it separates the claim in two."
 
 
 # > Formatted numbers
@@ -426,19 +427,21 @@ leave-territory-chat: "§fYou leave the territory of §e%owner%§f."
 # > Gui messages
 # Use \n for new line only for lores messages
 
-gui-unclaim-confirm-title: "Confirm unclaiming?"
-gui-claim-confirm-title: "Confirm claiming?"
-gui-chunk-confirm-title: "Confirm adding chunk?"
-gui-bans-title: "Bans: %name% (Page %page%)"
-gui-chunks-title: "Chunks: %name% (Page %page%)"
+gui-unclaim-confirm-title: "§4Confirm unclaiming?"
+gui-claim-confirm-title: "§2Confirm claiming?"
+gui-chunk-confirm-title: "§2Confirm adding chunk?"
+gui-bans-title: "§9%name%§8: Bans (Page %page%)"
+gui-chunks-title: "§9%name%§8: Chunks (Page %page%)"
 gui-list-title: "My claims (Page %page%)"
-gui-main-title: "%name%"
-gui-members-title: "Members: %name% (Page %page%)"
-gui-settings-new-title: "Settings: %name% (%role%)"
+gui-main-title: "§9%name%§8: Main page"
+gui-members-title: "§9%name%§8: Members (Page %page%)"
+gui-settings-new-title: "§9%name%§8: Settings (%role%)"
 gui-claims-title: "Claims (Page %page%)"
 gui-claims-owner-title: "Claims: %owner% (Page %page%)"
 
 gui-button-no-permission: "§cYou don't have the permission"
+
+empty-glass: "§c "
 
 to-unban: " to unban"
 to-remove-chunk: " to remove this chunk"
@@ -454,11 +457,9 @@ cancel-title: "§cCancel"
 unclaim-confirm-info-title: "§eInformations"
 unclaim-confirm-info-lore: "§7▸ §fMake a choice for the claim"
 claim-confirm-info-title: "§eInformations"
-claim-confirm-info-lore-economy: "§7Price: §6%price%%money-symbol%\n "
-claim-confirm-info-lore: "§7▸ §fMake a choice for the claim"
+claim-confirm-info-lore: "§7Price: §6%price%%money-symbol%\n \n§7▸ §fMake a choice for the claim"
 chunk-confirm-info-title: "§eInformations"
-chunk-confirm-info-lore-economy: "§7Price: §6%price%%money-symbol%\n "
-chunk-confirm-info-lore: "§7▸ §fMake a choice for the claim"
+chunk-confirm-info-lore: "§7Price: §6%price%%money-symbol%\n \n§7▸ §fMake a choice for the claim"
 
 owner-claim-title: "§e%owner%"
 owner-claim-lore: "§7Claims: §b%claim-amount%"
@@ -612,34 +613,40 @@ specialblocks-lore: "§7Allow to destroy the special blocks"
 windcharges-title: "§eUse wind charges §7(%status%§7)"
 windcharges-lore: "§7Allow to use wind charges"
 
-manage-members-title: "§aMembers"
+manage-members-title: "§fMembers"
 manage-members-lore: "§7Manage members"
 
-manage-bans-title: "§cBans"
+manage-bans-title: "§fBans"
 manage-bans-lore: "§7Manage banned players"
 
-manage-chunks-title: "§6Chunks"
+manage-chunks-title: "§fChunks"
 manage-chunks-lore: "§7Manage chunks"
 
-manage-settings-title: "§3Settings"
+manage-settings-title: "§fSettings"
 manage-settings-lore: "§7Manage settings"
 
-unclaim-title: "§4Unclaim"
+list-title: "§fList"
+list-lore: "§7Go to the list of my claims"
+
+main-title: "§fMain"
+main-lore: "§7Go to the main page"
+
+unclaim-title: "§fUnclaim"
 unclaim-lore: "§7Delete this claim?"
 
-teleport-claim-title: "§5Teleport"
+teleport-claim-title: "§fTeleport"
 teleport-claim-lore: "§7Teleport to the claim's spawn"
 
-claim-info-title: "§6%claim-name% §7(%description%)"
-claim-info-lore: |
-  §7Chunks: §b%chunks-count%
+claim-info-title-main: "§b%claim-name%"
+claim-info-lore-main: |
+  §7Description :
+  §7%description%
   §7
+  §7Chunks: §b%chunks-count%
   §7Members: §a%members-count%
   §7Bans: §c%bans-count%
   §7
   §7%sale-status%
-  §7
-  §7Wanna see your others claims?
   
 claim-info-lore-sale-status-true: "§a✔ Claim in sale §7(%price%%money-symbol%)"
 claim-info-lore-sale-status-false: "§c✘ Claim not in sale"
