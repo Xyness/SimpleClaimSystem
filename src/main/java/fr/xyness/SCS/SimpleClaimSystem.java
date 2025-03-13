@@ -115,7 +115,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.12.2";
+    private String Version = "1.12.2.1";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -1657,6 +1657,13 @@ public class SimpleClaimSystem extends JavaPlugin {
      * @return True if the server is using Folia, false otherwise
      */
     public boolean isFolia() { return isFolia; }
+    
+    /**
+     * Checks if the server is using Paper.
+     * 
+     * @return True if the server is using Paper, false otherwise
+     */
+    public boolean isPaper() { return isPaper; }
     
     /**
      * Gets the Minecraft version.
