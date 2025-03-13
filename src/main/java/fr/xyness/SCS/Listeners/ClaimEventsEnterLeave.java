@@ -4,8 +4,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Location;
 import org.bukkit.WeatherType;
 import org.bukkit.entity.Boat;
 import org.bukkit.entity.Minecart;
@@ -36,10 +36,7 @@ public class ClaimEventsEnterLeave implements Listener {
     // ***************
     // *  Variables  *
     // ***************
-    
-	
-    /** Set of players when they are rejected from a claim */
-	public static Set<Player> playersRejected = new HashSet<>();
+
     
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
@@ -91,13 +88,11 @@ public class ClaimEventsEnterLeave implements Listener {
         
         Claim claim = instance.getMain().getClaim(chunk);
         if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
-        	playersRejected.add(player);
         	instance.getMain().teleportPlayerToExpulsion(player);
             return;
         }
         
         if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
-        	playersRejected.add(player);
         	instance.getMain().teleportPlayerToExpulsion(player);
             return;
         }
@@ -117,7 +112,6 @@ public class ClaimEventsEnterLeave implements Listener {
         instance.getPlayerMain().removeCPlayer(player.getUniqueId());
         instance.getMain().clearDataForPlayer(player);
         instance.getBossBars().removePlayer(player);
-        if(playersRejected.contains(player)) playersRejected.remove(player);
     }
 
     /**
@@ -199,8 +193,10 @@ public class ClaimEventsEnterLeave implements Listener {
                     Claim claim = instance.getMain().getClaim(to);
                     if(claim != null) {
             	        if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
-            	        	playersRejected.add(player);
-            	        	instance.getMain().teleportPlayer(player, event.getFrom());
+            	            Vector direction = player.getLocation().getDirection();
+            	            direction.multiply(-1);
+            	            Location newLocation = player.getLocation().add(direction.normalize().multiply(3));
+            	            instance.getMain().teleportPlayer(player, newLocation);
             	        	vehicle.remove();
             	            instance.getMain().sendMessage(player, instance.getLanguage().getMessage("player-banned"), instance.getSettings().getSetting("protection-message"));
             	        	if(instance.getSettings().getBooleanSetting("claim-particles-not-enter")) {
@@ -209,8 +205,10 @@ public class ClaimEventsEnterLeave implements Listener {
             	            return;
             	        }
             	        if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
-            	        	playersRejected.add(player);
-            	        	instance.getMain().teleportPlayer(player, event.getFrom());
+            	            Vector direction = player.getLocation().getDirection();
+            	            direction.multiply(-1);
+            	            Location newLocation = player.getLocation().add(direction.normalize().multiply(3));
+            	            instance.getMain().teleportPlayer(player, newLocation);
             	        	vehicle.remove();
             	        	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("enter"), instance.getSettings().getSetting("protection-message"));
             	        	if(instance.getSettings().getBooleanSetting("claim-particles-not-enter")) {
@@ -284,8 +282,10 @@ public class ClaimEventsEnterLeave implements Listener {
         Claim claim = instance.getMain().getClaim(to);
         if(claim != null) {
 	        if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
-	        	playersRejected.add(player);
-	        	instance.getMain().teleportPlayer(player, event.getFrom());
+	            Vector direction = player.getLocation().getDirection();
+	            direction.multiply(-1);
+	            Location newLocation = player.getLocation().add(direction.normalize().multiply(3));
+	            instance.getMain().teleportPlayer(player, newLocation);
 	            instance.getMain().sendMessage(player, instance.getLanguage().getMessage("player-banned"), instance.getSettings().getSetting("protection-message"));
 	        	if(instance.getSettings().getBooleanSetting("claim-particles-not-enter")) {
 	        		instance.getMain().displayChunksNotEnter(player, new CustomSet<>(claim.getChunks()));
@@ -293,8 +293,10 @@ public class ClaimEventsEnterLeave implements Listener {
 	            return;
 	        }
 	        if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
-	        	playersRejected.add(player);
-	        	instance.getMain().teleportPlayer(player, event.getFrom());
+	            Vector direction = player.getLocation().getDirection();
+	            direction.multiply(-1);
+	            Location newLocation = player.getLocation().add(direction.normalize().multiply(3));
+	            instance.getMain().teleportPlayer(player, newLocation);
 	        	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("enter"), instance.getSettings().getSetting("protection-message"));
 	        	if(instance.getSettings().getBooleanSetting("claim-particles-not-enter")) {
 	        		instance.getMain().displayChunksNotEnter(player, new CustomSet<>(claim.getChunks()));
