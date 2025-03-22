@@ -589,12 +589,10 @@ public class ClaimGuiEvents implements Listener {
         			return;
         		case "BackPage":
                 	int page = cPlayer.getGuiPage();
-                	cPlayer.setGuiPage(page-1);
                     new ClaimMembersGui(player,claim,page-1,instance);
                     return;
         		case "NextPage":
                 	page = cPlayer.getGuiPage()+1;
-                	cPlayer.setGuiPage(page);
                     new ClaimMembersGui(player,claim,page,instance);
                     return;
         	}
@@ -686,12 +684,10 @@ public class ClaimGuiEvents implements Listener {
         			return;
         		case "BackPage":
                 	int page = cPlayer.getGuiPage();
-                	cPlayer.setGuiPage(page-1);
                     new ClaimChunksGui(player,claim,page-1,instance);
                     return;
         		case "NextPage":
                 	page = cPlayer.getGuiPage()+1;
-                	cPlayer.setGuiPage(page);
                     new ClaimChunksGui(player,claim,page,instance);
                     return;
         	}
@@ -776,12 +772,10 @@ public class ClaimGuiEvents implements Listener {
         			return;
         		case "BackPage":
                 	int page = cPlayer.getGuiPage();
-                	cPlayer.setGuiPage(page-1);
                     new ClaimBansGui(player,claim,page-1,instance);
                     return;
         		case "NextPage":
                 	page = cPlayer.getGuiPage()+1;
-                	cPlayer.setGuiPage(page);
                     new ClaimBansGui(player,claim,page,instance);
                     return;
         	}
@@ -838,7 +832,6 @@ public class ClaimGuiEvents implements Listener {
         	String key = guiSlot.getKey();
         	switch(key) {
 	        	case "Filter":
-	            	cPlayer.setGuiPage(1);
 	            	String filter = cPlayer.getFilter();
 	            	if(filter.equals("owner")) {
 	            		filter = "not_owner";
@@ -849,12 +842,10 @@ public class ClaimGuiEvents implements Listener {
 	                return;
         		case "BackPage":
                 	int page = cPlayer.getGuiPage()-1;
-                	cPlayer.setGuiPage(page);
                     new ClaimListGui(player,page,cPlayer.getFilter(),instance);
                     return;
         		case "NextPage":
                 	page = cPlayer.getGuiPage()+1;
-                	cPlayer.setGuiPage(page);
                     new ClaimListGui(player,page,cPlayer.getFilter(),instance);
                     return;
         	}
@@ -923,7 +914,6 @@ public class ClaimGuiEvents implements Listener {
         	String key = guiSlot.getKey();
         	switch(key) {
 	        	case "Filter":
-	            	cPlayer.setGuiPage(1);
 	            	String filter = cPlayer.getFilter();
 	            	if(filter.equals("all")) {
 	            		filter = "sales";
@@ -938,12 +928,10 @@ public class ClaimGuiEvents implements Listener {
 	                return;
         		case "BackPage":
                 	int page = cPlayer.getGuiPage()-1;
-                	cPlayer.setGuiPage(page);
                     new ClaimsGui(player,page,cPlayer.getFilter(),instance);
                     return;
         		case "NextPage":
                 	page = cPlayer.getGuiPage()+1;
-                	cPlayer.setGuiPage(page);
                     new ClaimsGui(player,page,cPlayer.getFilter(),instance);
                     return;
         	}
@@ -955,7 +943,6 @@ public class ClaimGuiEvents implements Listener {
         
         if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
         	String filter = cPlayer.getFilter();
-        	cPlayer.setGuiPage(1);
         	if(filter.equals("sales")) {
         		new ClaimsOwnerGui(player,1,filter,cPlayer.getMapString(clickedSlot),instance);
         		return;
@@ -984,7 +971,6 @@ public class ClaimGuiEvents implements Listener {
         	String key = guiSlot.getKey();
         	switch(key) {
 	        	case "Filter":
-	            	cPlayer.setGuiPage(1);
 	            	String filter = cPlayer.getFilter();
 	            	if(filter.equals("all")) {
 	            		filter = "sales";
@@ -999,13 +985,15 @@ public class ClaimGuiEvents implements Listener {
 	            		return;
 	            	}
         		case "BackPage":
+	            	if(cPlayer.getGuiPage() == 1) {
+	            		new ClaimsGui(player,1,"all",instance);
+	            		return;
+	            	}
                 	int page = cPlayer.getGuiPage()-1;
-                	cPlayer.setGuiPage(page);
                     new ClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner(),instance);
                     return;
         		case "NextPage":
                 	page = cPlayer.getGuiPage()+1;
-                	cPlayer.setGuiPage(page);
                 	new ClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner(),instance);
                     return;
         	}
@@ -1105,13 +1093,11 @@ public class ClaimGuiEvents implements Listener {
         int clickedSlot = event.getSlot();
         
         if(clickedSlot == 21) {
-        	cPlayer.setGuiPage(1);
         	new AdminGestionClaimsGui(player,1,"all",instance);
         	return;
         }
         
         if(clickedSlot == 22) {
-        	cPlayer.setGuiPage(1);
         	new AdminGestionClaimsProtectedAreasGui(player,1,"all",instance);
         	return;
         }
@@ -1142,20 +1128,17 @@ public class ClaimGuiEvents implements Listener {
         		return;
         	}
         	page--;
-        	cPlayer.setGuiPage(page);
             new AdminGestionClaimsGui(player,page,cPlayer.getFilter(),instance);
             return;
         }
         
         if (clickedSlot == 50) {
         	int page = cPlayer.getGuiPage()+1;
-        	cPlayer.setGuiPage(page);
             new AdminGestionClaimsGui(player,page,cPlayer.getFilter(),instance);
             return;
         }
         
         if (clickedSlot == 49) {
-        	cPlayer.setGuiPage(1);
         	String filter = cPlayer.getFilter();
         	if(filter.equals("all")) {
         		filter = "sales";
@@ -1172,7 +1155,6 @@ public class ClaimGuiEvents implements Listener {
         
         if(clickedSlot >= 0 && clickedSlot <= 44) {
         	String filter = cPlayer.getFilter();
-        	cPlayer.setGuiPage(1);
     		if(event.getClick() == ClickType.SHIFT_LEFT) {
     			String target = cPlayer.getMapString(clickedSlot);
     			instance.getMain().deleteAllClaims(target)
@@ -1221,20 +1203,17 @@ public class ClaimGuiEvents implements Listener {
         		return;
         	}
         	int page = cPlayer.getGuiPage()-1;
-        	cPlayer.setGuiPage(page);
             new AdminGestionClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner(),instance);
             return;
         }
         
         if (clickedSlot == 50) {
         	int page = cPlayer.getGuiPage()+1;
-        	cPlayer.setGuiPage(page);
         	new AdminGestionClaimsOwnerGui(player,page,cPlayer.getFilter(),cPlayer.getOwner(),instance);
             return;
         }
         
         if (clickedSlot == 49) {
-        	cPlayer.setGuiPage(1);
         	String filter = cPlayer.getFilter();
         	if(filter.equals("all")) {
         		filter = "sales";
@@ -1399,7 +1378,6 @@ public class ClaimGuiEvents implements Listener {
         
         if (clickedSlot == 48) {
         	int page = cPlayer.getGuiPage();
-        	cPlayer.setGuiPage(page-1);
             new AdminGestionClaimMembersGui(player,claim,page-1,instance);
             return;
         }
@@ -1411,7 +1389,6 @@ public class ClaimGuiEvents implements Listener {
         
         if (clickedSlot == 50) {
         	int page = cPlayer.getGuiPage()+1;
-        	cPlayer.setGuiPage(page);
             new AdminGestionClaimMembersGui(player,claim,page,instance);
             return;
         }
@@ -1465,7 +1442,6 @@ public class ClaimGuiEvents implements Listener {
         
         if (clickedSlot == 48) {
         	int page = cPlayer.getGuiPage();
-        	cPlayer.setGuiPage(page-1);
             new AdminGestionClaimBansGui(player,claim,page-1,instance);
             return;
         }
@@ -1477,7 +1453,6 @@ public class ClaimGuiEvents implements Listener {
         
         if (clickedSlot == 50) {
         	int page = cPlayer.getGuiPage()+1;
-        	cPlayer.setGuiPage(page);
             new AdminGestionClaimBansGui(player,claim,page,instance);
             return;
         }
@@ -1532,20 +1507,17 @@ public class ClaimGuiEvents implements Listener {
         		return;
         	}
         	int page = cPlayer.getGuiPage()-1;
-        	cPlayer.setGuiPage(page);
             new AdminGestionClaimsProtectedAreasGui(player,page,cPlayer.getFilter(),instance);
             return;
         }
         
         if (clickedSlot == 50) {
         	int page = cPlayer.getGuiPage()+1;
-        	cPlayer.setGuiPage(page);
         	new AdminGestionClaimsProtectedAreasGui(player,page,cPlayer.getFilter(),instance);
             return;
         }
         
         if (clickedSlot == 49) {
-        	cPlayer.setGuiPage(1);
         	String filter = cPlayer.getFilter();
         	if(filter.equals("all")) {
         		filter = "sales";
@@ -1598,13 +1570,11 @@ public class ClaimGuiEvents implements Listener {
         if(claim == null) return;
         
         if(clickedSlot == 20) {
-        	cPlayer.setGuiPage(1);
         	new AdminGestionClaimBansGui(player,claim,1,instance);
         	return;
         }
         
         if(clickedSlot == 30) {
-        	cPlayer.setGuiPage(1);
         	new AdminGestionClaimMembersGui(player,claim,1,instance);
         	return;
         }
@@ -1615,7 +1585,6 @@ public class ClaimGuiEvents implements Listener {
         }
         
         if(clickedSlot == 32) {
-        	cPlayer.setGuiPage(1);
         	new AdminGestionClaimChunksGui(player,claim,1,instance);
         	return;
         }
@@ -1637,7 +1606,6 @@ public class ClaimGuiEvents implements Listener {
         }
         
         if(clickedSlot == 49) {
-        	cPlayer.setGuiPage(1);
         	String owner = claim.getOwner();
         	if(owner.equals("*")) {
         		new AdminGestionClaimsProtectedAreasGui(player,1,"all",instance);
@@ -1667,7 +1635,6 @@ public class ClaimGuiEvents implements Listener {
         
         if (clickedSlot == 48) {
         	int page = cPlayer.getGuiPage();
-        	cPlayer.setGuiPage(page-1);
             new AdminGestionClaimChunksGui(player,claim,page-1,instance);
             return;
         }
@@ -1679,7 +1646,6 @@ public class ClaimGuiEvents implements Listener {
         
         if (clickedSlot == 50) {
         	int page = cPlayer.getGuiPage()+1;
-        	cPlayer.setGuiPage(page);
             new AdminGestionClaimChunksGui(player,claim,page,instance);
             return;
         }

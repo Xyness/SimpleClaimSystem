@@ -99,6 +99,7 @@ public class AdminGestionClaimBansGui implements InventoryHolder {
 	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
 	        cPlayer.setClaim(claim);
 	        cPlayer.clearMapString();
+	        cPlayer.setGuiPage(page);
 	        int min_member_slot = 0;
 	        int max_member_slot = 44;
 	        int items_count = max_member_slot - min_member_slot + 1;

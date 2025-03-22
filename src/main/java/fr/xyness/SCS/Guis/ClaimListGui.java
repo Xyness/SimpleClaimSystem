@@ -110,6 +110,7 @@ public class ClaimListGui implements InventoryHolder {
 	        cPlayer.setFilter(filter);
 	        cPlayer.clearMapClaim();
 	        cPlayer.clearMapLoc();
+	        cPlayer.setGuiPage(page);
 	        
 	        // Get claims
 	        Set<Claim> claims = new HashSet<>(filter.equals("owner") ? instance.getMain().getPlayerClaims(playerName) : instance.getMain().getClaimsWhereMemberNotOwner(player));
@@ -130,13 +131,13 @@ public class ClaimListGui implements InventoryHolder {
     			String lore_string = slot.getLore();
     			if(key.equals("BackPage")) {
     				if(page == 1) continue;
-    				title = title.replace("%page%", String.valueOf(page));
-    				lore_string = lore_string.replace("%page%", String.valueOf(page));
+    				title = title.replace("%page%", String.valueOf(page-1));
+    				lore_string = lore_string.replace("%page%", String.valueOf(page-1));
     			}
     			if(key.equals("NextPage")) {
     				if(claimsCount <= (page*max)) continue;
-    				title = title.replace("%page%", String.valueOf(page));
-    				lore_string = lore_string.replace("%page%", String.valueOf(page));
+    				title = title.replace("%page%", String.valueOf(page+1));
+    				lore_string = lore_string.replace("%page%", String.valueOf(page+1));
     			}
     			if (key.equals("Filter")) {
     	            if (filter.equals("not_owner")) {

@@ -1928,7 +1928,6 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
                 return;
             }
-            cPlayer.setGuiPage(1);
             if(instance.getSettings().getBooleanSetting("floodgate")) {
             	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
             		new BClaimMembersGui(player, claim, instance);
@@ -1948,7 +1947,6 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
                 return;
             }
-            cPlayer.setGuiPage(1);
             if(instance.getSettings().getBooleanSetting("floodgate")) {
             	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
             		new BClaimBansGui(player, claim, instance);
@@ -2427,7 +2425,6 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("territory-not-yours"));
                 return;
             }
-            cPlayer.setGuiPage(1);
             if(instance.getSettings().getBooleanSetting("floodgate")) {
             	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
             		new BClaimMembersGui(player, claim, instance);
@@ -2453,7 +2450,6 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("territory-not-yours"));
                 return;
             }
-            cPlayer.setGuiPage(1);
             if(instance.getSettings().getBooleanSetting("floodgate")) {
             	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
             		new BClaimBansGui(player, claim, instance);
@@ -2468,7 +2464,6 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         		player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
                 return;
             }
-            cPlayer.setGuiPage(1);
             cPlayer.setClaim(null);
             if(instance.getSettings().getBooleanSetting("floodgate")) {
             	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {

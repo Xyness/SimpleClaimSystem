@@ -128,13 +128,13 @@ public class ClaimBansGui implements InventoryHolder {
     			String lore_string = slot.getLore();
     			if(key.equals("BackPage")) {
     				if(page == 1) continue;
-    				title = title.replace("%page%", String.valueOf(page));
-    				lore_string = lore_string.replace("%page%", String.valueOf(page));
+    				title = title.replace("%page%", String.valueOf(page-1));
+    				lore_string = lore_string.replace("%page%", String.valueOf(page-1));
     			}
     			if(key.equals("NextPage")) {
     				if(bansCount <= (page*max)) continue;
-    				title = title.replace("%page%", String.valueOf(page));
-    				lore_string = lore_string.replace("%page%", String.valueOf(page));
+    				title = title.replace("%page%", String.valueOf(page+1));
+    				lore_string = lore_string.replace("%page%", String.valueOf(page+1));
     			}
     			List<String> lore = instance.getGuis().getLore(lore_string);
     			if(title.isBlank()) title = null;

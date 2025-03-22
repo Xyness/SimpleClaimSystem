@@ -88,12 +88,12 @@ public class ClaimEventsEnterLeave implements Listener {
         
         Claim claim = instance.getMain().getClaim(chunk);
         if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
-        	instance.getMain().teleportPlayerToExpulsion(player);
+        	instance.executeAsyncLater(() -> instance.getMain().teleportPlayerToExpulsion(player), 250);
             return;
         }
         
         if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
-        	instance.getMain().teleportPlayerToExpulsion(player);
+        	instance.executeAsyncLater(() -> instance.getMain().teleportPlayerToExpulsion(player), 250);
             return;
         }
         
@@ -282,10 +282,26 @@ public class ClaimEventsEnterLeave implements Listener {
         Claim claim = instance.getMain().getClaim(to);
         if(claim != null) {
 	        if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
-	            Vector direction = player.getLocation().getDirection();
-	            direction.multiply(-1);
-	            Location newLocation = player.getLocation().add(direction.normalize().multiply(3));
-	            instance.getMain().teleportPlayer(player, newLocation);
+
+	        	Location toLoc = event.getTo();
+	        	Location fromLoc = event.getFrom();
+	        	Location playerLocation = player.getLocation();
+	        	double deltaX = toLoc.getX() - fromLoc.getX();
+	        	double deltaZ = toLoc.getZ() - fromLoc.getZ();
+	        	if (deltaX > 0) {
+	        	    playerLocation.setX(playerLocation.getX() - 3);
+	        	} else if (deltaX < 0) {
+	        	    playerLocation.setX(playerLocation.getX() + 3);
+	        	}
+
+	        	if (deltaZ > 0) {
+	        	    playerLocation.setZ(playerLocation.getZ() - 3);
+	        	} else if (deltaZ < 0) {
+	        	    playerLocation.setZ(playerLocation.getZ() + 3);
+	        	}
+	        	playerLocation.setY(player.getLocation().getY());
+	        	
+	            instance.getMain().teleportPlayer(player, playerLocation);
 	            instance.getMain().sendMessage(player, instance.getLanguage().getMessage("player-banned"), instance.getSettings().getSetting("protection-message"));
 	        	if(instance.getSettings().getBooleanSetting("claim-particles-not-enter")) {
 	        		instance.getMain().displayChunksNotEnter(player, new CustomSet<>(claim.getChunks()));
@@ -293,10 +309,26 @@ public class ClaimEventsEnterLeave implements Listener {
 	            return;
 	        }
 	        if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
-	            Vector direction = player.getLocation().getDirection();
-	            direction.multiply(-1);
-	            Location newLocation = player.getLocation().add(direction.normalize().multiply(3));
-	            instance.getMain().teleportPlayer(player, newLocation);
+
+	        	Location toLoc = event.getTo();
+	        	Location fromLoc = event.getFrom();
+	        	Location playerLocation = player.getLocation();
+	        	double deltaX = toLoc.getX() - fromLoc.getX();
+	        	double deltaZ = toLoc.getZ() - fromLoc.getZ();
+	        	if (deltaX > 0) {
+	        	    playerLocation.setX(playerLocation.getX() - 3);
+	        	} else if (deltaX < 0) {
+	        	    playerLocation.setX(playerLocation.getX() + 3);
+	        	}
+
+	        	if (deltaZ > 0) {
+	        	    playerLocation.setZ(playerLocation.getZ() - 3);
+	        	} else if (deltaZ < 0) {
+	        	    playerLocation.setZ(playerLocation.getZ() + 3);
+	        	}
+	        	playerLocation.setY(player.getLocation().getY());
+	        	
+	            instance.getMain().teleportPlayer(player, playerLocation);
 	        	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("enter"), instance.getSettings().getSetting("protection-message"));
 	        	if(instance.getSettings().getBooleanSetting("claim-particles-not-enter")) {
 	        		instance.getMain().displayChunksNotEnter(player, new CustomSet<>(claim.getChunks()));
