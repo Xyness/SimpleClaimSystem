@@ -89,6 +89,7 @@ public class AdminGestionClaimsOwnerGui implements InventoryHolder {
 	        cPlayer.setFilter(filter);
 	        cPlayer.clearMapClaim();
 	        cPlayer.clearMapLoc();
+	        cPlayer.setGuiPage(page);
 	
 	        inv.setItem(48, backPage(page - 1,!(page > 1)));
 	        

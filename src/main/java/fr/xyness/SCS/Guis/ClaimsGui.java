@@ -113,6 +113,7 @@ public class ClaimsGui implements InventoryHolder {
 	        // Update player data (gui)
 	        cPlayer.setFilter(filter);
 	        cPlayer.clearMapString();
+	        cPlayer.setGuiPage(page);
 	
 	        // Set bottom items
     		GuiSettings guiSettings = ClaimGuis.gui_settings.get("claims");
@@ -127,13 +128,13 @@ public class ClaimsGui implements InventoryHolder {
     			String lore_string = slot.getLore();
     			if(key.equals("BackPage")) {
     				if(page == 1) continue;
-    				title = title.replace("%page%", String.valueOf(page));
-    				lore_string = lore_string.replace("%page%", String.valueOf(page));
+    				title = title.replace("%page%", String.valueOf(page-1));
+    				lore_string = lore_string.replace("%page%", String.valueOf(page-1));
     			}
     			if(key.equals("NextPage")) {
     				if(ownersCount <= (page*max)) continue;
-    				title = title.replace("%page%", String.valueOf(page));
-    				lore_string = lore_string.replace("%page%", String.valueOf(page));
+    				title = title.replace("%page%", String.valueOf(page+1));
+    				lore_string = lore_string.replace("%page%", String.valueOf(page+1));
     			}
     			if (key.equals("Filter")) {
     	            lore_string = lore_string

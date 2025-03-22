@@ -58,7 +58,7 @@ public class ClaimMain {
     private Map<Chunk, Claim> listClaims = new HashMap<>();
 
     /** Mapping of player uuid to their claims. */
-    private Map<UUID, CustomSet<Claim>> playerClaims = new HashMap<>();
+    private Map<UUID, CustomSet<Claim>> playerClaims = new ConcurrentHashMap<>();
     
     /** Key UUID for protected areas */
     public static final UUID SERVER_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
@@ -548,6 +548,7 @@ public class ClaimMain {
                 .stream()
                 .filter(claims -> !claims.isEmpty())
                 .map(claims -> claims.iterator().next().getOwner())
+                .filter(owner -> !"*".equals(owner))
                 .collect(Collectors.toCollection(CustomSet::new));
     }
 
@@ -907,13 +908,15 @@ public class ClaimMain {
     public void teleportPlayer(Player player, Location loc) {
         if (instance.isFolia()) {
         	Location playerLoc = player.getLocation();
-            player.teleportAsync(loc).thenAccept(success -> {
-				Bukkit.getGlobalRegionScheduler().run(instance, subtask -> {
-		    		PlayerTeleportEvent e = new PlayerTeleportEvent(player, playerLoc, loc);
-		    		Bukkit.getPluginManager().callEvent(e);
-				});
-            });
-        } else {
+        	if (player.isOnline() && !player.isDead()) {
+                player.teleportAsync(loc).thenAccept(success -> {
+    				Bukkit.getGlobalRegionScheduler().run(instance, subtask -> {
+    		    		PlayerTeleportEvent e = new PlayerTeleportEvent(player, playerLoc, loc);
+    		    		Bukkit.getPluginManager().callEvent(e);
+    				});
+                });
+        	}
+        } else if (player.isOnline() && !player.isDead()) {
             player.teleport(loc);
         }
     }
@@ -4774,27 +4777,7 @@ public class ClaimMain {
      */
     public void updateFlyChunk(Claim claim) {
 		Set<Chunk> chunks = claim.getChunks();
-		if(instance.isFolia()) {
-	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
-	    		Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
-					Chunk c = p.getLocation().getChunk();
-					if(chunks.contains(c)) {
-						boolean value = claim.getPermissionForPlayer("Fly", p);
-		                CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());
-		                if(value) {
-		                    if (cPlayer.getClaimAutofly()) {
-		                        instance.getPlayerMain().activePlayerFly(p);
-		                    }
-		                } else {
-		                    if (cPlayer.getClaimFly()) {
-		                        instance.getPlayerMain().removePlayerFly(p);
-		                    }
-		                }
-
-					}
-	    		});
-	    	});
-		} else {
+		if(!instance.isFolia()) {
 	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
 				Chunk c = p.getLocation().getChunk();
 				if(chunks.contains(c)) {

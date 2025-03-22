@@ -80,7 +80,7 @@ public class AdminGestionClaimsGui implements InventoryHolder {
 	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
 	        cPlayer.setFilter(filter);
 	        cPlayer.clearMapString();
-	
+	        cPlayer.setGuiPage(page);
 	        inv.setItem(48, backPage(page - 1,!(page > 1)));
 	
 	        Map<String, Integer> owners = getOwnersByFilter(filter);
