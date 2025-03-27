@@ -1318,7 +1318,7 @@ public class ClaimGuiEvents implements Listener {
                 List<String> lore = meta.getLore();
                 String check = lore.get(lore.size()-1);
                 if(check.equals(instance.getLanguage().getMessage("choice-setting-disabled"))) return;
-                String action = instance.getGuis().getSlotPerm(clickedSlot,role);
+                String action = instance.getGuis().getAdminSlotPerm(clickedSlot,role);
                 if(!instance.getPlayerMain().checkPermPlayer(player, "scs.setting."+action)) return;
                 if(title.contains(instance.getLanguage().getMessage("status-enabled"))){
                 	instance.getMain().updatePerm(claim, action, false, role)
