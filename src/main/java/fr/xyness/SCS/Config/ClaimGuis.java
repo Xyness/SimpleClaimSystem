@@ -562,6 +562,17 @@ public class ClaimGuis {
     public boolean isAdminAllowedSlot(int clickedSlot, String role) {
         return guis_items_perms_clicked_slots_admin.getOrDefault(role, new HashMap<>()).containsKey(clickedSlot);
     }
+    
+    /**
+     * Gets the name of the setting associated with a specific slot.
+     *
+     * @param slot The slot number.
+     * @param role The target role.
+     * @return The name of the setting, or an empty string if not found.
+     */
+    public String getAdminSlotPerm(int slot, String role) {
+        return guis_items_perms_clicked_slots_admin.getOrDefault(role, new HashMap<>()).getOrDefault(slot, "");
+    }
 
     /**
      * Sets item flags for an item meta.
