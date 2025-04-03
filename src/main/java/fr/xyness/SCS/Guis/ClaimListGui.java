@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 import dev.lone.itemsadder.api.CustomStack;
@@ -208,10 +209,18 @@ public class ClaimListGui implements InventoryHolder {
 	        	if(item == null) {
 	        		item = new ItemStack(Material.PLAYER_HEAD);
 	        	}
-	            SkullMeta meta = (SkullMeta) item.getItemMeta();
-	            meta.setDisplayName(instance.getLanguage().getMessage("access-claim-title").replace("%name%", claim.getName()).replace("%coords%", instance.getMain().getClaimCoords(claim)));
-	            meta.setLore(used_lore);
-	            item.setItemMeta(meta);
+	        	if(item.hasItemMeta() && item.getItemMeta() != null) {
+	        		if(item.getItemMeta() instanceof SkullMeta meta) {
+	    	            meta.setDisplayName(instance.getLanguage().getMessage("access-claim-title").replace("%name%", claim.getName()).replace("%coords%", instance.getMain().getClaimCoords(claim)));
+	    	            meta.setLore(used_lore);
+	    	            item.setItemMeta(meta);
+	        		} else {
+	        			ItemMeta meta = item.getItemMeta();
+	    	            meta.setDisplayName(instance.getLanguage().getMessage("access-claim-title").replace("%name%", claim.getName()).replace("%coords%", instance.getMain().getClaimCoords(claim)));
+	    	            meta.setLore(used_lore);
+	    	            item.setItemMeta(meta);
+	        		}
+	        	}
 	            inv.setItem(i, item);
 	            i++;
 	
