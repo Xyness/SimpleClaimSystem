@@ -942,12 +942,14 @@ public class ClaimGuiEvents implements Listener {
         }
         
         if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
+        	String owner = cPlayer.getMapString(clickedSlot);
+        	if(owner == null) return;
         	String filter = cPlayer.getFilter();
         	if(filter.equals("sales")) {
-        		new ClaimsOwnerGui(player,1,filter,cPlayer.getMapString(clickedSlot),instance);
+        		new ClaimsOwnerGui(player,1,filter,owner,instance);
         		return;
         	}
-        	new ClaimsOwnerGui(player,1,"all",cPlayer.getMapString(clickedSlot),instance);
+        	new ClaimsOwnerGui(player,1,"all",owner,instance);
         	return;
         }
         return;
