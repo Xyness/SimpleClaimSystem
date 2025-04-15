@@ -16,6 +16,22 @@ Compile it:
 ./gradlew clean buildFatJar
 ```
 
+If you have to upgrade your JDK, gradle may still be using the old one. Fixing this may require thoroughly purging caches:
+```
+rm -rf ~/.gradle/daemon/
+rm -rf ~/.gradle/caches/
+rm -rf ~/.gradle/java*
+rm -rf ~/.gradle/jdks/
+```
+
+and if it still does not find the correct JDK, you may have to set the path manually to wherever it is (list potential locations with `ls /usr/lib/jvm`), such as:
+```
+JAVA_HOME=/usr/lib/jvm/java-22-amazon-corretto
+export PATH=$JAVA_HOME/bin:$PATH
+```
+
+Then try again to compile.
+
 If successful your plugin is located in:
 
 ```
