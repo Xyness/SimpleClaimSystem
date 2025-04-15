@@ -160,7 +160,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             info("SimpleClaimSystem is enabled !");
             info("Discord for support : https://discord.gg/6sRTGprM95");
             info("Documentation : https://xyness.gitbook.io/simpleclaimsystem");
-            info("Developped by Xyness");
+            info("Developed by Xyness");
         } else {
             Bukkit.getServer().getPluginManager().disablePlugin(this);
         }
@@ -181,7 +181,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         info("SimpleClaimSystem is disabled !");
         info("Discord for support : https://discord.gg/6sRTGprM95");
         info("Documentation : https://xyness.gitbook.io/simpleclaimsystem");
-        info("Developped by Xyness");
+        info("Developed by Xyness");
         info("==========================================================================");
     }
     
