@@ -2,14 +2,16 @@ package fr.xyness.SCS.Config;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.regex.Pattern;
+import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
+import fr.xyness.SCS.SimpleClaimSystem;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
@@ -21,6 +23,10 @@ import fr.xyness.SCS.Types.WorldMode;
  */
 public class ClaimSettings {
 
+    private final SimpleClaimSystem instance;
+    public ClaimSettings(SimpleClaimSystem instance) {
+        this.instance = instance;
+    }
 	
     // ***************
     // *  Variables  *
@@ -81,6 +87,12 @@ public class ClaimSettings {
     /** Location of the expulsion */
     private Location expulsionLocation;
 
+    /** Regex for the description. */
+    private Pattern descriptionRegex;
+
+    /** Default description pattern. Used if the user regex is not valid. */
+    private static final Pattern DEFAULT_DESCRIPTION_PATTERN = Pattern.compile("^[a-zA-Z0-9\\s]+$");
+
     
     // ********************
     // *  Others Methods  *
@@ -104,6 +116,7 @@ public class ClaimSettings {
         groupsSettings.clear();
         worlds.clear();
         aliases.clear();
+        descriptionRegex = null;
     }
 
     /**
@@ -546,5 +559,27 @@ public class ClaimSettings {
      */
     public Map<String, Boolean> getStatusSettings() {
         return enabledSettings;
+    }
+
+    /**
+     * Get the pattern for the default description.
+     * @return a non-null instance of a pattern. If the provided one is not valid, will use a default, safe one.
+     */
+    public Pattern getDescriptionPattern() {
+        if(descriptionRegex == null) {
+            String regex = getSetting("description-regex");
+            if(regex.isEmpty()) {
+                instance.info("[ERROR] The claim-description regex is not set. Set the 'description-regex' property.");
+                return DEFAULT_DESCRIPTION_PATTERN;
+            }
+
+            try {
+                descriptionRegex = Pattern.compile(regex);
+            } catch(PatternSyntaxException e) {
+                instance.info("[ERROR] The claim-description regex (\""+regex+"\") is not valid: " + e.getDescription());
+                return DEFAULT_DESCRIPTION_PATTERN;
+            }
+        }
+        return descriptionRegex;
     }
 }

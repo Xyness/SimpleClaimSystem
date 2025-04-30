@@ -152,6 +152,10 @@ bossbar-settings:
   color: YELLOW
   style: SOLID
 
+# A regular expression to control the allowed description of a claim.
+# The default value is '^[a-zA-Z0-9\s]+$' and only allows for alphanumerical strings, with spaces.
+description-regex: '^[a-zA-Z0-9\s]+$'
+
 # If delay > 0, can the player move
 # true = can move, false = cannot move
 teleportation-delay-moving: false
