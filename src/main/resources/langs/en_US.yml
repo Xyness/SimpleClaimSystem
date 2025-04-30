@@ -138,7 +138,7 @@ world-list-changeda-via-command: "§fWorld §e%name%§f removed from §edisabled
 cant-add-member-anymore: "§cYou have reached the maximum number of members per claim."
 you-cannot-use-this-name: "§cYou cannot use 'claim-' in your new claim name."
 incorrect-characters-name: "§cYou must use a name with only letters and numbers."
-incorrect-characters-description: "§cYou must use a description with only letters and numbers."
+incorrect-characters-description: "§cThe provided description contains illegal characters."
 claim-not-an-admin-claim: "§cThis claim is not a protected area."
 not-using-database: "§cThe database is disabled in config.yml."
 member-limit-must-be-positive: "§cThe member limit must be positive."

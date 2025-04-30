@@ -119,7 +119,7 @@ world-list-changeda-via-command: "§fMonde §e%name%§f retiré des §emondes d�
 cant-add-member-anymore: "§cVous avez atteint le nombre maximum de membres par claim."
 you-cannot-use-this-name: "§cVous ne pouvez pas utiliser 'claim-' dans votre nouveau nom de claim."
 incorrect-characters-name: "§cVous devez utiliser un nom avec seulement des lettres et des chiffres."
-incorrect-characters-description: "§cVous devez utiliser une description avec seulement des lettres et des chiffres."
+incorrect-characters-description: "§cLa description fournie contient des caractères illégaux."
 claim-not-an-admin-claim: "§cCe claim n'est pas une zone protégée."
 not-using-database: "§cLa base de données est désactivée dans config.yml."
 member-limit-must-be-positive: "§cLa limite de membres doit être positive."
