@@ -168,10 +168,10 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("claim-description-too-long"));
                 return;
             }
-            if (!description.matches("^[a-zA-Z0-9]+$")) {
-            	player.sendMessage(instance.getLanguage().getMessage("incorrect-characters-description"));
-            	return;
-            }
+			if (!instance.getSettings().getDescriptionPatternProtected().matcher(description).find()) {
+				player.sendMessage(instance.getLanguage().getMessage("incorrect-characters-description"));
+				return;
+			}
             Claim claim = instance.getMain().getProtectedAreaByName(args[1]);
             instance.getMain().setClaimDescription(claim, description)
             	.thenAccept(success -> {

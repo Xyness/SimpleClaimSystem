@@ -153,8 +153,11 @@ bossbar-settings:
   style: SOLID
 
 # A regular expression to control the allowed description of a claim.
-# The default value is '^[a-zA-Z0-9\s]+$' and only allows for alphanumerical strings, with spaces.
-description-regex: '^[a-zA-Z0-9\s]+$'
+# The default value for the player-claims is '^[a-zA-Z0-9\s]+$' and only allows for alphanumerical strings, with spaces.
+# The default value for the protected areas is the same, but will also include the color symbols.
+description-regex:
+  claims: '^[a-zA-Z0-9\s]+$'
+  protected-areas: '^[a-zA-Z0-9&#\s]+$'
 
 # If delay > 0, can the player move
 # true = can move, false = cannot move
