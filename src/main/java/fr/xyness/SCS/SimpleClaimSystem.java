@@ -776,7 +776,8 @@ public class SimpleClaimSystem extends JavaPlugin {
             claimSettingsInstance.addSetting("claims-visitors-off-visible", getConfig().getString("claims-visitors-off-visible"));
 
             // Description regex
-            claimSettingsInstance.addSetting("description-regex", getConfig().getString("description-regex"));
+            claimSettingsInstance.addSetting("description-regex.claims", getConfig().getString("description-regex.claims"));
+            claimSettingsInstance.addSetting("description-regex.protected-areas", getConfig().getString("description-regex.protected-areas"));
             
             // Check claim fly disabled or not for Folia
             if(isFolia) {

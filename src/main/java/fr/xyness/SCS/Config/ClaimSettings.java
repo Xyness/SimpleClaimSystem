@@ -12,6 +12,7 @@ import java.util.regex.PatternSyntaxException;
 import java.util.stream.Collectors;
 
 import fr.xyness.SCS.SimpleClaimSystem;
+import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
@@ -87,8 +88,11 @@ public class ClaimSettings {
     /** Location of the expulsion */
     private Location expulsionLocation;
 
-    /** Regex for the description. */
-    private Pattern descriptionRegex;
+    /** Regex for the description of player claims. */
+    private Pattern descriptionRegexClaims;
+
+    /** Same, but for the protected areas. */
+    private Pattern descriptionRegexProtected;
 
     /** Default description pattern. Used if the user regex is not valid. */
     private static final Pattern DEFAULT_DESCRIPTION_PATTERN = Pattern.compile("^[a-zA-Z0-9\\s]+$");
@@ -116,7 +120,8 @@ public class ClaimSettings {
         groupsSettings.clear();
         worlds.clear();
         aliases.clear();
-        descriptionRegex = null;
+        descriptionRegexClaims = null;
+        descriptionRegexProtected = null;
     }
 
     /**
@@ -562,24 +567,34 @@ public class ClaimSettings {
     }
 
     /**
-     * Get the pattern for the default description.
+     * Get the pattern for the description of claims.
      * @return a non-null instance of a pattern. If the provided one is not valid, will use a default, safe one.
      */
-    public Pattern getDescriptionPattern() {
-        if(descriptionRegex == null) {
-            String regex = getSetting("description-regex");
-            if(regex.isEmpty()) {
-                instance.info("[ERROR] The claim-description regex is not set. Set the 'description-regex' property.");
-                return DEFAULT_DESCRIPTION_PATTERN;
-            }
-
-            try {
-                descriptionRegex = Pattern.compile(regex);
-            } catch(PatternSyntaxException e) {
-                instance.info("[ERROR] The claim-description regex (\""+regex+"\") is not valid: " + e.getDescription());
-                return DEFAULT_DESCRIPTION_PATTERN;
-            }
+    public Pattern getDescriptionPatternClaims() {
+        if(descriptionRegexClaims == null) {
+            descriptionRegexClaims = computeOrDefault("description-regex.claims");
         }
-        return descriptionRegex;
+        return descriptionRegexClaims;
+    }
+
+    /**
+     * Get the pattern for the description of protected-areas.
+     * @return a non-null instance of a pattern. If the provided one is not valid, will use a default, safe one.
+     */
+    public Pattern getDescriptionPatternProtected() {
+        if(descriptionRegexProtected == null) {
+            descriptionRegexProtected = computeOrDefault("description-regex.protected-areas");
+        }
+        return descriptionRegexProtected;
+    }
+
+    private Pattern computeOrDefault(String key) {
+        String regex = getSetting(key);
+        try {
+            return Pattern.compile(regex);
+        } catch(PatternSyntaxException e) {
+            instance.info(ChatColor.RED + "[ERROR] The property "+key+" (\""+regex+"\") is not valid: " + e.getMessage());
+            return DEFAULT_DESCRIPTION_PATTERN;
+        }
     }
 }
