@@ -244,7 +244,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             } else {
             	claimInstance = new ClaimMain(this);
             	claimGuisInstance = new ClaimGuis(this);
-            	claimSettingsInstance = new ClaimSettings();
+            	claimSettingsInstance = new ClaimSettings(this);
             	cPlayerMainInstance = new CPlayerMain(this);
             	claimLanguageInstance = new ClaimLanguage(this);
             	claimBossBarInstance = new ClaimBossBar(this);
@@ -774,6 +774,10 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Check if claims where Visitors is false are displayed in the /claims GUI
             claimSettingsInstance.addSetting("claims-visitors-off-visible", getConfig().getString("claims-visitors-off-visible"));
+
+            // Description regex
+            claimSettingsInstance.addSetting("description-regex.claims", getConfig().getString("description-regex.claims"));
+            claimSettingsInstance.addSetting("description-regex.protected-areas", getConfig().getString("description-regex.protected-areas"));
             
             // Check claim fly disabled or not for Folia
             if(isFolia) {
@@ -1798,7 +1802,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     
     /**
      * Reloads the language file.
-     * 
+     *
      * @param plugin The plugin instance
      * @param sender The command sender
      * @param lang The language file to reload

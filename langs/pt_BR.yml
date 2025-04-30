@@ -138,7 +138,7 @@ world-list-changeda-via-command: "§fMundo §e%name%§f removido dos §emundos d
 cant-add-member-anymore: "§cVocê atingiu o número máximo de membros por claim."
 you-cannot-use-this-name: "§cVocê não pode usar 'claim-' no seu novo nome de claim."
 incorrect-characters-name: "§cVocê deve usar um nome com apenas letras e números."
-incorrect-characters-description: "§cVocê deve usar uma descrição com apenas letras e números."
+incorrect-characters-description: "§cA descrição fornecida contém caracteres ilegais."
 claim-not-an-admin-claim: "§cEste claim não é uma área protegida."
 not-using-database: "§cO banco de dados está desativado no config.yml."
 member-limit-must-be-positive: "§cO limite de membros deve ser positivo."

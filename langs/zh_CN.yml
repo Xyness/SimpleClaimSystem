@@ -140,7 +140,7 @@ world-list-changeda-via-command: "§f世界 §e%name%§f 已从§e 禁用世界�
 cant-add-member-anymore: "§c您已达到每个领地的最大成员数量。"
 you-cannot-use-this-name: "§c您不能在新的领地名称中使用 'claim-'。"
 incorrect-characters-name: "§c您必须使用仅包含字母和数字的名称。"
-incorrect-characters-description: "§c您必须使用仅包含字母和数字的描述。"
+incorrect-characters-description: "§c提供的描述包含非法字符。"
 claim-not-an-admin-claim: "§c此领地不是受保护区域。"
 not-using-database: "§c在 config.yml 中禁用了数据库。"
 member-limit-must-be-positive: "§c成员限制必须为正数。"
