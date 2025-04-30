@@ -23,7 +23,7 @@ SimpleClaimSystem is a plugin allowing you to protect your constructions, it wor
 
 ## Useful links
 ### - Wiki ([here](https://xyness.gitbook.io/simpleclaimsystem))
-### - Discord ([here](https://discord.gg/xyness))
+### - Discord ([here](https://discord.gg/6sRTGprM95))
 
 
 ## bStats
