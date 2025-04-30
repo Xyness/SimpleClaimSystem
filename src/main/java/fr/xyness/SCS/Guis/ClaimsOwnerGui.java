@@ -223,7 +223,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
     private List<String> prepareLore(List<String> template, Claim claim, Player player) {
         List<String> lore = new ArrayList<>();
         for (String line : template) {
-            line = line.replace("%description%", claim.getDescription())
+            line = line.replace("%description%", ChatColor.translateAlternateColorCodes('&', claim.getDescription()))
                 .replace("%name%", claim.getName())
                 .replace("%coords%", instance.getMain().getClaimCoords(claim));
             if (line.contains("%members%")) {
