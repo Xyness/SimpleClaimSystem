@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -21,7 +22,11 @@ import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 
 /**
- * Class representing the Claim Members GUI.
+ * The (non-Admin) Claim Chunks/Zones Management GUI
+ * (Uses Zones mode if player is in a Zone).
+ *
+ * L'interface graphique de gestion des blocs/zones de réclamation (non administrateur)
+ * (Utilise le mode Zones si le joueur se trouve dans une zone).
  */
 public class AdminGestionClaimChunksGui implements InventoryHolder {
     
@@ -53,12 +58,17 @@ public class AdminGestionClaimChunksGui implements InventoryHolder {
      */
     public AdminGestionClaimChunksGui(Player player, Claim claim, int page, SimpleClaimSystem instance) {
     	this.instance = instance;
-        inv = Bukkit.createInventory(this, 54, "§4[A]§r Chunks: "+claim.getName()+" ("+claim.getOwner()+")");
-        loadItems(player, claim, page).thenAccept(success -> {
+        final Zone zone = claim.setZoneOfGUIByLocation(player);
+        // TODO: translate these strings
+        String title = (zone != null)
+                ? "§4[A]§r Zones: "+claim.getName()+" ("+claim.getOwner()+")"
+                : "§4[A]§r Chunks: "+claim.getName()+" ("+claim.getOwner()+")";
+        inv = Bukkit.createInventory(this, 54, title);
+        loadItems(player, claim, page, zone).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
-        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error", zone)));
         	}
         })
         .exceptionally(ex -> {
@@ -81,7 +91,7 @@ public class AdminGestionClaimChunksGui implements InventoryHolder {
      * @param page   The current page of the GUI.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, int page) {
+    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, int page, Zone zone) {
     	
     	return CompletableFuture.supplyAsync(() -> {
     	
@@ -89,12 +99,18 @@ public class AdminGestionClaimChunksGui implements InventoryHolder {
 	        cPlayer.setClaim(claim);
 	        cPlayer.clearMapString();
 	        cPlayer.setGuiPage(page);
+            cPlayer.setGuiZone(zone);
 	        int min_member_slot = 0;
 	        int max_member_slot = 44;
 	        int items_count = max_member_slot - min_member_slot + 1;
 	        if(page>1) inv.setItem(48, backPage(page - 1));
 	        inv.setItem(49, backMainMenu(claim.getName()));
-	        List<String> lore = new ArrayList<>(Arrays.asList("§7The chunk is part of the claim",claim.getChunks().size() == 1 ? "§cYou can't remove the only remaining chunk" : "§c[Left-click]§7 to remove chunk"));
+	        List<String> lore = new ArrayList<>(Arrays.asList(
+                    "§7The chunk is part of the claim",
+                    claim.getChunks().size() == 1 ? "§cYou can't remove the only remaining chunk" : "§c[Left-click]§7 to remove chunk"));
+            if (zone != null) {
+                lore.set(1, "§c[Left-click]§7 to remove zone");
+            }
 	        int startItem = (page - 1) * items_count;
 	        int i = min_member_slot;
 	        int count = 0;
@@ -110,6 +126,9 @@ public class AdminGestionClaimChunksGui implements InventoryHolder {
 	            ItemStack item = new ItemStack(Material.RED_MUSHROOM_BLOCK);
 	            ItemMeta meta = item.getItemMeta();
 	            meta.setDisplayName("§6Chunk-"+String.valueOf(chunk_count)+" §7("+String.valueOf(chunk.getWorld().getName()+", X:"+chunk.getX()+", Z:"+chunk.getZ())+")");
+                if (zone != null) {
+                    meta.setDisplayName("["+zone.getName()+"] overrides "+zone+" in "+claim.getName());
+                }
 	            meta.setLore(lore);
 	            item.setItemMeta(meta);
 	            inv.setItem(i, item);

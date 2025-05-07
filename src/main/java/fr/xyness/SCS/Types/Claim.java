@@ -1,15 +1,18 @@
 package fr.xyness.SCS.Types;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+
+import javax.sql.DataSource;
 
 /**
  * This class handles claim object.
@@ -23,47 +26,61 @@ public class Claim {
     
 	
 	/** The id associated with this claim */
-	private int id;
+	protected int id;
 	
 	/** The UUID of the owner */
-	private UUID uuid_owner;
+    protected UUID uuid_owner;
 	
     /** The chunks associated with this claim */
     private Set<Chunk> chunks;
     
     /** The owner of the claim */
-    private String owner;
+    protected String owner;
     
     /** Members who have access to the claim */
-    private Set<UUID> members;
+    protected Set<UUID> members;
+
+    private Map<String, Zone> zones = new ConcurrentHashMap<>();
     
     /** Location of the claim */
     private Location location;
     
     /** Name of the claim */
-    private String name;
+    protected String name;
     
     /** Description of the claim */
-    private String description;
+    protected String description;
     
     /** Permissions associated with the claim */
-    private Map<String,LinkedHashMap<String, Boolean>> permissions;
+    protected Map<String,LinkedHashMap<String, Boolean>> permissions;
     
     /** Whether the claim is for sale */
-    private boolean sale;
+    protected boolean sale;
     
     /** Price of the claim if for sale */
-    private long price;
+    protected long price;
     
     /** Banned members from the claim */
-    private Set<UUID> bans;
+    protected Set<UUID> bans;
     
     
     // ******************
     // *  Constructors  *
     // ******************
     
-    
+    public Claim(Boolean isZone) {
+        // A Boolean argument was added since Claim() runs regardless of whether the subclass calls super() explicitly,
+        //   and we don't want Claim attributes set to null for anything except a Zone.
+        if (!isZone) {
+            // throw new UnsupportedOperationException(
+            System.err.println("ERROR: Default Claim constructor sets Claim values to null" +
+                    " (So it should not be called from anywhere other than the `Zone` constructor, like: `super(true)`).");
+            return;
+        }
+        this.chunks = null;
+        this.zones = null;
+        this.location = null;
+    }
     /**
      * Main constructor initializing all fields.
      * 
@@ -117,9 +134,9 @@ public class Claim {
     public void setUUID(UUID uuid_owner) { this.uuid_owner = uuid_owner; }
     
     /**
-     * Sets the chunk for this claim.
+     * Sets the chunks for this claim.
      * 
-     * @param chunk The new chunk
+     * @param chunks The new chunks
      */
     public void setChunks(Set<Chunk> chunks) { this.chunks = chunks; }
     
@@ -185,9 +202,93 @@ public class Claim {
      * @param bans The new set of banned members
      */
     public void setBans(Set<UUID> bans) { this.bans = bans; }
-    
+
+
+    /**
+     * Put the zone into zones if the name isn't used yet.
+     * @param zone A newly created/loaded zone with "name" set to a unique value (otherwise won't be added)
+     * @return true if added to zones, false if zoneName already in zones (no change occurred)
+     */
+    public boolean putNewZone(Zone zone) {
+        if (zones.containsKey(zone.getName())) return false;
+        zones.put(zone.getName(), zone);
+        return true;
+    }
+
+    /**
+     * Add a zone, changing its name if necessary to make it unique to this claim.
+     * (No database change is made. Use appropriate dbUpdate* method of {@link Zone} if name changes).
+     *
+     * @param zone Any zone.
+     * @param prefix String to place before the name *only if* name is already used (Can be blank. A unique numbered
+     *               name will be generated if there is no unique result using prefix+name).
+     * @return The given zone, with the name changed if it wasn't unique to the claim.
+     */
+    public Zone mergeAsUniqueName(Zone zone, String prefix) {
+        String originalName = zone.getName();
+        String newName = zone.getName();
+        int num = 0;
+        String tryName = prefix + originalName;
+        while (zones.containsKey(newName)) {
+            num++;
+            if (num == 1) {
+                newName = tryName;
+            }
+            else {
+                newName = tryName + Integer.toString(num);
+            }
+        }
+        zone.name = newName;
+        zones.put(newName, zone);
+        return zone;
+    }
+
+    public void clearZones() {
+        zones.clear();
+    }
+
+    public Zone removeZone(String zoneName) {
+        return zones.remove(zoneName);
+    }
+
+
     // Getters
-    
+
+    public Zone getZoneById(Integer zoneID) {
+        for (Map.Entry<String, Zone> entry : zones.entrySet()) {
+            Zone zone = entry.getValue();
+            if (zone.getId() == zoneID) {
+                return zone;
+            }
+        }
+        return null;
+    }
+    public Zone getZoneAt(Location location) {
+        for (Map.Entry<String, Zone> entry : zones.entrySet()) {
+            Zone zone = entry.getValue();
+            if (zone.contains(location)) {
+                return zone;
+            }
+        }
+        return null;
+    }
+    /**
+     * Set the zone ID for the player's GUI session
+     * @param player whose location to use for finding a zone.
+     * @return
+     */
+    public Zone getZoneAt(Player player) {
+        return getZoneAt(player.getLocation());
+    }
+
+    public int getZoneId(String zoneName) {
+        Zone zone = zones.get(zoneName);
+        if (zone == null) return -1;
+        return zone.getId();
+    }
+
+    public Zone getZone(String zoneName) { return zones.get(zoneName); }
+
     /**
      * Gets the id associated with this claim
      * 
@@ -250,6 +351,12 @@ public class Claim {
      * @return The permissions
      */
     public Map<String,LinkedHashMap<String, Boolean>> getPermissions() { return this.permissions; }
+
+    public String getMembersString() {
+        return getMembers().stream()
+                .map(UUID::toString)
+                .collect(Collectors.joining(";"));
+    }
     
     /**
      * Gets a specific permission associated with this claim.
@@ -259,11 +366,12 @@ public class Claim {
      * @return The permission value
      */
     public boolean getPermission(String permission, String role) {
-    	return this.permissions.getOrDefault(role == null ? "natural" : role.toLowerCase(), new LinkedHashMap<>()).getOrDefault(permission, false);
+        return this.permissions.getOrDefault(role == null ? "natural" : role.toLowerCase(), new LinkedHashMap<>()).getOrDefault(permission, false);
     }
     
     /**
-     * Gets a specific permission for a player associated with this claim.
+     * Gets a specific permission for a player associated with this claim
+     * (If player is in a zone, the zone's permissions are used instead).
      * 
      * @param permission The permission key
      * @param player The target player
@@ -271,9 +379,13 @@ public class Claim {
      */
     public boolean getPermissionForPlayer(String permission, Player player) {
     	if (this.owner.equals(player.getName()) && !permission.equalsIgnoreCase("weather")) return true;
+        Zone zone = getZoneAt(player.getLocation());
+        if (zone != null) {
+            zone.permissions.getOrDefault(isMember(player.getUniqueId()) ? "members" : "visitors", new LinkedHashMap<>()).getOrDefault(permission, false);
+        }
     	return this.permissions.getOrDefault(isMember(player.getUniqueId()) ? "members" : "visitors", new LinkedHashMap<>()).getOrDefault(permission, false);
     }
-    
+
     /**
      * Gets whether this claim is for sale.
      * 
@@ -324,14 +436,14 @@ public class Claim {
     /**
      * Adds a player to the banned list of this claim.
      * 
-     * @param member The player to ban
+     * @param ban The player to ban
      */
     public void addBan(UUID ban) { this.bans.add(ban); }
     
     /**
      * Removes a player from the banned list of this claim.
      * 
-     * @param member The player to unban
+     * @param ban The player to unban
      */
     public void removeBan(UUID ban) { this.bans.remove(ban); }
     
@@ -343,7 +455,7 @@ public class Claim {
     public void addChunk(Chunk chunk) { this.chunks.add(chunk); }
     
     /**
-     * Adds chunks to the claim.
+     * Adds chunks to the claim
      * 
      * @param chunks The chunks to add
      */
@@ -374,4 +486,46 @@ public class Claim {
         return this.members.contains(targetUUID);
     }
 
+    public Map<String, Zone> getZones() {
+        return zones;
+    }
+
+    /**
+     *Delete zones from *this* claim from the database.
+     * @param datasource     Such as instance.getDataSource() (HikariDataSource or other that implements
+     *                       javax.sql.DataSource and java.io.CLoseable)
+     */
+    public void dbDeleteZones(DataSource datasource) {
+        // Update database
+        try (Connection connection = datasource.getConnection()) {
+            String deleteZonesQuery = "DELETE FROM scs_zones WHERE parent_claim_id = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(deleteZonesQuery)) {
+                preparedStatement.setInt(1, getId());  // *all* zones with this parent claim id
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            System.err.println(String.format("Failed to delete zones with parent_claim_id: %s", getId()));
+            e.printStackTrace();
+        }
+    }
+    /**
+     *Delete named Zone from *this* claim from the database.
+     * @param datasource     Such as instance.getDataSource() (HikariDataSource or other that implements
+     *                       javax.sql.DataSource and java.io.CLoseable)
+     */
+    public void dbDeleteZone(DataSource datasource, String zoneName) {
+        // Update database
+        try (Connection connection = datasource.getConnection()) {
+            String deleteZonesQuery = "DELETE FROM scs_zones WHERE parent_claim_id = ? AND name = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(deleteZonesQuery)) {
+                preparedStatement.setInt(1, getId());
+                preparedStatement.setString(2, zoneName);
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException e) {
+            System.err.println(String.format("Failed to delete zones with parent_claim_id: %s", getId()));
+            e.printStackTrace();
+            return;
+        }
+    }
 }

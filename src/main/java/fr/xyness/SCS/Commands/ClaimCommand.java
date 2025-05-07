@@ -580,7 +580,8 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             Runnable task = () -> {
             	instance.executeSync(() -> {
                     if (targetName[0].equals(playerName)) {
-                    	player.sendMessage(instance.getLanguage().getMessage("cant-ban-yourself"));
+                        // zone: null since message is generic
+                    	player.sendMessage(instance.getLanguage().getMessage("cant-ban-yourself", null));
                         return;
                     }
                     if (instance.getMain().checkBan(claim, targetName[0])) {
@@ -588,7 +589,10 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         player.sendMessage(message);
                         return;
                     }
-                    String message = instance.getLanguage().getMessage("add-ban-success").replace("%player%", targetName[0]).replace("%claim-name%", claim.getName());
+                    String message = instance.getLanguage().getMessage("add-ban-success", zone)
+                            .replace("%player%", targetName[0])
+                            .replace("%claim-name%", claim.getName())
+                            .replace("%zone-name%", (zone != null) ? zone.getName() : "(no zone)");
                     instance.getMain().addClaimBan(claim, targetName[0])
                     	.thenAccept(success -> {
                     		if (success) {
@@ -922,7 +926,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                             return;
                         }
                         String message = instance.getLanguage().getMessage("add-member-success").replace("%player%", targetName[0]).replace("%claim-name%", claim.getName());
-                        instance.getMain().addClaimMember(claim, targetName[0])
+                        instance.getMain().addClaimMember(claim, targetName[0], claim.getZoneOfPlayerGUI(player))
                         	.thenAccept(success -> {
                         		if (success) {
                         			instance.executeEntitySync(player, () -> player.sendMessage(message));
@@ -1246,7 +1250,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     	            	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
     	                return;
     	            }
-                    instance.getMain().addClaimMember(claim, playerName)
+                    instance.getMain().addClaimMember(claim, playerName, claim.getZoneOfPlayerGUI(player))
 	                	.thenAccept(success -> {
 	                		if (success) {
 	                			String message = instance.getLanguage().getMessage("player-accept-invitation");
@@ -1312,7 +1316,15 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             new ClaimMainGui(player,claim,instance);
             return;
     	}
+        if (args[0].equalsIgnoreCase("addzone")) {
+            TODO: copy from ProtectedAreaCommand.java, but use correct permission
+        }
+        if (args[0].equalsIgnoreCase("delzone")) {
+            TODO: copy from ProtectedAreaCommand.java, but use correct permission
+        }
     	if (args[0].equalsIgnoreCase("addchunk")) {
+            Claim claim = instance.getMain().getClaimByName(args[1], player);
+
         	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.addchunk")) {
         		player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
                 return;
@@ -1322,7 +1334,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
                 return;
             }
-            Claim claim = instance.getMain().getClaimByName(args[1], player);
+
             if (claim == null) {
             	player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
                 return;
@@ -1411,11 +1423,11 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         		isOnAdd.put(player,claim.getName());
                                 if(instance.getSettings().getBooleanSetting("floodgate")) {
                                 	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
-                                		new BChunkConfirmationGui(player,instance,price[0]);
+                                		new BChunkConfirmationGui(player,instance,price[0],zone);
                                 		return;
                                 	}
                                 }
-                        		new ChunkConfirmationGui(player,instance,price[0]);
+                        		new ChunkConfirmationGui(player,instance,price[0],zone);
                         	}
                         } else {
                         	if (instance.getSettings().getBooleanSetting("economy") && instance.getSettings().getBooleanSetting("claim-cost")) {
@@ -1804,7 +1816,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                             return;
                         }
                         String message = instance.getLanguage().getMessage("add-member-success").replace("%player%", targetName[0]).replace("%claim-name%", claim.getName());
-                        instance.getMain().addClaimMember(claim, targetName[0])
+                        instance.getMain().addClaimMember(claim, targetName[0], claim.getZoneOfPlayerGUI(player))
                         	.thenAccept(success -> {
                         		if (success) {
                         			instance.executeEntitySync(player, () -> player.sendMessage(message));

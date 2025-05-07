@@ -27,7 +27,7 @@ import fr.xyness.SCS.Types.GuiSettings;
 import fr.xyness.SCS.Types.GuiSlot;
 
 /**
- * Class representing the Claim List GUI.
+ * Claim List GUI.
  */
 public class ClaimListGui implements InventoryHolder {
 
@@ -63,9 +63,9 @@ public class ClaimListGui implements InventoryHolder {
     public ClaimListGui(Player player, int page, String filter, SimpleClaimSystem instance) {
     	this.instance = instance;
     	this.player = player;
-    	
+    	// zone: null since listing claims (For Zone see chunks/zones list GUI)
     	// Get title
-    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("list");
+    	GuiSettings guiSettings = ClaimGuis.getGuiSettings("list", null);
     	String title = guiSettings.getTitle()
     			.replace("%page%", String.valueOf(page));
     	
@@ -77,7 +77,7 @@ public class ClaimListGui implements InventoryHolder {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
-        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error", null)));
         	}
         })
         .exceptionally(ex -> {
@@ -106,12 +106,13 @@ public class ClaimListGui implements InventoryHolder {
 	    	// Get player data
 	        String playerName = player.getName();
 	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
-	        
+
 	        // Update player data (gui)
 	        cPlayer.setFilter(filter);
 	        cPlayer.clearMapClaim();
 	        cPlayer.clearMapLoc();
 	        cPlayer.setGuiPage(page);
+			cPlayer.clearGuiZone();
 	        
 	        // Get claims
 	        Set<Claim> claims = new HashSet<>(filter.equals("owner") ? instance.getMain().getPlayerClaims(playerName) : instance.getMain().getClaimsWhereMemberNotOwner(player));
@@ -124,7 +125,7 @@ public class ClaimListGui implements InventoryHolder {
 	        int max = guiSettings.getEndSlot() - guiSettings.getStartSlot();
 	        
 	        // Items
-    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("list"));
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.getGuiSlots(zone).get("list"));
     		for(GuiSlot slot : slots) {
     			int slot_int = slot.getSlot();
     			String key = slot.getKey();

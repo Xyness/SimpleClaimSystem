@@ -17,7 +17,7 @@ import fr.xyness.SCS.Types.GuiSettings;
 import fr.xyness.SCS.Types.GuiSlot;
 
 /**
- * Class representing the Claims Owner GUI.
+ * Claims Owner GUI.
  */
 public class ClaimsOwnerGui implements InventoryHolder {
 
@@ -54,9 +54,10 @@ public class ClaimsOwnerGui implements InventoryHolder {
     public ClaimsOwnerGui(Player player, int page, String filter, String owner, SimpleClaimSystem instance) {
     	this.instance = instance;
     	this.player = player;
-    	
+
+		// zone: null since zones have members, claims have owners/members
     	// Get title
-    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("claims_owner");
+    	GuiSettings guiSettings = ClaimGuis.getGuiSettings("claims_owner", null);
     	String title = guiSettings.getTitle()
     			.replace("%page%", String.valueOf(page))
     			.replace("%owner%", owner);
@@ -89,7 +90,8 @@ public class ClaimsOwnerGui implements InventoryHolder {
     private CompletableFuture<Boolean> loadItems(int page, String filter, String owner) {
     	
     	return CompletableFuture.supplyAsync(() -> {
-    	
+			// zone: null since zones have members, claims have owners/members
+
 	    	// Get player data
 	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
 	        Set<Claim> claims = getClaims(filter, owner);
@@ -104,13 +106,14 @@ public class ClaimsOwnerGui implements InventoryHolder {
 	        cPlayer.clearMapClaim();
 	        cPlayer.clearMapLoc();
 	        cPlayer.setGuiPage(page);
+			cPlayer.clearGuiZone();
 	        
 	        // Set bottom items
     		GuiSettings guiSettings = ClaimGuis.gui_settings.get("claims_owner");
 	        int max = guiSettings.getEndSlot() - guiSettings.getStartSlot();
 	        
 	        // Items
-    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("claims_owner"));
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.getGuiSlots(zone).get("claims_owner"));
     		for(GuiSlot slot : slots) {
     			int slot_int = slot.getSlot();
     			String key = slot.getKey();

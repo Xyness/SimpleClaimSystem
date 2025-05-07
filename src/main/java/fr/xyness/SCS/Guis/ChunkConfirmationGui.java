@@ -6,6 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import fr.xyness.SCS.Types.CPlayer;
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -19,7 +21,7 @@ import fr.xyness.SCS.Types.GuiSettings;
 import fr.xyness.SCS.Types.GuiSlot;
 
 /**
- * Class representing the Claim Bans GUI.
+ * The (non-Admin) Claim price confirmation GUI.
  */
 public class ChunkConfirmationGui implements InventoryHolder {
 
@@ -54,20 +56,23 @@ public class ChunkConfirmationGui implements InventoryHolder {
     public ChunkConfirmationGui(Player player, SimpleClaimSystem instance, double price) {
     	this.instance = instance;
     	this.player = player;
-    	
+		// TODO: set price = 0 if zone!=null since zones can't be sold (already purchased the chunk(s))
     	// Get title
-    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("chunk_confirmation");
+    	GuiSettings guiSettings = ClaimGuis.getGuiSettings("chunk_confirmation", null);
     	String title = guiSettings.getTitle();
-    	
-    	// Create the inventory
+
+		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+		Zone zone = cPlayer.getGuiZone();
+
+		if (zone != null) price = 0;
+
+		// Create the inventory
         inv = Bukkit.createInventory(this, guiSettings.getRows()*9, title);
-        
-        // Load the items asynchronously
-        loadItems(price).thenAccept(success -> {
+        loadItems(price, zone).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
-        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error", zone)));
         	}
         })
         .exceptionally(ex -> {
@@ -88,12 +93,13 @@ public class ChunkConfirmationGui implements InventoryHolder {
      * @param price The price of the future chunk.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(double price) {
-    	
+    public CompletableFuture<Boolean> loadItems(double price, Zone zone) {
+    	// zone: null since zones can't be sold.
     	return CompletableFuture.supplyAsync(() -> {
-	        
-	        // Items
-    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("chunk_confirmation"));
+
+			// TODO: set price = 0 if zone!=null since zones can't be sold (already purchased the chunk(s))
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.getGuiSlots(zone).get("chunk_confirmation"));
+			// ^ uses gui-title: "gui-chunk-confirm-title"
     		for(GuiSlot slot : slots) {
     			int slot_int = slot.getSlot();
     			String title = slot.getTitle();

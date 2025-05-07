@@ -165,6 +165,7 @@ player-all-claim-unclaimed-by-admin: "§eTous vos claims§f ont été supprimés
 player-banned: "§cVous êtes banni de ce claim."
 cant-ban-yourself: "§cVous ne pouvez pas vous bannir vous-même."
 add-ban-success: "§e%player%§f est maintenant banni du claim §e%claim-name%§f."
+add-zone-ban-success: "§e%player%§f is now banned from the zone §e%zone-name%§f."
 add-ban-all-success: "§e%player%§f est maintenant banni de tous vos claims."
 remove-ban-success: "§e%player%§f n'est plus banni du claim §e%claim-name%§f."
 remove-ban-all-success: "§e%player%§f n'est plus banni de tous vos claims."
@@ -241,6 +242,17 @@ add-chunk-already-owner-protected-area: |
 add-chunk-already-in-claim-protected-area: "§cCe chunk appartient déjà à la zone protégée '%claim-name%'."
 chunk-are-loading: "§fCalcul et chargement de §b%chunks-count% chunks§f.."
 chunk-while-loading: "§fChunks chargés: §a%loaded-chunks%§2/%chunks-count%§f."
+
+error-delete-zone: "§cAn error has occurred, check the world and coordinates of the zone. Otherwise contact an administrator."
+zone-must-be-in-claim: "§cA new zone must be in a claim."
+add-zone-not-owner: "§cThis zone is not in a claim you own."
+add-zone-overlapping-another: "§cThis zone overlaps an existing zone."
+add-zone-successful: "§fThe zone §a%zone-boundingbox%§f has been added to §e%claim-name%§f."
+add-zone-already-owner-protected-area: |
+  §fThis is a protected area.
+  §fYou can only make a zone in a claim you own.
+add-zone-overlapping-another-in-claim-protected-area: "§cThis zone overlaps zone %other-zone% in protected area '%claim-name%'."
+
 griefprevention-needed: "§cVous avez besoin de GriefPrevention pour importer les claims de ce plugin."
 player-not-in-the-claim: "§cLe joueur '%player%' n'est pas dans votre claim %claim-name%."
 player-not-in-the-protected-area: "§cLe joueur '%player%' n'est pas dans la zone protégée %claim-name%."
@@ -338,11 +350,15 @@ leave-territory-chat: "§fVous quittez le territoire de §e%owner%§f."
 # Utilisez \n pour une nouvelle ligne uniquement pour les messages de description
 
 gui-bans-title: "Bans : %name% (Page %page%)"
+gui-zone-bans-title: "Zone bans: %name% (Page %page%)"
 gui-chunks-title: "Chunks : %name% (Page %page%)"
+gui-zones-title: "Zones: %name% (Page %page%)"
 gui-list-title: "Mes claims (Page %page%)"
 gui-main-title: "%name%"
 gui-members-title: "Membres : %name% (Page %page%)"
+gui-zone-members-title: "Zone members: %name% (Page %page%)"
 gui-settings-new-title: "Paramètres : %name% (%role%)"
+gui-zone-settings-new-title: "Zone settings: %name% (%role%)"
 gui-claims-title: "Claims (Page %page%)"
 gui-claims-owner-title: "Claims : %owner% (Page %page%)"
 
@@ -350,6 +366,7 @@ gui-button-no-permission: "§cVous n'avez pas la permission"
 
 to-unban: " pour débannir"
 to-remove-chunk: " pour supprimer ce chunk"
+to-remove-zone: " to remove this zone"
 to-teleport: " pour vous téléporter"
 to-remove: " pour supprimer"
 to-manage: " pour gérer"
@@ -409,6 +426,9 @@ choice-setting-disabled: "§cCe paramètre ne peut pas être modifié"
 
 apply-all-claims-title: "§eAppliquer les paramètres à tous les claims"
 apply-all-claims-lore: "§7Appliquer ces paramètres à tous mes claims\n§7▸ §fCliquez pour exécuter"
+
+apply-all-zones-title: "§eAppliquer les paramètres à tous les zones de cette claim"
+apply-all-zones-lore: "§7Appliquer ces paramètres à tous les zones de %claim-name%\n§7▸ §fCliquez pour exécuter"
 
 build-title: "§eConstruire §7(%status%§7)"
 build-lore: "§7Autoriser la construction"
@@ -506,8 +526,14 @@ manage-members-lore: "§7Gérer les membres"
 manage-bans-title: "§cBans"
 manage-bans-lore: "§7Gérer les joueurs bannis"
 
+manage-zone-bans-title: "§cInterdictions de zone"
+manage-zone-bans-lore: "§7Gérer les joueurs bannis de la zone"
+
 manage-chunks-title: "§6Chunks"
 manage-chunks-lore: "§7Gérer les chunks"
+
+manage-zones-title: "§6Zones"
+manage-zones-lore: "§7Gérer les zones"
 
 manage-settings-title: "§3Paramètres"
 manage-settings-lore: "§7Gérer les paramètres"
@@ -534,6 +560,9 @@ claim-info-lore-sale-status-false: "§c✘ Claim non en vente"
   
 chunk-title: "§6Chunk-%number% §7(%coords%)"
 chunk-lore: "§7Le chunk fait partie du claim"
+
+zone-title: "§6Zone '§7%zone-name%' %zone-boundingbox%"
+zone-lore: "§7La zone fait partie de la revendication"
 
 access-button: "§7▸ §fCliquez pour exécuter"
 
@@ -674,6 +703,12 @@ help-command:
   claim-delchunk: |
     §bSyntaxe : §f/claim delchunk <claim-name> <chunk>
     §bDescription : §fSupprimer un chunk d'un claim, utiliser l'argument chunk comme world;x;z
+  claim-addzone: |
+    §bSyntax : §f/claim addzone <claim-name> <zone-name>
+    §bDescription : §fAdd a new zone (selected by wooden axe) within a claim.
+  claim-delzone: |
+    §bSyntax : §f/claim delzone <claim-name> <zone-name>
+    §bDescription : §fRemove a zone from a claim.
   claim-main: |
     §bSyntaxe : §f/claim main <claim-name>
     §bDescription : §fOuvrir le menu principal d'un claim
@@ -733,6 +768,12 @@ help-command:
   parea-delchunk: |
     §bSyntaxe : §f/parea delchunk <claim_name> <chunk>
     §bDescription : §fSupprimer un chunk d'une zone protégée
+  parea-addzone: |
+    §bSyntax : §f/parea addzone <claim-name> <zone-name>
+    §bDescription : §fAdd a new zone (selected by wooden axe) within a claim.
+  parea-delzone: |
+    §bSyntax : §f/parea delzone <claim-name> <zone-name>
+    §bDescription : §fRemove a zone from a protected area.
   parea-kick: |
     §bSyntaxe : §f/parea kick <*|claim-name> <player>
     §bDescription : §fExpulser physiquement un joueur d'une zone protégée

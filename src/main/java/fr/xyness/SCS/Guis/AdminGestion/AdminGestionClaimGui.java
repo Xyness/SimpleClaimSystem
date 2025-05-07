@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -31,7 +32,11 @@ import fr.xyness.SCS.Types.Claim;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
- * Class representing the Admin Gestion Claim GUI.
+ * The Admin Claim/Zone Settings Management GUI
+ * (edits permissions).
+ *
+ * L'interface utilisateur de gestion des réclamations/paramètres de zone d'administration
+ * (permet la navigation vers les autres écrans de l'interface utilisateur).
  */
 public class AdminGestionClaimGui implements InventoryHolder {
 
@@ -54,7 +59,8 @@ public class AdminGestionClaimGui implements InventoryHolder {
 
     
     /**
-     * Main constructor for the AdminGestionClaimGui.
+     * The Admin Claim/Zone Settings Management GUI constructor
+     *  (edits permissions).
      *
      * @param player The player for whom the GUI is being created.
      * @param claim  The claim for which the GUI is displayed.
@@ -76,13 +82,18 @@ public class AdminGestionClaimGui implements InventoryHolder {
 	    		role_displayed = "Visitors";
 	    		break;
     	}
-    	
-        inv = Bukkit.createInventory(this, 54, "§4[A]§r Settings: "+claim.getName()+" ("+role_displayed+" - " + claim.getOwner() + ")");
-        loadItems(player, claim, role).thenAccept(success -> {
+        final Zone zone = claim.setZoneOfGUIByLocation(player);
+        // TODO: translate these strings
+    	String title = (zone != null)
+                ? String.format("§4[A]§r Settings: [%s] in %s (%s - %s)", zone.getName(), claim.getName(), role_displayed, claim.getOwner())
+                : String.format("§4[A]§r Settings: %s (%s - %s)", claim.getName(), role_displayed, claim.getOwner());
+        inv = Bukkit.createInventory(this, 54, title);
+        // This implementation of loadItems calls setGuiZone:
+        loadItems(player, claim, role, zone).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
-        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error", zone)));
         	}
         })
         .exceptionally(ex -> {
@@ -105,38 +116,48 @@ public class AdminGestionClaimGui implements InventoryHolder {
      * @param role   The role associated with permissions.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, String role) {
-    	
+    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, String role, Zone zone) {
+        // Owner only applies to Claim, so do not check Zone.
     	return CompletableFuture.supplyAsync(() -> {
     	
-	        String default_statut_disabled = instance.getLanguage().getMessage("status-disabled");
-	        String default_statut_enabled = instance.getLanguage().getMessage("status-enabled");
-	        String default_choix_disabled = instance.getLanguage().getMessage("choice-disabled");
-	        String default_choix_enabled = instance.getLanguage().getMessage("choice-enabled");
+	        String default_statut_disabled = instance.getLanguage().getMessage("status-disabled", zone);
+	        String default_statut_enabled = instance.getLanguage().getMessage("status-enabled", zone);
+	        String default_choix_disabled = instance.getLanguage().getMessage("choice-disabled", zone);
+	        String default_choix_enabled = instance.getLanguage().getMessage("choice-enabled", zone);
 	
 	        String choix;
 	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
 	        cPlayer.setClaim(claim);
 	        cPlayer.setFilter(role);
 	        cPlayer.setOwner(claim.getOwner());
+            cPlayer.setGuiZone(zone);
 	        inv.setItem(48, role(role));
 	        for (String key : instance.getGuis().getPerms(role)) {
 	            String lower_name = key.toLowerCase();
-	            List<String> lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessage(lower_name + "-lore")));
+	            List<String> lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessage(lower_name + "-lore", zone)));
 	            if (instance.getGuis().isAPerm(key,role)) {
 	                boolean permission = claim.getPermission(key,role);
 	                String statut = permission ? default_statut_enabled : default_statut_disabled;
 	                choix = permission ? default_choix_enabled : default_choix_disabled;
-	                lore.add(instance.getSettings().isEnabled(key) ? choix : instance.getLanguage().getMessage("choice-setting-disabled"));
+	                lore.add(instance.getSettings().isEnabled(key) ? choix : instance.getLanguage().getMessage("choice-setting-disabled", zone));
 	                inv.setItem(getSlotByKey(key), instance.getGuis().createItem(
 	                        getMaterialByKey(key),
-	                        instance.getLanguage().getMessage(lower_name + "-title").replace("%status%", statut),
+	                        instance.getLanguage().getMessage(lower_name + "-title", zone).replace("%status%", statut),
 	                        lore));
 	            }
 	        }
 	        inv.setItem(49, backMainMenu(claim.getName()));
-	        inv.setItem(50, instance.getGuis().createItem(Material.GREEN_CONCRETE, "§cApply settings to all his claims", Arrays.asList("§7Apply these settings to all claims","§7of "+claim.getOwner()+"."," ","§7▸§f Click to apply")));
-        
+            // TODO: translate phrases below
+            if (zone != null) {
+                inv.setItem(50, instance.getGuis().createItem(Material.GREEN_CONCRETE,
+                        "§cApply settings to all zones in claim",
+                        Arrays.asList("§7Apply these settings to all zones", String.format("§7in %s (%s).", claim.getName(), claim.getOwner()), " ", "§7▸§f Click to apply")));
+            }
+            else {
+                inv.setItem(50, instance.getGuis().createItem(Material.GREEN_CONCRETE,
+                        "§cApply settings to all of owner's claims",
+                        Arrays.asList("§7Apply these settings to all claims", "§7of " + claim.getOwner() + ".", " ", "§7▸§f Click to apply")));
+            }
 	        return true;
 	        
     	});
@@ -206,8 +227,8 @@ public class AdminGestionClaimGui implements InventoryHolder {
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
             String loreFilter = "§7Change the target role\n%status_color_1%➲ Visitors\n%status_color_2%➲ Members\n%status_color_3%➲ Natural\n§7▸ §fClick to change"
-                    .replaceAll("%status_color_" + getStatusIndex(role) + "%", instance.getLanguage().getMessage("status_color_active_filter"))
-                    .replaceAll("%status_color_[^" + getStatusIndex(role) + "]%", instance.getLanguage().getMessage("status_color_inactive_filter"));
+                    .replaceAll("%status_color_" + getStatusIndex(role) + "%", instance.getLanguage().getMessage("status_color_active_filter", zone))
+                    .replaceAll("%status_color_[^" + getStatusIndex(role) + "]%", instance.getLanguage().getMessage("status_color_inactive_filter", zone));
             meta.setDisplayName("§eRole");
             meta.setLore(instance.getGuis().getLore(loreFilter));
             meta = instance.getGuis().setItemFlag(meta);

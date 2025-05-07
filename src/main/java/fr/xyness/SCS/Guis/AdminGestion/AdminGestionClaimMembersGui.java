@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
@@ -23,7 +24,9 @@ import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 
 /**
- * Class representing the Claim Members GUI.
+ * The Admin Claim/Zone Members Management GUI.
+ *
+ * L'interface graphique de gestion des membres des réclamations administratives.
  */
 public class AdminGestionClaimMembersGui implements InventoryHolder {
     
@@ -55,12 +58,17 @@ public class AdminGestionClaimMembersGui implements InventoryHolder {
      */
     public AdminGestionClaimMembersGui(Player player, Claim claim, int page, SimpleClaimSystem instance) {
     	this.instance = instance;
-        inv = Bukkit.createInventory(this, 54, "§4[A]§r Members: "+claim.getName()+" ("+claim.getOwner()+")");
-        loadItems(player, claim, page).thenAccept(success -> {
+        final Zone zone = claim.setZoneOfGUIByLocation(player);
+        // TODO: Translate these strings
+        String title = (zone != null)
+                ? String.format("§4[A]§r Members: [%s] in %s (%s)", zone.getName(), claim.getName(), claim.getOwner())
+                : String.format("§4[A]§r Members: %s (%s)", claim.getName(), claim.getOwner());
+        inv = Bukkit.createInventory(this, 54, title);
+        loadItems(player, claim, page, zone).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
-        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error", zone)));
         	}
         })
         .exceptionally(ex -> {
@@ -83,21 +91,25 @@ public class AdminGestionClaimMembersGui implements InventoryHolder {
      * @param page   The current page of the GUI.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, int page) {
+    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, int page, Zone zone) {
     	
     	return CompletableFuture.supplyAsync(() -> {
-    	
 	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
 	        cPlayer.setClaim(claim);
 	        cPlayer.clearMapString();
 	        cPlayer.setGuiPage(page);
+            cPlayer.setGuiZone(zone);
 	        int min_member_slot = 0;
 	        int max_member_slot = 44;
 	        int items_count = max_member_slot - min_member_slot + 1;
 	        String owner = claim.getOwner();
 	        if(page>1) inv.setItem(48, backPage(page - 1));
 	        inv.setItem(49, backMainMenu(claim.getName()));
-	        List<String> lore = new ArrayList<>(Arrays.asList("§7Has access to this claim"," ","§c[Left-click]§7 to remove member"));
+            // TODO: translate these phrases
+            String hasWhat = (zone != null)
+                    ? "Has access to this zone of claim"
+                    : "Has access to this claim";
+	        List<String> lore = new ArrayList<>(Arrays.asList("§7"+hasWhat," ","§c[Left-click]§7 to remove member"));
 	        int startItem = (page - 1) * items_count;
 	        int i = min_member_slot;
 	        int count = 0;

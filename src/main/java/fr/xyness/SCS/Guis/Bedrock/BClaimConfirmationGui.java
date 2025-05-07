@@ -10,7 +10,7 @@ import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Commands.ClaimCommand;
 
 /**
- * Class representing the Claim GUI.
+ * The Bedrock Claim confirmation GUI.
  */
 public class BClaimConfirmationGui {
 

@@ -1,12 +1,9 @@
 package fr.xyness.SCS.Guis;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -24,7 +21,8 @@ import fr.xyness.SCS.Types.GuiSettings;
 import fr.xyness.SCS.Types.GuiSlot;
 
 /**
- * Class representing the Claim Bans GUI.
+ * The Claim/Zone Bans GUI
+ * (Goes to Zone mode if player is in a Zone).
  */
 public class ClaimBansGui implements InventoryHolder {
 
@@ -42,8 +40,7 @@ public class ClaimBansGui implements InventoryHolder {
 
     /** Instance of SimpleClaimSystem */
     private final SimpleClaimSystem instance;
-    
-    
+
     // ******************
     // *  Constructors  *
     // ******************
@@ -60,10 +57,10 @@ public class ClaimBansGui implements InventoryHolder {
     public ClaimBansGui(Player player, Claim claim, int page, SimpleClaimSystem instance) {
     	this.instance = instance;
     	this.player = player;
-    	
+    	final Zone zone = claim.setZoneOfGUIByLocation(player);
     	// Get title
-    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("bans");
-    	String title = guiSettings.getTitle()
+    	GuiSettings guiSettings = ClaimGuis.getGuiSettings("bans", zone);
+    	String title = guiSettings.getTitle()  // if zone!=null,
     			.replace("%name%", claim.getName())
     			.replace("%page%", String.valueOf(page));
     	
@@ -71,11 +68,11 @@ public class ClaimBansGui implements InventoryHolder {
     	inv = Bukkit.createInventory(this, guiSettings.getRows()*9, title);
         
         // Load the items asynchronously
-        loadItems(claim, page).thenAccept(success -> {
+        loadItems(claim, page, zone).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
-        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error", zone)));
         	}
         })
         .exceptionally(ex -> {
@@ -95,9 +92,10 @@ public class ClaimBansGui implements InventoryHolder {
      *
      * @param claim  The claim for which the GUI is being initialized.
      * @param page   The page number of the GUI.
+	 * @param zone   The zone that was in effect when command was entered/clicked.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Claim claim, int page) {
+    public CompletableFuture<Boolean> loadItems(Claim claim, int page, Zone zone) {
     	
     	return CompletableFuture.supplyAsync(() -> {
     	
@@ -115,12 +113,13 @@ public class ClaimBansGui implements InventoryHolder {
 	        cPlayer.setClaim(claim);
 	        cPlayer.clearMapString();
 	        cPlayer.setGuiPage(page);
+			cPlayer.setGuiZone(zone);
 	        
-	        GuiSettings guiSettings = ClaimGuis.gui_settings.get("bans");
+	        GuiSettings guiSettings = ClaimGuis.getGuiSettings("bans", zone);
 	        int max = guiSettings.getEndSlot() - guiSettings.getStartSlot();
 	        
 	        // Items
-    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("bans"));
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.getGuiSlots(zone).get("bans"));
     		for(GuiSlot slot : slots) {
     			int slot_int = slot.getSlot();
     			String key = slot.getKey();
@@ -154,8 +153,8 @@ public class ClaimBansGui implements InventoryHolder {
     		}
 	
 	        // Set template lore
-	        List<String> lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessage("player-banned-lore")));
-	        lore.add(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.unban") ? instance.getLanguage().getMessage("unban-this-player-button") : (instance.getLanguage().getMessage("gui-button-no-permission") + instance.getLanguage().getMessage("to-unban")));
+	        List<String> lore = new ArrayList<>(instance.getGuis().getLore(instance.getLanguage().getMessage("player-banned-lore", zone)));
+	        lore.add(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.unban") ? instance.getLanguage().getMessage("unban-this-player-button", zone) : (instance.getLanguage().getMessage("gui-button-no-permission", zone) + instance.getLanguage().getMessage("to-unban", zone)));
 	        
 	        // Prepare count
 	        int startItem = (page - 1) * max;
@@ -180,7 +179,7 @@ public class ClaimBansGui implements InventoryHolder {
 	        		item = new ItemStack(Material.PLAYER_HEAD);
 	        	}
 	            SkullMeta meta = (SkullMeta) item.getItemMeta();
-	            meta.setDisplayName(instance.getLanguage().getMessage("player-ban-title").replace("%player%", p));
+	            meta.setDisplayName(instance.getLanguage().getMessage("player-ban-title", zone).replace("%player%", p));
 	            meta.setLore(lore);
 	            item.setItemMeta(meta);
 	            inv.setItem(i, item);

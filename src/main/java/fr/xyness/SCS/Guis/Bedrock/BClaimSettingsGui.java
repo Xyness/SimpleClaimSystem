@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.entity.Player;
 import org.geysermc.cumulus.form.CustomForm;
 import org.geysermc.floodgate.api.FloodgateApi;
@@ -14,7 +15,7 @@ import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 
 /**
- * Class representing the Claim GUI.
+ * Claim Settings GUI.
  */
 public class BClaimSettingsGui {
 
@@ -46,14 +47,17 @@ public class BClaimSettingsGui {
     public BClaimSettingsGui(Player player, Claim claim, SimpleClaimSystem instance) {
     	this.instance = instance;
     	this.floodgatePlayer = FloodgateApi.getInstance().getPlayer(player.getUniqueId());
-    	
+		Zone zone = claim.setZoneOfGUIByLocation(player);
+
     	// Get CPlayer
     	CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
     	if(cPlayer == null) return;
     	
         // Création d'un formulaire simple
+		// Creating a simple form
+		// zone: null since only applies to claim not chunk/zone
     	CustomForm.Builder form = CustomForm.builder()
-	        .title(instance.getLanguage().getMessage("bedrock-gui-settings-title")
+	        .title(instance.getLanguage().getMessage("bedrock-gui-settings-title", zone)
 	    			.replace("%name%", claim.getName()))
 	        .validResultHandler(response -> {
 	        	Map<String,LinkedHashMap<String,Boolean>> perms = new HashMap<>();

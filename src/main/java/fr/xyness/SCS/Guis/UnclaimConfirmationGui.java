@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -19,7 +20,7 @@ import fr.xyness.SCS.Types.GuiSettings;
 import fr.xyness.SCS.Types.GuiSlot;
 
 /**
- * Class representing the Claim Bans GUI.
+ * Unclaim confirmation GUI.
  */
 public class UnclaimConfirmationGui implements InventoryHolder {
 
@@ -53,9 +54,9 @@ public class UnclaimConfirmationGui implements InventoryHolder {
     public UnclaimConfirmationGui(Player player, SimpleClaimSystem instance) {
     	this.instance = instance;
     	this.player = player;
-    	
+    	// zone: null since Zone is not "unclaimed", it is deleted. See Delete Claim/Zone GUI instead.
     	// Get title
-    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("unclaim_confirmation");
+    	GuiSettings guiSettings = ClaimGuis.getGuiSettings("unclaim_confirmation", null);
     	String title = guiSettings.getTitle();
     	
     	// Create the inventory
@@ -91,7 +92,7 @@ public class UnclaimConfirmationGui implements InventoryHolder {
     	return CompletableFuture.supplyAsync(() -> {
 	        
 	        // Items
-    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("unclaim_confirmation"));
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.getGuiSlots(zone).get("unclaim_confirmation"));
     		for(GuiSlot slot : slots) {
     			int slot_int = slot.getSlot();
     			String title = slot.getTitle();

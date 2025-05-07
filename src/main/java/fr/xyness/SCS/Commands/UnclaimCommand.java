@@ -164,11 +164,11 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
                         isOnDelete.put(player,"*");
                         if(instance.getSettings().getBooleanSetting("floodgate")) {
                         	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
-                        		new BUnclaimConfirmationGui(player,instance);
+                        		new BUnclaimConfirmationGui(player, instance);
                         		return true;
                         	}
                         }
-                        new UnclaimConfirmationGui(player,instance);
+                        new UnclaimConfirmationGui(player, instance);
                     }
                 } else {
                     instance.getMain().deleteAllClaims(playerName)
@@ -210,11 +210,11 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
                     isOnDelete.put(player,claim.getName());
                     if(instance.getSettings().getBooleanSetting("floodgate")) {
                     	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
-                    		new BUnclaimConfirmationGui(player,instance);
+                    		new BUnclaimConfirmationGui(player, instance);
                     		return true;
                     	}
                     }
-                    new UnclaimConfirmationGui(player,instance);
+                    new UnclaimConfirmationGui(player, instance);
                 }
             } else {
                 instance.getMain().deleteClaim(claim)
@@ -283,11 +283,11 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
                 isOnDelete.put(player,claim.getName());
                 if(instance.getSettings().getBooleanSetting("floodgate")) {
                 	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {
-                		new BUnclaimConfirmationGui(player,instance);
+                		new BUnclaimConfirmationGui(player, instance);
                 		return true;
                 	}
                 }
-                new UnclaimConfirmationGui(player,instance);
+                new UnclaimConfirmationGui(player, instance);
             }
         } else {
             instance.getMain().deleteClaim(claim)

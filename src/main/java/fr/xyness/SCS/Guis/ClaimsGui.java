@@ -18,7 +18,7 @@ import fr.xyness.SCS.Types.GuiSettings;
 import fr.xyness.SCS.Types.GuiSlot;
 
 /**
- * Class representing the Claims GUI.
+ * Claims list GUI.
  */
 public class ClaimsGui implements InventoryHolder {
 	
@@ -36,8 +36,7 @@ public class ClaimsGui implements InventoryHolder {
     
     /** Instance of SimpleClaimSystem */
     private final SimpleClaimSystem instance;
-    
-    
+
     // ******************
     // *  Constructors  *
     // ******************
@@ -54,9 +53,10 @@ public class ClaimsGui implements InventoryHolder {
     public ClaimsGui(Player player, int page, String filter, SimpleClaimSystem instance) {
     	this.instance = instance;
     	this.player = player;
-    	
+
+		// zone: null since listing claims (see chunks/zones screen for zones)
     	// Get title
-    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("claims");
+    	GuiSettings guiSettings = ClaimGuis.getGuiSettings("claims", null);
     	String title = guiSettings.getTitle()
     			.replace("%page%", String.valueOf(page));
     	
@@ -68,7 +68,7 @@ public class ClaimsGui implements InventoryHolder {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
-        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error", null)));
         	}
         })
         .exceptionally(ex -> {
@@ -91,7 +91,7 @@ public class ClaimsGui implements InventoryHolder {
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
     private CompletableFuture<Boolean> loadItems(int page, String filter) {
-    	
+    	// List of claims, so no zone
     	return CompletableFuture.supplyAsync(() -> {
     	
 	    	// Get player data
@@ -114,13 +114,15 @@ public class ClaimsGui implements InventoryHolder {
 	        cPlayer.setFilter(filter);
 	        cPlayer.clearMapString();
 	        cPlayer.setGuiPage(page);
+			cPlayer.clearGuiZone();  // null for claims scope
 	
 	        // Set bottom items
-    		GuiSettings guiSettings = ClaimGuis.gui_settings.get("claims");
+    		GuiSettings guiSettings = ClaimGuis.getGuiSettings("claims");
 	        int max = guiSettings.getEndSlot() - guiSettings.getStartSlot();
-	        
+
+			// zone: null in claims scope
 	        // Items
-    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("claims"));
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.getGuiSlots(null).get("claims"));
     		for(GuiSlot slot : slots) {
     			int slot_int = slot.getSlot();
     			String key = slot.getKey();

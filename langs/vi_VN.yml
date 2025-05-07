@@ -199,6 +199,7 @@ player-all-claim-unclaimed-by-admin: §eTất cả lãnh thổ§f đã bị xóa
 player-banned: §cBạn đã bị cấm khỏi lãnh thổ này
 cant-ban-yourself: §cBạn không thể tự cấm chính mình.
 add-ban-success: §e%player%§f hiện đang bị cấm khỏi khu vực lãnh thổ của §e%claim-name%§f.
+add-zone-ban-success: "§e%player%§f is now banned from the zone §e%zone-name%§f."
 add-ban-all-success: §e%player%§f hiện bị cấm từ tất cả các lãnh thổ của bạn.
 remove-ban-success: §e%player%§f không còn bị cấm vận khi vào lãnh thổ của §e%claim-name%§f.
 remove-ban-all-success: §e%player%§f đã được hủy bỏ cấm vận trên toàn bộ lãnh thổ.
@@ -280,6 +281,17 @@ add-chunk-already-in-claim-protected-area: §cMãnh đất này đã thuộc v�
   bảo vệ '%claim-name%'.
 chunk-are-loading: §fTính toán và tải của §b%chunks-count% mãnh đất§f..
 chunk-while-loading: '§fTải khu vực: §a%loaded-chunks%§2/%chunks-count%§f.'
+
+error-delete-zone: "§cAn error has occurred, check the world and coordinates of the zone. Otherwise contact an administrator."
+zone-must-be-in-claim: "§cA new zone must be in a claim."
+add-zone-not-owner: "§cThis zone is not in a claim you own."
+add-zone-overlapping-another: "§cThis zone overlaps an existing zone."
+add-zone-successful: "§fThe zone §a%zone-boundingbox%§f has been added to §e%claim-name%§f."
+add-zone-already-owner-protected-area: |
+  §fThis is a protected area.
+  §fYou can only make a zone in a claim you own.
+add-zone-overlapping-another-in-claim-protected-area: "§cThis zone overlaps zone %other-zone% in protected area '%claim-name%'."
+
 griefprevention-needed: §cBạn cần GriefPrevention Để nhập vùng đất từ plugin này.
 player-not-in-the-claim: §cNgười chơi '%player%' không có trong lãnh thổ của bạn %claim-name%.
 player-not-in-the-protected-area: §cNgười chơi '%player%' không ở trong khu vực được
@@ -367,6 +379,7 @@ gui-button-no-permission: §cBạn không có sự cho phép
 
 to-unban: ' Không còn cấm vận'
 to-remove-chunk: ' Xóa nó khỏi mảnh đất'
+to-remove-zone: " to remove this zone"
 to-teleport: ' Dịch chuyển'
 to-remove: ' xóa bỏ'
 to-manage: ' Quản lý'
@@ -431,10 +444,16 @@ choice-disabled: §7▸ §fBấm vào để §nBật
 choice-enabled: §7▸ §fBấm vào để §nTắt
 choice-setting-disabled: §cCài đặt này không thể được sửa đổi
 
-apply-all-claims-title: §eÁp dụng cài đặt cho tất cả các chiếm đóng
+apply-all-claims-title: §eÁp dụng cài đặt cho tất cả các khu vực trong yêu cầu này
 apply-all-claims-lore: |-
   §7Áp dụng các cài đặt này cho tất cả các lãnh thổ của tôi
   §7▸ §fBấm để thực hiện
+
+apply-all-claims-title: §eÁp dụng cài đặt cho tất cả các vùng trong yêu cầu này
+apply-all-claims-lore: |-
+  §7Áp dụng các thiết lập này cho tất cả các vùng trong %claim-name%
+  §7▸ §fBấm để thực hiện
+
 build-title: §eXây dựng §7(%status%§7)
 build-lore: §7Cho phép khách truy cập xây dựng
 
@@ -518,8 +537,14 @@ manage-members-lore: §7Quản lý thành viên
 manage-bans-title: §cCấm
 manage-bans-lore: §7Quản lý người chơi bị cấm
 
+manage-zone-bans-title: §cCấm vùng
+manage-zone-bans-lore: §7Quản lý người chơi bị cấm khỏi khu vực
+
 manage-chunks-title: §6Mảnh đát
 manage-chunks-lore: §7Quản lý các mảnh đất
+
+manage-zones-title: §6Các vùng
+manage-zones-lore: §7Quản lý vùng
 
 manage-settings-title: §3Cài đặt
 manage-settings-lore: §7Quản lý cài đặt
@@ -545,6 +570,9 @@ claim-info-lore-sale-status-false: §c✘ Khu vực không bán
 
 chunk-title: §6Chunk-%number% §7(%coords%)
 chunk-lore: §7Chỗ này là một phần của khu vực
+
+zone-title: "§6Zone '§7%zone-name%' %zone-boundingbox%"
+zone-lore: "§7Khu vực này là một phần của yêu sách"
 
 access-button: §7▸ §fBấm để thực hiện
 
@@ -743,6 +771,12 @@ help-command:
   parea-delchunk: |
     §bCú pháp : §f/parea delchunk <claim_name> <chunk>
     §bThông điệp : §fXóa một đoạn khỏi một khu vực được bảo vệ
+  parea-addzone: |
+    §bSyntax : §f/parea addzone <claim-name> <zone-name>
+    §bDescription : §fAdd a new zone (selected by wooden axe) within a claim.
+  parea-delzone: |
+    §bSyntax : §f/parea delzone <claim-name> <zone-name>
+    §bDescription : §fRemove a zone from a protected area.
   parea-kick: |
     §bCú pháp : §f/parea kick <*|claim-name> <player>
     §bThông điệp : §fĐá một người chơi từ một khu vực được bảo vệ
@@ -781,6 +815,12 @@ help-command:
   claim-delchunk: |
     §bSyntax : §f/claim delchunk <claim-name> <chunk>
     §bDescription : §fRemove a chunk from a claim, use chunk arg as world;x;z
+  claim-addzone: |
+    §bSyntax : §f/claim addzone <claim-name> <zone-name>
+    §bDescription : §fAdd a new zone (selected by wooden axe) within a claim.
+  claim-delzone: |
+    §bSyntax : §f/claim delzone <claim-name> <zone-name>
+    §bDescription : §fRemove a zone from a claim.
   claim-main: |
     §bSyntax : §f/claim main <claim-name>
     §bDescription : §fOpen the main menu of a claim
@@ -832,11 +872,15 @@ enter-territory-for-sale-chat: |
   §fBang đã vào lãnh thổ của §e%owner%§f.
   §fLãnh thổ này là §6§lĐang rao bán §b/claim buy §a(%price%%money-symbol%)
 gui-bans-title: 'Bans: %name% (Trang %page%)'
+gui-zone-bans-title: "Zone bans: %name% (Page %page%)"
 gui-chunks-title: 'Mảnh đất: %name% (Trang %page%)'
+gui-zones-title: "Zones: %name% (Page %page%)"
 gui-list-title: Vùng đất của tôi (Trang %page%)
 gui-main-title: '%name%'
 gui-members-title: 'Members: %name% (Trang %page%)'
+gui-zone-members-title: "Zone members: %name% (Page %page%)"
 gui-settings-new-title: 'Cài đặt: %name% (%role%)'
+gui-zone-settings-new-title: "Zone settings: %name% (%role%)"
 gui-claims-title: Vùng đất (Trang %page%)
 gui-claims-owner-title: 'Chiếm đóng: %owner% (Trang %page%)'
 guiteleport-title: §eDịch chuyển đến GUI §7(%status%§7)

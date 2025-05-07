@@ -1,9 +1,12 @@
 package fr.xyness.SCS.Types;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
- * This class handles slot object.
+ * Inventory slots used as a GUI.
  */
 public class GuiSettings {
 
@@ -27,9 +30,9 @@ public class GuiSettings {
 	
 	/** The end slot */
 	@Nullable private final int list_end_slot;
-    
-    
-    // ******************
+
+
+	// ******************
     // *  Constructors  *
     // ******************
     

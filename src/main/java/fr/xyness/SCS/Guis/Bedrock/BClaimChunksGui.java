@@ -15,7 +15,7 @@ import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 
 /**
- * Class representing the Claim GUI.
+ * Claim Chunks (or Zones conditionally).
  */
 public class BClaimChunksGui {
 

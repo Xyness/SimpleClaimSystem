@@ -13,7 +13,11 @@ import fr.xyness.SCS.*;
 import fr.xyness.SCS.Types.CPlayer;
 
 /**
- * Class representing the Admin Gestion Claims GUI.
+ * The Admin Claims Management GUI
+ * (Lists and manages claims).
+ *
+ * L'interface utilisateur graphique de gestion des réclamations de l'administrateur
+ * (Répertorie et gère les réclamations).
  */
 public class AdminGestionClaimsGui implements InventoryHolder {
 	
@@ -46,11 +50,12 @@ public class AdminGestionClaimsGui implements InventoryHolder {
     public AdminGestionClaimsGui(Player player, int page, String filter, SimpleClaimSystem instance) {
         this.instance = instance;
         inv = Bukkit.createInventory(this, 54, "§4[A]§r Claims (Page "+String.valueOf(page)+")");
+        // zone: null since listing claims (See Chunks menu instead, which changes to Zones when in a Zone)
         loadItems(player, page, filter).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
-        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error", null)));
         	}
         })
         .exceptionally(ex -> {
@@ -74,13 +79,14 @@ public class AdminGestionClaimsGui implements InventoryHolder {
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
     private CompletableFuture<Boolean> loadItems(Player player, int page, String filter) {
-    	
+    	// zone: null because we are in the claims list
     	return CompletableFuture.supplyAsync(() -> {
     	
 	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
 	        cPlayer.setFilter(filter);
 	        cPlayer.clearMapString();
 	        cPlayer.setGuiPage(page);
+            cPlayer.clearGuiZone(); // since not using a zone, listing claims, prevent a zone-based outcome
 	        inv.setItem(48, backPage(page - 1,!(page > 1)));
 	
 	        Map<String, Integer> owners = getOwnersByFilter(filter);

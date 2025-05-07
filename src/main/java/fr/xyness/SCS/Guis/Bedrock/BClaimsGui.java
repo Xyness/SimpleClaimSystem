@@ -15,7 +15,7 @@ import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.CPlayer;
 
 /**
- * Class representing the Claim GUI.
+ * Bedrock Claims List GUI.
  */
 public class BClaimsGui {
 
@@ -46,16 +46,18 @@ public class BClaimsGui {
     public BClaimsGui(Player player, SimpleClaimSystem instance, String filter) {
     	this.instance = instance;
     	this.floodgatePlayer = FloodgateApi.getInstance().getPlayer(player.getUniqueId());
-    	
+
     	// Get CPlayer
     	CPlayer cPlayer = this.instance.getPlayerMain().getCPlayer(player.getUniqueId());
     	if(cPlayer == null) return;
     	
         // Création d'un formulaire simple
+		// Creating a simple form
+		// zone: null since listing claims (see chunks/zones list GUI for zones)
     	SimpleForm.Builder form = SimpleForm.builder()
-	        .title(instance.getLanguage().getMessage("bedrock-gui-claims-title"))
+	        .title(instance.getLanguage().getMessage("bedrock-gui-claims-title", null))
 	        .content(getContent(filter))
-	        .button(instance.getLanguage().getMessage("bedrock-gui-claims-filter"))
+	        .button(instance.getLanguage().getMessage("bedrock-gui-claims-filter", null))
 	        .validResultHandler(response -> {
 	        	int clickedSlot = response.clickedButtonId();
 	        	if(clickedSlot == 0) {

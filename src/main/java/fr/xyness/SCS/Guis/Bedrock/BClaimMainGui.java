@@ -1,5 +1,6 @@
 package fr.xyness.SCS.Guis.Bedrock;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -12,7 +13,7 @@ import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.Claim;
 
 /**
- * Class representing the Claim GUI.
+ * Bedrock Main Claim GUI.
  */
 public class BClaimMainGui {
 
@@ -28,7 +29,6 @@ public class BClaimMainGui {
     /** Floodgate Player */
     private final FloodgatePlayer floodgatePlayer;
 
-    
     // ******************
     // *  Constructors  *
     // ******************
@@ -44,18 +44,21 @@ public class BClaimMainGui {
     public BClaimMainGui(Player player, Claim claim, SimpleClaimSystem instance) {
     	this.instance = instance;
     	this.floodgatePlayer = FloodgateApi.getInstance().getPlayer(player.getUniqueId());
-    	
+    	Zone zone = claim.getZoneAt(player);  // FIXME: Overusing this below "Chunks" page to "Zones". Translate both, and remove bedrock-manage-chunks-title from zoneFields: Both should be in medadata now. Remove manage-chunks-title from zoneFields and ClaimMainGui.
         // Création d'un formulaire simple
+		// Creating a simple form
+		// zone: null in cases where zone does not apply
     	SimpleForm form = SimpleForm.builder()
-	        .title(instance.getLanguage().getMessage("bedrock-gui-main-title")
+	        .title(instance.getLanguage().getMessage("bedrock-gui-main-title", null)
 	    			.replace("%name%", claim.getName()))
-	        .button(instance.getLanguage().getMessage("bedrock-manage-bans-title").replace("%bans-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size()))), Type.URL, "https://i.ibb.co/VWH3qdRs/banned.png")
-	        .button(instance.getLanguage().getMessage("bedrock-manage-members-title").replace("%members-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size()))), Type.URL, "https://i.ibb.co/YTh2zjBT/members.png")
-	        .button(instance.getLanguage().getMessage("bedrock-manage-chunks-title").replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size()))), Type.URL, "https://i.ibb.co/kg1gN8V3/chunks.png")
-	        .button(instance.getLanguage().getMessage("bedrock-manage-settings-title"), Type.URL, "https://i.ibb.co/NgvGqQYt/settings.png")
-	        .button(instance.getLanguage().getMessage("bedrock-teleport-claim-title"), Type.URL, "https://i.ibb.co/jkxBH09F/tp.png")
-	        .button(instance.getLanguage().getMessage("bedrock-unclaim-title"), Type.URL, "https://i.ibb.co/PGqsh65n/unclaim.png")
+	        .button(instance.getLanguage().getMessage("bedrock-manage-bans-title", null).replace("%bans-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size()))), Type.URL, "https://i.ibb.co/VWH3qdRs/banned.png")
+	        .button(instance.getLanguage().getMessage("bedrock-manage-members-title", null).replace("%members-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size()))), Type.URL, "https://i.ibb.co/YTh2zjBT/members.png")
+	        .button(instance.getLanguage().getMessage("bedrock-manage-chunks-title", zone).replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size()))), Type.URL, "https://i.ibb.co/kg1gN8V3/chunks.png")
+	        .button(instance.getLanguage().getMessage("bedrock-manage-settings-title", null), Type.URL, "https://i.ibb.co/NgvGqQYt/settings.png")
+	        .button(instance.getLanguage().getMessage("bedrock-teleport-claim-title", null), Type.URL, "https://i.ibb.co/jkxBH09F/tp.png")
+	        .button(instance.getLanguage().getMessage("bedrock-unclaim-title", null), Type.URL, "https://i.ibb.co/PGqsh65n/unclaim.png")
 	        .validResultHandler(response -> {
+				// zone: null for bedrock-unclaim-title since not for Zone (See remove Chunk/Zone instead)
 	        	int buttonId = response.clickedButtonId();
 	        	switch(buttonId) {
 		        	case 0:
@@ -69,6 +72,8 @@ public class BClaimMainGui {
 		        		}
 		        		break;
 		        	case 2:
+						// TODO: Separate manage-zones permission? Maybe just leave it with chunks
+						//  (Already uses same GUI class--only text & behavior changes)
 		        		if(checkPermButton(player,"manage-chunks")) {
 		        			new BClaimChunksGui(player,claim,instance);
 		        		}

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -29,7 +30,9 @@ import fr.xyness.SCS.Types.Claim;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
- * Class representing the Claim GUI.
+ * The Main Admin Claim Management GUI.
+ *
+ * L'interface graphique principale de gestion des réclamations.
  */
 public class AdminGestionClaimMainGui implements InventoryHolder {
 
@@ -52,7 +55,7 @@ public class AdminGestionClaimMainGui implements InventoryHolder {
 
     
     /**
-     * Main constructor for the AdminGestionClaimMainGui.
+	 * The Main Admin Claim Management GUI constructor.
      *
      * @param player The player for whom the GUI is being created.
      * @param claim  The claim for which the GUI is displayed.
@@ -60,13 +63,17 @@ public class AdminGestionClaimMainGui implements InventoryHolder {
      */
     public AdminGestionClaimMainGui(Player player, Claim claim, SimpleClaimSystem instance) {
     	this.instance = instance;
-        String title = "§4[A]§r "+claim.getName()+" ("+claim.getOwner()+")";
+		final Zone zone = claim.setZoneOfGUIByLocation(player);
+		// TODO: translate these strings
+        String title = (zone != null)
+				? String.format("§4[A]§r [%s] in %s (%s)", zone.getName(), claim.getName(), claim.getOwner())
+				: String.format("§4[A]§r in %s (%s)", claim.getName(), claim.getOwner());
         inv = Bukkit.createInventory(this, 54, title);
-        loadItems(player, claim).thenAccept(success -> {
+        loadItems(player, claim, zone).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
-        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error", zone)));
         	}
         })
         .exceptionally(ex -> {
@@ -88,15 +95,17 @@ public class AdminGestionClaimMainGui implements InventoryHolder {
      * @param claim  The claim for which the GUI is displayed.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Player player, Claim claim) {
+    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, Zone zone) {
     	
     	return CompletableFuture.supplyAsync(() -> {
     	
 	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
 	        cPlayer.setClaim(claim);
-	        
+			cPlayer.setGuiZone(zone);
+	        // TODO: translate these phrases
 	        List<String> lore = new ArrayList<>();
-	        lore.add("§7Chunks: §b"+instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())));
+			lore.add("§7Chunks: §b" + instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())));
+			lore.add("§7Zones: §b" + instance.getMain().getNumberSeparate(String.valueOf(claim.getZones().size())));
 	        lore.add(" ");
 	        lore.add("§7Members: §a"+instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size())));
 	        lore.add("§7Bans: §c"+instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size())));
@@ -125,9 +134,10 @@ public class AdminGestionClaimMainGui implements InventoryHolder {
 	        inv.setItem(30, instance.getGuis().createItem(Material.TOTEM_OF_UNDYING, "§aMembers", lore));
 	        
 	        lore.clear();
-	        lore.add("§7Manage chunks");
+			lore.add((zone != null) ? "§7Manage zones": "§7Manage chunks");
 	        lore.add("§7▸ §fClick to perform");
-	        inv.setItem(32, instance.getGuis().createItem(Material.RED_MUSHROOM_BLOCK, "§6Chunks", lore));
+	        inv.setItem(32, instance.getGuis().createItem(Material.RED_MUSHROOM_BLOCK,
+					(zone != null) ? "§6Zones" : "§6Chunks", lore));
 	        
 	        lore.clear();
 	        lore.add("§7Teleport to the claim's spawn");

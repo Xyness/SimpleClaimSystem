@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -19,7 +20,7 @@ import fr.xyness.SCS.Types.GuiSettings;
 import fr.xyness.SCS.Types.GuiSlot;
 
 /**
- * Class representing the Claim Main GUI.
+ * Main GUI for Claim (Provides navigation to other GUIs)
  */
 public class ClaimMainGui implements InventoryHolder {
 
@@ -45,7 +46,7 @@ public class ClaimMainGui implements InventoryHolder {
 
     
     /**
-     * Main constructor for the ClaimMainGui.
+	 * Main GUI for Claim (Provides navigation to other GUIs) constructor.
      *
      * @param player The player for whom the GUI is being created.
      * @param claim  The claim for which the GUI is displayed.
@@ -54,9 +55,9 @@ public class ClaimMainGui implements InventoryHolder {
     public ClaimMainGui(Player player, Claim claim, SimpleClaimSystem instance) {
     	this.instance = instance;
     	this.player = player;
-    	
+		Zone zone = claim.getZoneOfPlayerGUI(player);
     	// Get title
-    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("main");
+    	GuiSettings guiSettings = ClaimGuis.getGuiSettings("main", zone);
     	String title = guiSettings.getTitle()
     			.replace("%name%", claim.getName());
     	
@@ -64,11 +65,11 @@ public class ClaimMainGui implements InventoryHolder {
     	inv = Bukkit.createInventory(this, guiSettings.getRows()*9, title);
         
         // Load the items asynchronously
-        loadItems(claim).thenAccept(success -> {
+        loadItems(claim, zone).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
-        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error", zone)));
         	}
         })
         .exceptionally(ex -> {
@@ -89,7 +90,7 @@ public class ClaimMainGui implements InventoryHolder {
      * @param claim  The claim for which the GUI is displayed.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Claim claim) {
+    public CompletableFuture<Boolean> loadItems(Claim claim, Zone zone) {
     	
     	return CompletableFuture.supplyAsync(() -> {
     	
@@ -98,9 +99,10 @@ public class ClaimMainGui implements InventoryHolder {
 	        
 	        // Update player data (gui)
 	        cPlayer.setClaim(claim);
+			cPlayer.setGuiZone(zone);
 
 	        // Items
-    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("main"));
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.getGuiSlots(zone).get("main"));
     		for(GuiSlot slot : slots) {
     			int slot_int = slot.getSlot();
     			String key = slot.getKey();
@@ -112,7 +114,8 @@ public class ClaimMainGui implements InventoryHolder {
     			    		.replace("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
     							.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
     							.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))) : instance.getLanguage().getMessage("claim-info-lore-sale-status-false"))
-    			    		.replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())))
+							.replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())))
+							.replace("%zones-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getZones().size())))
     						.replace("%members-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size())))
     						.replace("%bans-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size())));
     				lore_string = lore_string.replace("%description%", claim.getDescription())
@@ -120,7 +123,8 @@ public class ClaimMainGui implements InventoryHolder {
     			    		.replace("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
     							.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
     							.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))) : instance.getLanguage().getMessage("claim-info-lore-sale-status-false"))
-    			    		.replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())))
+							.replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())))
+							.replace("%zones-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getZones().size())))
     						.replace("%members-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size())))
     						.replace("%bans-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size())));
     			}

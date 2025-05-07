@@ -6,6 +6,7 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Matcher;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.permissions.PermissionAttachmentInfo;
@@ -81,7 +82,12 @@ public class CPlayer {
     
     /** Instance of SimpleClaimSystem */
     private final SimpleClaimSystem instance;
-    
+
+    /** The Zone currently being edited by the loaded GUI.
+     * This should be kept until an event closing it (then set null)
+     * so that results of clicking match what the GUI says.
+     * */
+    private Zone guiZone = null;
     
     // ******************
     // *  Constructors  *
@@ -185,7 +191,7 @@ public class CPlayer {
      * Adds a chunk to the GUI map.
      * 
      * @param slot The slot index
-     * @param chunk The chunk to add
+     * @param claim The claim to add
      */
     public void addMapClaim(Integer slot, Claim claim) { this.mapClaims.put(slot, claim); }
     
@@ -867,4 +873,44 @@ public class CPlayer {
      * Clears the string map.
      */
     public void clearMapString() { mapString.clear(); }
+
+    /**
+     * Call this when a player interaction event occurs that closes/changes GUI,
+     * so that the zone will be null until another GUI loads
+     * (To make sure the outcome of the interaction is what the screen says,
+     * since guiZone is also used to determine what the text in the GUI).
+     * @return
+     */
+    public Zone popGuiZone() {
+        Zone zone = guiZone;
+        guiZone = null;
+        return zone;
+    }
+
+    /**
+     * Call this whenever opening a GUI that affects
+     * a Claim itself rather than detecting Chunk/Zone mode
+     * (or detecting Claim/Zone detection in the case of
+     * settings or members and anything else that a Zone
+     * can override).
+     *
+     * @return
+     */
+    public void clearGuiZone() {
+        guiZone = null;
+    }
+
+    public Zone getGuiZone() {
+        return guiZone;
+    }
+
+    /**
+     * Call this each time the text for the GUI is generated
+     * (To make sure the interaction only does what the screen says,
+     * since guiZone is also used to determine the outcome of a GUI interaction).
+     * @param guiZone
+     */
+    public void setGuiZone(Zone guiZone) {
+        this.guiZone = guiZone;
+    }
 }

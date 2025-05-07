@@ -2,13 +2,9 @@ package fr.xyness.SCS.Config;
 
 import java.io.File;
 import java.io.FilenameFilter;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -129,10 +125,36 @@ public class ClaimGuis {
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
-    public static Map<String,List<GuiSlot>> gui_slots = new HashMap<>();
-    public static Map<String,GuiSettings> gui_settings = new HashMap<>();
-    
-    
+    private static Map<String,List<GuiSlot>> gui_slots = new HashMap<>(); // Made private to swap between this and zone_gui_slots (see getGuiSlots)
+    private static Map<String,List<GuiSlot>> zone_gui_slots = new HashMap<>();
+
+    /**
+     * Get the GUI slots for the correct scope (zone or claim).
+     * zone_gui_slots is composed using zoneFields to get the
+     * zone-related translation string ids.
+     * 
+     * @param zone Use the zone (or zones) scope if not null,
+     *             otherwise the claim (or chunks) scope.
+     *             The value is not used, only checked against null.
+     */
+    public static Map<String,List<GuiSlot>> getGuiSlots(Zone zone) {
+        // redirect individual values from claim to zone translation string ids conditionally? No, don't want to have to
+        // copy it each time before returning so just made a separate Map. Could use an iterator though (only modify
+        // string on loop iteration, not modify gui_slots itself nor need zone_gui_slots), but code using it would have
+        // to change more.. -Poikilos
+        return (zone != null) ? zone_gui_slots : gui_slots;
+    }
+
+    private static Map<String,GuiSettings> gui_settings = new HashMap<>();
+    // private static Map<String,GuiSettings> zone_gui_settings = new HashMap<>();
+
+    public static GuiSettings getGuiSettings(String guiName, Zone zone) {
+        if (zone != null) {
+            guiName = "<zone>" + guiName;
+        }
+        return gui_settings.get(guiName);
+    }
+
     // ******************
     // *  Constructors  *
     // ******************
@@ -234,7 +256,7 @@ public class ClaimGuis {
         keyToMaterialMap.put("Windcharges", Material.WHITE_DYE);
         
     }
-    
+
 
     // ********************
     // *  Others Methods  *
@@ -270,12 +292,26 @@ public class ClaimGuis {
                 // Get GUI settings
                 String gui_name = file.getName().replace(".yml", "");
                 int rows = config.getInt("rows");
-                String title = instance.getLanguage().getMessage(config.getString("gui-title"));
+                String title_id = config.getString("gui-title");
+                String title = instance.getLanguage().getMessage(title_id, null);
                 int list_start_slot = config.getInt("list-start-slot");
                 int list_end_slot = config.getInt("list-end-slot");
                 GuiSettings guiSettings = new GuiSettings(id_settings++,rows,title,list_start_slot,list_end_slot);
                 gui_settings.put(gui_name, guiSettings);
-                
+
+                // Get the zone GUI settings
+                String zone_gui_name = "<zone>" + gui_name; // "<zone>" prefix is added by getGuiSettings if zone is not null.
+                // zone_gui_name has "<zone>" to show it is not loaded from a file as-is ("<>" can't be used in filenames),
+                //   while the gui_name entry is loaded as-is.
+                // int rows = config.getInt("rows");
+                String zone_title_id = ClaimLanguage.zoneFields.getOrDefault(title_id, title_id);
+                String zone_title = instance.getLanguage().getMessage(zone_title_id, null);
+                // ^ getMessage also checks zoneFields if not null zone, but we are making a separate section for zone
+                // int list_start_slot = config.getInt("list-start-slot");
+                // int list_end_slot = config.getInt("list-end-slot");
+                GuiSettings zoneGuiSettings = new GuiSettings(id_settings++,rows,title,list_start_slot,list_end_slot);
+                gui_settings.put(zone_gui_name, guiSettings);  // now this one is filled with entries using the remapped zone ids in zoneFields
+
                 // Get GUI items
                 ConfigurationSection configSection = config.getConfigurationSection("items");
                 for (String key : configSection.getKeys(false)) {
@@ -300,8 +336,14 @@ public class ClaimGuis {
                     }
                 	boolean custom_model_data = configSection.getBoolean(key + ".custom_model_data");
                 	String custom_model_data_value = configSection.getString(key + ".custom_model_data_value");
-                	String target_title = instance.getLanguage().getMessage(configSection.getString(key + ".target-title"));
-                	String target_lore = instance.getLanguage().getMessage(configSection.getString(key + ".target-lore"));
+                    String target_title_id = configSection.getString(key + ".target-title");
+                    String target_zone_title_id = ClaimLanguage.zoneFields.getOrDefault(target_title_id, target_title_id);  // default to same string as claim
+                    String target_zone_title = instance.getLanguage().getMessage(target_zone_title_id, null);
+                	String target_title = instance.getLanguage().getMessage(target_title_id, null);
+                    String target_lore_id = configSection.getString(key + ".target-lore");
+                    String target_zone_lore_id = ClaimLanguage.zoneFields.getOrDefault(target_lore_id, target_lore_id);  // default to same string as claim
+                	String target_lore = instance.getLanguage().getMessage(target_lore_id, null);
+                    String target_zone_lore = instance.getLanguage().getMessage(target_zone_lore_id, null);
                 	String action = configSection.getString(key + ".action");
                 	if(gui_name.equals("settings")) {
                         if (settings_name.get("visitors").contains(key)) {
@@ -315,7 +357,9 @@ public class ClaimGuis {
                         }
                 	}
                     GuiSlot guiSlot = new GuiSlot(id_slot++, key, slot, mat, custom_model_data, custom_model_data_value, target_title, target_lore, action, custom_head, textures);
+                    GuiSlot zoneGuiSlot = new GuiSlot(id_slot++, key, slot, mat, custom_model_data, custom_model_data_value, target_zone_title, target_zone_lore, action, custom_head, textures);
                     gui_slots.computeIfAbsent(gui_name, k -> new ArrayList<>()).add(guiSlot);
+                    zone_gui_slots.computeIfAbsent(gui_name, k -> new ArrayList<>()).add(zoneGuiSlot);
                 }
             }
         }

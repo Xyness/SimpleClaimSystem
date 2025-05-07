@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+import fr.xyness.SCS.Types.CPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -19,7 +20,7 @@ import fr.xyness.SCS.Types.GuiSettings;
 import fr.xyness.SCS.Types.GuiSlot;
 
 /**
- * Class representing the Claim Bans GUI.
+ * The Claim confirmation GUI.
  */
 public class ClaimConfirmationGui implements InventoryHolder {
 
@@ -54,9 +55,10 @@ public class ClaimConfirmationGui implements InventoryHolder {
     public ClaimConfirmationGui(Player player, SimpleClaimSystem instance, double price) {
     	this.instance = instance;
     	this.player = player;
-    	
+
+		// zone: null since confirming a claim (See the add Chunk/Zone GUI for Zone)
     	// Get title
-    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("claim_confirmation");
+    	GuiSettings guiSettings = ClaimGuis.getGuiSettings("claim_confirmation", null);
     	String title = guiSettings.getTitle();
     	
     	// Create the inventory
@@ -67,7 +69,7 @@ public class ClaimConfirmationGui implements InventoryHolder {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
-        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error", null)));
         	}
         })
         .exceptionally(ex -> {
@@ -91,9 +93,13 @@ public class ClaimConfirmationGui implements InventoryHolder {
     public CompletableFuture<Boolean> loadItems(double price) {
     	
     	return CompletableFuture.supplyAsync(() -> {
-	        
+			CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+			if (cPlayer != null) cPlayer.clearGuiZone();
+			else instance.getLogger().warning("Can't deselect Zone, current SCS player is not set.");
+	        // zone: null since confirming claim doesn't affect zones (See chunk_confirmation for Zones mode of that)
 	        // Items
-    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("claim_confirmation"));
+
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.getGuiSlots(null).get("claim_confirmation"));
     		for(GuiSlot slot : slots) {
     			int slot_int = slot.getSlot();
     			String title = slot.getTitle();
@@ -135,7 +141,7 @@ public class ClaimConfirmationGui implements InventoryHolder {
     public String replaceLore(String key, String lore, double price) {
 		if(key.equalsIgnoreCase("main-item")) {
 			return lore.replace("%price%", instance.getMain().getPrice(String.valueOf(price)))
-    				.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"));
+    				.replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol", null));
 		}
     	return lore;
     }

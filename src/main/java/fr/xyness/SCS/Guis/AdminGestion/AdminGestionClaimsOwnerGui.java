@@ -18,7 +18,9 @@ import fr.xyness.SCS.Types.Claim;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
- * Class representing the Claims Owner GUI.
+ * The Admin Claims Owner GUI.
+ *
+ * L'interface utilisateur graphique du propriétaire des revendications de l'administrateur.
  */
 public class AdminGestionClaimsOwnerGui implements InventoryHolder {
 
@@ -41,7 +43,7 @@ public class AdminGestionClaimsOwnerGui implements InventoryHolder {
     
 
     /**
-     * Main constructor for AdminGestionClaimsOwnerGui.
+     * The Admin Claims Owner GUI constructor.
      * 
      * @param player The player who opened the GUI.
      * @param page   The current page of the GUI.
@@ -52,6 +54,7 @@ public class AdminGestionClaimsOwnerGui implements InventoryHolder {
     public AdminGestionClaimsOwnerGui(Player player, int page, String filter, String owner, SimpleClaimSystem instance) {
     	this.instance = instance;
         inv = Bukkit.createInventory(this, 54, "§4[A]§r Claims: "+owner+" (Page "+String.valueOf(page)+")");
+        // zone: null since listing claims (Zones replaces Chunks menu not this menu when in a Zone)
         loadItems(player, page, filter, owner).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
@@ -81,7 +84,7 @@ public class AdminGestionClaimsOwnerGui implements InventoryHolder {
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
     private CompletableFuture<Boolean> loadItems(Player player, int page, String filter, String owner) {
-    	
+    	// zone: null because we are in the claims owner GUI
     	return CompletableFuture.supplyAsync(() -> {
     	
 	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
@@ -90,6 +93,7 @@ public class AdminGestionClaimsOwnerGui implements InventoryHolder {
 	        cPlayer.clearMapClaim();
 	        cPlayer.clearMapLoc();
 	        cPlayer.setGuiPage(page);
+            cPlayer.clearGuiZone();
 	
 	        inv.setItem(48, backPage(page - 1,!(page > 1)));
 	        

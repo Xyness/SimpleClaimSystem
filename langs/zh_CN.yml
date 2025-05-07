@@ -194,6 +194,7 @@ player-all-claim-unclaimed-by-admin: "§e您的所有领地§f 已被 §c%player
 player-banned: "§c您被禁止进入此领地。"
 cant-ban-yourself: "§c您不能禁止自己。"
 add-ban-success: "§e%player%§f 已被禁止进入领地 §e%claim-name%§f。"
+add-zone-ban-success: "§e%player%§f is now banned from the zone §e%zone-name%§f."
 add-ban-all-success: "§e%player%§f 已被禁止进入您的所有领地。"
 remove-ban-success: "§e%player%§f 已被解除禁止进入领地 §e%claim-name%§f。"
 remove-ban-all-success: "§e%player%§f 已被解除禁止进入您的所有领地。"
@@ -263,6 +264,17 @@ add-chunk-already-owner-protected-area: |
 add-chunk-already-in-claim-protected-area: "§c此区块已属于受保护区域 '%claim-name%'。"
 chunk-are-loading: "§f正在计算和加载 §b%chunks-count% 个区块§f.."
 chunk-while-loading: "§f已加载区块：§a%loaded-chunks%§2/%chunks-count%§f。"
+
+error-delete-zone: "§cAn error has occurred, check the world and coordinates of the zone. Otherwise contact an administrator."
+zone-must-be-in-claim: "§cA new zone must be in a claim."
+add-zone-not-owner: "§cThis zone is not in a claim you own."
+add-zone-overlapping-another: "§cThis zone overlaps zone %other-zone%."
+add-zone-successful: "§fThe zone §a%zone-boundingbox%§f has been added to §e%claim-name%§f."
+add-zone-already-owner-protected-area: |
+  §fThis is a protected area.
+  §fYou can only make a zone in a claim you own.
+add-zone-overlapping-another-in-claim-protected-area: "§cThis zone overlaps zone %other-zone% in protected area '%claim-name%'."
+
 griefprevention-needed: "§c您需要 GriefPrevention 插件来从此插件导入领地。"
 player-not-in-the-claim: "§c玩家 '%player%' 不在您的领地 %claim-name% 中。"
 player-not-in-the-protected-area: "§c玩家 '%player%' 不在受保护区域 %claim-name% 中。"
@@ -364,11 +376,15 @@ leave-territory-chat: "§f您离开了 §e%owner%§f 的领地。"
 # 使用 \n 仅用于 lore 消息中的换行
 
 gui-bans-title: "禁止列表: %name% (第 %page% 页)"
+gui-zone-bans-title: "Zone bans: %name% (Page %page%)"
 gui-chunks-title: "区块: %name% (第 %page% 页)"
+gui-zones-title: "Zones: %name% (Page %page%)"
 gui-list-title: "我的领地 (第 %page% 页)"
 gui-main-title: "%name%"
 gui-members-title: "成员: %name% (第 %page% 页)"
+gui-zone-members-title: "Zone members: %name% (Page %page%)"
 gui-settings-new-title: "设置: %name% (%role%)"
+gui-zone-settings-new-title: "Zone settings: %name% (%role%)"
 gui-claims-title: "领地 (第 %page% 页)"
 gui-claims-owner-title: "领地: %owner% (第 %page% 页)"
 
@@ -376,6 +392,7 @@ gui-button-no-permission: "§c您没有权限"
 
 to-unban: " 解除禁止"
 to-remove-chunk: " 移除此区块"
+to-remove-zone: " to remove this zone"
 to-teleport: " 传送"
 to-remove: " 移除"
 to-manage: " 管理"
@@ -433,8 +450,11 @@ choice-disabled: "§7▸ §f点击§n 启用"
 choice-enabled: "§7▸ §f点击§n 禁用"
 choice-setting-disabled: "§c此设置无法修改"
 
-apply-all-claims-title: "§e将设置应用于所有领地"
+apply-all-claims-title: "§e将设置应用于 %claim% 中的所有区域"
 apply-all-claims-lore: "§7将这些设置应用于我的所有领地\n§7▸ §f点击执行"
+
+apply-all-zones-title: "§e将设置应用于此声明中的所有区域"
+apply-all-zones-lore: "§7将这些设置应用于 %claim-name% 中的所有区域\n§7▸ §f点击执行"
 
 build-title: "§e建造 §7(%status%§7)"
 build-lore: "§7允许建造"
@@ -538,8 +558,14 @@ manage-members-lore: "§7管理成员"
 manage-bans-title: "§c禁止列表"
 manage-bans-lore: "§7管理被禁止的玩家"
 
+manage-zone-bans-title: "§c区域禁令"
+manage-zone-bans-lore: "§7管理禁止进入区域的玩家"
+
 manage-chunks-title: "§6区块"
 manage-chunks-lore: "§7管理区块"
+
+manage-zones-title: "§6区域"
+manage-zones-lore: "§7管理区域"
 
 manage-settings-title: "§3设置"
 manage-settings-lore: "§7管理设置"
@@ -566,6 +592,9 @@ claim-info-lore-sale-status-false: "§c✘ 领地未出售"
   
 chunk-title: "§6区块-%number% §7(%coords%)"
 chunk-lore: "§7此区块属于领地"
+
+zone-title: "§6Zone '§7%zone-name%' %zone-boundingbox%"
+zone-lore: "§7该区域是索赔的一部分"
 
 access-button: "§7▸ §f点击执行"
 
@@ -706,6 +735,12 @@ help-command:
   claim-delchunk: |
     §b语法: §f/claim delchunk <领地名称> <区块>
     §b描述: §f从领地中移除区块，使用区块参数为 world;x;z
+  claim-addzone: |
+    §bSyntax : §f/claim addzone <claim-name> <zone-name>
+    §bDescription : §fAdd a new zone (selected by wooden axe) within a claim.
+  claim-delzone: |
+    §bSyntax : §f/claim delzone <claim-name> <zone-name>
+    §bDescription : §fRemove a zone from a claim.
   claim-main: |
     §b语法: §f/claim main <领地名称>
     §b描述: §f打开领地的主菜单
@@ -765,6 +800,12 @@ help-command:
   parea-delchunk: |
     §b语法: §f/parea delchunk <领地名称> <区块>
     §b描述: §f从受保护区域中移除区块
+  parea-addzone: |
+    §bSyntax : §f/parea addzone <claim-name> <zone-name>
+    §bDescription : §fAdd a new zone (selected by wooden axe) within a claim.
+  parea-delzone: |
+    §bSyntax : §f/parea delzone <claim-name> <zone-name>
+    §bDescription : §fRemove a zone from a protected area.
   parea-kick: |
     §b语法: §f/parea kick <*|领地名称> <玩家>
     §b描述: §f将玩家从受保护区域中踢出

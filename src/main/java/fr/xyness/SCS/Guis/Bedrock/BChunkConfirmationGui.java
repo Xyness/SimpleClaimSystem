@@ -10,7 +10,7 @@ import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Commands.ClaimCommand;
 
 /**
- * Class representing the Claim GUI.
+ * Bedrock confirmation GUI for adding Chunk/Zone to claim.
  */
 public class BChunkConfirmationGui {
 
@@ -49,7 +49,7 @@ public class BChunkConfirmationGui {
     	
         // Création d'un formulaire simple
     	ModalForm form = ModalForm.builder()
-	        .title(instance.getLanguage().getMessage("bedrock-gui-chunk-confirm-title"))
+	        .title(instance.getLanguage().getMessage("bedrock-gui-chunk-confirm-title"))  // "Confirm adding chunk?"
 	        .content(lore)
 	        .button1(instance.getLanguage().getMessage("bedrock-confirm-title"))
 	        .button2(instance.getLanguage().getMessage("bedrock-cancel-title"))

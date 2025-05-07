@@ -508,7 +508,7 @@ public class ClaimEvents implements Listener {
                 UUID playerId = player.getUniqueId();
                 CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
                 if(cPlayer == null) return;
-                
+
                 String ownerTO = instance.getMain().getOwnerInClaim(to);
                 String ownerFROM = instance.getMain().getOwnerInClaim(from);
                 
@@ -914,6 +914,124 @@ public class ClaimEvents implements Listener {
 	@EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteract(PlayerInteractEvent event) {
 		Player player = event.getPlayer();
+		String uuidString = player.getUniqueId().toString();
+		ItemStack item = event.getItem();
+		int selection_idx = 0;
+		if (event.getAction() == Action.LEFT_CLICK_BLOCK) selection_idx = 1;
+		else if (event.getAction() == Action.RIGHT_CLICK_BLOCK) selection_idx = 2;
+		else if (event.getAction() == Action.LEFT_CLICK_AIR) selection_idx = -1;
+		else if (event.getAction() == Action.RIGHT_CLICK_AIR) selection_idx = -2;
+		if (selection_idx != 0 && event.getItem().getType() == Material.WOODEN_AXE) {
+			Block thisBlock = null;
+			Location blockLocation = null;
+			String owner = instance.getMain().getOwnerInClaim(thisBlock.getChunk());
+			//if (instance.getPlayerMain().getPlayerUUID(owner) != player.getUniqueId()) {
+			//	player.sendMessage("You can only select in a claim");
+			//}
+			// ^ Prevents selection out of area: Commented since we can check this later,
+			//   or add a feature to claim related chunks (That would require expanding it into chunks).
+			boolean is_right_click = (Math.abs(selection_idx) == 2);
+			boolean is_air_click = (selection_idx < 0);
+			if (is_air_click) {  // air, so get block at player location
+				blockLocation = player.getLocation();
+				thisBlock = blockLocation.getBlock();
+			} else {  // not air, so do opposite (get location from block)
+				thisBlock = event.getClickedBlock();
+				blockLocation = thisBlock.getLocation();
+			}
+			Location startLocation = instance.getMain().startCorners.get(uuidString);
+			Location endLocation = instance.getMain().endCorners.get(uuidString);
+			boolean done_right = false;
+			boolean done_left = false;
+			boolean require_two_buttons = false; // false in case of macOS etc with no right-click
+			Location otherLocation = null;
+			if (!require_two_buttons) {
+				if (blockLocation.equals(startLocation)) {
+					player.sendMessage("1st corner of zone cancelled.");
+					player.sendMessage("Select 1st corner to begin again.");
+					instance.getMain().startCorners.remove(uuidString);
+					startLocation = null;
+				} else if (blockLocation.equals(endLocation)) {
+					player.sendMessage("2nd corner of zone cancelled.");
+					if (startLocation != null) player.sendMessage("Select a 2nd corner to continue.");
+					else player.sendMessage("Select a 1st corner to begin again.");
+					instance.getMain().endCorners.remove(uuidString);
+					endLocation = null;
+				} else {
+					if (startLocation != null) {
+						if (!startLocation.getWorld().getName().equals(blockLocation.getWorld().getName())) {
+							instance.getMain().startCorners.remove(uuidString);
+							startLocation = null;
+							endLocation = null;
+						}
+					}
+					if (startLocation != null) {
+						endLocation = blockLocation;
+						instance.getMain().endCorners.put(uuidString, endLocation);
+						// player.sendMessage("2nd corner selected: " + endLocation.toString());
+						// ^ commented since will show finished message anyway
+					} else {
+						startLocation = blockLocation;
+						instance.getMain().startCorners.put(uuidString, startLocation);
+						player.sendMessage("1st corner set: " + startLocation.toString());
+						player.sendMessage("Set the opposite corner (and don't forget to make it higher/lower so it will be more than 1 high).");
+						instance.getMain().endCorners.remove(uuidString);
+					}
+					// by now at least one is guaranteed to be non-null
+				}
+			}
+			else { // require_two_buttons
+				if (is_right_click) {
+					if (blockLocation.equals(endLocation)) {
+						player.sendMessage("2nd corner cancelled.");
+						instance.getMain().endCorners.remove(uuidString);
+						endLocation = null;
+					} else {
+						startLocation = blockLocation;
+						player.sendMessage("2nd corner set: " + endLocation.toString());
+						instance.getMain().endCorners.put(uuidString, endLocation);
+						otherLocation = startLocation;
+					}
+				} else {
+					if (blockLocation.equals(startLocation)) {
+						player.sendMessage("1st corner cancelled.");
+						instance.getMain().startCorners.remove(uuidString);
+						startLocation = null;
+					} else {
+						startLocation = blockLocation;
+						player.sendMessage("1st corner selected: " + startLocation.toString());
+						instance.getMain().startCorners.put(uuidString, startLocation);
+						otherLocation = endLocation;
+					}
+				}
+				if (startLocation != null && endLocation != null) {
+					if (!startLocation.getWorld().getName().equals(endLocation.getWorld().getName())) {
+						// Cancel the *opposite* one (from before this event) since invalid
+						if (is_right_click) {
+							startLocation = null;
+							instance.getMain().startCorners.remove(uuidString);
+						}
+						else {
+							endLocation = null;
+							instance.getMain().endCorners.remove(uuidString);
+						}
+					}
+				}
+				// by now at least one is guaranteed to be non-null, unless cancel message was shown above.
+				if (startLocation == null) {
+					player.sendMessage("Left-click 1st corner (and don't forget to make it higher/lower so it will be more than 1 block high).");
+				} else if (endLocation == null) {
+					player.sendMessage("Right-click 2nd corner (and don't forget to make it higher/lower so it will be more than 1 block high).");
+				}
+				// else finished message will show below
+			} // end require_two_buttons
+			if (startLocation != null && endLocation != null) {
+				instance.getMain().displaySelectionBorder(player);
+				player.sendMessage("Finished selecting " + startLocation.toString() + " to " + endLocation.toString());
+				player.sendMessage("To save selection as new area type \"/claim-zone\" followed by an unused zone name to create zone in claim.");
+			}
+			// Continue below even if selecting, to check as usual whether world is affected by tool.
+		} // end if wooden axe
 		if(instance.getPlayerMain().checkPermPlayer(player, "scs.bypass")) return;
 		WorldMode mode = instance.getSettings().getWorldMode(player.getLocation().getWorld().getName());
 		Block block = event.getClickedBlock();

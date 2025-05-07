@@ -18,7 +18,7 @@ import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 
 /**
- * Class representing the Claim GUI.
+ * Claim Owners GUI.
  */
 public class BClaimsOwnerGui {
 
@@ -49,17 +49,17 @@ public class BClaimsOwnerGui {
     public BClaimsOwnerGui(Player player, SimpleClaimSystem instance, String owner, String filter) {
     	this.instance = instance;
     	this.floodgatePlayer = FloodgateApi.getInstance().getPlayer(player.getUniqueId());
-    	
+    	// zone: null since only claims have owners (zones/claims have members)
     	// Get CPlayer
     	CPlayer cPlayer = this.instance.getPlayerMain().getCPlayer(player.getUniqueId());
     	if(cPlayer == null) return;
     	
         // Création d'un formulaire simple
     	SimpleForm.Builder form = SimpleForm.builder()
-	        .title(instance.getLanguage().getMessage("bedrock-gui-claims-owner-title").replace("%owner%", owner))
+	        .title(instance.getLanguage().getMessage("bedrock-gui-claims-owner-title", null).replace("%owner%", owner))
 	        .content(getContent(filter).replace("%owner%", owner))
-	        .button(instance.getLanguage().getMessage("bedrock-back-page-main"))
-	        .button(instance.getLanguage().getMessage("bedrock-gui-claims-owner-filter"))
+	        .button(instance.getLanguage().getMessage("bedrock-back-page-main", null))
+	        .button(instance.getLanguage().getMessage("bedrock-gui-claims-owner-filter", null))
 	        .validResultHandler(response -> {
 	        	int clickedSlot = response.clickedButtonId();
 	        	if(clickedSlot == 0) {

@@ -6,6 +6,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -18,7 +19,7 @@ import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.Claim;
 
 /**
- * Class representing the Claim GUI.
+ * Bedrock Claim/Zone Members GUI.
  */
 public class BClaimMembersGui {
 
@@ -50,13 +51,15 @@ public class BClaimMembersGui {
     public BClaimMembersGui(Player player, Claim claim, SimpleClaimSystem instance) {
     	this.instance = instance;
     	this.floodgatePlayer = FloodgateApi.getInstance().getPlayer(player.getUniqueId());
-    	
+		Zone zone = claim.getZoneOfPlayerGUI(player);
         // Création d'un formulaire simple
+		// Creating a simple form
+		// zone: null for buttons applying only to claim rather than zone/chunk
     	SimpleForm.Builder form = SimpleForm.builder()
-	        .title(instance.getLanguage().getMessage("bedrock-gui-members-title")
+	        .title(instance.getLanguage().getMessage("bedrock-gui-members-title", zone)
 	    			.replace("%name%", claim.getName()))
-	        .button(instance.getLanguage().getMessage("bedrock-back-page-main"))
-	        .content(instance.getLanguage().getMessage("bedrock-gui-members-click"))
+	        .button(instance.getLanguage().getMessage("bedrock-back-page-main", null))
+	        .content(instance.getLanguage().getMessage("bedrock-gui-members-click", zone))
 	        .validResultHandler(response -> {
 	        	if(response.clickedButtonId() == 0) {
 	        		new BClaimMainGui(player,claim,instance);
@@ -65,7 +68,7 @@ public class BClaimMembersGui {
 	        	String member = response.clickedButton().text();
 	        	if(player.getName().equals(member)) return;
 	        	if(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.remove")) {
-	        		String message = instance.getLanguage().getMessage("remove-member-success").replace("%player%", member).replace("%claim-name%", claim.getName());
+	        		String message = instance.getLanguage().getMessage("remove-member-success", zone).replace("%player%", member).replace("%claim-name%", claim.getName());
 	            	this.instance.getMain().removeClaimMember(claim, member)
 	            		.thenAccept(success -> {
 	            			if (success) {

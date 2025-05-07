@@ -14,6 +14,10 @@ items:
 
   # /!\ DON'T CHANGE NAME OF ITEMS (like "confirm-1" or "main-item"), you can add your customs items if you want to
 
+  # For zones, ids (the values below) will be remapped according to zoneFields and don't need to be changed here
+  #   (Instead, add the id (value) here to zoneFields, and add the remapped value to each language yml file as a
+  #   separate id).
+
   # Bottom items
   confirm-1:
     slot: 0

@@ -18,7 +18,7 @@ import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.Claim;
 
 /**
- * Class representing the Claim GUI.
+ * Claim (or Zone, conditionally) bans GUI for Bedrock.
  */
 public class BClaimBansGui {
 

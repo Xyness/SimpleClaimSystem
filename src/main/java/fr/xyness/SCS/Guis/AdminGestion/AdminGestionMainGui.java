@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import fr.xyness.SCS.Types.CPlayer;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -19,7 +20,11 @@ import fr.xyness.SCS.SimpleClaimSystem;
 import net.md_5.bungee.api.ChatColor;
 
 /**
- * Class representing the Admin Gestion Main GUI.
+ * The Admin Main Management GUI
+ * (provides navigation to other GUI screens).
+ *
+ * L'interface graphique principale de gestion de l'administrateur
+ * (permet la navigation vers d'autres écrans de l'interface graphique).
  */
 public class AdminGestionMainGui implements InventoryHolder {
 
@@ -42,7 +47,8 @@ public class AdminGestionMainGui implements InventoryHolder {
 
     
     /**
-     * Main constructor for the AdminGestionMainGui.
+     * The Admin Main Management GUI constructor
+	 * (provides navigation to other GUI screens)
      *
      * @param player The player for whom the GUI is being created.
      * @param instance The instance of the SimpleClaimSystem plugin.
@@ -50,11 +56,13 @@ public class AdminGestionMainGui implements InventoryHolder {
     public AdminGestionMainGui(Player player, SimpleClaimSystem instance) {
     	this.instance = instance;
         inv = Bukkit.createInventory(this, 54, "§4[A]§r Menu");
+		// zone: null since we are in the main admin menu providing navigation to other screens
+		//   (admin one only lists claims, not buttons for chunks/zones screens)
         loadItems(player).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
-        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error", null)));
         	}
         })
         .exceptionally(ex -> {
@@ -76,9 +84,13 @@ public class AdminGestionMainGui implements InventoryHolder {
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
     public CompletableFuture<Boolean> loadItems(Player player) {
-    	
     	return CompletableFuture.supplyAsync(() -> {
-    	
+			// zone: null since we are in the main admin menu providing navigation to other screens
+			//   (admin one only lists claims, not buttons for chunks/zones screens)
+			CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+			if (cPlayer != null) cPlayer.clearGuiZone();
+			else instance.getLogger().warning("AdminGestionMainGui got no current player, so couldn't clear selected Zone though Zone is not applicable the main GUI.");
+    		// TODO: translate these strings
 	        List<String> lore = new ArrayList<>();
 	        lore.add("§7All owners of the server");
 	        lore.add(" ");

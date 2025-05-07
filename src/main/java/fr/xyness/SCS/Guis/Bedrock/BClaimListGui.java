@@ -19,7 +19,7 @@ import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
 
 /**
- * Class representing the Claim GUI.
+ * Bedrock Claim List GUI.
  */
 public class BClaimListGui {
 
@@ -56,11 +56,12 @@ public class BClaimListGui {
     	if(cPlayer == null) return;
     	String playerName = player.getName();
     	
-        // Création d'un formulaire simple
+        // Création d'un formulaire simple (zone: null puisque nous sommes dans le périmètre des revendications)
+		// Creating a simple form (zone: null since we are in claims scope)
     	SimpleForm.Builder form = SimpleForm.builder()
-	        .title(instance.getLanguage().getMessage("bedrock-gui-list-title"))
-	        .content(filter.equals("owner") ? instance.getLanguage().getMessage("bedrock-gui-list-click-1") : instance.getLanguage().getMessage("bedrock-gui-list-click-2"))
-	        .button(instance.getLanguage().getMessage("bedrock-gui-list-filter"))
+	        .title(instance.getLanguage().getMessage("bedrock-gui-list-title", null))
+	        .content(filter.equals("owner") ? instance.getLanguage().getMessage("bedrock-gui-list-click-1", null) : instance.getLanguage().getMessage("bedrock-gui-list-click-2", null))
+	        .button(instance.getLanguage().getMessage("bedrock-gui-list-filter", null))
 	        .validResultHandler(response -> {
 	        	int clickedSlot = response.clickedButtonId();
 	        	if(clickedSlot == 0) {

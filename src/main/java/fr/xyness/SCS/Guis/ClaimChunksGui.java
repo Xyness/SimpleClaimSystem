@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -23,7 +24,7 @@ import fr.xyness.SCS.Types.GuiSettings;
 import fr.xyness.SCS.Types.GuiSlot;
 
 /**
- * Class representing the Claim Members GUI.
+ * Claim Chunks/Zones GUI.
  */
 public class ClaimChunksGui implements InventoryHolder {
     
@@ -59,9 +60,11 @@ public class ClaimChunksGui implements InventoryHolder {
     public ClaimChunksGui(Player player, Claim claim, int page, SimpleClaimSystem instance) {
     	this.instance = instance;
     	this.player = player;
-    	
+
+    	Zone zone = claim.getZoneOfPlayerGUI(player);
+
     	// Get title
-    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("chunks");
+    	GuiSettings guiSettings = ClaimGuis.getGuiSettings("chunks", zone);
     	String title = guiSettings.getTitle()
     			.replace("%name%", claim.getName())
     			.replace("%page%", String.valueOf(page));
@@ -70,11 +73,11 @@ public class ClaimChunksGui implements InventoryHolder {
     	inv = Bukkit.createInventory(this, guiSettings.getRows()*9, title);
         
         // Load the items asynchronously
-        loadItems(claim, page).thenAccept(success -> {
+        loadItems(claim, page, zone).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
-        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
+        		instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error", zone)));
         	}
         })
         .exceptionally(ex -> {
@@ -90,11 +93,12 @@ public class ClaimChunksGui implements InventoryHolder {
     /**
      * Initializes the items for the GUI.
      * 
-     * @param player The player who opened the GUI.
+     * @param claim The claim the GUI should use.
      * @param page   The current page of the GUI.
+	 * @param zone   The current zone (null operates on chunk instead).
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Claim claim, int page) {
+    public CompletableFuture<Boolean> loadItems(Claim claim, int page, Zone zone) {
     	
     	return CompletableFuture.supplyAsync(() -> {
     	
@@ -109,12 +113,13 @@ public class ClaimChunksGui implements InventoryHolder {
 	        cPlayer.setClaim(claim);
 	        cPlayer.clearMapString();
 	        cPlayer.setGuiPage(page);
+			cPlayer.setGuiZone(zone);
 	        
-	        GuiSettings guiSettings = ClaimGuis.gui_settings.get("chunks");
+	        GuiSettings guiSettings = ClaimGuis.getGuiSettings("chunks", zone);
 	        int max = guiSettings.getEndSlot() - guiSettings.getStartSlot();
 	        
 	        // Items
-    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("chunks"));
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.getGuiSlots(zone).get("chunks"));
     		for(GuiSlot slot : slots) {
     			int slot_int = slot.getSlot();
     			String key = slot.getKey();

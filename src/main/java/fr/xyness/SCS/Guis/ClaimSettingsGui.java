@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -19,7 +20,7 @@ import fr.xyness.SCS.Types.GuiSettings;
 import fr.xyness.SCS.Types.GuiSlot;
 
 /**
- * Class representing the Claim GUI.
+ * Claim (or Zone conditionally) Settings GUI.
  */
 public class ClaimSettingsGui implements InventoryHolder {
 
@@ -38,7 +39,6 @@ public class ClaimSettingsGui implements InventoryHolder {
     /** Instance of SimpleClaimSystem */
     private final SimpleClaimSystem instance;
 
-    
     // ******************
     // *  Constructors  *
     // ******************
@@ -55,31 +55,32 @@ public class ClaimSettingsGui implements InventoryHolder {
     public ClaimSettingsGui(Player player, Claim claim, SimpleClaimSystem instance, String role) {
     	this.instance = instance;
     	this.player = player;
-    	
+		final Zone zone = claim.setZoneOfGUIByLocation(player);
+
     	String role_displayed;
     	switch(role) {
 	    	case "members":
-	    		role_displayed = instance.getLanguage().getMessage("role-members");
+	    		role_displayed = instance.getLanguage().getMessage("role-members", zone);
 	    		break;
 	    	case "natural":
-	    		role_displayed = instance.getLanguage().getMessage("role-natural");
+	    		role_displayed = instance.getLanguage().getMessage("role-natural", zone);
 	    		break;
     		default:
-	    		role_displayed = instance.getLanguage().getMessage("role-visitors");
+	    		role_displayed = instance.getLanguage().getMessage("role-visitors", zone);
 	    		break;
     	}
-    	
-    	// Get title
-    	GuiSettings guiSettings = ClaimGuis.gui_settings.get("settings");
+    	// Get title (Add brackets if it is a zone)
+		String name = (zone != null) ? String.format("[%s]", zone.getName()) : claim.getName();
+    	GuiSettings guiSettings = ClaimGuis.getGuiSettings("settings", zone);
     	String title = guiSettings.getTitle()
-    			.replace("%name%", claim.getName())
+    			.replace("%name%", name)
     			.replace("%role%", role_displayed);;
     	
     	// Create the inventory
         inv = Bukkit.createInventory(this, guiSettings.getRows()*9, title);
         
         // Load the items asynchronously
-        loadItems(claim, role).thenAccept(success -> {
+        loadItems(claim, role, zone).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
@@ -102,10 +103,11 @@ public class ClaimSettingsGui implements InventoryHolder {
      * Initializes items for the GUI.
      *
      * @param claim  The claim for which the GUI is displayed.
-     * @param role   The role associated with permissions.
+	 * @param role   The role associated with permissions.
+	 * @param zone   Zone to edit, or null to affect whole claim.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Claim claim, String role) {
+    public CompletableFuture<Boolean> loadItems(Claim claim, String role, Zone zone) {
     	
     	return CompletableFuture.supplyAsync(() -> {
     	
@@ -115,15 +117,16 @@ public class ClaimSettingsGui implements InventoryHolder {
 	        // Update player data (gui)
 	        cPlayer.setClaim(claim);
 	        cPlayer.setFilter(role);
+			cPlayer.setGuiZone(zone);
 	
 	    	// Get data
-	        String default_statut_disabled = instance.getLanguage().getMessage("status-disabled");
-	        String default_statut_enabled = instance.getLanguage().getMessage("status-enabled");
-	        String default_choix_disabled = instance.getLanguage().getMessage("choice-disabled");
-	        String default_choix_enabled = instance.getLanguage().getMessage("choice-enabled");
+	        String default_statut_disabled = instance.getLanguage().getMessage("status-disabled", zone);
+	        String default_statut_enabled = instance.getLanguage().getMessage("status-enabled", zone);
+	        String default_choix_disabled = instance.getLanguage().getMessage("choice-disabled", zone);
+	        String default_choix_enabled = instance.getLanguage().getMessage("choice-enabled", zone);
 	        
 	        // Items
-    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("settings"));
+    		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.getGuiSlots(zone).get("settings"));
     		for(GuiSlot slot : slots) {
     			int slot_int = slot.getSlot();
     			String key = slot.getKey();
@@ -140,7 +143,7 @@ public class ClaimSettingsGui implements InventoryHolder {
     	            lore.add(instance.getSettings().isEnabled(key) ? checkPermPerm(player,key) ? choix : instance.getLanguage().getMessage("gui-button-no-permission")+instance.getLanguage().getMessage("to-use-setting") : instance.getLanguage().getMessage("choice-setting-disabled"));
     	            title = title.replace("%status%", statut);
     			} else if (key.equals("Filter")) {
-    	            String loreFilter = instance.getLanguage().getMessage("role-lore")
+    	            String loreFilter = instance.getLanguage().getMessage("role-lore", zone)
     	                    .replaceAll("%status_color_" + getStatusIndex(role) + "%", instance.getLanguage().getMessage("status_color_active_filter"))
     	                    .replaceAll("%status_color_[^" + getStatusIndex(role) + "]%", instance.getLanguage().getMessage("status_color_inactive_filter"));
     	            lore = instance.getGuis().getLore(loreFilter);

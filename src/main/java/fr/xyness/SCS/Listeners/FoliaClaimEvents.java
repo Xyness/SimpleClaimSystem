@@ -266,7 +266,7 @@ public class FoliaClaimEvents implements Listener {
      *
      * @param event   The player teleport event.
      * @param player  The player.
-     * @param toChunk The destination chunk.
+     * @param claim The destination claim.
      * @return True if the teleport is blocked, false otherwise.
      */
     private boolean isTeleportBlocked(PlayerTeleportEvent event, Player player, Claim claim) {
@@ -286,7 +286,7 @@ public class FoliaClaimEvents implements Listener {
      * Handles weather settings for the player.
      *
      * @param player The player.
-     * @param chunk  The chunk.
+     * @param from The chunk.
      */
     private void handleWeatherSettings(Player player, Chunk to, Chunk from) {
     	Claim claimTo = instance.getMain().getClaim(to);

@@ -1,14 +1,9 @@
 package fr.xyness.SCS.Guis.AdminGestion;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
+import fr.xyness.SCS.Zone;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -32,7 +27,9 @@ import fr.xyness.SCS.Types.Claim;
 import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
- * Class representing the Admin Gestion Claim Bans GUI.
+ * The Admin Claim/Zone Bans Management GUI.
+ *
+ * La réclamation de gestion administrative interdit l'interface graphique.
  */
 public class AdminGestionClaimBansGui implements InventoryHolder {
     
@@ -64,8 +61,13 @@ public class AdminGestionClaimBansGui implements InventoryHolder {
      */
     public AdminGestionClaimBansGui(Player player, Claim claim, int page, SimpleClaimSystem instance) {
     	this.instance = instance;
-        inv = Bukkit.createInventory(this, 54, "§4[A]§r Bans: "+claim.getName()+" ("+claim.getOwner()+")");
-        loadItems(player, claim, page).thenAccept(success -> {
+        final Zone zone = claim.setZoneOfGUIByLocation(player);
+        // TODO: Translate these strings
+        String title = (zone != null)
+                ? String.format("§4[A]§r Bans: [%s] in %s (%s)", zone.getName(), claim.getName(), claim.getOwner())
+                : String.format("§4[A]§r Bans: %s (%s)", claim.getName(), claim.getOwner());
+        inv = Bukkit.createInventory(this, 54, title);
+        loadItems(player, claim, page, zone).thenAccept(success -> {
         	if (success) {
         		instance.executeEntitySync(player, () -> player.openInventory(inv));
         	} else {
@@ -92,24 +94,29 @@ public class AdminGestionClaimBansGui implements InventoryHolder {
      * @param page   The current page of the GUI.
      * @return A CompletableFuture with a boolean to check if the gui is correctly initialized.
      */
-    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, int page) {
+    public CompletableFuture<Boolean> loadItems(Player player, Claim claim, int page, Zone zone) {
     	
     	return CompletableFuture.supplyAsync(() -> {
-    	
 	        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
 	        cPlayer.setClaim(claim);
 	        cPlayer.clearMapString();
 	        cPlayer.setGuiPage(page);
+            cPlayer.setGuiZone(zone);
+            String scope = (zone != null) ? "zone" : "claim";
 	        int min_member_slot = 0;
 	        int max_member_slot = 44;
 	        int items_count = max_member_slot - min_member_slot + 1;
 	        if(page>1) inv.setItem(48, backPage(page - 1));
 	        inv.setItem(49, backMainMenu(claim.getName()));
-	        List<String> lore = new ArrayList<>(Arrays.asList("§7Is banned from this claim"," ","§c[Left-click]§7 to unban this player"));
+            // TODO: translate phrases below, and scope above
+	        List<String> lore = new ArrayList<>(Arrays.asList(
+                    String.format("§7Is banned from this %s", scope),
+                    " ", "§c[Left-click]§7 to unban this player"));
 	        int startItem = (page - 1) * items_count;
 	        int i = min_member_slot;
 	        int count = 0;
-	        Set<String> bans = instance.getMain().convertUUIDSetToStringSet(claim.getBans());
+            Set<UUID> banUUIDs = (zone != null) ? zone.getBans() : claim.getBans();
+	        Set<String> bans = instance.getMain().convertUUIDSetToStringSet(banUUIDs);
 	        List<String> bansList = new ArrayList<>(bans);
 	        Collections.sort(bansList, (ban1, ban2) -> ban1.compareTo(ban2));
 	        bans = new LinkedHashSet<>(bansList);
