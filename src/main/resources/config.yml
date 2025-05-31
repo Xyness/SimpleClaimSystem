@@ -30,6 +30,12 @@ command-aliases:
     - /unterritory
   claims:
     - /territories
+    
+# Configure the aliases of the worlds.
+world-aliases:
+  world: Overworld
+  world_nether: Nether
+  world_the_end: End
 
 
 # ********************

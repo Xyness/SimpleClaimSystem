@@ -1,9 +1,6 @@
 package fr.xyness.SCS.Types;
 
 import org.bukkit.Material;
-import org.bukkit.inventory.ItemStack;
-
-import dev.lone.itemsadder.api.CustomStack;
 
 /**
  * This class handles gui slot object.
@@ -106,15 +103,6 @@ public class GuiSlot {
      */
     public int getSlot() {
     	return slot;
-    }
-
-    /**
-     * Gets the item.
-     * 
-     * @return The item.
-     */
-    public Object getItem() {
-    	return custom_model_data ? CustomStack.getInstance(custom_model_data_value) : new ItemStack(material);
     }
 
     /**

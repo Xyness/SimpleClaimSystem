@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutionException;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.World;
 import org.bukkit.entity.Player;
 
 import fr.xyness.SCS.SimpleClaimSystem;
@@ -23,11 +24,8 @@ public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
 	// ***************
 	// *  Variables  *
 	// ***************
-	
-	
-    /** The singleton instance of ClaimPlaceholdersExpansion. */
-    private static ClaimPlaceholdersExpansion instancePAPI;
     
+	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
@@ -39,10 +37,10 @@ public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
     
     /**
      * Main constructor for ClaimPlaceholdersExpansion.
-     * Sets the instance of this class.
+     * 
+     * @param instance The instance of SimpleClaimSystem.
      */
     public ClaimPlaceholdersExpansion(SimpleClaimSystem instance) {
-        instancePAPI = this;
         this.instance = instance;
     }
     
@@ -51,15 +49,6 @@ public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
 	// *  Other methods  *
 	// *******************
     
-    
-    /**
-     * Gets the singleton instance of ClaimPlaceholdersExpansion.
-     *
-     * @return the singleton instance.
-     */
-    public static ClaimPlaceholdersExpansion getExpansionInstance() {
-        return instancePAPI;
-    }
 
     @Override
     public String getIdentifier() {
@@ -86,7 +75,6 @@ public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
         	switch (identifier) {
             case "player_claims_count":
                 return String.valueOf(cPlayer.getClaimsCount());
-                
             case "claim_name":
                 Chunk chunk = player.getLocation().getChunk();
                 if (instance.getMain().checkIfClaimExists(chunk)) {
@@ -206,6 +194,103 @@ public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
                 return instance.getLanguage().getMessage("claim_spawn-if-no-claim");
                 
             default:
+            	if (identifier.startsWith("claim_chunk_relative_")) {
+            		String syntax = identifier.replaceFirst("claim_chunk_relative_", "");
+            		if(syntax.endsWith("_name")) {
+            			syntax = syntax.replace("_name", "");
+            			String[] parts = syntax.split("_");
+            			chunk = player.getLocation().getChunk();
+            			World world = Bukkit.getWorld(parts[0]);
+            			int chunkX = Integer.parseInt(parts[1])+chunk.getX();
+            			int chunkZ = Integer.parseInt(parts[2])+chunk.getZ();
+            			chunk = world.getChunkAt(chunkX, chunkZ);
+                        if (instance.getMain().checkIfClaimExists(chunk)) {
+                            return instance.getMain().getClaimNameByChunk(chunk);
+                        }
+                        return instance.getLanguage().getMessage("claim_name-if-no-claim");
+            		}
+            		if(syntax.endsWith("_owner")) {
+            			syntax = syntax.replace("_owner", "");
+            			String[] parts = syntax.split("_");
+            			chunk = player.getLocation().getChunk();
+            			World world = Bukkit.getWorld(parts[0]);
+            			int chunkX = Integer.parseInt(parts[1])+chunk.getX();
+            			int chunkZ = Integer.parseInt(parts[2])+chunk.getZ();
+            			chunk = world.getChunkAt(chunkX, chunkZ);
+                        if (instance.getMain().checkIfClaimExists(chunk)) {
+                        	Claim claim = instance.getMain().getClaim(chunk);
+                            return claim.getOwner();
+                        }
+                        return instance.getLanguage().getMessage("claim_owner-if-no-claim");
+            		}
+            		if(syntax.endsWith("_player")) {
+            			syntax = syntax.replace("_player", "");
+            			String[] parts = syntax.split("_");
+            			chunk = player.getLocation().getChunk();
+            			World world = Bukkit.getWorld(parts[0]);
+            			int chunkX = Integer.parseInt(parts[1])+chunk.getX();
+            			int chunkZ = Integer.parseInt(parts[2])+chunk.getZ();
+            			chunk = world.getChunkAt(chunkX, chunkZ);
+                        if (instance.getMain().checkIfClaimExists(chunk)) {
+                        	Claim claim = instance.getMain().getClaim(chunk);
+                            if(claim.getOwner().equals(player.getName())) {
+                            	return instance.getLanguage().getMessage("claim_player-if-owner");
+                            } else if (claim.isMember(player.getUniqueId())) {
+                            	return instance.getLanguage().getMessage("claim_player-if-member");
+                            } else {
+                            	return instance.getLanguage().getMessage("claim_player-if-visitor");
+                            }
+                        }
+                        return instance.getLanguage().getMessage("claim_player-if-no-claim");
+            		}
+            	}
+            	if (identifier.startsWith("claim_chunk_")) {
+            		String syntax = identifier.replaceFirst("claim_chunk_", "");
+            		if(syntax.endsWith("_name")) {
+            			syntax = syntax.replace("_name", "");
+            			String[] parts = syntax.split("_");
+            			World world = Bukkit.getWorld(parts[0]);
+            			int chunkX = Integer.parseInt(parts[1]);
+            			int chunkZ = Integer.parseInt(parts[2]);
+            			chunk = world.getChunkAt(chunkX, chunkZ);
+                        if (instance.getMain().checkIfClaimExists(chunk)) {
+                            return instance.getMain().getClaimNameByChunk(chunk);
+                        }
+                        return instance.getLanguage().getMessage("claim_name-if-no-claim");
+            		}
+            		if(syntax.endsWith("_owner")) {
+            			syntax = syntax.replace("_owner", "");
+            			String[] parts = syntax.split("_");
+            			World world = Bukkit.getWorld(parts[0]);
+            			int chunkX = Integer.parseInt(parts[1]);
+            			int chunkZ = Integer.parseInt(parts[2]);
+            			chunk = world.getChunkAt(chunkX, chunkZ);
+                        if (instance.getMain().checkIfClaimExists(chunk)) {
+                        	Claim claim = instance.getMain().getClaim(chunk);
+                            return claim.getOwner();
+                        }
+                        return instance.getLanguage().getMessage("claim_owner-if-no-claim");
+            		}
+            		if(syntax.endsWith("_player")) {
+            			syntax = syntax.replace("_player", "");
+            			String[] parts = syntax.split("_");
+            			World world = Bukkit.getWorld(parts[0]);
+            			int chunkX = Integer.parseInt(parts[1]);
+            			int chunkZ = Integer.parseInt(parts[2]);
+            			chunk = world.getChunkAt(chunkX, chunkZ);
+                        if (instance.getMain().checkIfClaimExists(chunk)) {
+                        	Claim claim = instance.getMain().getClaim(chunk);
+                        	if(claim.getOwner().equals(player.getName())) {
+                            	return instance.getLanguage().getMessage("claim_player-if-owner");
+                            } else if (claim.isMember(player.getUniqueId())) {
+                            	return instance.getLanguage().getMessage("claim_player-if-member");
+                            } else {
+                            	return instance.getLanguage().getMessage("claim_player-if-visitor");
+                            }
+                        }
+                        return instance.getLanguage().getMessage("claim_player-if-no-claim");
+            		}
+            	}
                 if (identifier.startsWith("claim_setting_")) {
                     chunk = player.getLocation().getChunk();
                     if (instance.getMain().checkIfClaimExists(chunk)) {

@@ -2,7 +2,6 @@ package fr.xyness.SCS.Config;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -78,6 +77,9 @@ public class ClaimSettings {
     /** Map of mode of worlds. */
     private Map<String,WorldMode> worlds = new HashMap<>();
     
+    /** Map of worlds aliases. */
+    private Map<String,String> worldsAliases = new HashMap<>();
+    
     /** Location of the expulsion */
     private Location expulsionLocation;
 
@@ -104,6 +106,26 @@ public class ClaimSettings {
         groupsSettings.clear();
         worlds.clear();
         aliases.clear();
+        worldsAliases.clear();
+    }
+    
+    /**
+     * Gets the world aliase.
+     * 
+     * @param world The world name.
+     * @return The world aliase.
+     */
+    public String getWorldAliase(String world) {
+    	return worldsAliases.getOrDefault(world, world);
+    }
+    
+    /**
+     * Sets the worlds aliases.
+     * 
+     * @param worldsAliases
+     */
+    public void setWorldAliases(Map<String,String> worldsAliases) {
+    	this.worldsAliases = worldsAliases;
     }
 
     /**

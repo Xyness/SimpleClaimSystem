@@ -126,7 +126,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
  
         String world = player.getWorld().getName();
         if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-        	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", player.getWorld().getName()));
+        	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getAliase(world)));
             return false;
         }
         
