@@ -24,6 +24,9 @@ import org.bukkit.*;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -1005,7 +1008,7 @@ public class ClaimMain {
      */
     public String getClaimCoords(Claim claim) {
         Location loc = claim.getLocation();
-        String world = loc.getWorld().getName();
+        String world = instance.getSettings().getWorldAliase(loc.getWorld().getName());
         String x = String.valueOf(Math.round(loc.getX() * 10.0 / 10.0));
         String y = String.valueOf(Math.round(loc.getY() * 10.0 / 10.0));
         String z = String.valueOf(Math.round(loc.getZ() * 10.0 / 10.0));
@@ -1484,6 +1487,95 @@ public class ClaimMain {
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+    
+    /**
+     * Imports the claims from XClaims
+     */
+    public void importFromXClaims(CommandSender sender) {
+    	instance.executeAsync(() -> {
+    		File file = new File("plugins/SimpleClaimSystem/xclaims.yml");
+    		int[] i = {0};
+    		
+    		FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+
+            Set<String> claimKeys = config.getKeys(false);
+
+            for (String key : claimKeys) {
+                String claim_name = config.getString(key + ".name").replace(" ", "_");
+                String owner = config.getString(key + ".owner");
+                UUID uuid_owner = UUID.fromString(owner);
+                String owner_name = Bukkit.getOfflinePlayer(uuid_owner).getName();
+                int id = findFreeId(uuid_owner);
+                String world_name = config.getString(key + ".world");
+                World world = Bukkit.getWorld(world_name);
+                ConfigurationSection userSection = config.getConfigurationSection(key + ".users");
+                Set<String> list_users = userSection.getKeys(false);
+                list_users.add(owner_name);
+                String users = String.join(";", list_users);
+                ConfigurationSection chunkSection = config.getConfigurationSection(key + ".chunks");
+                Set<Chunk> chunks = ConcurrentHashMap.newKeySet();
+                
+                Runnable task = () -> {
+            		
+                    Location loc = getCenterLocationOfChunk(chunks.iterator().next());
+                    String chunksData = serializeChunks(chunks);
+                    try (Connection connection = instance.getDataSource().getConnection();
+                            PreparedStatement stmt = connection.prepareStatement(
+                                    "INSERT INTO scs_claims_1 (id_claim, owner_uuid, owner_name, claim_name, claim_description, chunks, world_name, location, members, permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                           stmt.setInt(1, id);
+                       	   stmt.setString(2, owner);
+                           stmt.setString(3, owner_name);
+                           stmt.setString(4, claim_name);
+                           stmt.setString(5, instance.getLanguage().getMessage("default-description"));
+                           stmt.setString(6, chunksData);
+                           stmt.setString(7, world_name);
+                           stmt.setString(8, getLocationString(loc));
+                           stmt.setString(9, users);
+                           stmt.setString(10, instance.getSettings().getDefaultValuesCode("all"));
+                           stmt.executeUpdate();
+                           i[0]++;
+                       } catch (SQLException e) {
+                           e.printStackTrace();
+                       }
+                };
+                
+                List<CompletableFuture<Void>> futures = new ArrayList<>();
+                for (String chunkId : chunkSection.getKeys(false)) {
+                    int x = chunkSection.getInt(chunkId + ".x");
+                    int z = chunkSection.getInt(chunkId + ".z");
+                    CompletableFuture<Void> future;
+                    if (instance.isFolia()) {
+                        future = world.getChunkAtAsync(x, z).thenAccept(chunk -> {
+                            synchronized (chunks) {
+                                chunks.add(chunk);
+                            }
+                        }).exceptionally(ex -> {
+                            ex.printStackTrace();
+                            return null;
+                        });
+                    } else {
+                        Chunk chunk = world.getChunkAt(x, z);
+                        chunks.add(chunk);
+                        future = CompletableFuture.completedFuture(null);
+                    }
+                    futures.add(future);
+                }
+
+                CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+                allOf.thenRun(() -> {
+                    task.run();
+                }).exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
+            }
+    		
+    		instance.executeSync(() -> {
+    			sender.sendMessage(getNumberSeparate(String.valueOf(i[0]))+" imported claims, reloading..");
+    			Bukkit.dispatchCommand(sender, "scs reload");
+    		});
+    	});
     }
     
     /**

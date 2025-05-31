@@ -8,13 +8,14 @@ import java.util.concurrent.CompletableFuture;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
-import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Types.CPlayer;
@@ -111,7 +112,7 @@ public class ClaimChunksGui implements InventoryHolder {
 	        cPlayer.setGuiPage(page);
 	        
 	        GuiSettings guiSettings = ClaimGuis.gui_settings.get("chunks");
-	        int max = guiSettings.getEndSlot() - guiSettings.getStartSlot();
+	        int max = guiSettings.getSlots().size();
 	        
 	        // Items
     		List<GuiSlot> slots = new ArrayList<>(ClaimGuis.gui_slots.get("chunks"));
@@ -134,13 +135,31 @@ public class ClaimChunksGui implements InventoryHolder {
     			if(title.isBlank()) title = null;
     			if(lore.isEmpty()) lore = null;
     			if(slot.isCustomModel()) {
-    				CustomStack customItem = CustomStack.getInstance(slot.getCustomModelData());
-    				if(customItem != null) {
-    					Material mat = customItem.getItemStack().getType();
-    					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
-    				}
+    				Material mat = slot.getMaterial();
+    				inv.setItem(slot_int, instance.getGuis().createCustomItem(mat, title, lore, slot.getCustomModelData()));
     			} else if (slot.isCustomHead()) {
-    				inv.setItem(slot_int, instance.getPlayerMain().createPlayerHeadWithTexture(slot.getCustomTextures(), title, lore));
+    				if(slot.getCustomTextures().equalsIgnoreCase("%player%")) {
+    					ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+    					SkullMeta meta = (SkullMeta) head.getItemMeta();
+    					meta.setOwningPlayer(player);
+    					meta.setDisplayName(title);
+    					meta.setLore(lore);
+    					head.setItemMeta(meta);
+    					inv.setItem(slot_int, head);
+    				} else if (slot.getCustomTextures().length() < 17) {
+    					ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+    					SkullMeta meta = (SkullMeta) head.getItemMeta();
+    					OfflinePlayer targetP = Bukkit.getOfflinePlayer(slot.getCustomTextures());
+    					if(targetP != null) {
+    						meta.setOwningPlayer(targetP);
+    					}
+    					meta.setDisplayName(title);
+    					meta.setLore(lore);
+    					head.setItemMeta(meta);
+    					inv.setItem(slot_int, head);
+    				} else {
+    					inv.setItem(slot_int, instance.getPlayerMain().createPlayerHeadWithTexture(slot.getCustomTextures(), title, lore));
+    				}
     			} else {
 					Material mat = slot.getMaterial();
 					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
@@ -155,8 +174,10 @@ public class ClaimChunksGui implements InventoryHolder {
 	        
 	        // Prepare count
 	        int startItem = (page - 1) * max;
-	        int i = guiSettings.getStartSlot();
+	        List<Integer> slots_i = guiSettings.getSlots();
+	        int i = slots_i.get(0);
 	        int count = 0;
+	        int count2 = 0;
 	        
 	        // Start loop
 	        for (Chunk chunk : chunks) {
@@ -165,7 +186,11 @@ public class ClaimChunksGui implements InventoryHolder {
 	            if (count++ < startItem) continue;
 	            
 	            // Break if bigger than max to not exceed
-	            if (i == guiSettings.getEndSlot()+1) break;
+	            if (count2 > max-1) break;
+	            
+	            // Set new i
+	            i = slots_i.get(count2);
+	            count2++;
 	
 	            // Add the chunk to map string for gui clicking
 	            cPlayer.addMapString(i, String.valueOf(chunk.getWorld().getName()+";"+chunk.getX()+";"+chunk.getZ()));

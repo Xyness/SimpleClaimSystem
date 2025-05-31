@@ -328,14 +328,6 @@ public class SimpleClaimSystem extends JavaPlugin {
             } else {
                 claimSettingsInstance.addSetting("pl3xmap", "false");
             }
-            
-            // Check ItemsAdder
-            Plugin itemsadder = Bukkit.getPluginManager().getPlugin("ItemsAdder");
-            if (itemsadder != null) {
-                claimSettingsInstance.addSetting("itemsadder", "true");
-            } else {
-                claimSettingsInstance.addSetting("itemsadder", "false");
-            }
 
             // Check "langs" folder
             File dossier = new File(getDataFolder(), "langs");
@@ -449,7 +441,7 @@ public class SimpleClaimSystem extends JavaPlugin {
                 check_gui.getParentFile().mkdirs();
                 saveResource("guis/main.yml", false);
             }
-            claimGuisInstance.loadGuiSettings(claimSettingsInstance.getBooleanSetting("itemsadder"));
+            claimGuisInstance.loadGuiSettings();
             
             // Check database
             String configC = getConfig().getString("database");
@@ -636,6 +628,14 @@ public class SimpleClaimSystem extends JavaPlugin {
             for(String command : aliases_claims) {
             	claimSettingsInstance.addAliase(command, "/claims");
             }
+            
+            // Worlds aliases
+            ConfigurationSection worldsAliasesSection = getConfig().getConfigurationSection("world-aliases");
+            LinkedHashMap<String, String> worldsAliases = new LinkedHashMap<>();
+            for (String key : worldsAliasesSection.getKeys(false)) {
+                worldsAliases.put(key, worldsAliasesSection.getString(key));
+            }
+            claimSettingsInstance.setWorldAliases(worldsAliases);
             
             // Add Dynmap settings
             configC = getConfig().getString("dynmap");
@@ -1979,7 +1979,7 @@ public class SimpleClaimSystem extends JavaPlugin {
      */
     private boolean checkKey(String key) {
     	return key.startsWith("groups.") || key.startsWith("players.") || key.startsWith("expulsion-location") ||
-    			key.startsWith("claims-worlds-mode") || key.equals("worlds-disabled");
+    			key.startsWith("claims-worlds-mode") || key.equals("worlds-disabled") || key.startsWith("world-aliases");
     }
     
     /**

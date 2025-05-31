@@ -1,5 +1,7 @@
 package fr.xyness.SCS.Types;
 
+import java.util.List;
+
 import javax.annotation.Nullable;
 
 /**
@@ -22,11 +24,8 @@ public class GuiSettings {
 	/** The title */
 	private final String title;
 	
-	/** The start slot */
-	@Nullable private final int list_start_slot;
-	
-	/** The end slot */
-	@Nullable private final int list_end_slot;
+	/** The list of slots */
+	@Nullable private final List<Integer> slots;
     
     
     // ******************
@@ -37,12 +36,11 @@ public class GuiSettings {
     /**
      * Main constructor initializing all fields.
      */
-    public GuiSettings(int id, int rows, String title, int list_start_slot, int list_end_slot) {
+    public GuiSettings(int id, int rows, String title, List<Integer> slots) {
     	this.id = id;
     	this.rows = rows;
     	this.title = title;
-    	this.list_start_slot = list_start_slot;
-    	this.list_end_slot = list_end_slot;
+    	this.slots = slots;
     }
     
     
@@ -81,20 +79,11 @@ public class GuiSettings {
     }
     
     /**
-     * Gets the start slot.
+     * Gets the slots.
      * 
-     * @return The start slot.
+     * @return The slots.
      */
-    public int getStartSlot() {
-    	return list_start_slot;
-    }
-    
-    /**
-     * Gets the end slot.
-     * 
-     * @return The end slot.
-     */
-    public int getEndSlot() {
-    	return list_end_slot;
+    public List<Integer> getSlots() {
+    	return slots;
     }
 }
