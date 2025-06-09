@@ -65,6 +65,11 @@ public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
         return "1.0";
     }
 
+	@Override
+	public boolean persist() {
+		return true;
+	}
+
     @Override
     public String onPlaceholderRequest(Player player, String identifier) {
         if (player == null) return "";
