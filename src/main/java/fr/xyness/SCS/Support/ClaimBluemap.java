@@ -1,22 +1,23 @@
 package fr.xyness.SCS.Support;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
+import com.flowpowered.math.vector.Vector2i;
+import com.technicjelle.BMUtils.Cheese;
+import de.bluecolored.bluemap.api.BlueMapMap;
+import de.bluecolored.bluemap.api.markers.ShapeMarker;
+import de.bluecolored.bluemap.api.math.Shape;
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
-import org.bukkit.Location;
 import org.bukkit.World;
 
-import com.flowpowered.math.vector.Vector2d;
 
 import de.bluecolored.bluemap.api.BlueMapAPI;
-import de.bluecolored.bluemap.api.BlueMapMap;
-import de.bluecolored.bluemap.api.markers.ExtrudeMarker;
 import de.bluecolored.bluemap.api.markers.MarkerSet;
 import de.bluecolored.bluemap.api.math.Color;
-import de.bluecolored.bluemap.api.math.Shape;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.Claim;
 
@@ -32,13 +33,13 @@ public class ClaimBluemap {
 	
 	
 	/** The BlueMap API instance. */
-	private BlueMapAPI api;
+	private final BlueMapAPI api;
 	
 	/** A map storing the MarkerSets for each world. */
-	private Map<World, MarkerSet> markerSets = new HashMap<>();
+	private final Map<World, MarkerSet> markerSets = new HashMap<>();
 	
     /** Instance of SimpleClaimSystem */
-    private SimpleClaimSystem instance;
+    private final SimpleClaimSystem instance;
 	
     
 	// ******************
@@ -97,48 +98,41 @@ public class ClaimBluemap {
 	 * @param claim The claim to create the marker for.
 	 */
 	public void createClaimZone(Claim claim) {
-	    // Get data
-	    String name = claim.getName();
-	    String owner = claim.getOwner();
-	    Set<Chunk> chunks = claim.getChunks();
-	    String hoverText = instance.getSettings().getSetting("bluemap-claim-hover-text")
-	            .replace("%claim-name%", name)
-	            .replace("%owner%", owner);
-	    String fcolor = "80" + instance.getSettings().getSetting("bluemap-claim-fill-color");
-	    String lcolor = "80" + instance.getSettings().getSetting("bluemap-claim-border-color");
-	    Color fillColor = new Color((int) Long.parseLong(fcolor, 16));
-	    Color strokeColor = new Color((int) Long.parseLong(lcolor, 16));
+	    // Get info from the claim
+		String hoverText = instance.getSettings().getSetting("bluemap-claim-hover-text")
+				.replace("%claim-name%", claim.getName())
+				.replace("%owner%", claim.getOwner());
+		String markerId = "claim_" + claim.getId();
+		MarkerSet markerSet = markerSets.get(claim.getLocation().getWorld());
+		if (markerSet == null) return;
+		markerSet.getMarkers().keySet().removeIf(key -> key.startsWith(markerId));
 
-	    chunks.forEach(chunk -> {
-	    	String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
-		    MarkerSet markerSet = markerSets.get(chunk.getWorld());
-		    if (markerSet == null) return;
-		    
-		    Location loc1 = new Location(chunk.getWorld(), chunk.getX() * 16, 0, chunk.getZ() * 16);
-		    Location loc2 = new Location(chunk.getWorld(), (chunk.getX() * 16) + 16, 0, chunk.getZ() * 16);
-		    Location loc3 = new Location(chunk.getWorld(), (chunk.getX() * 16) + 16, 0, (chunk.getZ() * 16) + 16);
-		    Location loc4 = new Location(chunk.getWorld(), chunk.getX() * 16, 0, (chunk.getZ() * 16) + 16);
-		    
-		    Shape shape = new Shape(new Vector2d[] {
-		    	    new Vector2d(loc1.getX(), loc1.getZ()),
-		    	    new Vector2d(loc2.getX(), loc2.getZ()),
-		    	    new Vector2d(loc3.getX(), loc3.getZ()),
-		    	    new Vector2d(loc4.getX(), loc4.getZ())
-		    	});
-		    
-		    ExtrudeMarker marker = ExtrudeMarker.builder()
-		            .label(hoverText)
-		            .detail(hoverText)
-		            .depthTestEnabled(false)
-		            .shape(shape, -64, 320)
-		            .position(loc1.getX(), -64, loc1.getZ())
-		            .fillColor(fillColor)
-		            .lineColor(strokeColor)
-		            .lineWidth(5)
-		            .build();
+		// Get claim coordinates
+		Vector2i[] chunkCoordinates = claim.getChunks().stream()
+				.map(chunk -> new Vector2i(chunk.getX(), chunk.getZ()))
+				.toArray(Vector2i[]::new);
+		Collection<Cheese> cheeses = Cheese.createPlatterFromChunks(chunkCoordinates);
 
-		    markerSet.getMarkers().put(markerId, marker);
-	    });
+		// Get the claim color
+	    Color fillColor = new Color((int) Long.parseLong("80" + instance.getSettings().getSetting("bluemap-claim-fill-color"), 16));
+	    Color strokeColor = new Color((int) Long.parseLong("80" + instance.getSettings().getSetting("bluemap-claim-border-color"), 16));
+
+		// Create the marker
+		AtomicInteger index = new AtomicInteger();
+		cheeses.forEach( cheese -> {
+			ShapeMarker marker = ShapeMarker.builder()
+					.label(hoverText)
+					.detail(hoverText)
+					.depthTestEnabled(false)
+					.shape(cheese.getShape(), 64)
+					.holes(cheese.getHoles().toArray(Shape[]::new))
+					.fillColor(fillColor)
+					.lineColor(strokeColor)
+					.lineWidth(5)
+					.build();
+
+			markerSet.getMarkers().put(markerId + "_" + index.getAndIncrement(), marker);
+		});
 	}
 	
 	/**
@@ -147,33 +141,34 @@ public class ClaimBluemap {
 	 * @param claim The claim to update the name for
 	 */
 	public void updateName(Claim claim) {
-    	String t = instance.getSettings().getSetting("bluemap-claim-hover-text")
+    	// Get new name
+		String t = instance.getSettings().getSetting("bluemap-claim-hover-text")
     			.replace("%claim-name%", claim.getName())
     			.replace("%owner%", claim.getOwner());
-		claim.getChunks().forEach(chunk -> {
-			String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
-			MarkerSet markerSet = markerSets.get(chunk.getWorld());
-			if (markerSet == null) return;
-	    	ExtrudeMarker marker = (ExtrudeMarker) markerSet.get(markerId);
-	    	if (marker != null) {
-	    		marker.setLabel(t);
-	    		marker.setDetail(t);
-	    	}
-		});
+
+		// Get the marker
+		String markerId = "claim_" + claim.getId();
+		MarkerSet markerSet = markerSets.get(claim.getLocation().getWorld());
+		if (markerSet == null) return;
+		markerSet.getMarkers().entrySet().stream()
+				.filter(ent -> ent.getKey().startsWith(markerId))
+				.forEach(ent -> {
+					ShapeMarker marker = (ShapeMarker) ent.getValue();
+					marker.setLabel(t);
+					marker.setDetail(t);
+				});
 	}
-	
+
 	/**
 	 * Deletes the marker for the specified chunks from the BlueMap.
 	 *
-	 * @param chunks The chunks to delete the marker for.
+	 * @param claim The chunks to delete the marker for.
 	 */
-	public void deleteMarker(Set<Chunk> chunks) {
-		chunks.parallelStream().forEach(chunk -> {
-			String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
-			MarkerSet markerSet = markerSets.get(chunk.getWorld());
-			if (markerSet == null) return;
-			markerSet.remove(markerId);
-		});
+	public void deleteMarker(Claim claim) {
+		String markerId = "claim_" + claim.getId();
+		MarkerSet markerSet = markerSets.get(claim.getLocation().getWorld());
+		if (markerSet == null) return;
+		markerSet.getMarkers().keySet().removeIf(key -> key.startsWith(markerId));
 	}
 	
 }

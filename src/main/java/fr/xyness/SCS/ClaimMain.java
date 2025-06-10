@@ -2788,7 +2788,6 @@ public class ClaimMain {
     /**
      * Method to apply current settings to all owner's claims.
      *
-     * @param owner the owner whose claims will be updated
      * @param claim the claim from which to apply settings to all player's claims
      * @return true if the operation was successful, false otherwise
      */
@@ -3269,7 +3268,7 @@ public class ClaimMain {
 	        	Set<Chunk> chunks = claim.getChunks();
 	        	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(chunks));
 	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
-	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
+	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(claim);
 	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
 	        	chunks.stream().forEach(c -> listClaims.remove(c));
                 resetWeatherChunk(claim);
@@ -3339,7 +3338,7 @@ public class ClaimMain {
                     Set<Chunk> chunks = claim.getChunks();
                     instance.executeSync(() -> instance.getBossBars().deactivateBossBar(chunks));
                     if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
-                    if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
+                    if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(claim);
                     if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
                     chunks.stream().forEach(c -> listClaims.remove(c));
                     updateWeatherChunk(claim);
@@ -3529,7 +3528,6 @@ public class ClaimMain {
      * Method to reset settings of claim
      * 
      * @param claim The target claim
-     * @param owner The target owner
      * @return true if the operation was successful, false otherwise
      */
     public CompletableFuture<Boolean> resetClaimSettings(Claim claim) {
@@ -3609,7 +3607,7 @@ public class ClaimMain {
      * Method when a claim is sold.
      *
      * @param player player buying the claim
-     * @param chunk the chunk representing the claim
+     * @param claim the claim
      */
     public CompletableFuture<Boolean> sellChunk(Player player, Claim claim) {
         return CompletableFuture.supplyAsync(() -> {
@@ -3707,10 +3705,8 @@ public class ClaimMain {
     /**
      * Method to change the owner of a claim.
      *
-     * @param sender the player sending the request
      * @param playerName the name of the new owner
      * @param claim the claim
-     * @param msg whether to send a message to the sender
      */
     public CompletableFuture<Boolean> setOwner(String playerName, Claim claim) {
         return CompletableFuture.supplyAsync(() -> {
@@ -3804,10 +3800,9 @@ public class ClaimMain {
     /**
      * Method to change the owner of a claim.
      *
-     * @param sender the player sending the request
-     * @param playerName the name of the new owner
+     * @param newOwner the new owner of the claims
      * @param claims the claims
-     * @param owner The owner of the claims
+     * @param oldOwner The owner of the claims
      */
     public CompletableFuture<Boolean> setOwner(String newOwner, CustomSet<Claim> claims, String oldOwner) {
         return CompletableFuture.supplyAsync(() -> {
@@ -3943,7 +3938,7 @@ public class ClaimMain {
                     	
                     	// Remove bossbar and maps
                         if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(Set.of(chunk));
-                        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(Set.of(chunk));
+                        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createClaimZone(claim);
                         if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(Set.of(chunk));
                     	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(Set.of(chunk)));
                         updateWeatherChunk(claim);
@@ -3982,7 +3977,7 @@ public class ClaimMain {
                 	
                 	// Remove bossbar and maps
                     if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(Set.of(chunk));
-                    if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(Set.of(chunk));
+                    if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createClaimZone(claim);
                     if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(Set.of(chunk));
                 	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(Set.of(chunk)));
                     updateWeatherChunk(claim);
@@ -4034,7 +4029,7 @@ public class ClaimMain {
             	
             	// Remove bossbar and maps
                 if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(Set.of(chunk));
-                if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(Set.of(chunk));
+                if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createClaimZone(claim);
                 if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(Set.of(chunk));
             	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(Set.of(chunk)));
                 updateWeatherChunk(claim);
@@ -4201,8 +4196,6 @@ public class ClaimMain {
      *
      * @param player the player claiming the chunks
      * @param chunks the set of chunks to be displayed
-     * @param claim  whether the chunks are being claimed or not
-     * @param see if its from the /claim see command
      */
     public void displayChunksNotEnter(Player player, CustomSet<Chunk> chunks) {
     	
@@ -4828,7 +4821,6 @@ public class ClaimMain {
      * Method to update the weather in the claim.
      *
      * @param claim the claim to be updated
-     * @param result the new weather state
      */
     public void updateWeatherChunk(Claim claim) {
 		Set<Chunk> chunks = claim.getChunks();
@@ -4865,7 +4857,6 @@ public class ClaimMain {
      * Method to update the fly in the claim.
      *
      * @param claim The claim to be updated
-     * @param result the new fly state
      */
     public void updateFlyChunk(Claim claim) {
 		Set<Chunk> chunks = claim.getChunks();
@@ -4894,7 +4885,6 @@ public class ClaimMain {
      * Method to reset the weather in the claim.
      *
      * @param claim the claim to be updated
-     * @param result the new weather state
      */
     public void resetWeatherChunk(Claim claim) {
 		Set<Chunk> chunks = claim.getChunks();
@@ -4921,7 +4911,6 @@ public class ClaimMain {
      * Method to reset the fly in the claim.
      *
      * @param claim The claim to be updated
-     * @param result the new fly state
      */
     public void resetFlyChunk(Claim claim) {
 		Set<Chunk> chunks = claim.getChunks();
