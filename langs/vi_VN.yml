@@ -139,8 +139,7 @@ cant-add-member-anymore: §cBạn đã đạt được số lượng thành viê
 you-cannot-use-this-name: §cBạn không thể chiếm đóng mới trong khi khu vực đang chiếm
   đóng.
 incorrect-characters-name: §cBạn phải sử dụng tên chỉ với các chữ cái và số.
-incorrect-characters-description: §cBạn phải sử dụng một mô tả chỉ với các chữ cái
-  và số.
+incorrect-characters-description: §cMô tả được cung cấp có chứa ký tự không hợp lệ.
 claim-not-an-admin-claim: §cKhu vực này không phải là một khu vực được bảo vệ.
 not-using-database: §cCơ sở dữ liệu bị vô hiệu hóa config.yml.
 member-limit-must-be-positive: §cGiới hạn thành viên phải tích cực.

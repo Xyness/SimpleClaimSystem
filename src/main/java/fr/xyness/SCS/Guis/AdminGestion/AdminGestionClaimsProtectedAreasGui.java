@@ -229,7 +229,7 @@ public class AdminGestionClaimsProtectedAreasGui implements InventoryHolder {
      * @return The created ItemStack.
      */
     private ItemStack createClaimItem(Claim claim, Player player, List<String> lore) {
-        String displayName = "§6"+claim.getName()+" §7("+claim.getDescription()+")";
+        String displayName = "§6"+claim.getName()+" §7("+ChatColor.translateAlternateColorCodes('&', claim.getDescription())+"§7)";
         return createPlayerHeadItem(claim, displayName, lore);
     }
 
