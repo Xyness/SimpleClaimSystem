@@ -37,25 +37,26 @@ repositories {
 }
 
 dependencies {
+    implementation("com.mojang:authlib:1.5.21")
+    implementation("com.zaxxer:HikariCP:4.0.3")
+    implementation("com.technicjelle:BMUtils:4.3.1")
+    compileOnly("com.flowpowered:flow-math:1.0.3")
     compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     compileOnly("org.geysermc.floodgate:api:2.2.3-SNAPSHOT")
     compileOnly("dev.folia:folia-api:1.20.4-R0.1-SNAPSHOT")
-    implementation("com.zaxxer:HikariCP:4.0.3")
-    compileOnly(files("libs/PlaceholderAPI-2.11.6.jar"))
     compileOnly("com.github.LoneDev6:api-itemsadder:3.6.1")
+    compileOnly("de.bluecolored.bluemap:BlueMapAPI:2.7.2")
+    compileOnly("maven.modrinth:pl3xmap:1.21-500")
+    compileOnly("com.github.GriefPrevention:GriefPrevention:16.18.2")
+    compileOnly("net.md-5:bungeecord-chat:1.16-R0.4")
+    compileOnly(files("libs/PlaceholderAPI-2.11.6.jar"))
+    compileOnly(files("libs/Dynmap-3.7-beta-6-spigot.jar"))
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.4") {
         exclude(group = "org.bstats", module = "bstats-bukkit")
     }
     compileOnly("com.github.MilkBowl:VaultAPI:1.7") {
         exclude(group = "org.bukkit", module = "bukkit")
     }
-    compileOnly(files("libs/Dynmap-3.7-beta-6-spigot.jar"))
-    compileOnly("de.bluecolored.bluemap:BlueMapAPI:2.7.2")
-    compileOnly("maven.modrinth:pl3xmap:1.21-500")
-    implementation("com.mojang:authlib:1.5.21")
-    compileOnly("com.github.GriefPrevention:GriefPrevention:16.18.2")
-    compileOnly("net.md-5:bungeecord-chat:1.16-R0.4")
-    implementation("com.flowpowered:flow-math:1.0.3")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.7.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.7.1")
 }
