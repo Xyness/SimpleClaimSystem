@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
@@ -56,51 +57,6 @@ public class PaperClaimEvents implements Listener {
     // *******************
     
     
-    /**
-     * Handles the player post respawn event.
-     * 
-     * @param event The PlayerPostRespawnEvent event.
-     */
-    @EventHandler
-    public void onPlayerRespawn(PlayerPostRespawnEvent event) {
-    	if(instance.isFolia()) {
-        	Player player = event.getPlayer();
-            
-        	Bukkit.getRegionScheduler().run(instance, event.getRespawnedLocation(), task -> {
-                Chunk to = event.getRespawnedLocation().getChunk();
-                
-                instance.executeSync(() -> {
-                    String ownerTO = instance.getMain().getOwnerInClaim(to);
-                    
-                    CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
-                    if(cPlayer == null) return;
-                    
-                    String world = player.getWorld().getName();
-                    
-                    handleWeatherSettings(player, to, null);
-                    instance.getBossBars().activeBossBar(player, to);
-                    handleAutoFly(player, cPlayer, to, ownerTO);
-
-                    if (cPlayer.getClaimAuto().equals("addchunk")) {
-                        handleAutoAddChunk(player, cPlayer, to, world);
-                    } else if (cPlayer.getClaimAuto().equals("delchunk")) {
-                        handleAutoDelChunk(player, cPlayer, to, world);
-                    } else if (cPlayer.getClaimAuto().equals("claim")) {
-                        handleAutoClaim(player, cPlayer, to, world);
-                    } else if (cPlayer.getClaimAuto().equals("unclaim")) {
-                        handleAutoUnclaim(player, cPlayer, to, world);
-                    }
-
-                    if (cPlayer.getClaimAutomap()) {
-                        handleAutoMap(player, cPlayer, to, world);
-                    }
-                });
-
-        	});
-
-    	}
-    }
-    
 	/**
 	 * Handles player chat events for claim chat.
 	 * 
@@ -124,6 +80,42 @@ public class PaperClaimEvents implements Listener {
 			}
 		}
 	}
+	
+    /**
+     * Handles the player respawn event. Updates the player's BossBar and sends enabled messages on respawn.
+     *
+     * @param event the player respawn event.
+     */
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        
+        Chunk to = event.getRespawnLocation().getChunk();
+        String ownerTO = instance.getMain().getOwnerInClaim(to);
+        
+        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+        if(cPlayer == null) return;
+        
+        String world = player.getWorld().getName();
+        
+        handleWeatherSettings(player, to, null);
+        instance.getBossBars().activeBossBar(player, to);
+        handleAutoFly(player, cPlayer, to, ownerTO);
+
+        if (cPlayer.getClaimAuto().equals("addchunk")) {
+            handleAutoAddChunk(player, cPlayer, to, world);
+        } else if (cPlayer.getClaimAuto().equals("delchunk")) {
+            handleAutoDelChunk(player, cPlayer, to, world);
+        } else if (cPlayer.getClaimAuto().equals("claim")) {
+            handleAutoClaim(player, cPlayer, to, world);
+        } else if (cPlayer.getClaimAuto().equals("unclaim")) {
+            handleAutoUnclaim(player, cPlayer, to, world);
+        }
+
+        if (cPlayer.getClaimAutomap()) {
+            handleAutoMap(player, cPlayer, to, world);
+        }
+    }
 	
     /**
      * Handles player pickup items events to prevent player pickuping in claims.
@@ -353,6 +345,12 @@ public class PaperClaimEvents implements Listener {
             player.sendMessage(instance.getLanguage().getMessage("autoaddchunk-world-disabled").replace("%world%", world));
             cPlayer.setClaimAuto("");
         } else {
+        	
+            if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaim(player)) {
+                player.sendMessage(instance.getLanguage().getMessage("worldguard-cannot-claim-in-region"));
+                return;
+            }
+        	
         	String playerName = player.getName();
         	Claim claim = cPlayer.getTargetClaimChunk();
         	if(claim == null) return;
@@ -509,6 +507,12 @@ public class PaperClaimEvents implements Listener {
             cPlayer.setClaimAuto("");
         } else {
         	String playerName = player.getName();
+        	
+            if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaim(player)) {
+                player.sendMessage(instance.getLanguage().getMessage("worldguard-cannot-claim-in-region"));
+                return;
+            }
+        	
         	// Check if the chunk is already claimed
             if (instance.getMain().checkIfClaimExists(chunk)) {
             	instance.getMain().handleClaimConflict(player, chunk);

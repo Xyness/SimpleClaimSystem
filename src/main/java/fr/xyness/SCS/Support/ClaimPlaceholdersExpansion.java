@@ -64,8 +64,8 @@ public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
     public String getVersion() {
         return "1.0";
     }
-
-	@Override
+    
+    @Override
 	public boolean persist() {
 		return true;
 	}

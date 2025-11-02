@@ -1632,7 +1632,6 @@ public class ClaimEvents implements Listener {
 
         return false;
     }
-
     
     /**
      * Handles piston movement checks across claim boundaries.

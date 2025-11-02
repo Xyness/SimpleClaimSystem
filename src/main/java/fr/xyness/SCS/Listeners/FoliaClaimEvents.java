@@ -15,6 +15,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
 import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
@@ -65,12 +66,12 @@ public class FoliaClaimEvents implements Listener {
      * @param event The PlayerPostRespawnEvent event.
      */
     @EventHandler
-    public void onPlayerRespawn(PlayerPostRespawnEvent event) {
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
     	if(instance.isFolia()) {
         	Player player = event.getPlayer();
             
-        	Bukkit.getRegionScheduler().run(instance, event.getRespawnedLocation(), task -> {
-                Chunk to = event.getRespawnedLocation().getChunk();
+        	Bukkit.getRegionScheduler().run(instance, event.getRespawnLocation(), task -> {
+                Chunk to = event.getRespawnLocation().getChunk();
                 
                 instance.executeSync(() -> {
                     String ownerTO = instance.getMain().getOwnerInClaim(to);
@@ -112,7 +113,7 @@ public class FoliaClaimEvents implements Listener {
 				if(!player.isDead()) {
 					instance.executeSync(() -> {
                         Location currentLocation = player.getLocation();
-                        PlayerPostRespawnEvent e = new PlayerPostRespawnEvent(player, currentLocation, false);
+                        PlayerRespawnEvent e = new PlayerRespawnEvent(player, currentLocation, false);
 			    		Bukkit.getPluginManager().callEvent(e);
 					});
 					task.cancel();
@@ -379,6 +380,12 @@ public class FoliaClaimEvents implements Listener {
             player.sendMessage(instance.getLanguage().getMessage("autoaddchunk-world-disabled").replace("%world%", world));
             cPlayer.setClaimAuto("");
         } else {
+        	
+            if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaim(player)) {
+                player.sendMessage(instance.getLanguage().getMessage("worldguard-cannot-claim-in-region"));
+                return;
+            }
+        	
         	String playerName = player.getName();
         	Claim claim = cPlayer.getTargetClaimChunk();
         	if(claim == null) return;
@@ -534,6 +541,12 @@ public class FoliaClaimEvents implements Listener {
             player.sendMessage(instance.getLanguage().getMessage("autoclaim-world-disabled").replace("%world%", world));
             cPlayer.setClaimAuto("");
         } else {
+        	
+            if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaim(player)) {
+                player.sendMessage(instance.getLanguage().getMessage("worldguard-cannot-claim-in-region"));
+                return;
+            }
+        	
         	String playerName = player.getName();
         	// Check if the chunk is already claimed
             if (instance.getMain().checkIfClaimExists(chunk)) {

@@ -190,12 +190,18 @@ public class ClaimSettingsGui implements InventoryHolder {
      * Checks if the player has the permission for the specified key.
      *
      * @param player The player to check.
-     * @param perm    The perm to check permission for.
+     * @param perm   The perm to check permission for.
      * @return True if the player has the permission, otherwise false.
      */
     public boolean checkPermPerm(Player player, String perm) {
-    	return instance.getPlayerMain().checkPermPlayer(player, "scs.setting."+perm) || player.hasPermission("scs.setting.*");
+        String specificPerm = "scs.setting." + perm;
+        String wildcardPerm = "scs.setting.*";
+        if (player.isPermissionSet(specificPerm) && !player.hasPermission(specificPerm)) {
+            return false;
+        }
+        return player.hasPermission(specificPerm) || player.hasPermission(wildcardPerm);
     }
+
     
     /**
      * Get the index of the current role.

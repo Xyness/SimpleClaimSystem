@@ -198,18 +198,20 @@ public class ClaimMain {
             }
 
             final int[] counter = {20};
-            Runnable countdownTask = () -> {
-                if (counter[0] <= 0) {
-                    b.setColor(BarColor.valueOf(instance.getSettings().getSetting("bossbar-color")));
-                    b.setProgress(1);
-                    instance.getBossBars().activeBossBar(player, player.getLocation().getChunk());
-                } else {
-                    counter[0]--;
-                    b.setProgress(counter[0] / 20.0);
-                }
-            };
 
             if (instance.isFolia()) {
+                Runnable countdownTask = () -> {
+                    if (counter[0] <= 0) {
+                        b.setColor(BarColor.valueOf(instance.getSettings().getSetting("bossbar-color")));
+                        b.setProgress(1);
+                        Bukkit.getRegionScheduler().run(instance, player.getLocation(), task -> {
+                        	instance.getBossBars().activeBossBar(player, player.getLocation().getChunk());
+                        });
+                    } else {
+                        counter[0]--;
+                        b.setProgress(counter[0] / 20.0);
+                    }
+                };
                 if (activeFoliaTasks.containsKey(player)) {
                     activeFoliaTasks.get(player).cancel();
                 }
@@ -222,11 +224,23 @@ public class ClaimMain {
                         subtask.cancel();
                         b.setColor(BarColor.valueOf(instance.getSettings().getSetting("bossbar-color")));
                         b.setProgress(1);
-                        instance.getBossBars().activeBossBar(player, player.getLocation().getChunk());
+                        Bukkit.getRegionScheduler().run(instance, player.getLocation(), subsubtask -> {
+                        	instance.getBossBars().activeBossBar(player, player.getLocation().getChunk());
+                        });
                     }
                 }, 0, 100, TimeUnit.MILLISECONDS);
                 activeFoliaTasks.put(player, task);
             } else {
+                Runnable countdownTask = () -> {
+                    if (counter[0] <= 0) {
+                        b.setColor(BarColor.valueOf(instance.getSettings().getSetting("bossbar-color")));
+                        b.setProgress(1);
+                        instance.getBossBars().activeBossBar(player, player.getLocation().getChunk());
+                    } else {
+                        counter[0]--;
+                        b.setProgress(counter[0] / 20.0);
+                    }
+                };
                 if (activeTasks.containsKey(player)) {
                     activeTasks.get(player).cancel();
                 }
@@ -913,10 +927,10 @@ public class ClaimMain {
         	Location playerLoc = player.getLocation();
         	if (player.isOnline() && !player.isDead()) {
                 player.teleportAsync(loc).thenAccept(success -> {
-    				Bukkit.getGlobalRegionScheduler().run(instance, subtask -> {
+                	instance.executeSync(() -> {
     		    		PlayerTeleportEvent e = new PlayerTeleportEvent(player, playerLoc, loc);
     		    		Bukkit.getPluginManager().callEvent(e);
-    				});
+                	});
                 });
         	}
         } else if (player.isOnline() && !player.isDead()) {
@@ -1975,7 +1989,10 @@ public class ClaimMain {
                         String world_name = resultSet.getString("world_name");
                         World check_world = Bukkit.getWorld(world_name);
                         World world = check_world == null ? Bukkit.createWorld(new WorldCreator(world_name)) : check_world;
-                        if (world == null) continue;
+                        if (world == null) {
+                        	instance.info("Error when loading world, id claim: " + String.valueOf(id));
+                        	continue;
+                        }
 
                         // Location data
                         String[] parts = resultSet.getString("location").split(";");
@@ -1996,7 +2013,7 @@ public class ClaimMain {
                                 try {
                                     uuid = UUID.fromString(m);
                                 } catch (IllegalArgumentException e) {
-                                	instance.info("Error when loading uuid:" + m);
+                                	instance.info("Error when loading uuid, id claim: " + String.valueOf(id) + ", uuid: " + m);
                                     continue;
                                 }
                                 members.add(uuid);
@@ -2013,7 +2030,7 @@ public class ClaimMain {
                                 try {
                                     uuid = UUID.fromString(m);
                                 } catch (IllegalArgumentException e) {
-                                	instance.info("Error when loading uuid:" + m);
+                                	instance.info("Error when loading uuid, id claim: " + String.valueOf(id) + ", uuid: " + m);
                                     continue;
                                 }
                                 bans.add(uuid);
@@ -2023,7 +2040,10 @@ public class ClaimMain {
                         // Permissions data
                         Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>();
                         parts = permissions.split(";");
-                        if(parts.length != 3) continue;
+                        if(parts.length != 3) {
+                        	instance.info("Error when loading perms, id claim: " + String.valueOf(id));
+                        	continue;
+                        }
                         Map<String,String> permList = new HashMap<>();
                         for(String s : parts) {
                         	String[] parts2 = s.split(":");
@@ -4160,7 +4180,10 @@ public class ClaimMain {
 	            }
 		            
 	            // Remove claims from player's claims
-		        playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).removeAll(claims);
+	            Set<Claim> toRemove = new HashSet<>(claims);
+	            instance.executeSync(() -> {
+	                playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).removeAll(toRemove);
+	            });
 	            
 	            // Serialize chunks
 	            String chunksData = serializeChunks(claim1.getChunks());
@@ -4285,7 +4308,9 @@ public class ClaimMain {
 	                public void run() {
 	                    if (counter >= 10) {
 	                        this.cancel();
-	                        chunksParticles.removeAll(chunks);
+	                        instance.executeSync(() -> {
+	                        	chunksParticles.removeAll(chunks);
+	                        });
 	                        return;
 	                    }
 	                    World world = player.getWorld();
