@@ -43,6 +43,7 @@ import org.bukkit.event.block.BlockIgniteEvent;
 import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPistonRetractEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.BlockRedstoneEvent;
 import org.bukkit.event.block.BlockSpreadEvent;
 import org.bukkit.event.block.EntityBlockFormEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -1268,6 +1269,10 @@ public class ClaimEvents implements Listener {
 	@EventHandler
     public void onDispense(BlockDispenseEvent event) {
     	Block block = event.getBlock();
+    	if(hasCrossChunkRedstoneSourceAndNeedBlock(block)) {
+    		event.setCancelled(true);
+    		return;
+    	}
     	Chunk targetChunk = block.getRelative(((Directional) event.getBlock().getBlockData()).getFacing()).getLocation().getChunk();
     	if(block.getLocation().getChunk().equals(targetChunk)) return;
     	WorldMode mode = instance.getSettings().getWorldMode(block.getLocation().getWorld().getName());
@@ -1280,6 +1285,30 @@ public class ClaimEvents implements Listener {
     		event.setCancelled(true);
     	}
     }
+	
+	@EventHandler
+	public void onRedstoneChange(BlockRedstoneEvent event) {
+	    Block targetBlock = event.getBlock();
+	    Chunk targetChunk = targetBlock.getChunk();
+	    if (event.getNewCurrent() <= 0) return;
+	    WorldMode mode = instance.getSettings().getWorldMode(targetBlock.getLocation().getWorld().getName());
+	    BlockFace[] faces = { BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.EAST, BlockFace.WEST };
+	    for (BlockFace face : faces) {
+	        Block neighbor = targetBlock.getRelative(face);
+	        if (neighbor.getType() == Material.AIR) continue;
+	        if (!neighbor.getChunk().equals(targetChunk)) {
+                if (instance.getMain().checkIfClaimExists(targetChunk)) {
+                	if(instance.getMain().getOwnerInClaim(neighbor.getChunk()).equals(instance.getMain().getOwnerInClaim(targetChunk))) return;
+                	if(!instance.getMain().canPermCheck(targetChunk, "Redstone", "Natural")) {
+                		event.setNewCurrent(0);
+                	}
+                } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Redstone")) {
+                	event.setNewCurrent(0);
+                }
+	            return;
+	        }
+	    }
+	}
     
     /**
      * Handles piston extend events to prevent pistons from moving blocks across claim boundaries.
@@ -1288,6 +1317,10 @@ public class ClaimEvents implements Listener {
 	@EventHandler
     public void onPistonExtend(BlockPistonExtendEvent event) {
         Block piston = event.getBlock();
+    	if(hasCrossChunkRedstoneSourceAndNeedBlock(piston)) {
+    		event.setCancelled(true);
+    		return;
+    	}
         List<Block> affectedBlocks = new ArrayList<>(event.getBlocks());
         BlockFace direction = event.getDirection();
         if(!affectedBlocks.isEmpty()) {
@@ -1305,6 +1338,10 @@ public class ClaimEvents implements Listener {
 	@EventHandler
     public void onPistonRetract(BlockPistonRetractEvent event) {
         Block piston = event.getBlock();
+    	if(hasCrossChunkRedstoneSourceAndNeedBlock(piston)) {
+    		event.setCancelled(true);
+    		return;
+    	}
         List<Block> affectedBlocks = new ArrayList<>(event.getBlocks());
         BlockFace direction = event.getDirection();
         if (event.isSticky() && !affectedBlocks.isEmpty()) {
@@ -1568,9 +1605,33 @@ public class ClaimEvents implements Listener {
         }
     }
     
-    // ********************
-    // *  Others Methods  *
-    // ********************
+    
+    // *******************
+    // *  Other methods  *
+    // *******************
+    
+    
+    /**
+     * Checks if the block needs to be blocked.
+     * 
+     * @param block The block.
+     * @return True if need block, false otherwise.
+     */
+    private boolean hasCrossChunkRedstoneSourceAndNeedBlock(Block block) {
+        Chunk currentChunk = block.getChunk();
+
+        for (BlockFace face : BlockFace.values()) {
+            Block neighbor = block.getRelative(face);
+            if (neighbor.getBlockPower() > 0 && !neighbor.getChunk().equals(currentChunk)) {
+            	if(instance.getMain().getOwnerInClaim(neighbor.getChunk()).equals(instance.getMain().getOwnerInClaim(currentChunk))) return false;
+            	if(!instance.getMain().canPermCheck(currentChunk, "Redstone", "Natural")) {
+            		return true;
+            	}
+            }
+        }
+
+        return false;
+    }
     
     /**
      * Handles piston movement checks across claim boundaries.

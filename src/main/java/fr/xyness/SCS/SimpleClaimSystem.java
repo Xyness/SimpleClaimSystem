@@ -115,7 +115,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.12.3.2";
+    private String Version = "1.12.3.3";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -328,14 +328,6 @@ public class SimpleClaimSystem extends JavaPlugin {
             } else {
                 claimSettingsInstance.addSetting("pl3xmap", "false");
             }
-            
-            // Check ItemsAdder
-            Plugin itemsadder = Bukkit.getPluginManager().getPlugin("ItemsAdder");
-            if (itemsadder != null) {
-                claimSettingsInstance.addSetting("itemsadder", "true");
-            } else {
-                claimSettingsInstance.addSetting("itemsadder", "false");
-            }
 
             // Check "langs" folder
             File dossier = new File(getDataFolder(), "langs");
@@ -394,62 +386,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             claimSettingsInstance.setDefaultValues(defaultSettings);
             
             // Load guis
-            File check_gui = new File(getDataFolder() + File.separator + "guis", "chunk_confirmation.yml");
-            if (!check_gui.exists()) {
-                check_gui.getParentFile().mkdirs();
-                saveResource("guis/chunk_confirmation.yml", false);
-            }
-            check_gui = new File(getDataFolder() + File.separator + "guis", "claim_confirmation.yml");
-            if (!check_gui.exists()) {
-                check_gui.getParentFile().mkdirs();
-                saveResource("guis/claim_confirmation.yml", false);
-            }
-            check_gui = new File(getDataFolder() + File.separator + "guis", "unclaim_confirmation.yml");
-            if (!check_gui.exists()) {
-                check_gui.getParentFile().mkdirs();
-                saveResource("guis/unclaim_confirmation.yml", false);
-            }
-            check_gui = new File(getDataFolder() + File.separator + "guis", "settings.yml");
-            if (!check_gui.exists()) {
-                check_gui.getParentFile().mkdirs();
-                saveResource("guis/settings.yml", false);
-            }
-            check_gui = new File(getDataFolder() + File.separator + "guis", "members.yml");
-            if (!check_gui.exists()) {
-                check_gui.getParentFile().mkdirs();
-                saveResource("guis/members.yml", false);
-            }
-            check_gui = new File(getDataFolder() + File.separator + "guis", "bans.yml");
-            if (!check_gui.exists()) {
-                check_gui.getParentFile().mkdirs();
-                saveResource("guis/bans.yml", false);
-            }
-            check_gui = new File(getDataFolder() + File.separator + "guis", "chunks.yml");
-            if (!check_gui.exists()) {
-                check_gui.getParentFile().mkdirs();
-                saveResource("guis/chunks.yml", false);
-            }
-            check_gui = new File(getDataFolder() + File.separator + "guis", "claims.yml");
-            if (!check_gui.exists()) {
-                check_gui.getParentFile().mkdirs();
-                saveResource("guis/claims.yml", false);
-            }
-            check_gui = new File(getDataFolder() + File.separator + "guis", "claims_owner.yml");
-            if (!check_gui.exists()) {
-                check_gui.getParentFile().mkdirs();
-                saveResource("guis/claims_owner.yml", false);
-            }
-            check_gui = new File(getDataFolder() + File.separator + "guis", "list.yml");
-            if (!check_gui.exists()) {
-                check_gui.getParentFile().mkdirs();
-                saveResource("guis/list.yml", false);
-            }
-            check_gui = new File(getDataFolder() + File.separator + "guis", "main.yml");
-            if (!check_gui.exists()) {
-                check_gui.getParentFile().mkdirs();
-                saveResource("guis/main.yml", false);
-            }
-            claimGuisInstance.loadGuiSettings(claimSettingsInstance.getBooleanSetting("itemsadder"));
+            loadGuis();
             
             // Check database
             String configC = getConfig().getString("database");
@@ -636,6 +573,14 @@ public class SimpleClaimSystem extends JavaPlugin {
             for(String command : aliases_claims) {
             	claimSettingsInstance.addAliase(command, "/claims");
             }
+            
+            // Worlds aliases
+            ConfigurationSection worldsAliasesSection = getConfig().getConfigurationSection("world-aliases");
+            LinkedHashMap<String, String> worldsAliases = new LinkedHashMap<>();
+            for (String key : worldsAliasesSection.getKeys(false)) {
+                worldsAliases.put(key, worldsAliasesSection.getString(key));
+            }
+            claimSettingsInstance.setWorldAliases(worldsAliases);
             
             // Add Dynmap settings
             configC = getConfig().getString("dynmap");
@@ -1723,11 +1668,27 @@ public class SimpleClaimSystem extends JavaPlugin {
      * @param gTask The task to execute
      * @param delay The delay.
      */
-    public void executeAsyncLater(Runnable gTask, long delay) {
+    public void executeAsyncLater(Runnable gTask, long delayMillis) {
         if (isFolia) {
-            Bukkit.getAsyncScheduler().runDelayed(this, task -> gTask.run(), delay, TimeUnit.MILLISECONDS);
+            Bukkit.getAsyncScheduler().runDelayed(this, task -> gTask.run(), delayMillis, TimeUnit.MILLISECONDS);
         } else {
-            Bukkit.getScheduler().runTaskLaterAsynchronously(this, gTask, (delay/1000)*20);
+        	  long delayTicks = Math.max(1, (delayMillis * 20) / 1000);
+            Bukkit.getScheduler().runTaskLaterAsynchronously(this, gTask, delayTicks);
+        }
+    }
+    
+    /**
+     * Executes a task synchronously later.
+     * 
+     * @param gTask The task to execute
+     * @param delayMillis The delay.
+     */
+    public void executeSyncLater(Runnable gTask, long delayMillis) {
+    	  long delayTicks = Math.max(1, (delayMillis * 20) / 1000);
+        if (isFolia) {
+            Bukkit.getGlobalRegionScheduler().runDelayed(this, task -> gTask.run(), delayTicks);
+        } else {
+            Bukkit.getScheduler().runTaskLater(this, gTask, delayTicks);
         }
     }
     
@@ -1764,7 +1725,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     public void checkFolia() {
         if (Bukkit.getVersion().toLowerCase().contains("folia")) {
             try {
-                Class.forName("io.papermc.paper.threadedregions.RegionizedServerInitEvent");
+                Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
                 isFolia = true;
             } catch (ClassNotFoundException e) {
                 isFolia = false;
@@ -1772,7 +1733,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             return;
         }
         try {
-            Class.forName("io.papermc.paper.threadedregions.RegionizedServerInitEvent");
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
             isFolia = true;
         } catch (ClassNotFoundException e) {
             isFolia = false;
@@ -1983,7 +1944,7 @@ public class SimpleClaimSystem extends JavaPlugin {
      */
     private boolean checkKey(String key) {
     	return key.startsWith("groups.") || key.startsWith("players.") || key.startsWith("expulsion-location") ||
-    			key.startsWith("claims-worlds-mode") || key.equals("worlds-disabled");
+    			key.startsWith("claims-worlds-mode") || key.equals("worlds-disabled") || key.startsWith("world-aliases");
     }
     
     /**
@@ -2226,6 +2187,78 @@ public class SimpleClaimSystem extends JavaPlugin {
         	this.minecraftVersion = parts[0] + "." + parts[1];
         } else {
         	this.minecraftVersion = version.split("-")[0];
+        }
+    }
+    
+    public void loadGuis() {
+        File check_gui = new File(getDataFolder() + File.separator + "guis", "chunk_confirmation.yml");
+        if (!check_gui.exists()) {
+            check_gui.getParentFile().mkdirs();
+            saveResource("guis/chunk_confirmation.yml", false);
+        }
+        check_gui = new File(getDataFolder() + File.separator + "guis", "claim_confirmation.yml");
+        if (!check_gui.exists()) {
+            check_gui.getParentFile().mkdirs();
+            saveResource("guis/claim_confirmation.yml", false);
+        }
+        check_gui = new File(getDataFolder() + File.separator + "guis", "unclaim_confirmation.yml");
+        if (!check_gui.exists()) {
+            check_gui.getParentFile().mkdirs();
+            saveResource("guis/unclaim_confirmation.yml", false);
+        }
+        check_gui = new File(getDataFolder() + File.separator + "guis", "settings.yml");
+        if (!check_gui.exists()) {
+            check_gui.getParentFile().mkdirs();
+            saveResource("guis/settings.yml", false);
+        }
+        check_gui = new File(getDataFolder() + File.separator + "guis", "members.yml");
+        if (!check_gui.exists()) {
+            check_gui.getParentFile().mkdirs();
+            saveResource("guis/members.yml", false);
+        }
+        check_gui = new File(getDataFolder() + File.separator + "guis", "bans.yml");
+        if (!check_gui.exists()) {
+            check_gui.getParentFile().mkdirs();
+            saveResource("guis/bans.yml", false);
+        }
+        check_gui = new File(getDataFolder() + File.separator + "guis", "chunks.yml");
+        if (!check_gui.exists()) {
+            check_gui.getParentFile().mkdirs();
+            saveResource("guis/chunks.yml", false);
+        }
+        check_gui = new File(getDataFolder() + File.separator + "guis", "claims.yml");
+        if (!check_gui.exists()) {
+            check_gui.getParentFile().mkdirs();
+            saveResource("guis/claims.yml", false);
+        }
+        check_gui = new File(getDataFolder() + File.separator + "guis", "claims_owner.yml");
+        if (!check_gui.exists()) {
+            check_gui.getParentFile().mkdirs();
+            saveResource("guis/claims_owner.yml", false);
+        }
+        check_gui = new File(getDataFolder() + File.separator + "guis", "list.yml");
+        if (!check_gui.exists()) {
+            check_gui.getParentFile().mkdirs();
+            saveResource("guis/list.yml", false);
+        }
+        check_gui = new File(getDataFolder() + File.separator + "guis", "main.yml");
+        if (!check_gui.exists()) {
+            check_gui.getParentFile().mkdirs();
+            saveResource("guis/main.yml", false);
+        }
+        claimGuisInstance.loadGuiSettings();
+    }
+    
+    public void deleteDirectory(File dir) {
+        if (dir.exists()) {
+            for (File file : dir.listFiles()) {
+                if (file.isDirectory()) {
+                    deleteDirectory(file);
+                } else {
+                    file.delete();
+                }
+            }
+            dir.delete();
         }
     }
 }

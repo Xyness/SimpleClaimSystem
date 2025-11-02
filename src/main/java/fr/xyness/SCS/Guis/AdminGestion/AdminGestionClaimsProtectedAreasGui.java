@@ -9,13 +9,10 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.SkullMeta;
-import dev.lone.itemsadder.api.CustomStack;
+
 import fr.xyness.SCS.*;
-import fr.xyness.SCS.Config.*;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
-import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
  * Class representing the Admin Gestion Claims Protected Areas GUI.

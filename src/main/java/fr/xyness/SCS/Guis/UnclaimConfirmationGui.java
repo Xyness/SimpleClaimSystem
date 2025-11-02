@@ -1,18 +1,18 @@
 package fr.xyness.SCS.Guis;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 
-import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Types.GuiSettings;
@@ -99,15 +99,33 @@ public class UnclaimConfirmationGui implements InventoryHolder {
     			List<String> lore = instance.getGuis().getLore(lore_string);
     			if(title.isBlank()) title = null;
     			if(lore.isEmpty()) lore = null;
+    			Material mat = slot.getMaterial();
     			if(slot.isCustomModel()) {
-    				CustomStack customItem = CustomStack.getInstance(slot.getCustomModelData());
-    				if(customItem != null) {
-    					Material mat = customItem.getItemStack().getType();
-    					
-    					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
+    				inv.setItem(slot_int, instance.getGuis().createCustomItem(mat, title, lore, slot.getCustomModelData()));
+    			} else if (slot.isCustomHead()) {
+    				if(slot.getCustomTextures().equalsIgnoreCase("%player%")) {
+    					ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+    					SkullMeta meta = (SkullMeta) head.getItemMeta();
+    					meta.setOwningPlayer(player);
+    					meta.setDisplayName(title);
+    					meta.setLore(lore);
+    					head.setItemMeta(meta);
+    					inv.setItem(slot_int, head);
+    				} else if (slot.getCustomTextures().length() < 17) {
+    					ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+    					SkullMeta meta = (SkullMeta) head.getItemMeta();
+    					OfflinePlayer targetP = Bukkit.getOfflinePlayer(slot.getCustomTextures());
+    					if(targetP != null) {
+    						meta.setOwningPlayer(targetP);
+    					}
+    					meta.setDisplayName(title);
+    					meta.setLore(lore);
+    					head.setItemMeta(meta);
+    					inv.setItem(slot_int, head);
+    				} else {
+    					inv.setItem(slot_int, instance.getPlayerMain().createPlayerHeadWithTexture(slot.getCustomTextures(), title, lore));
     				}
     			} else {
-					Material mat = slot.getMaterial();
 					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
     			}
     		}

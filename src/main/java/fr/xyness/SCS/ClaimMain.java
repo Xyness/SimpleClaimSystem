@@ -24,6 +24,9 @@ import org.bukkit.*;
 import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BossBar;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -195,18 +198,20 @@ public class ClaimMain {
             }
 
             final int[] counter = {20};
-            Runnable countdownTask = () -> {
-                if (counter[0] <= 0) {
-                    b.setColor(BarColor.valueOf(instance.getSettings().getSetting("bossbar-color")));
-                    b.setProgress(1);
-                    instance.getBossBars().activeBossBar(player, player.getLocation().getChunk());
-                } else {
-                    counter[0]--;
-                    b.setProgress(counter[0] / 20.0);
-                }
-            };
 
             if (instance.isFolia()) {
+                Runnable countdownTask = () -> {
+                    if (counter[0] <= 0) {
+                        b.setColor(BarColor.valueOf(instance.getSettings().getSetting("bossbar-color")));
+                        b.setProgress(1);
+                        Bukkit.getRegionScheduler().run(instance, player.getLocation(), task -> {
+                        	instance.getBossBars().activeBossBar(player, player.getLocation().getChunk());
+                        });
+                    } else {
+                        counter[0]--;
+                        b.setProgress(counter[0] / 20.0);
+                    }
+                };
                 if (activeFoliaTasks.containsKey(player)) {
                     activeFoliaTasks.get(player).cancel();
                 }
@@ -219,11 +224,23 @@ public class ClaimMain {
                         subtask.cancel();
                         b.setColor(BarColor.valueOf(instance.getSettings().getSetting("bossbar-color")));
                         b.setProgress(1);
-                        instance.getBossBars().activeBossBar(player, player.getLocation().getChunk());
+                        Bukkit.getRegionScheduler().run(instance, player.getLocation(), subsubtask -> {
+                        	instance.getBossBars().activeBossBar(player, player.getLocation().getChunk());
+                        });
                     }
                 }, 0, 100, TimeUnit.MILLISECONDS);
                 activeFoliaTasks.put(player, task);
             } else {
+                Runnable countdownTask = () -> {
+                    if (counter[0] <= 0) {
+                        b.setColor(BarColor.valueOf(instance.getSettings().getSetting("bossbar-color")));
+                        b.setProgress(1);
+                        instance.getBossBars().activeBossBar(player, player.getLocation().getChunk());
+                    } else {
+                        counter[0]--;
+                        b.setProgress(counter[0] / 20.0);
+                    }
+                };
                 if (activeTasks.containsKey(player)) {
                     activeTasks.get(player).cancel();
                 }
@@ -910,10 +927,10 @@ public class ClaimMain {
         	Location playerLoc = player.getLocation();
         	if (player.isOnline() && !player.isDead()) {
                 player.teleportAsync(loc).thenAccept(success -> {
-    				Bukkit.getGlobalRegionScheduler().run(instance, subtask -> {
+                	instance.executeSync(() -> {
     		    		PlayerTeleportEvent e = new PlayerTeleportEvent(player, playerLoc, loc);
     		    		Bukkit.getPluginManager().callEvent(e);
-    				});
+                	});
                 });
         	}
         } else if (player.isOnline() && !player.isDead()) {
@@ -1005,7 +1022,7 @@ public class ClaimMain {
      */
     public String getClaimCoords(Claim claim) {
         Location loc = claim.getLocation();
-        String world = loc.getWorld().getName();
+        String world = instance.getSettings().getWorldAliase(loc.getWorld().getName());
         String x = String.valueOf(Math.round(loc.getX() * 10.0 / 10.0));
         String y = String.valueOf(Math.round(loc.getY() * 10.0 / 10.0));
         String z = String.valueOf(Math.round(loc.getZ() * 10.0 / 10.0));
@@ -1487,6 +1504,95 @@ public class ClaimMain {
     }
     
     /**
+     * Imports the claims from XClaims
+     */
+    public void importFromXClaims(CommandSender sender) {
+    	instance.executeAsync(() -> {
+    		File file = new File("plugins/SimpleClaimSystem/xclaims.yml");
+    		int[] i = {0};
+    		
+    		FileConfiguration config = YamlConfiguration.loadConfiguration(file);
+
+            Set<String> claimKeys = config.getKeys(false);
+
+            for (String key : claimKeys) {
+                String claim_name = config.getString(key + ".name").replace(" ", "_");
+                String owner = config.getString(key + ".owner");
+                UUID uuid_owner = UUID.fromString(owner);
+                String owner_name = Bukkit.getOfflinePlayer(uuid_owner).getName();
+                int id = findFreeId(uuid_owner);
+                String world_name = config.getString(key + ".world");
+                World world = Bukkit.getWorld(world_name);
+                ConfigurationSection userSection = config.getConfigurationSection(key + ".users");
+                Set<String> list_users = userSection.getKeys(false);
+                list_users.add(owner_name);
+                String users = String.join(";", list_users);
+                ConfigurationSection chunkSection = config.getConfigurationSection(key + ".chunks");
+                Set<Chunk> chunks = ConcurrentHashMap.newKeySet();
+                
+                Runnable task = () -> {
+            		
+                    Location loc = getCenterLocationOfChunk(chunks.iterator().next());
+                    String chunksData = serializeChunks(chunks);
+                    try (Connection connection = instance.getDataSource().getConnection();
+                            PreparedStatement stmt = connection.prepareStatement(
+                                    "INSERT INTO scs_claims_1 (id_claim, owner_uuid, owner_name, claim_name, claim_description, chunks, world_name, location, members, permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                           stmt.setInt(1, id);
+                       	   stmt.setString(2, owner);
+                           stmt.setString(3, owner_name);
+                           stmt.setString(4, claim_name);
+                           stmt.setString(5, instance.getLanguage().getMessage("default-description"));
+                           stmt.setString(6, chunksData);
+                           stmt.setString(7, world_name);
+                           stmt.setString(8, getLocationString(loc));
+                           stmt.setString(9, users);
+                           stmt.setString(10, instance.getSettings().getDefaultValuesCode("all"));
+                           stmt.executeUpdate();
+                           i[0]++;
+                       } catch (SQLException e) {
+                           e.printStackTrace();
+                       }
+                };
+                
+                List<CompletableFuture<Void>> futures = new ArrayList<>();
+                for (String chunkId : chunkSection.getKeys(false)) {
+                    int x = chunkSection.getInt(chunkId + ".x");
+                    int z = chunkSection.getInt(chunkId + ".z");
+                    CompletableFuture<Void> future;
+                    if (instance.isFolia()) {
+                        future = world.getChunkAtAsync(x, z).thenAccept(chunk -> {
+                            synchronized (chunks) {
+                                chunks.add(chunk);
+                            }
+                        }).exceptionally(ex -> {
+                            ex.printStackTrace();
+                            return null;
+                        });
+                    } else {
+                        Chunk chunk = world.getChunkAt(x, z);
+                        chunks.add(chunk);
+                        future = CompletableFuture.completedFuture(null);
+                    }
+                    futures.add(future);
+                }
+
+                CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
+                allOf.thenRun(() -> {
+                    task.run();
+                }).exceptionally(ex -> {
+                    ex.printStackTrace();
+                    return null;
+                });
+            }
+    		
+    		instance.executeSync(() -> {
+    			sender.sendMessage(getNumberSeparate(String.valueOf(i[0]))+" imported claims, reloading..");
+    			Bukkit.dispatchCommand(sender, "scs reload");
+    		});
+    	});
+    }
+    
+    /**
      * Imports the claims from GriefPrevention
      */
     public void importFromGriefPrevention(CommandSender sender) {
@@ -1883,7 +1989,10 @@ public class ClaimMain {
                         String world_name = resultSet.getString("world_name");
                         World check_world = Bukkit.getWorld(world_name);
                         World world = check_world == null ? Bukkit.createWorld(new WorldCreator(world_name)) : check_world;
-                        if (world == null) continue;
+                        if (world == null) {
+                        	instance.info("Error when loading world, id claim: " + String.valueOf(id));
+                        	continue;
+                        }
 
                         // Location data
                         String[] parts = resultSet.getString("location").split(";");
@@ -1904,7 +2013,7 @@ public class ClaimMain {
                                 try {
                                     uuid = UUID.fromString(m);
                                 } catch (IllegalArgumentException e) {
-                                	instance.info("Error when loading uuid:" + m);
+                                	instance.info("Error when loading uuid, id claim: " + String.valueOf(id) + ", uuid: " + m);
                                     continue;
                                 }
                                 members.add(uuid);
@@ -1921,7 +2030,7 @@ public class ClaimMain {
                                 try {
                                     uuid = UUID.fromString(m);
                                 } catch (IllegalArgumentException e) {
-                                	instance.info("Error when loading uuid:" + m);
+                                	instance.info("Error when loading uuid, id claim: " + String.valueOf(id) + ", uuid: " + m);
                                     continue;
                                 }
                                 bans.add(uuid);
@@ -1931,7 +2040,10 @@ public class ClaimMain {
                         // Permissions data
                         Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>();
                         parts = permissions.split(";");
-                        if(parts.length != 3) continue;
+                        if(parts.length != 3) {
+                        	instance.info("Error when loading perms, id claim: " + String.valueOf(id));
+                        	continue;
+                        }
                         Map<String,String> permList = new HashMap<>();
                         for(String s : parts) {
                         	String[] parts2 = s.split(":");
@@ -4068,7 +4180,10 @@ public class ClaimMain {
 	            }
 		            
 	            // Remove claims from player's claims
-		        playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).removeAll(claims);
+	            Set<Claim> toRemove = new HashSet<>(claims);
+	            instance.executeSync(() -> {
+	                playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).removeAll(toRemove);
+	            });
 	            
 	            // Serialize chunks
 	            String chunksData = serializeChunks(claim1.getChunks());
@@ -4193,7 +4308,9 @@ public class ClaimMain {
 	                public void run() {
 	                    if (counter >= 10) {
 	                        this.cancel();
-	                        chunksParticles.removeAll(chunks);
+	                        instance.executeSync(() -> {
+	                        	chunksParticles.removeAll(chunks);
+	                        });
 	                        return;
 	                    }
 	                    World world = player.getWorld();

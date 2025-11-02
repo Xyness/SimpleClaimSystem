@@ -172,6 +172,15 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     		instance.getMain().importFromGriefPrevention(sender);
     		return;
     	}
+    	if(args[0].equalsIgnoreCase("import-xclaims")) {
+    		File file = new File("plugins/SimpleClaimSystem/xclaims.yml");
+    		if(!file.exists()) {
+    			sender.sendMessage(instance.getLanguage().getMessage("xclaims-needed"));
+    			return;
+    		}
+    		instance.getMain().importFromXClaims(sender);
+    		return;
+    	}
     	if(args[0].equalsIgnoreCase("transfer")) {
     		if(!instance.getSettings().getBooleanSetting("database")) {
     			sender.sendMessage(instance.getLanguage().getMessage("not-using-database"));
@@ -1419,7 +1428,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     private List<String> getPrimaryCompletions(String[] args) {
     	String partialInput = args.length > 0 ? args[0].toLowerCase() : "";
         List<String> completions = List.of("reload", "config-reload", "transfer", "player", "cplayer", "group", "forceunclaim", "setowner", "set-lang", 
-                "reset-all-player-claims-settings", "reset-all-admin-claims-settings","admin","import-griefprevention","setexpulsionlocation");
+                "reset-all-player-claims-settings", "reset-all-admin-claims-settings","admin","import-griefprevention","import-xclaims","setexpulsionlocation");
         return completions.stream()
     	        .filter(c -> c.toLowerCase().startsWith(partialInput))
     	        .collect(Collectors.toList());

@@ -276,6 +276,10 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	return;
             }
             String[] parts = args[2].split(";");
+            if(parts.length != 3) {
+            	player.sendMessage(instance.getLanguage().getMessage("delchunk-bad-format"));
+            	return;
+            }
             World world = Bukkit.getWorld(parts[0]);
             if(world == null) {
             	player.sendMessage(instance.getLanguage().getMessage("world-does-not-exist"));
@@ -474,13 +478,15 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 	player.sendMessage(instance.getLanguage().getMessage("can-not-kick-yourself"));
                 	return;
                 }
-	        	if(!instance.getMain().getAllChunksFromAllClaims(playerName).contains(target.getLocation().getChunk())) {
-	            	player.sendMessage(instance.getLanguage().getMessage("player-not-in-any-claim").replace("%player%", target.getName()));
-	            	return;
-	        	}
-	            player.sendMessage(instance.getLanguage().getMessage("kick-success-all-claims").replace("%player%", target.getName()));
-	            target.sendMessage(instance.getLanguage().getMessage("kicked-from-all-claims").replace("%player%", playerName));
-	            instance.getMain().teleportPlayerToExpulsion(target);
+            	instance.executeAsyncLocation(() -> {
+    	        	if(!instance.getMain().getAllChunksFromAllClaims(playerName).contains(target.getLocation().getChunk())) {
+    	            	player.sendMessage(instance.getLanguage().getMessage("player-not-in-any-claim").replace("%player%", target.getName()));
+    	            	return;
+    	        	}
+    	            player.sendMessage(instance.getLanguage().getMessage("kick-success-all-claims").replace("%player%", target.getName()));
+    	            target.sendMessage(instance.getLanguage().getMessage("kicked-from-all-claims").replace("%player%", playerName));
+    	            instance.getMain().teleportPlayerToExpulsion(target);
+            	}, target.getLocation());
 	        	return;
             }
             Claim claim = instance.getMain().getClaimByName(args[1], player);
@@ -497,14 +503,16 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("can-not-kick-yourself"));
             	return;
             }
-            if(!claim.getChunks().contains(target.getLocation().getChunk())) {
-            	player.sendMessage(instance.getLanguage().getMessage("player-not-in-the-claim").replace("%player%", target.getName()).replace("%claim-name%", claim.getName()));
-            	return;
-            }
-            String claimName = claim.getName();
-            player.sendMessage(instance.getLanguage().getMessage("kick-success").replace("%player%", target.getName()).replace("%claim-name%", claimName));
-            target.sendMessage(instance.getLanguage().getMessage("kicked-from-claim").replace("%player%", playerName).replace("%claim-name%", claimName));
-            instance.getMain().teleportPlayerToExpulsion(target);
+        	instance.executeAsyncLocation(() -> {
+                if(!claim.getChunks().contains(target.getLocation().getChunk())) {
+                	player.sendMessage(instance.getLanguage().getMessage("player-not-in-the-claim").replace("%player%", target.getName()).replace("%claim-name%", claim.getName()));
+                	return;
+                }
+                String claimName = claim.getName();
+                player.sendMessage(instance.getLanguage().getMessage("kick-success").replace("%player%", target.getName()).replace("%claim-name%", claimName));
+                target.sendMessage(instance.getLanguage().getMessage("kicked-from-claim").replace("%player%", playerName).replace("%claim-name%", claimName));
+                instance.getMain().teleportPlayerToExpulsion(target);
+        	}, target.getLocation());
             return;
     	}
         if (args[0].equalsIgnoreCase("ban")) {
@@ -533,9 +541,11 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         		if (success) {
                         			instance.executeEntitySync(player, () -> player.sendMessage(message));
                     		        if (target != null && target.isOnline()) {
-                    		        	if(instance.getMain().getAllChunksFromAllClaims(playerName).contains(target.getLocation().getChunk())) {
-                    		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayerToExpulsion(target));
-                    		        	}
+                    		        	instance.executeAsyncLocation(() -> {
+                        		        	if(instance.getMain().getAllChunksFromAllClaims(playerName).contains(target.getLocation().getChunk())) {
+                        		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayerToExpulsion(target));
+                        		        	}
+                    		        	}, target.getLocation());
                     		        	instance.executeEntitySync(target, () -> {
                     		        		target.sendMessage(instance.getLanguage().getMessage("banned-all-claim-player").replace("%owner%", playerName));
                     		        		target.sendMessage(instance.getLanguage().getMessage("remove-all-claim-player").replace("%owner%", playerName));
@@ -595,9 +605,11 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     			instance.executeEntitySync(player, () -> player.sendMessage(message));
                 		        if (target != null && target.isOnline()) {
                 		        	String claimName = claim.getName();
-                		        	if(claim.getChunks().contains(target.getLocation().getChunk())) {
-                		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayerToExpulsion(target));
-                		        	}
+                		        	instance.executeAsyncLocation(() -> {
+                    		        	if(claim.getChunks().contains(target.getLocation().getChunk())) {
+                    		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayerToExpulsion(target));
+                    		        	}
+                		        	}, target.getLocation());
                 		        	instance.executeEntitySync(target, () -> {
                 		        		target.sendMessage(instance.getLanguage().getMessage("banned-claim-player").replace("%owner%", playerName).replace("%claim-name%", claimName));
                 		        		target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replace("%owner%", playerName).replace("%claim-name%", claimName));
@@ -1319,7 +1331,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
         	String world = player.getWorld().getName();
             if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getWorldAliase(world)));
                 return;
             }
             Claim claim = instance.getMain().getClaimByName(args[1], player);
@@ -1475,14 +1487,16 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("can-not-kick-yourself"));
             	return;
             }
-            if(!claim.getChunks().contains(target.getLocation().getChunk())) {
-            	player.sendMessage(instance.getLanguage().getMessage("player-not-in-the-claim").replace("%player%", target.getName()).replace("%claim-name%", claim.getName()));
-            	return;
-            }
-            String claimName = claim.getName();
-            player.sendMessage(instance.getLanguage().getMessage("kick-success").replace("%player%", target.getName()).replace("%claim-name%", claimName));
-            target.sendMessage(instance.getLanguage().getMessage("kicked-from-claim").replace("%player%", playerName).replace("%claim-name%", claimName));
-            instance.getMain().teleportPlayerToExpulsion(target);
+        	instance.executeAsyncLocation(() -> {
+        		if(!claim.getChunks().contains(target.getLocation().getChunk())) {
+                	player.sendMessage(instance.getLanguage().getMessage("player-not-in-the-claim").replace("%player%", target.getName()).replace("%claim-name%", claim.getName()));
+                	return;
+	        	}
+                String claimName = claim.getName();
+                player.sendMessage(instance.getLanguage().getMessage("kick-success").replace("%player%", target.getName()).replace("%claim-name%", claimName));
+                target.sendMessage(instance.getLanguage().getMessage("kicked-from-claim").replace("%player%", playerName).replace("%claim-name%", claimName));
+                instance.getMain().teleportPlayerToExpulsion(target);
+        	}, target.getLocation());
             return;
     	}
         if (args[0].equalsIgnoreCase("ban")) {
@@ -1523,9 +1537,11 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     			instance.executeEntitySync(player, () -> player.sendMessage(message));
                 		        if (target != null && target.isOnline()) {
                 		        	String claimName = claim.getName();
-                		        	if(claim.getChunks().contains(target.getLocation().getChunk())) {
-                		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayerToExpulsion(target));
-                		        	}
+                		        	instance.executeAsyncLocation(() -> {
+                    		        	if(claim.getChunks().contains(target.getLocation().getChunk())) {
+                    		        		instance.executeEntitySync(target, () -> instance.getMain().teleportPlayerToExpulsion(target));
+                    		        	}
+                		        	}, target.getLocation());
                 		        	instance.executeEntitySync(target, () -> {
         	        		        	target.sendMessage(instance.getLanguage().getMessage("banned-claim-player").replace("%owner%", playerName).replace("%claim-name%", claimName));
         	        		        	target.sendMessage(instance.getLanguage().getMessage("remove-claim-player").replace("%owner%", playerName).replace("%claim-name%", claimName));
@@ -1846,7 +1862,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getWorldAliase(world)));
                 return;
             }
             Player target = Bukkit.getPlayer(args[1]);
@@ -1976,7 +1992,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getWorldAliase(world)));
                 return;
             }
             Claim claim = instance.getMain().getClaimByName(args[1], player);
@@ -2002,7 +2018,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getWorldAliase(world)));
                 return;
             }
             Claim claim = instance.getMain().getClaimByName(args[1], player);
@@ -2217,7 +2233,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getWorldAliase(world)));
                 return;
             }
             if (cPlayer.getClaimAutomap()) {
@@ -2248,7 +2264,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getWorldAliase(world)));
                 return;
             }
             instance.getMain().getMap(player, player.getLocation().getChunk(), false);
@@ -2261,7 +2277,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getWorldAliase(world)));
                 return;
             }
             if (cPlayer.getClaimAuto().equals("addchunk")) {
@@ -2279,7 +2295,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getWorldAliase(world)));
                 return;
             }
             if (cPlayer.getClaimAuto().equals("delchunk")) {
@@ -2297,7 +2313,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getWorldAliase(world)));
                 return;
             }
             if (cPlayer.getClaimAuto().equals("claim")) {
@@ -2316,7 +2332,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getWorldAliase(world)));
                 return;
             }
             if (cPlayer.getClaimAuto().equals("unclaim")) {
@@ -2481,7 +2497,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
             String world = player.getWorld().getName();
             if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getWorldAliase(world)));
                 return;
             }
             Chunk chunk = player.getLocation().getChunk();
@@ -2497,7 +2513,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             }
         	String world = player.getWorld().getName();
         	if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", player.getWorld().getName()));
+            	player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getWorldAliase(world)));
                 return;
             }
             if (!cPlayer.canRadiusClaim(radius)) {
@@ -2670,7 +2686,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         String world = player.getWorld().getName();
 
         if (instance.getSettings().getWorldMode(world) == WorldMode.DISABLED) {
-            player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", world));
+            player.sendMessage(instance.getLanguage().getMessage("world-disabled").replace("%world%", instance.getSettings().getWorldAliase(world)));
             return;
         }
 
