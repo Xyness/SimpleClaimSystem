@@ -6,11 +6,13 @@ import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 
-import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Config.ClaimGuis;
 import fr.xyness.SCS.Types.CPlayer;
@@ -148,13 +150,31 @@ public class ClaimSettingsGui implements InventoryHolder {
     			if(title.isBlank()) title = null;
     			if(lore.isEmpty()) lore = null;
     			if(slot.isCustomModel()) {
-    				CustomStack customItem = CustomStack.getInstance(slot.getCustomModelData());
-    				if(customItem != null) {
-    					Material mat = customItem.getItemStack().getType();
-    					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
-    				}
+    				Material mat = slot.getMaterial();
+    				inv.setItem(slot_int, instance.getGuis().createCustomItem(mat, title, lore, slot.getCustomModelData()));
     			} else if (slot.isCustomHead()) {
-    				inv.setItem(slot_int, instance.getPlayerMain().createPlayerHeadWithTexture(slot.getCustomTextures(), title, lore));
+    				if(slot.getCustomTextures().equalsIgnoreCase("%player%")) {
+    					ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+    					SkullMeta meta = (SkullMeta) head.getItemMeta();
+    					meta.setOwningPlayer(player);
+    					meta.setDisplayName(title);
+    					meta.setLore(lore);
+    					head.setItemMeta(meta);
+    					inv.setItem(slot_int, head);
+    				} else if (slot.getCustomTextures().length() < 17) {
+    					ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+    					SkullMeta meta = (SkullMeta) head.getItemMeta();
+    					OfflinePlayer targetP = Bukkit.getOfflinePlayer(slot.getCustomTextures());
+    					if(targetP != null) {
+    						meta.setOwningPlayer(targetP);
+    					}
+    					meta.setDisplayName(title);
+    					meta.setLore(lore);
+    					head.setItemMeta(meta);
+    					inv.setItem(slot_int, head);
+    				} else {
+    					inv.setItem(slot_int, instance.getPlayerMain().createPlayerHeadWithTexture(slot.getCustomTextures(), title, lore));
+    				}
     			} else {
 					Material mat = slot.getMaterial();
 					inv.setItem(slot_int, instance.getGuis().createItem(mat, title, lore));
@@ -170,12 +190,18 @@ public class ClaimSettingsGui implements InventoryHolder {
      * Checks if the player has the permission for the specified key.
      *
      * @param player The player to check.
-     * @param perm    The perm to check permission for.
+     * @param perm   The perm to check permission for.
      * @return True if the player has the permission, otherwise false.
      */
     public boolean checkPermPerm(Player player, String perm) {
-    	return instance.getPlayerMain().checkPermPlayer(player, "scs.setting."+perm) || player.hasPermission("scs.setting.*");
+        String specificPerm = "scs.setting." + perm;
+        String wildcardPerm = "scs.setting.*";
+        if (player.isPermissionSet(specificPerm) && !player.hasPermission(specificPerm)) {
+            return false;
+        }
+        return player.hasPermission(specificPerm) || player.hasPermission(wildcardPerm);
     }
+
     
     /**
      * Get the index of the current role.

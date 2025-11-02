@@ -390,9 +390,11 @@ public class CPlayer {
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
             n = (int) Math.round(groupsSettings.get("default").get("max-claims"));
             for (Map.Entry<String, String> entry : groups.entrySet()) {
-                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-claims")));
-                }
+            	if(entry.getValue() != null) {
+	                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+	                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-claims")));
+	                }
+            	}
             }
         }
 
@@ -425,9 +427,11 @@ public class CPlayer {
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
             n = (int) Math.round(groupsSettings.get("default").get("max-radius-claims"));
             for (Map.Entry<String, String> entry : groups.entrySet()) {
-                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-radius-claims")));
-                }
+            	if(entry.getValue() != null) {
+	                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+	                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-radius-claims")));
+	                }
+            	}
             }
         }
 
@@ -460,9 +464,11 @@ public class CPlayer {
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
             n = (int) Math.round(groupsSettings.get("default").get("teleportation-delay"));
             for (Map.Entry<String, String> entry : groups.entrySet()) {
-                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.min(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("teleportation-delay")));
-                }
+            	if(entry.getValue() != null) {
+	                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+	                    n = Math.min(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("teleportation-delay")));
+	                }
+            	}
             }
         }
 
@@ -495,9 +501,11 @@ public class CPlayer {
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
             n = (int) Math.round(groupsSettings.get("default").get("max-members"));
             for (Map.Entry<String, String> entry : groups.entrySet()) {
-                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-members")));
-                }
+            	if(entry.getValue() != null) {
+	                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+	                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-members")));
+	                }
+            	}
             }
         }
 
@@ -530,9 +538,11 @@ public class CPlayer {
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
             n = (int) Math.round(groupsSettings.get("default").get("claim-cost"));
             for (Map.Entry<String, String> entry : groups.entrySet()) {
-                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.min(n, groupsSettings.get(entry.getKey()).get("claim-cost"));
-                }
+            	if(entry.getValue() != null) {
+	                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+	                    n = Math.min(n, groupsSettings.get(entry.getKey()).get("claim-cost"));
+	                }
+            	}
             }
         }
 
@@ -565,9 +575,11 @@ public class CPlayer {
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
             n = (int) Math.round(groupsSettings.get("default").get("chunk-cost"));
             for (Map.Entry<String, String> entry : groups.entrySet()) {
-                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.min(n, groupsSettings.get(entry.getKey()).get("chunk-cost"));
-                }
+            	if(entry.getValue() != null) {
+	                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+	                    n = Math.min(n, groupsSettings.get(entry.getKey()).get("chunk-cost"));
+	                }
+            	}
             }
         }
 
@@ -600,9 +612,11 @@ public class CPlayer {
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
             n = groupsSettings.get("default").get("claim-cost-multiplier");
             for (Map.Entry<String, String> entry : groups.entrySet()) {
-                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.min(n, groupsSettings.get(entry.getKey()).get("claim-cost-multiplier"));
-                }
+            	if(entry.getValue() != null) {
+	                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+	                    n = Math.min(n, groupsSettings.get(entry.getKey()).get("claim-cost-multiplier"));
+	                }
+            	}
             }
         }
 
@@ -635,9 +649,11 @@ public class CPlayer {
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
             n = groupsSettings.get("default").get("chunk-cost-multiplier");
             for (Map.Entry<String, String> entry : groups.entrySet()) {
-                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.min(n, groupsSettings.get(entry.getKey()).get("chunk-cost-multiplier"));
-                }
+            	if(entry.getValue() != null) {
+	                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+	                    n = Math.min(n, groupsSettings.get(entry.getKey()).get("chunk-cost-multiplier"));
+	                }
+            	}
             }
         }
 
@@ -670,9 +686,11 @@ public class CPlayer {
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
             n = (int) Math.round(groupsSettings.get("default").get("max-chunks-per-claim"));
             for (Map.Entry<String, String> entry : groups.entrySet()) {
-                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-chunks-per-claim")));
-                }
+            	if(entry.getValue() != null) {
+                    if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+                        n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-chunks-per-claim")));
+                    }
+            	}
             }
         }
 
@@ -705,9 +723,11 @@ public class CPlayer {
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
             n = (int) Math.round(groupsSettings.get("default").get("claim-distance"));
             for (Map.Entry<String, String> entry : groups.entrySet()) {
-                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.min(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("claim-distance")));
-                }
+            	if(entry.getValue() != null) {
+                    if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+                        n = Math.min(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("claim-distance")));
+                    }
+            	}
             }
         }
 
@@ -740,9 +760,11 @@ public class CPlayer {
             LinkedHashMap<String, String> groups = instance.getSettings().getGroupsValues();
             n = (int) Math.round(groupsSettings.get("default").get("max-chunks-total"));
             for (Map.Entry<String, String> entry : groups.entrySet()) {
-                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
-                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-chunks-total")));
-                }
+            	if(entry.getValue() != null) {
+	                if (instance.getPlayerMain().checkPermPlayer(player, entry.getValue())) {
+	                    n = Math.max(n, (int) Math.round(groupsSettings.get(entry.getKey()).get("max-chunks-total")));
+	                }
+            	}
             }
         }
 

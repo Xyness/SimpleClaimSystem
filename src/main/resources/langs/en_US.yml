@@ -264,6 +264,7 @@ add-chunk-already-in-claim-protected-area: "§cThis chunk already belongs to the
 chunk-are-loading: "§fCalculation and loading of §b%chunks-count% chunks§f.."
 chunk-while-loading: "§fChunks loaded: §a%loaded-chunks%§2/%chunks-count%§f."
 griefprevention-needed: "§cYou need GriefPrevention to import claims from this plugin."
+xclaims-needed: "§cYou need to copy the claims file from XClaims into plugins/SimpleClaimSystem/ folder."
 player-not-in-the-claim: "§cThe player '%player%' is not in your claim %claim-name%."
 player-not-in-the-protected-area: "§cThe player '%player%' is not in the protected area %claim-name%."
 kicked-from-claim: "§fYou have been kicked from the claim §c%claim-name%§f of §c%player%§f."
@@ -314,6 +315,7 @@ x-z-must-be-integer: "§cThe X and Z must be a valide integer number."
 one-chunk-must-be-adjacent-delchunk: "§cYou cannot delete this chunk because it joins chunks of the same claim."
 chunk-not-in-claim: "§cThis chunk is not part of this claim."
 chunks-are-not-connected-delchunk: "§cYou can not remove this chunk because it separates the claim in two."
+delchunk-bad-format: "§cThe chunk format is <world>;<x>;<z>."
 
 
 # > Formatted numbers
@@ -674,6 +676,10 @@ role-natural: "Natural"
 
 claim_name-if-no-claim: "§cNo claim"
 claim_owner-if-no-claim: "§cNone"
+claim_player-if-no-claim: "§cNone"
+claim_player-if-visitor: "§7Visitor"
+claim_player-if-member: "§aMember"
+claim_player-if-owner: "§cOwner"
 claim_description-if-no-claim: "§cNone"
 claim_sale_price-if-no-claim: "§cNone"
 claim_is_in_sale-if-no-claim: "§cNone"

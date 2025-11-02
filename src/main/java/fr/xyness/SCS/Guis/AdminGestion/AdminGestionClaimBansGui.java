@@ -3,16 +3,13 @@ package fr.xyness.SCS.Guis.AdminGestion;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
-import org.bukkit.Chunk;
 import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -20,16 +17,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
-import dev.lone.itemsadder.api.CustomStack;
-import fr.xyness.SCS.CPlayerMain;
-import fr.xyness.SCS.ClaimMain;
 import fr.xyness.SCS.SimpleClaimSystem;
-import fr.xyness.SCS.Config.ClaimGuis;
-import fr.xyness.SCS.Config.ClaimLanguage;
-import fr.xyness.SCS.Config.ClaimSettings;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
-import me.clip.placeholderapi.PlaceholderAPI;
 
 /**
  * Class representing the Admin Gestion Claim Bans GUI.

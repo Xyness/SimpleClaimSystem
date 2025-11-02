@@ -602,7 +602,7 @@ public class ClaimGuiEvents implements Listener {
             }
         }
         
-        if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
+        if(guiSettings.getSlots().contains(clickedSlot)) {
         	String targetName = cPlayer.getMapString(clickedSlot);
         	String owner_claim = claim.getOwner();
         	String playerName = player.getName();
@@ -697,7 +697,7 @@ public class ClaimGuiEvents implements Listener {
             }
         }
         
-        if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
+        if(guiSettings.getSlots().contains(clickedSlot)) {
         	String chunk = cPlayer.getMapString(clickedSlot);
         	if (!instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.delchunk")) return;
         	if (claim.getChunks().size() == 1) return;
@@ -785,7 +785,7 @@ public class ClaimGuiEvents implements Listener {
             }
         }
         
-        if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
+        if(guiSettings.getSlots().contains(clickedSlot)) {
         	String targetName = cPlayer.getMapString(clickedSlot);
         	String playerName = player.getName();
         	if(targetName.equals(playerName)) return;
@@ -855,7 +855,7 @@ public class ClaimGuiEvents implements Listener {
             }
         }
         
-        if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
+        if(guiSettings.getSlots().contains(clickedSlot)) {
             if(event.getClick() == ClickType.LEFT) {
             	if(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) {
             		Claim claim = cPlayer.getMapClaim(clickedSlot);
@@ -941,7 +941,7 @@ public class ClaimGuiEvents implements Listener {
             }
         }
         
-        if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
+        if(guiSettings.getSlots().contains(clickedSlot)) {
         	String owner = cPlayer.getMapString(clickedSlot);
         	if(owner == null) return;
         	String filter = cPlayer.getFilter();
@@ -967,8 +967,8 @@ public class ClaimGuiEvents implements Listener {
         if(clickedItem != null) { player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.5f, 1f); } else { return; }
         int clickedSlot = event.getSlot();
         
-        GuiSettings guiSettings = ClaimGuis.gui_settings.get("claims");
-        GuiSlot guiSlot = instance.getGuis().getGuiSlotByClickedSlot("claims", clickedSlot);
+        GuiSettings guiSettings = ClaimGuis.gui_settings.get("claims_owner");
+        GuiSlot guiSlot = instance.getGuis().getGuiSlotByClickedSlot("claims_owner", clickedSlot);
         if(guiSlot != null) {
         	String key = guiSlot.getKey();
         	switch(key) {
@@ -1005,7 +1005,7 @@ public class ClaimGuiEvents implements Listener {
             }
         }
         
-        if(clickedSlot >= guiSettings.getStartSlot() && clickedSlot <= guiSettings.getEndSlot()) {
+        if(guiSettings.getSlots().contains(clickedSlot)) {
         	Claim claim = cPlayer.getMapClaim(clickedSlot);
         	if(event.getClick() == ClickType.LEFT) {
         		if(instance.getPlayerMain().checkPermPlayer(player, "scs.command.claim.tp")) {

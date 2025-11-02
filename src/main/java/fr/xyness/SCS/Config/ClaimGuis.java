@@ -3,6 +3,7 @@ package fr.xyness.SCS.Config;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -22,6 +23,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.GuiSettings;
 import fr.xyness.SCS.Types.GuiSlot;
@@ -248,7 +250,7 @@ public class ClaimGuis {
             .orElse(null);
     }
     
-    public void loadGuiSettings(boolean check_itemsadder) {
+    public void loadGuiSettings() {
     	guis_items_perms_clicked_slots.clear();
         guis_items_perms_clicked_slots.put("visitors", new HashMap<>());
     	guis_items_perms_clicked_slots.put("members", new HashMap<>());
@@ -271,15 +273,19 @@ public class ClaimGuis {
                 String gui_name = file.getName().replace(".yml", "");
                 int rows = config.getInt("rows");
                 String title = instance.getLanguage().getMessage(config.getString("gui-title"));
-                int list_start_slot = config.getInt("list-start-slot");
-                int list_end_slot = config.getInt("list-end-slot");
-                GuiSettings guiSettings = new GuiSettings(id_settings++,rows,title,list_start_slot,list_end_slot);
+                if(config.contains("list-start-slot")) {
+                	instance.deleteDirectory(new File(instance.getDataFolder(), "guis"));
+                	instance.loadGuis();
+                	return;
+                }
+                List<Integer> slots = config.getIntegerList("slots");
+                Collections.sort(slots);
+                GuiSettings guiSettings = new GuiSettings(id_settings++,rows,title,slots);
                 gui_settings.put(gui_name, guiSettings);
                 
                 // Get GUI items
                 ConfigurationSection configSection = config.getConfigurationSection("items");
                 for (String key : configSection.getKeys(false)) {
-                	int slot = configSection.getInt(key + ".slot");
                 	boolean custom_head = false;
                 	String textures = "";
                 	Material mat = null;
@@ -303,19 +309,39 @@ public class ClaimGuis {
                 	String target_title = instance.getLanguage().getMessage(configSection.getString(key + ".target-title"));
                 	String target_lore = instance.getLanguage().getMessage(configSection.getString(key + ".target-lore"));
                 	String action = configSection.getString(key + ".action");
-                	if(gui_name.equals("settings")) {
-                        if (settings_name.get("visitors").contains(key)) {
-                            guis_items_perms_clicked_slots.get("visitors").put(configSection.getInt(key + ".slot"), key);
-                        }
-                        if (settings_name.get("members").contains(key)) {
-                            guis_items_perms_clicked_slots.get("members").put(configSection.getInt(key + ".slot"), key);
-                        }
-                        if (settings_name.get("natural").contains(key)) {
-                            guis_items_perms_clicked_slots.get("natural").put(configSection.getInt(key + ".slot"), key);
-                        }
+                	boolean checkListSlot = configSection.isList(key + ".slot");
+                	if(checkListSlot) {
+                		for(int slot : configSection.getIntegerList(key + ".slot")) {
+                        	if(gui_name.equals("settings")) {
+                                if (settings_name.get("visitors").contains(key)) {
+                                    guis_items_perms_clicked_slots.get("visitors").put(slot, key);
+                                }
+                                if (settings_name.get("members").contains(key)) {
+                                    guis_items_perms_clicked_slots.get("members").put(slot, key);
+                                }
+                                if (settings_name.get("natural").contains(key)) {
+                                    guis_items_perms_clicked_slots.get("natural").put(slot, key);
+                                }
+                        	}
+                            GuiSlot guiSlot = new GuiSlot(id_slot++, key, slot, mat, custom_model_data, custom_model_data_value, target_title, target_lore, action, custom_head, textures);
+                            gui_slots.computeIfAbsent(gui_name, k -> new ArrayList<>()).add(guiSlot);
+                		}
+                	} else {
+                		int slot = configSection.getInt(key + ".slot");
+                    	if(gui_name.equals("settings")) {
+                            if (settings_name.get("visitors").contains(key)) {
+                                guis_items_perms_clicked_slots.get("visitors").put(slot, key);
+                            }
+                            if (settings_name.get("members").contains(key)) {
+                                guis_items_perms_clicked_slots.get("members").put(slot, key);
+                            }
+                            if (settings_name.get("natural").contains(key)) {
+                                guis_items_perms_clicked_slots.get("natural").put(slot, key);
+                            }
+                    	}
+                        GuiSlot guiSlot = new GuiSlot(id_slot++, key, slot, mat, custom_model_data, custom_model_data_value, target_title, target_lore, action, custom_head, textures);
+                        gui_slots.computeIfAbsent(gui_name, k -> new ArrayList<>()).add(guiSlot);
                 	}
-                    GuiSlot guiSlot = new GuiSlot(id_slot++, key, slot, mat, custom_model_data, custom_model_data_value, target_title, target_lore, action, custom_head, textures);
-                    gui_slots.computeIfAbsent(gui_name, k -> new ArrayList<>()).add(guiSlot);
                 }
             }
         }
@@ -493,6 +519,28 @@ public class ClaimGuis {
             meta = instance.getGuis().setItemFlag(meta);
             AttributeModifier modifier = new AttributeModifier(UUID.randomUUID(), "generic.armor", 0, AttributeModifier.Operation.ADD_NUMBER);
             meta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+    
+    /**
+     * Creates a custom item in the GUI.
+     *
+     * @param material The material of the item.
+     * @param name     The name of the item.
+     * @param lore     The lore of the item.
+     * @param custom_data The custom data of the item.
+     * @return The created ItemStack.
+     */
+    public ItemStack createCustomItem(Material material, String name, List<String> lore, String custom_data) {
+    	ItemStack item = new ItemStack(material == null ? Material.STONE : material, 1);
+        ItemMeta meta = item.getItemMeta();
+        if (meta != null) {
+            if (name != null) meta.setDisplayName(name);
+            if (lore != null) meta.setLore(lore);
+            meta.setCustomModelData(Integer.parseInt(custom_data));
+            meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }
         return item;
