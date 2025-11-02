@@ -23,6 +23,7 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import dev.lone.itemsadder.api.CustomStack;
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.GuiSettings;
 import fr.xyness.SCS.Types.GuiSlot;
@@ -272,6 +273,11 @@ public class ClaimGuis {
                 String gui_name = file.getName().replace(".yml", "");
                 int rows = config.getInt("rows");
                 String title = instance.getLanguage().getMessage(config.getString("gui-title"));
+                if(config.contains("list-start-slot")) {
+                	instance.deleteDirectory(new File(instance.getDataFolder(), "guis"));
+                	instance.loadGuis();
+                	return;
+                }
                 List<Integer> slots = config.getIntegerList("slots");
                 Collections.sort(slots);
                 GuiSettings guiSettings = new GuiSettings(id_settings++,rows,title,slots);
@@ -528,15 +534,13 @@ public class ClaimGuis {
      * @return The created ItemStack.
      */
     public ItemStack createCustomItem(Material material, String name, List<String> lore, String custom_data) {
-        ItemStack item = new ItemStack(material == null ? Material.STONE : material, 1);
+    	ItemStack item = new ItemStack(material == null ? Material.STONE : material, 1);
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
-            if(name != null) meta.setDisplayName(name);
-            if(lore != null) meta.setLore(lore);
-            meta = instance.getGuis().setItemFlag(meta);
+            if (name != null) meta.setDisplayName(name);
+            if (lore != null) meta.setLore(lore);
             meta.setCustomModelData(Integer.parseInt(custom_data));
-            AttributeModifier modifier = new AttributeModifier(UUID.randomUUID(), "generic.armor", 0, AttributeModifier.Operation.ADD_NUMBER);
-            meta.addAttributeModifier(Attribute.GENERIC_ARMOR, modifier);
+            meta = instance.getGuis().setItemFlag(meta);
             item.setItemMeta(meta);
         }
         return item;

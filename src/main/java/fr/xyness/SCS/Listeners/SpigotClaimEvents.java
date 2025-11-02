@@ -13,6 +13,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -98,6 +99,42 @@ public class SpigotClaimEvents implements Listener {
 		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("ItemsPickup")) {
         	event.setCancelled(true);
         	instance.getMain().sendMessage(player,instance.getLanguage().getMessage("itemspickup-mode"), instance.getSettings().getSetting("protection-message"));
+        }
+    }
+    
+    /**
+     * Handles the player respawn event. Updates the player's BossBar and sends enabled messages on respawn.
+     *
+     * @param event the player respawn event.
+     */
+    @EventHandler
+    public void onPlayerRespawn(PlayerRespawnEvent event) {
+        Player player = event.getPlayer();
+        
+        Chunk to = event.getRespawnLocation().getChunk();
+        String ownerTO = instance.getMain().getOwnerInClaim(to);
+        
+        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+        if(cPlayer == null) return;
+        
+        String world = player.getWorld().getName();
+        
+        handleWeatherSettings(player, to, null);
+        instance.getBossBars().activeBossBar(player, to);
+        handleAutoFly(player, cPlayer, to, ownerTO);
+
+        if (cPlayer.getClaimAuto().equals("addchunk")) {
+            handleAutoAddChunk(player, cPlayer, to, world);
+        } else if (cPlayer.getClaimAuto().equals("delchunk")) {
+            handleAutoDelChunk(player, cPlayer, to, world);
+        } else if (cPlayer.getClaimAuto().equals("claim")) {
+            handleAutoClaim(player, cPlayer, to, world);
+        } else if (cPlayer.getClaimAuto().equals("unclaim")) {
+            handleAutoUnclaim(player, cPlayer, to, world);
+        }
+
+        if (cPlayer.getClaimAutomap()) {
+            handleAutoMap(player, cPlayer, to, world);
         }
     }
     
