@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -109,7 +110,7 @@ public class ClaimMainGui implements InventoryHolder {
     			String title = slot.getTitle();
     			String lore_string = slot.getLore();
     			if(key.equals("Info")) {
-    				title = title.replace("%description%", claim.getDescription())
+    				title = title.replace("%description%", ChatColor.translateAlternateColorCodes('&', claim.getDescription()))
     			    		.replace("%claim-name%", claim.getName())
     			    		.replace("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
     							.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
@@ -117,7 +118,7 @@ public class ClaimMainGui implements InventoryHolder {
     			    		.replace("%chunks-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getChunks().size())))
     						.replace("%members-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getMembers().size())))
     						.replace("%bans-count%", instance.getMain().getNumberSeparate(String.valueOf(claim.getBans().size())));
-    				lore_string = lore_string.replace("%description%", claim.getDescription())
+    				lore_string = lore_string.replace("%description%", ChatColor.translateAlternateColorCodes('&', claim.getDescription()))
     			    		.replace("%claim-name%", claim.getName())
     			    		.replace("%sale-status%", claim.getSale() ? (instance.getLanguage().getMessage("claim-info-lore-sale-status-true")
     							.replace("%price%", instance.getMain().getNumberSeparate(String.valueOf(claim.getPrice())))
