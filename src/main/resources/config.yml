@@ -203,6 +203,13 @@ pl3xmap-settings:
   claim-fill-color: A5A5A5
   claim-hover-text: "%claim-name% - Owner: %owner%"
 
+# Squaremap support
+squaremap: true
+squaremap-settings:
+  claim-border-color: FFFFFF
+  claim-fill-color: A5A5A5
+  claim-hover-text: "%claim-name% - Owner: %owner%"
+
 
 # **************************
 # *  Permissions settings  *

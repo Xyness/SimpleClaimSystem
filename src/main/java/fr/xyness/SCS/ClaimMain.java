@@ -2200,6 +2200,7 @@ public class ClaimMain {
 		        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(newClaim);
 		        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createClaimZone(newClaim);
 		        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
+		        if (instance.getSettings().getBooleanSetting("squaremap")) instance.getSquaremap().createClaimZone(newClaim);
 		        if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
 	            		Bukkit.getRegionScheduler().execute(instance, chunk.getWorld(), chunk.getX(), chunk.getZ(), () -> chunk.setForceLoaded(true));
@@ -2282,6 +2283,7 @@ public class ClaimMain {
 		        if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(newClaim);
 		        if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createClaimZone(newClaim);
 		        if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
+		        if (instance.getSettings().getBooleanSetting("squaremap")) instance.getSquaremap().createClaimZone(newClaim);
 		        if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
 	            		Bukkit.getRegionScheduler().execute(instance, chunk.getWorld(), chunk.getX(), chunk.getZ(), () -> chunk.setForceLoaded(true));
@@ -3213,7 +3215,8 @@ public class ClaimMain {
 	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(claim);
 	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().updateName(claim);
 	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().updateName(claim);
-	        	
+	        	if (instance.getSettings().getBooleanSetting("squaremap")) instance.getSquaremap().updateName(claim);
+
 	        	// Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
 	                String updateQuery = "UPDATE scs_claims_1 SET claim_name = ? WHERE owner_uuid = ? AND claim_name = ?";
@@ -3291,6 +3294,7 @@ public class ClaimMain {
 	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
 	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
 	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
+	        	if (instance.getSettings().getBooleanSetting("squaremap")) instance.getSquaremap().deleteMarker(claim);
 	        	chunks.stream().forEach(c -> listClaims.remove(c));
                 resetWeatherChunk(claim);
                 resetFlyChunk(claim);
@@ -3361,6 +3365,7 @@ public class ClaimMain {
                     if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
                     if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
                     if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
+                    if (instance.getSettings().getBooleanSetting("squaremap")) instance.getSquaremap().deleteMarker(claim);
                     chunks.stream().forEach(c -> listClaims.remove(c));
                     updateWeatherChunk(claim);
                     updateFlyChunk(claim);
@@ -4109,6 +4114,7 @@ public class ClaimMain {
                 if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(claim);
                 if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createClaimZone(claim);
                 if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(claim);
+                if (instance.getSettings().getBooleanSetting("squaremap")) instance.getSquaremap().createClaimZone(claim);
             	instance.executeSync(() -> instance.getBossBars().activateBossBar(Set.of(chunk)));
                 updateWeatherChunk(claim);
                 updateFlyChunk(claim);
