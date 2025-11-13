@@ -119,7 +119,6 @@ public class ClaimSquaremap {
         String fillColorHex = instance.getSettings().getSetting("squaremap-claim-fill-color");
         String strokeColorHex = instance.getSettings().getSetting("squaremap-claim-border-color");
 
-        // Parse hex colors to RGB integers
         int fillColor = Integer.parseInt(fillColorHex, 16);
         int strokeColor = Integer.parseInt(strokeColorHex, 16);
 
@@ -171,7 +170,7 @@ public class ClaimSquaremap {
                 .markerOptions(
                     MarkerOptions.builder()
                         .strokeColor(new Color(strokeColor))
-                        .strokeWeight(3)
+                        .strokeWeight(2)
                         .fillColor(new Color(fillColor))
                         .fillOpacity(0.35)
                         .clickTooltip(hoverText)
@@ -243,7 +242,6 @@ public class ClaimSquaremap {
         points.add(Point.of(currentEdge.x2, currentEdge.z2));
         usedEdges.add(currentEdge);
 
-        // Find connected edges
         while (usedEdges.size() < edges.size()) {
             Point lastPoint = points.getLast();
             boolean found = false;
@@ -253,12 +251,18 @@ public class ClaimSquaremap {
 
                 // Check if this edge connects to our current point
                 if (edge.x1 == lastPoint.x() && edge.z1 == lastPoint.z()) {
-                    points.add(Point.of(edge.x2, edge.z2));
+                    // Only add the second point if it's not already the first point (closing the loop)
+                    if (!(edge.x2 == points.getFirst().x() && edge.z2 == points.getFirst().z())) {
+                        points.add(Point.of(edge.x2, edge.z2));
+                    }
                     usedEdges.add(edge);
                     found = true;
                     break;
                 } else if (edge.x2 == lastPoint.x() && edge.z2 == lastPoint.z()) {
-                    points.add(Point.of(edge.x1, edge.z1));
+                    // Only add the first point if it's not already the first point (closing the loop)
+                    if (!(edge.x1 == points.getFirst().x() && edge.z1 == points.getFirst().z())) {
+                        points.add(Point.of(edge.x1, edge.z1));
+                    }
                     usedEdges.add(edge);
                     found = true;
                     break;
