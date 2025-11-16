@@ -54,12 +54,11 @@ public class ClaimSquaremap {
 
     /**
      * Constructor for the ClaimSquaremap class.
-     * Initializes the layers for each world.
+     * Note: Call initializeLayers() after claims are loaded to display existing claims.
      */
     public ClaimSquaremap(SimpleClaimSystem instance) {
     	this.instance = instance;
     	this.squaremapApi = SquaremapProvider.get();
-    	initialize();
     }
 
 
@@ -70,8 +69,9 @@ public class ClaimSquaremap {
 
     /**
      * Initializes the layers for each world and creates markers for all existing claims.
+     * Should be called after claims are loaded from the database.
      */
-    private void initialize() {
+    public void initializeLayers() {
         instance.executeAsync(() -> {
             Set<Claim> claims = instance.getMain().getAllClaims();
             for (World world : Bukkit.getWorlds()) {
