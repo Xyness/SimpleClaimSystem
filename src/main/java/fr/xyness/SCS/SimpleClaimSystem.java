@@ -945,7 +945,12 @@ public class SimpleClaimSystem extends JavaPlugin {
 
             // Load claims system
             claimInstance.loadClaims();
-            
+
+            // Initialize map integrations after claims are loaded
+            if (claimSettingsInstance.getBooleanSetting("squaremap") && squaremapInstance != null) {
+                squaremapInstance.initializeLayers();
+            }
+
             // Load players
             cPlayerMainInstance.loadPlayers();
             

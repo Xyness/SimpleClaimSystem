@@ -3970,6 +3970,7 @@ public class ClaimMain {
                         if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(Set.of(chunk));
                         if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(Set.of(chunk));
                         if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(Set.of(chunk));
+                        if (instance.getSettings().getBooleanSetting("squaremap")) instance.getSquaremap().createClaimZone(claim);
                     	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(Set.of(chunk)));
                         updateWeatherChunk(claim);
                         updateFlyChunk(claim);
@@ -4009,6 +4010,7 @@ public class ClaimMain {
                     if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(Set.of(chunk));
                     if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(Set.of(chunk));
                     if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(Set.of(chunk));
+                    if (instance.getSettings().getBooleanSetting("squaremap")) instance.getSquaremap().createClaimZone(claim);
                 	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(Set.of(chunk)));
                     updateWeatherChunk(claim);
                     updateFlyChunk(claim);
@@ -4061,6 +4063,7 @@ public class ClaimMain {
                 if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(Set.of(chunk));
                 if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(Set.of(chunk));
                 if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(Set.of(chunk));
+                if (instance.getSettings().getBooleanSetting("squaremap")) instance.getSquaremap().createClaimZone(claim);
             	instance.executeSync(() -> instance.getBossBars().deactivateBossBar(Set.of(chunk)));
                 updateWeatherChunk(claim);
                 updateFlyChunk(claim);
