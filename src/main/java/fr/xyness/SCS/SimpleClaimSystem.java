@@ -80,7 +80,10 @@ public class SimpleClaimSystem extends JavaPlugin {
     
     /** Instance of ClaimPl3xMap for Pl3xmap integration */
     private ClaimPl3xMap pl3xmapInstance;
-    
+
+    /** Instance of ClaimSquaremap for Squaremap integration */
+    private ClaimSquaremap squaremapInstance;
+
     /** Instance of ClaimWorldguard for WorldGuard integration */
     private ClaimWorldGuard claimWorldguardInstance;
     
@@ -327,6 +330,13 @@ public class SimpleClaimSystem extends JavaPlugin {
                 claimSettingsInstance.addSetting("pl3xmap", "true");
             } else {
                 claimSettingsInstance.addSetting("pl3xmap", "false");
+            }
+
+            Plugin squaremap = Bukkit.getPluginManager().getPlugin("squaremap");
+            if (squaremap != null) {
+                claimSettingsInstance.addSetting("squaremap", "true");
+            } else {
+                claimSettingsInstance.addSetting("squaremap", "false");
             }
 
             // Check "langs" folder
@@ -635,7 +645,18 @@ public class SimpleClaimSystem extends JavaPlugin {
             claimSettingsInstance.addSetting("pl3xmap-claim-border-color", getConfig().getString("pl3xmap-settings.claim-border-color"));
             claimSettingsInstance.addSetting("pl3xmap-claim-fill-color", getConfig().getString("pl3xmap-settings.claim-fill-color"));
             claimSettingsInstance.addSetting("pl3xmap-claim-hover-text", getConfig().getString("pl3xmap-settings.claim-hover-text"));
-            
+
+            // Add Squaremap settings
+            configC = getConfig().getString("squaremap");
+            if(configC.equalsIgnoreCase("true") && claimSettingsInstance.getBooleanSetting("squaremap")) {
+            	if (!reload) squaremapInstance = new ClaimSquaremap(this);
+            } else {
+            	claimSettingsInstance.addSetting("squaremap", "false");
+            }
+            claimSettingsInstance.addSetting("squaremap-claim-border-color", getConfig().getString("squaremap-settings.claim-border-color"));
+            claimSettingsInstance.addSetting("squaremap-claim-fill-color", getConfig().getString("squaremap-settings.claim-fill-color"));
+            claimSettingsInstance.addSetting("squaremap-claim-hover-text", getConfig().getString("squaremap-settings.claim-hover-text"));
+
             // Add the message type for protection
             configC = getConfig().getString("protection-message");
             if (configC.equalsIgnoreCase("action_bar") || 
@@ -924,7 +945,12 @@ public class SimpleClaimSystem extends JavaPlugin {
 
             // Load claims system
             claimInstance.loadClaims();
-            
+
+            // Initialize map integrations after claims are loaded
+            if (claimSettingsInstance.getBooleanSetting("squaremap") && squaremapInstance != null) {
+                squaremapInstance.initializeLayers();
+            }
+
             // Load players
             cPlayerMainInstance.loadPlayers();
             
@@ -2122,13 +2148,22 @@ public class SimpleClaimSystem extends JavaPlugin {
     
     /**
      * Returns the ClaimPl3xMap instance.
-     * 
+     *
      * @return The ClaimPl3xMap instance
      */
     public ClaimPl3xMap getPl3xMap() {
         return pl3xmapInstance;
     }
-    
+
+    /**
+     * Returns the ClaimSquaremap instance.
+     *
+     * @return The ClaimSquaremap instance
+     */
+    public ClaimSquaremap getSquaremap() {
+        return squaremapInstance;
+    }
+
     /**
      * Returns the ClaimPurge instance.
      * 
