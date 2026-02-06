@@ -234,11 +234,27 @@ public class ClaimEventsEnterLeave implements Listener {
      */
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent event) {
+    	
+    	Chunk to = event.getTo().getChunk();
+    	Claim claim = instance.getMain().getClaim(to);
+    	Player player = event.getPlayer();
+        if(claim != null) {
+	        if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
+	        	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("player-banned"), instance.getSettings().getSetting("protection-message"));
+	        	instance.getMain().teleportPlayerToExpulsion(player);
+	        	return;
+	        }
+	        if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
+	        	instance.getMain().sendMessage(player, instance.getLanguage().getMessage("enter"), instance.getSettings().getSetting("protection-message"));
+	        	instance.getMain().teleportPlayerToExpulsion(player);
+	        	return;
+	        }
+        }
+    	
         if (!hasChangedChunk(event)) return;
 
-        Chunk to = event.getTo().getChunk();
         Chunk from = event.getFrom().getChunk();
-        Player player = event.getPlayer();
+        
         UUID playerId = player.getUniqueId();
         String playerName = player.getName();
         CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
@@ -246,7 +262,6 @@ public class ClaimEventsEnterLeave implements Listener {
         String ownerTO = instance.getMain().getOwnerInClaim(to);
         String ownerFROM = instance.getMain().getOwnerInClaim(from);
 
-        Claim claim = instance.getMain().getClaim(to);
         if(claim != null) {
 	        if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
 

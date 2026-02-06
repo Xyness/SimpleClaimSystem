@@ -80,10 +80,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     
     /** Instance of ClaimPl3xMap for Pl3xmap integration */
     private ClaimPl3xMap pl3xmapInstance;
-
-    /** Instance of ClaimSquaremap for Squaremap integration */
-    private ClaimSquaremap squaremapInstance;
-
+    
     /** Instance of ClaimWorldguard for WorldGuard integration */
     private ClaimWorldGuard claimWorldguardInstance;
     
@@ -118,7 +115,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.12.3.3";
+    private String Version = "1.12.3.4";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -185,7 +182,10 @@ public class SimpleClaimSystem extends JavaPlugin {
         info("Discord for support : https://discord.gg/6sRTGprM95");
         info("Documentation : https://xyness.gitbook.io/simpleclaimsystem");
         info("Developped by Xyness");
-        info("==========================================================================");
+        info(ChatColor.RED + "==========================================================================");
+        info(ChatColor.RED + "[SimpleClaimSystem] " + ChatColor.DARK_RED + "Need the premium version ? Check SimpleClaimSystem V2 :");
+        info(ChatColor.RED + "[SimpleClaimSystem] " + ChatColor.DARK_RED + "https://builtbybit.com/resources/simpleclaimsystem-v2.92437/");
+        info(ChatColor.RED + "==========================================================================");
     }
     
     /**
@@ -193,6 +193,12 @@ public class SimpleClaimSystem extends JavaPlugin {
      */
     @Override
     public void onLoad() {
+    	
+        info(ChatColor.RED + "==========================================================================");
+        info(ChatColor.RED + "[SimpleClaimSystem] " + ChatColor.DARK_RED + "Need the premium version ? Check SimpleClaimSystem V2 :");
+        info(ChatColor.RED + "[SimpleClaimSystem] " + ChatColor.DARK_RED + "https://builtbybit.com/resources/simpleclaimsystem-v2.92437/");
+        info(ChatColor.RED + "==========================================================================");
+        
         if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
         	claimWorldguardInstance = new ClaimWorldGuard();
             claimWorldguardInstance.registerCustomFlag();
@@ -247,7 +253,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             } else {
             	claimInstance = new ClaimMain(this);
             	claimGuisInstance = new ClaimGuis(this);
-            	claimSettingsInstance = new ClaimSettings(this);
+            	claimSettingsInstance = new ClaimSettings();
             	cPlayerMainInstance = new CPlayerMain(this);
             	claimLanguageInstance = new ClaimLanguage(this);
             	claimBossBarInstance = new ClaimBossBar(this);
@@ -330,13 +336,6 @@ public class SimpleClaimSystem extends JavaPlugin {
                 claimSettingsInstance.addSetting("pl3xmap", "true");
             } else {
                 claimSettingsInstance.addSetting("pl3xmap", "false");
-            }
-
-            Plugin squaremap = Bukkit.getPluginManager().getPlugin("squaremap");
-            if (squaremap != null) {
-                claimSettingsInstance.addSetting("squaremap", "true");
-            } else {
-                claimSettingsInstance.addSetting("squaremap", "false");
             }
 
             // Check "langs" folder
@@ -424,16 +423,16 @@ public class SimpleClaimSystem extends JavaPlugin {
                     		    + "id_claim INT NOT NULL, "
                     		    + "owner_uuid VARCHAR(36) NOT NULL, "
                     		    + "owner_name VARCHAR(36) NOT NULL, "
-                    		    + "claim_name VARCHAR(255) NOT NULL, "
-                    		    + "claim_description VARCHAR(255) NOT NULL, "
-                    		    + "chunks TEXT NOT NULL, "
-                    		    + "world_name VARCHAR(255) NOT NULL, "
-                    		    + "location VARCHAR(255) NOT NULL, "
+                    		    + "claim_name TEXT NOT NULL, "
+                    		    + "claim_description TEXT NOT NULL, "
+                    		    + "chunks LONGTEXT NOT NULL, "
+                    		    + "world_name TEXT NOT NULL, "
+                    		    + "location TEXT NOT NULL, "
                     		    + "members TEXT NOT NULL, "
-                    		    + "permissions VARCHAR(510) NOT NULL, "
+                    		    + "permissions TEXT NOT NULL, "
                     		    + "for_sale TINYINT(1) NOT NULL DEFAULT 0, "
                     		    + "sale_price DOUBLE NOT NULL DEFAULT 0, "
-                    		    + "bans TEXT NOT NULL DEFAULT '')";
+                    		    + "bans TEXT NOT NULL)";
                     		stmt.executeUpdate(sql);
 
                     		sql = "CREATE TABLE IF NOT EXISTS scs_players ("
@@ -483,15 +482,15 @@ public class SimpleClaimSystem extends JavaPlugin {
                     		    "owner_uuid VARCHAR(36) NOT NULL, " +
                     		    "owner_name VARCHAR(36) NOT NULL, " +
                     		    "claim_name VARCHAR(255) NOT NULL, " +
-                    		    "claim_description VARCHAR(255) NOT NULL, " +
+                    		    "claim_description TEXT NOT NULL, " +
                     		    "chunks TEXT NOT NULL, " +
-                    		    "world_name VARCHAR(255) NOT NULL, " +
-                    		    "location VARCHAR(255) NOT NULL, " +
+                    		    "world_name TEXT NOT NULL, " +
+                    		    "location TEXT NOT NULL, " +
                     		    "members TEXT NOT NULL, " +
-                    		    "permissions VARCHAR(510) NOT NULL, " +
+                    		    "permissions TEXT NOT NULL, " +
                     		    "for_sale TINYINT(1) NOT NULL DEFAULT 0, " +
                     		    "sale_price DOUBLE NOT NULL DEFAULT 0, " +
-                    		    "bans TEXT NOT NULL DEFAULT '')";
+                    		    "bans TEXT NOT NULL)";
                         stmt.executeUpdate(sql);
                     	sql = "CREATE TABLE IF NOT EXISTS scs_players " +
                     		    "(id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -645,18 +644,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             claimSettingsInstance.addSetting("pl3xmap-claim-border-color", getConfig().getString("pl3xmap-settings.claim-border-color"));
             claimSettingsInstance.addSetting("pl3xmap-claim-fill-color", getConfig().getString("pl3xmap-settings.claim-fill-color"));
             claimSettingsInstance.addSetting("pl3xmap-claim-hover-text", getConfig().getString("pl3xmap-settings.claim-hover-text"));
-
-            // Add Squaremap settings
-            configC = getConfig().getString("squaremap");
-            if(configC.equalsIgnoreCase("true") && claimSettingsInstance.getBooleanSetting("squaremap")) {
-            	if (!reload) squaremapInstance = new ClaimSquaremap(this);
-            } else {
-            	claimSettingsInstance.addSetting("squaremap", "false");
-            }
-            claimSettingsInstance.addSetting("squaremap-claim-border-color", getConfig().getString("squaremap-settings.claim-border-color"));
-            claimSettingsInstance.addSetting("squaremap-claim-fill-color", getConfig().getString("squaremap-settings.claim-fill-color"));
-            claimSettingsInstance.addSetting("squaremap-claim-hover-text", getConfig().getString("squaremap-settings.claim-hover-text"));
-
+            
             // Add the message type for protection
             configC = getConfig().getString("protection-message");
             if (configC.equalsIgnoreCase("action_bar") || 
@@ -740,10 +728,6 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Check if claims where Visitors is false are displayed in the /claims GUI
             claimSettingsInstance.addSetting("claims-visitors-off-visible", getConfig().getString("claims-visitors-off-visible"));
-
-            // Description regex
-            claimSettingsInstance.addSetting("description-regex.claims", getConfig().getString("description-regex.claims"));
-            claimSettingsInstance.addSetting("description-regex.protected-areas", getConfig().getString("description-regex.protected-areas"));
             
             // Check claim fly disabled or not for Folia
             if(isFolia) {
@@ -945,12 +929,7 @@ public class SimpleClaimSystem extends JavaPlugin {
 
             // Load claims system
             claimInstance.loadClaims();
-
-            // Initialize map integrations after claims are loaded
-            if (claimSettingsInstance.getBooleanSetting("squaremap") && squaremapInstance != null) {
-                squaremapInstance.initializeLayers();
-            }
-
+            
             // Load players
             cPlayerMainInstance.loadPlayers();
             
@@ -1698,7 +1677,7 @@ public class SimpleClaimSystem extends JavaPlugin {
         if (isFolia) {
             Bukkit.getAsyncScheduler().runDelayed(this, task -> gTask.run(), delayMillis, TimeUnit.MILLISECONDS);
         } else {
-        	  long delayTicks = Math.max(1, (delayMillis * 20) / 1000);
+        	long delayTicks = Math.max(1, (delayMillis * 20) / 1000);
             Bukkit.getScheduler().runTaskLaterAsynchronously(this, gTask, delayTicks);
         }
     }
@@ -1710,7 +1689,7 @@ public class SimpleClaimSystem extends JavaPlugin {
      * @param delayMillis The delay.
      */
     public void executeSyncLater(Runnable gTask, long delayMillis) {
-    	  long delayTicks = Math.max(1, (delayMillis * 20) / 1000);
+    	long delayTicks = Math.max(1, (delayMillis * 20) / 1000);
         if (isFolia) {
             Bukkit.getGlobalRegionScheduler().runDelayed(this, task -> gTask.run(), delayTicks);
         } else {
@@ -1789,7 +1768,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     
     /**
      * Reloads the language file.
-     *
+     * 
      * @param plugin The plugin instance
      * @param sender The command sender
      * @param lang The language file to reload
@@ -2148,22 +2127,13 @@ public class SimpleClaimSystem extends JavaPlugin {
     
     /**
      * Returns the ClaimPl3xMap instance.
-     *
+     * 
      * @return The ClaimPl3xMap instance
      */
     public ClaimPl3xMap getPl3xMap() {
         return pl3xmapInstance;
     }
-
-    /**
-     * Returns the ClaimSquaremap instance.
-     *
-     * @return The ClaimSquaremap instance
-     */
-    public ClaimSquaremap getSquaremap() {
-        return squaremapInstance;
-    }
-
+    
     /**
      * Returns the ClaimPurge instance.
      * 

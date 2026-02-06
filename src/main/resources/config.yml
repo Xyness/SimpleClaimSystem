@@ -158,13 +158,6 @@ bossbar-settings:
   color: YELLOW
   style: SOLID
 
-# A regular expression to control the allowed description of a claim.
-# The default value for the player-claims is '^[a-zA-Z0-9\s]+$' and only allows for alphanumerical strings, with spaces.
-# The default value for the protected areas is the same, but will also include the color symbols.
-description-regex:
-  claims: '^[a-zA-Z0-9\s]+$'
-  protected-areas: '^[a-zA-Z0-9&#\s]+$'
-
 # If delay > 0, can the player move
 # true = can move, false = cannot move
 teleportation-delay-moving: false
@@ -199,13 +192,6 @@ bluemap-settings:
 # Pl3xmap support
 pl3xmap: true
 pl3xmap-settings:
-  claim-border-color: FFFFFF
-  claim-fill-color: A5A5A5
-  claim-hover-text: "%claim-name% - Owner: %owner%"
-
-# Squaremap support
-squaremap: true
-squaremap-settings:
   claim-border-color: FFFFFF
   claim-fill-color: A5A5A5
   claim-hover-text: "%claim-name% - Owner: %owner%"

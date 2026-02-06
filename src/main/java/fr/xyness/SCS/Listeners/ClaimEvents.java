@@ -1317,10 +1317,6 @@ public class ClaimEvents implements Listener {
 	@EventHandler
     public void onPistonExtend(BlockPistonExtendEvent event) {
         Block piston = event.getBlock();
-    	if(hasCrossChunkRedstoneSourceAndNeedBlock(piston)) {
-    		event.setCancelled(true);
-    		return;
-    	}
         List<Block> affectedBlocks = new ArrayList<>(event.getBlocks());
         BlockFace direction = event.getDirection();
         if(!affectedBlocks.isEmpty()) {
@@ -1338,10 +1334,6 @@ public class ClaimEvents implements Listener {
 	@EventHandler
     public void onPistonRetract(BlockPistonRetractEvent event) {
         Block piston = event.getBlock();
-    	if(hasCrossChunkRedstoneSourceAndNeedBlock(piston)) {
-    		event.setCancelled(true);
-    		return;
-    	}
         List<Block> affectedBlocks = new ArrayList<>(event.getBlocks());
         BlockFace direction = event.getDirection();
         if (event.isSticky() && !affectedBlocks.isEmpty()) {

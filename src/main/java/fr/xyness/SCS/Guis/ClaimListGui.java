@@ -10,7 +10,6 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
@@ -275,7 +274,7 @@ public class ClaimListGui implements InventoryHolder {
 
         for (String s : lore) {
             s = s.replace("%owner%", owner)
-                 .replace("%description%", ChatColor.translateAlternateColorCodes('&', description))
+                 .replace("%description%", description)
                  .replace("%name%", name)
                  .replace("%coords%", coords);
 
