@@ -395,7 +395,7 @@ public class CPlayerMain {
         SkullMeta meta = (SkullMeta) head.getItemMeta();
 
         if (meta != null && uuid != null && !uuid.isBlank() && texture != null && !texture.isBlank() && !texture.equals("none") && !uuid.equals("none")) {
-            PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString(uuid));
+            PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString(uuid), "SCSPlayer");
             if(texture != null) {
                 try {
                 	URI uri = URI.create(texture);

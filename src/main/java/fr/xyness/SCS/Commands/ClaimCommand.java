@@ -229,7 +229,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	player.sendMessage(instance.getLanguage().getMessage("claim-description-too-long"));
                 return;
             }
-            if (!instance.getSettings().getDescriptionPatternClaims().matcher(description).find()) {
+            if (!description.matches("^[a-zA-Z0-9\\s]+$")) {
                 player.sendMessage(instance.getLanguage().getMessage("incorrect-characters-description"));
                 return;
             }
