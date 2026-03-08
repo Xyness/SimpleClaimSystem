@@ -548,7 +548,7 @@ public class CPlayerMain {
      * @return The CPlayer instance, or null if not found
      */
     public CPlayer getCPlayer(UUID targetUUID) {
-        return players.get(targetUUID);
+        return players.computeIfAbsent(targetUUID, k -> new CPlayer(Bukkit.getPlayer(targetUUID), targetUUID, instance.getMain().getPlayerClaimsCount(targetUUID),instance));
     }
     
     /**
@@ -675,9 +675,7 @@ public class CPlayerMain {
      * @param player The player
      */
     public void addPlayerPermSetting(Player player) {
-        instance.executeAsync(() -> {
-        	UUID playerId = player.getUniqueId();
-            players.put(playerId, new CPlayer(player, playerId, instance.getMain().getPlayerClaimsCount(playerId),instance));
-        });
+        UUID playerId = player.getUniqueId();
+        players.put(playerId, new CPlayer(player, playerId, instance.getMain().getPlayerClaimsCount(playerId),instance));
     }
 }

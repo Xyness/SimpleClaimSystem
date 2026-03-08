@@ -18,8 +18,6 @@ import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 
-import com.destroystokyo.paper.event.player.PlayerPostRespawnEvent;
-
 import fr.xyness.SCS.SimpleClaimSystem;
 import fr.xyness.SCS.Types.CPlayer;
 import fr.xyness.SCS.Types.Claim;
@@ -70,37 +68,35 @@ public class FoliaClaimEvents implements Listener {
     	if(instance.isFolia()) {
         	Player player = event.getPlayer();
             
-        	Bukkit.getRegionScheduler().run(instance, event.getRespawnLocation(), task -> {
-                Chunk to = event.getRespawnLocation().getChunk();
-                
-                instance.executeSync(() -> {
-                    String ownerTO = instance.getMain().getOwnerInClaim(to);
-                    
-                    CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
-                    if(cPlayer == null) return;
-                    
-                    String world = player.getWorld().getName();
-                    
-                    handleWeatherSettings(player, to, null);
-                    instance.getBossBars().activeBossBar(player, to);
-                    handleAutoFly(player, cPlayer, to, ownerTO);
+        	event.getRespawnLocation().getWorld().getChunkAtAsync(event.getRespawnLocation())
+        		.thenAccept(to -> {
+                    instance.executeSync(() -> {
+                        String ownerTO = instance.getMain().getOwnerInClaim(to);
+                        
+                        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+                        if(cPlayer == null) return;
+                        
+                        String world = player.getWorld().getName();
+                        
+                        handleWeatherSettings(player, to, null);
+                        instance.getBossBars().activeBossBar(player, to);
+                        handleAutoFly(player, cPlayer, to, ownerTO);
 
-                    if (cPlayer.getClaimAuto().equals("addchunk")) {
-                        handleAutoAddChunk(player, cPlayer, to, world);
-                    } else if (cPlayer.getClaimAuto().equals("delchunk")) {
-                        handleAutoDelChunk(player, cPlayer, to, world);
-                    } else if (cPlayer.getClaimAuto().equals("claim")) {
-                        handleAutoClaim(player, cPlayer, to, world);
-                    } else if (cPlayer.getClaimAuto().equals("unclaim")) {
-                        handleAutoUnclaim(player, cPlayer, to, world);
-                    }
+                        if (cPlayer.getClaimAuto().equals("addchunk")) {
+                            handleAutoAddChunk(player, cPlayer, to, world);
+                        } else if (cPlayer.getClaimAuto().equals("delchunk")) {
+                            handleAutoDelChunk(player, cPlayer, to, world);
+                        } else if (cPlayer.getClaimAuto().equals("claim")) {
+                            handleAutoClaim(player, cPlayer, to, world);
+                        } else if (cPlayer.getClaimAuto().equals("unclaim")) {
+                            handleAutoUnclaim(player, cPlayer, to, world);
+                        }
 
-                    if (cPlayer.getClaimAutomap()) {
-                        handleAutoMap(player, cPlayer, to, world);
-                    }
-                });
-
-        	});
+                        if (cPlayer.getClaimAutomap()) {
+                            handleAutoMap(player, cPlayer, to, world);
+                        }
+                    });
+        		});
 
     	}
     }

@@ -451,20 +451,16 @@ public class ClaimEvents implements Listener {
             	Chunk chunk = block.getLocation().getChunk();
                 if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
                 	event.getEntity().remove();
-                	event.setCancelled(true);
                 } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
                 	event.getEntity().remove();
-                	event.setCancelled(true);
                 }
             }
             if (event.getHitEntity() != null) {
         		Chunk chunk = event.getHitEntity().getLocation().getChunk();
         		if(instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
         			event.getEntity().remove();
-        			event.setCancelled(true);
         		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
         			event.getEntity().remove();
-                	event.setCancelled(true);
                 }
             }
             event.getEntity().getNearbyEntities(5, 5, 5).forEach(entity -> {
