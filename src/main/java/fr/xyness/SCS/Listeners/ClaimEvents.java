@@ -30,6 +30,7 @@ import org.bukkit.entity.Phantom;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.ThrownPotion;
+import org.bukkit.entity.WitherSkull;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -53,6 +54,7 @@ import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.entity.EntityToggleGlideEvent;
+import org.bukkit.event.entity.ExplosionPrimeEvent;
 import org.bukkit.event.entity.PotionSplashEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.entity.ProjectileLaunchEvent;
@@ -71,6 +73,7 @@ import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.vehicle.VehicleDamageEvent;
 import org.bukkit.event.vehicle.VehicleEnterEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
@@ -438,6 +441,42 @@ public class ClaimEvents implements Listener {
         }
     }
     
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onWitherSkullHit(ProjectileHitEvent event) {
+        if (event.getEntityType() != EntityType.WITHER_SKULL) return;
+        
+        WorldMode mode = instance.getSettings().getWorldMode(event.getEntity().getWorld().getName());
+        boolean shouldCancel = false;
+
+        if (event.getHitBlock() != null) {
+            Chunk chunk = event.getHitBlock().getChunk();
+            if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
+                shouldCancel = true;
+            } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
+                shouldCancel = true;
+            }
+        }
+
+        if (event.getHitEntity() != null) {
+            Chunk chunk = event.getHitEntity().getLocation().getChunk();
+            if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
+                shouldCancel = true;
+            } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
+                shouldCancel = true;
+            }
+        }
+
+        if (shouldCancel) {
+            WitherSkull skull = (WitherSkull) event.getEntity();
+            skull.setCharged(false);
+            skull.setYield(0f);
+            skull.setIsIncendiary(false);
+            instance.executeSync(() -> {
+                skull.remove();
+            });
+        }
+    }
+    
     /**
      * Handles projectile hit events to prevent explosions in claims.
      * @param event the projectile hit event.
@@ -445,33 +484,7 @@ public class ClaimEvents implements Listener {
     @EventHandler
     public void onProjectileHit(ProjectileHitEvent event) {
     	WorldMode mode = instance.getSettings().getWorldMode(event.getEntity().getWorld().getName());
-		if (event.getEntityType() == EntityType.WITHER_SKULL) {
-            if (event.getHitBlock() != null) {
-            	Block block = event.getHitBlock();
-            	Chunk chunk = block.getLocation().getChunk();
-                if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
-                	event.getEntity().remove();
-                } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
-                	event.getEntity().remove();
-                }
-            }
-            if (event.getHitEntity() != null) {
-        		Chunk chunk = event.getHitEntity().getLocation().getChunk();
-        		if(instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
-        			event.getEntity().remove();
-        		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
-        			event.getEntity().remove();
-                }
-            }
-            event.getEntity().getNearbyEntities(5, 5, 5).forEach(entity -> {
-            	Chunk chunk = entity.getLocation().getChunk();
-            	if (instance.getMain().checkIfClaimExists(chunk) && !instance.getMain().canPermCheck(chunk, "Explosions", "Natural")) {
-                    entity.setVelocity(new Vector(0, 0, 0));
-                } else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Explosions")) {
-                	entity.setVelocity(new Vector(0, 0, 0));
-                }
-            });
-        } else if (instance.getMinecraftVersion().contains("1.21") && event.getEntityType() == EntityType.WIND_CHARGE) {
+		if (instance.getMinecraftVersion().contains("1.21") && event.getEntityType() == EntityType.WIND_CHARGE) {
             if (event.getHitBlock() != null) {
             	Block block = event.getHitBlock();
             	Chunk chunk = block.getLocation().getChunk();
