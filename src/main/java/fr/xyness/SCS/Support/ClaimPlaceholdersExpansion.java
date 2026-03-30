@@ -21,18 +21,12 @@ import fr.xyness.SCS.Types.Claim;
 public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
 	
 	
-	// ***************
-	// *  Variables  *
-	// ***************
     
 	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
 
-	// ******************
-	// *  Constructors  *
-	// ******************
     
     
     /**
@@ -45,9 +39,6 @@ public class ClaimPlaceholdersExpansion extends PlaceholderExpansion {
     }
     
     
-	// *******************
-	// *  Other methods  *
-	// *******************
     
 
     @Override

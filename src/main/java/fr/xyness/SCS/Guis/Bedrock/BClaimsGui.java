@@ -20,9 +20,6 @@ import fr.xyness.SCS.Types.CPlayer;
 public class BClaimsGui {
 
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 
     
     /** Instance of SimpleClaimSystem */
@@ -32,9 +29,6 @@ public class BClaimsGui {
     private final FloodgatePlayer floodgatePlayer;
 
     
-    // ******************
-    // *  Constructors  *
-    // ******************
 
     
     /**

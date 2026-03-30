@@ -17,9 +17,6 @@ import fr.xyness.SCS.Types.Claim;
 public class BClaimMainGui {
 
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 
     
     /** Instance of SimpleClaimSystem */
@@ -29,9 +26,6 @@ public class BClaimMainGui {
     private final FloodgatePlayer floodgatePlayer;
 
     
-    // ******************
-    // *  Constructors  *
-    // ******************
 
     
     /**
@@ -95,9 +89,6 @@ public class BClaimMainGui {
     }
 
     
-    // ********************
-    // *  Others Methods  *
-    // ********************
 
     
     /**

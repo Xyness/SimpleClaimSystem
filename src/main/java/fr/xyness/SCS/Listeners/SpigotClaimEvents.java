@@ -26,18 +26,12 @@ import fr.xyness.SCS.Types.WorldMode;
 public class SpigotClaimEvents implements Listener {
 
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 	
 	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
     
-    // ******************
-    // *  Constructors  *
-    // ******************
     
     
     /**
@@ -50,9 +44,6 @@ public class SpigotClaimEvents implements Listener {
     }
     
     
-    // *******************
-    // *  EventHandlers  *
-    // *******************
     
     
 	/**
@@ -203,9 +194,6 @@ public class SpigotClaimEvents implements Listener {
     }
     
     
-    // *******************
-    // *  Other methods  *
-    // *******************
     
     
     /**
@@ -323,6 +311,7 @@ public class SpigotClaimEvents implements Listener {
 	        		}
 	        	})
 	            .exceptionally(ex -> {
+	                instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
 	                ex.printStackTrace();
 	                return null;
 	            });
@@ -411,6 +400,7 @@ public class SpigotClaimEvents implements Listener {
                         		}
                         	})
                             .exceptionally(ex -> {
+                                instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                                 ex.printStackTrace();
                                 return null;
                             });
@@ -420,6 +410,7 @@ public class SpigotClaimEvents implements Listener {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -458,6 +449,7 @@ public class SpigotClaimEvents implements Listener {
             			}
             		})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -478,6 +470,7 @@ public class SpigotClaimEvents implements Listener {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -505,7 +498,7 @@ public class SpigotClaimEvents implements Listener {
             }
             
             // Check if there is chunk near
-            if(!instance.getMain().isAreaClaimFree(chunk, cPlayer.getClaimDistance(), playerName).join()) {
+            if(!instance.getMain().isAreaClaimFreeSync(chunk, cPlayer.getClaimDistance(), playerName)) {
             	player.sendMessage(instance.getLanguage().getMessage("cannot-claim-because-claim-near"));
             	return;
             }
@@ -542,6 +535,7 @@ public class SpigotClaimEvents implements Listener {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });

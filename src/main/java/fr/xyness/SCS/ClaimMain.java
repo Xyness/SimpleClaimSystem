@@ -52,13 +52,12 @@ import net.md_5.bungee.api.chat.TextComponent;
 public class ClaimMain {
 
 	
-    // ***************
-    // *  Variables  *
-    // ***************
+
+
 
 	
     /** List of claims by chunk. */
-    private Map<Chunk, Claim> listClaims = new HashMap<>();
+    private Map<Chunk, Claim> listClaims = new ConcurrentHashMap<>();
 
     /** Mapping of player uuid to their claims. */
     private Map<UUID, CustomSet<Claim>> playerClaims = new ConcurrentHashMap<>();
@@ -67,7 +66,7 @@ public class ClaimMain {
     public static final UUID SERVER_UUID = UUID.fromString("00000000-0000-0000-0000-000000000000");
 
     /** Mapping of players to their original locations. */
-    private final Map<Player, Location> playerLocations = new HashMap<>();
+    private final Map<Player, Location> playerLocations = new ConcurrentHashMap<>();
 
     /** Mapping of players to their active Bukkit tasks. */
     private final Map<Player, BukkitTask> activeTasks = new ConcurrentHashMap<>();
@@ -98,9 +97,8 @@ public class ClaimMain {
     private SimpleClaimSystem instance;
     
     
-    // ******************
-    // *  Constructors  *
-    // ******************
+
+
     
     
     /**
@@ -113,9 +111,8 @@ public class ClaimMain {
     }
 
     
-    // ********************
-    // *  Others Methods  *
-    // ********************
+
+
 
     
     /**
@@ -125,10 +122,10 @@ public class ClaimMain {
         playerClaims.clear();
         playerLocations.clear();
         listClaims.clear();
-        activeTasks.values().stream().forEach(t -> t.cancel());
+        activeTasks.values().forEach(t -> t.cancel());
         activeTasks.clear();
         if(instance.isFolia()) {
-        	activeFoliaTasks.values().stream().forEach(t -> t.cancel());
+        	activeFoliaTasks.values().forEach(t -> t.cancel());
         	activeFoliaTasks.clear();
         }
     }
@@ -140,13 +137,11 @@ public class ClaimMain {
      */
     public void clearDataForPlayer(Player player) {
     	playerLocations.remove(player);
-    	if(activeTasks.containsKey(player)) {
-    		activeTasks.get(player).cancel();
-    		activeTasks.remove(player);
-    	}
-    	if(instance.isFolia() && activeFoliaTasks.containsKey(player)) {
-    		activeFoliaTasks.get(player).cancel();
-    		activeFoliaTasks.remove(player);
+    	BukkitTask task = activeTasks.remove(player);
+    	if (task != null) task.cancel();
+    	if(instance.isFolia()) {
+    		ScheduledTask foliaTask = activeFoliaTasks.remove(player);
+    		if (foliaTask != null) foliaTask.cancel();
     	}
     }
 
@@ -370,9 +365,8 @@ public class ClaimMain {
     }
 
     
-    // ********************
-    // *  CLAIMS Methods  *
-    // ********************
+
+
 
 
     /**
@@ -547,7 +541,7 @@ public class ClaimMain {
      */
     public Map<String, Integer> getClaimsOwnersGui() {
     	Map<String,Integer> players = new HashMap<>();
-    	playerClaims.keySet().stream().forEach(UUID -> {
+    	playerClaims.keySet().forEach(UUID -> {
     		if(!UUID.equals(SERVER_UUID)) {
     			players.put(instance.getPlayerMain().getPlayerName(UUID), playerClaims.get(UUID).size());
     		}
@@ -927,6 +921,9 @@ public class ClaimMain {
         	Location playerLoc = player.getLocation();
         	if (player.isOnline() && !player.isDead()) {
                 player.teleportAsync(loc).thenAccept(success -> {
+                	if (success) {
+                		checkAndRemoveFly(player, loc);
+                	}
                 	instance.executeSync(() -> {
     		    		PlayerTeleportEvent e = new PlayerTeleportEvent(player, playerLoc, loc);
     		    		Bukkit.getPluginManager().callEvent(e);
@@ -935,6 +932,22 @@ public class ClaimMain {
         	}
         } else if (player.isOnline() && !player.isDead()) {
             player.teleport(loc);
+            checkAndRemoveFly(player, loc);
+        }
+    }
+
+    /**
+     * Checks if the player should lose fly after teleporting.
+     * Removes fly if the destination chunk is not in a claim with fly enabled.
+     *
+     * @param player The player to check.
+     * @param loc    The destination location.
+     */
+    private void checkAndRemoveFly(Player player, Location loc) {
+        Chunk destChunk = loc.getChunk();
+        Claim destClaim = getClaim(destChunk);
+        if (destClaim == null || !destClaim.getPermissionForPlayer("Fly", player)) {
+            instance.getPlayerMain().removePlayerFly(player);
         }
     }
     
@@ -1263,6 +1276,7 @@ public class ClaimMain {
                             int x = X.get(i);
                             int z = Z.get(i);
                             CompletableFuture<Void> future = world.getChunkAtAsync(x, z).thenAccept(chunks::add).exceptionally(ex -> {
+                                instance.getLogger().severe("Failed to load chunk asynchronously during conversion: " + ex.getMessage());
                                 ex.printStackTrace();
                                 return null;
                             });
@@ -1299,6 +1313,7 @@ public class ClaimMain {
                             try {
                                 claimData = future.get();
                             } catch (Exception e) {
+                                instance.getLogger().severe("Failed to get claim data from future: " + e.getMessage());
                                 e.printStackTrace();
                                 continue;
                             }
@@ -1320,6 +1335,7 @@ public class ClaimMain {
 
                         stmt.executeBatch();
                     } catch (SQLException e) {
+                        instance.getLogger().severe("Failed to batch insert converted claims: " + e.getMessage());
                         e.printStackTrace();
                     }
 
@@ -1327,6 +1343,7 @@ public class ClaimMain {
                     instance.info(net.md_5.bungee.api.ChatColor.DARK_GREEN + getNumberSeparate(String.valueOf(count[0])) + " claims converted.");
 
                 }).exceptionally(ex -> {
+                    instance.getLogger().severe("Failed to complete old-to-new conversion: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 }).join(); // Ensure all async operations complete before finishing
@@ -1359,10 +1376,11 @@ public class ClaimMain {
 
             }
         } catch (SQLException e) {
+            instance.getLogger().severe("Failed to convert old claims to new format: " + e.getMessage());
             e.printStackTrace();
         }
     }
-    
+
     /**
      * Converts old distant to new distant
      */
@@ -1457,6 +1475,7 @@ public class ClaimMain {
 								    stmt.setString(13, bans);
 								    stmt.executeUpdate();
 		                        } catch (SQLException e) {
+		                    	    instance.getLogger().severe("Failed to insert converted distant claim: " + e.getMessage());
 		                    	    e.printStackTrace();
 		                        }
 		            	    });
@@ -1471,6 +1490,7 @@ public class ClaimMain {
                                 CompletableFuture<Void> future = world.getChunkAtAsync(x, z).thenAccept(chunk -> {
                                     chunks.add(chunk);
                                 }).exceptionally(ex -> {
+                                    instance.getLogger().severe("Failed to load chunk asynchronously during distant conversion: " + ex.getMessage());
                                     ex.printStackTrace();
                                     return null;
                                 });
@@ -1481,6 +1501,7 @@ public class ClaimMain {
                             allOf.thenRun(() -> {
                                 task.run();
                             }).exceptionally(ex -> {
+                                instance.getLogger().severe("Failed to complete distant conversion task: " + ex.getMessage());
                                 ex.printStackTrace();
                                 return null;
                             });
@@ -1499,6 +1520,7 @@ public class ClaimMain {
             }
             instance.getLogger().info(getNumberSeparate(String.valueOf(count)) + " claims converted.");
         } catch (SQLException e) {
+            instance.getLogger().severe("Failed to convert distant claims to new format: " + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -1550,10 +1572,11 @@ public class ClaimMain {
                            stmt.executeUpdate();
                            i[0]++;
                        } catch (SQLException e) {
+                           instance.getLogger().severe("Failed to import claim from XClaims: " + e.getMessage());
                            e.printStackTrace();
                        }
                 };
-                
+
                 List<CompletableFuture<Void>> futures = new ArrayList<>();
                 for (String chunkId : chunkSection.getKeys(false)) {
                     int x = chunkSection.getInt(chunkId + ".x");
@@ -1565,6 +1588,7 @@ public class ClaimMain {
                                 chunks.add(chunk);
                             }
                         }).exceptionally(ex -> {
+                            instance.getLogger().severe("Failed to load chunk asynchronously during XClaims import: " + ex.getMessage());
                             ex.printStackTrace();
                             return null;
                         });
@@ -1580,6 +1604,7 @@ public class ClaimMain {
                 allOf.thenRun(() -> {
                     task.run();
                 }).exceptionally(ex -> {
+                    instance.getLogger().severe("Failed to complete XClaims import task: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -1646,6 +1671,7 @@ public class ClaimMain {
                        stmt.executeUpdate();
                        i[0]++;
                    } catch (SQLException e) {
+                       instance.getLogger().severe("Failed to import claim from GriefPrevention: " + e.getMessage());
                        e.printStackTrace();
                    }
         	}
@@ -1673,10 +1699,12 @@ public class ClaimMain {
                 	stmt.executeUpdate(sql);
                 		
         		} catch (SQLException e) {
+                    instance.getLogger().severe("Failed to truncate tables for transfer: " + e.getMessage());
                     e.printStackTrace();
                 }
-    			
+
     		} catch (SQLException e) {
+                instance.getLogger().severe("Failed to get database connection for transfer: " + e.getMessage());
                 e.printStackTrace();
             }
     	
@@ -1716,6 +1744,7 @@ public class ClaimMain {
                 instance.getLogger().info(getNumberSeparate(String.valueOf(count)) + " claims transferred.");
                 check = true;
             } catch (SQLException e) {
+                instance.getLogger().severe("Failed to transfer claims to remote database: " + e.getMessage());
                 e.printStackTrace();
                 check = false;
             }
@@ -1743,6 +1772,7 @@ public class ClaimMain {
                    instance.getLogger().info(getNumberSeparate(String.valueOf(count)) + " players transferred.");
                    check2 = true;
                } catch (SQLException e) {
+                   instance.getLogger().severe("Failed to transfer players to remote database: " + e.getMessage());
                    e.printStackTrace();
                    check2 = false;
                }
@@ -1771,6 +1801,7 @@ public class ClaimMain {
             String encoded = Base64.getEncoder().encodeToString(byteArrayOutputStream.toByteArray());
             return encoded;
         } catch (Exception e) {
+            instance.getLogger().severe("Failed to serialize chunks: " + e.getMessage());
             e.printStackTrace();
             return null;
         }
@@ -1780,35 +1811,26 @@ public class ClaimMain {
      * Loads claims from the database.
      */
     public void loadClaims() {
-    	instance.info(" ");
-    	instance.info(net.md_5.bungee.api.ChatColor.DARK_GREEN + "Loading claims..");
-    	
+    	instance.getLogger().info("Loading claims...");
+
     	StringBuilder natural = new StringBuilder();
     	StringBuilder visitors = new StringBuilder();
     	StringBuilder members_ = new StringBuilder();
 
-        for (String key : instance.getSettings().getDefaultValues().get("natural").keySet()) {
-            if (instance.getSettings().getDefaultValues().get("natural").get(key)) {
-                natural.append("1");
-                continue;
-            }
-            natural.append("0");
+    	LinkedHashMap<String, Boolean> naturalDefaults = instance.getSettings().getDefaultValues().get("natural");
+    	LinkedHashMap<String, Boolean> visitorsDefaults = instance.getSettings().getDefaultValues().get("visitors");
+    	LinkedHashMap<String, Boolean> membersDefaults = instance.getSettings().getDefaultValues().get("members");
+
+        for (Boolean val : naturalDefaults.values()) {
+            natural.append(val ? "1" : "0");
         }
-        
-        for (String key : instance.getSettings().getDefaultValues().get("visitors").keySet()) {
-            if (instance.getSettings().getDefaultValues().get("visitors").get(key)) {
-                visitors.append("1");
-                continue;
-            }
-            visitors.append("0");
+
+        for (Boolean val : visitorsDefaults.values()) {
+            visitors.append(val ? "1" : "0");
         }
-        
-        for (String key : instance.getSettings().getDefaultValues().get("members").keySet()) {
-            if (instance.getSettings().getDefaultValues().get("members").get(key)) {
-                members_.append("1");
-                continue;
-            }
-            members_.append("0");
+
+        for (Boolean val : membersDefaults.values()) {
+            members_.append(val ? "1" : "0");
         }
         
         instance.getSettings().setDefaultValuesCode(natural.toString(),"natural");
@@ -1820,8 +1842,8 @@ public class ClaimMain {
             connection.setAutoCommit(false); // Start transaction
             String insertQuery = "UPDATE scs_claims_1 SET permissions = ? WHERE id = ?";
             String updateQuery = "UPDATE scs_claims_1 SET members = ?, bans = ? WHERE id = ?";
-            try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery)) {
-            	PreparedStatement preparedStatement2 = connection.prepareStatement(updateQuery);
+            try (PreparedStatement preparedStatement = connection.prepareStatement(insertQuery);
+            	 PreparedStatement preparedStatement2 = connection.prepareStatement(updateQuery)) {
                 String getQuery = "SELECT * FROM scs_claims_1";
                 try (PreparedStatement stat = connection.prepareStatement(getQuery);
                      ResultSet resultSet = stat.executeQuery()) {
@@ -1958,9 +1980,11 @@ public class ClaimMain {
                 }
             } catch (SQLException e) {
                 connection.rollback(); // Rollback transaction in case of error
+                instance.getLogger().severe("Failed to update claim permissions during load, rolled back: " + e.getMessage());
                 e.printStackTrace();
             }
         } catch (SQLException e) {
+            instance.getLogger().severe("Failed to get database connection for claim permission update: " + e.getMessage());
             e.printStackTrace();
         }
 
@@ -2126,6 +2150,7 @@ public class ClaimMain {
                                                     chunks.add(chunk);
                                                 }
                                             }).exceptionally(ex -> {
+                                                instance.getLogger().severe("Failed to load chunk asynchronously during claim load: " + ex.getMessage());
                                                 ex.printStackTrace();
                                                 return null;
                                             });
@@ -2141,6 +2166,7 @@ public class ClaimMain {
                                 }
                             }
                         } catch (Exception e) {
+                            instance.getLogger().severe("Failed to deserialize chunk data during claim load: " + e.getMessage());
                             e.printStackTrace();
                         }
 
@@ -2148,21 +2174,23 @@ public class ClaimMain {
                         allOf.thenRun(() -> {
                             task.run();
                         }).exceptionally(ex -> {
+                            instance.getLogger().severe("Failed to complete async chunk loading: " + ex.getMessage());
                             ex.printStackTrace();
                             return null;
                         });
                     }
                 }
             } catch (SQLException e) {
+                instance.getLogger().severe("Failed to query claims from database: " + e.getMessage());
                 e.printStackTrace();
             }
-            
+
         } catch (SQLException e1) {
+            instance.getLogger().severe("Failed to get database connection for loading claims: " + e1.getMessage());
 			e1.printStackTrace();
 		}
 
-        instance.info(getNumberSeparate(String.valueOf(i[0]))+"/"+getNumberSeparate(String.valueOf(max_i))+" claims loaded.");
-        instance.info("> including "+getNumberSeparate(String.valueOf(protected_areas_count))+" protected areas.");
+        instance.getLogger().info("Loaded " + getNumberSeparate(String.valueOf(i[0])) + "/" + getNumberSeparate(String.valueOf(max_i)) + " claims (" + getNumberSeparate(String.valueOf(protected_areas_count)) + " protected areas)");
         return;
     }
 
@@ -2222,6 +2250,7 @@ public class ClaimMain {
 		        // Update database
 		        return insertClaimIntoDatabase(id, uuid, playerName, claimName, description, chunk, locationString);
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to create claim: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -2304,6 +2333,7 @@ public class ClaimMain {
 		        // Updata database
 		        return insertClaimIntoDatabase(id, uuid, "*", claimName, description, chunk, locationString);
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to create protected area: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -2337,8 +2367,12 @@ public class ClaimMain {
             stmt.setString(10, instance.getSettings().getDefaultValuesCode("all"));
             stmt.setString(11, "");
             stmt.executeUpdate();
+            if (!connection.getAutoCommit()) {
+                connection.commit();
+            }
             return true;
         } catch (SQLException e) {
+            instance.getLogger().severe("Failed to insert claim into database: " + e.getMessage());
             e.printStackTrace();
             return false;
         }
@@ -2391,10 +2425,10 @@ public class ClaimMain {
 	            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
 	            if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
-	            		chunks.stream().forEach(c -> Bukkit.getRegionScheduler().execute(instance, c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
+	            		chunks.forEach(c -> Bukkit.getRegionScheduler().execute(instance, c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
 	            	} else {
 	            		Bukkit.getScheduler().callSyncMethod(instance, (Callable<Void>) () -> {
-	            			instance.executeSync(() -> chunks.stream().forEach(c -> c.setForceLoaded(true)));
+	            			instance.executeSync(() -> chunks.forEach(c -> c.setForceLoaded(true)));
 	            			return null;
 	            		});
 	            	}
@@ -2425,10 +2459,12 @@ public class ClaimMain {
 	                stmt.executeUpdate();
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to insert radius claim into database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to create radius claim: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -2464,7 +2500,7 @@ public class ClaimMain {
 		        List<Integer> X = Collections.synchronizedList(new ArrayList<>());
 		        List<Integer> Z = Collections.synchronizedList(new ArrayList<>());
 		        instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
-		        chunks.stream().forEach(c -> {
+		        chunks.forEach(c -> {
 		            listClaims.put(c, newClaim);
 		            X.add(c.getX());
 		            Z.add(c.getZ());
@@ -2474,10 +2510,10 @@ public class ClaimMain {
 	            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(newClaim);
 	            if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
 	            	if(instance.isFolia()) {
-	            		chunks.stream().forEach(c -> Bukkit.getRegionScheduler().execute(instance, c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
+	            		chunks.forEach(c -> Bukkit.getRegionScheduler().execute(instance, c.getWorld(), c.getX(), c.getZ(), () -> c.setForceLoaded(true)));
 	            	} else {
 	            		Bukkit.getScheduler().callSyncMethod(instance, (Callable<Void>) () -> {
-	            			instance.executeSync(() -> chunks.stream().forEach(c -> c.setForceLoaded(true)));
+	            			instance.executeSync(() -> chunks.forEach(c -> c.setForceLoaded(true)));
 	            			return null;
 	            		});
 	            	}
@@ -2508,10 +2544,12 @@ public class ClaimMain {
 	                   stmt.executeUpdate();
 	                   return true;
 	               } catch (SQLException e) {
+	                   instance.getLogger().severe("Failed to insert admin radius claim into database: " + e.getMessage());
 	                   e.printStackTrace();
 	                   return false;
 	               }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to create admin radius claim: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -2734,10 +2772,12 @@ public class ClaimMain {
                     preparedStatement.executeUpdate();
                     return true;
                 } catch (SQLException e) {
+                    instance.getLogger().severe("Failed to update bedrock permissions in database: " + e.getMessage());
                     e.printStackTrace();
                     return false;
                 }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to update bedrock permissions: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -2795,16 +2835,18 @@ public class ClaimMain {
                     preparedStatement.executeUpdate();
                     return true;
                 } catch (SQLException e) {
+                    instance.getLogger().severe("Failed to update claim permission in database: " + e.getMessage());
                     e.printStackTrace();
                     return false;
                 }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to update claim permission: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
         });
     }
-    
+
     /**
      * Method to apply current settings to all owner's claims.
      *
@@ -2822,7 +2864,7 @@ public class ClaimMain {
 	            Map<String,LinkedHashMap<String, Boolean>> perms = new HashMap<>(claim.getPermissions());
 	            
 	            // Update settings
-	            playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(c -> {
+	            playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).forEach(c -> {
 	            	c.setPermissions(new HashMap<>(perms));
 	                updateWeatherChunk(c);
 	                updateFlyChunk(c);
@@ -2845,10 +2887,12 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to apply settings to all claims in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to apply settings to all claims: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -2888,10 +2932,12 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to add claim ban in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to add claim ban: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -2928,10 +2974,12 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to remove claim ban in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to remove claim ban: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -2955,7 +3003,7 @@ public class ClaimMain {
 	            UUID targetUUID = instance.getPlayerMain().getPlayerUUID(name);
 	            
 	            // Add banned and remove member
-	            playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(claim -> {
+	            playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).forEach(claim -> {
 	            	claim.addBan(targetUUID);
 	            	claim.removeMember(targetUUID);
 	            });
@@ -2975,10 +3023,12 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to add ban to all claims in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to add ban to all claims: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -3001,7 +3051,7 @@ public class ClaimMain {
             	String uuid_string = uuid.toString();
 	            UUID targetUUID = instance.getPlayerMain().getPlayerUUID(name);
 
-		        playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(claim -> claim.removeBan(targetUUID));
+		        playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).forEach(claim -> claim.removeBan(targetUUID));
 	            
 	            // Updata database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
@@ -3017,16 +3067,18 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to remove ban from all claims in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to remove ban from all claims: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
         });
     }
-    
+
     /**
      * Method to add a member to a claim.
      *
@@ -3057,16 +3109,18 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to add claim member in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
 	        } catch (Exception e) {
+	            instance.getLogger().severe("Failed to add claim member: " + e.getMessage());
 	            e.printStackTrace();
 	            return false;
 	        }
         });
     }
-    
+
     /**
      * Method to add a member to all owner's claims.
      *
@@ -3084,7 +3138,7 @@ public class ClaimMain {
 	            UUID targetUUID = instance.getPlayerMain().getPlayerUUID(name);
 	            
 	            // Remove member
-		        playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(claim -> claim.addMember(targetUUID));
+		        playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).forEach(claim -> claim.addMember(targetUUID));
 	
 	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
@@ -3100,16 +3154,18 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to add member to all claims in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to add member to all claims: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
         });
     }
-    
+
     /**
      * Method to remove a member from a claim.
      *
@@ -3139,10 +3195,12 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to remove claim member in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to remove claim member: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -3164,7 +3222,7 @@ public class ClaimMain {
             	UUID uuid = owner.equals("*") ? SERVER_UUID : instance.getPlayerMain().getPlayerUUID(owner);
             	String uuid_string = uuid.toString();
 	            UUID targetUUID = instance.getPlayerMain().getPlayerUUID(name);
-	            playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(claim -> claim.removeMember(targetUUID));
+	            playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).forEach(claim -> claim.removeMember(targetUUID));
 	            
 	            // Update database
 	            try (Connection connection = instance.getDataSource().getConnection()) {
@@ -3180,10 +3238,12 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to remove member from all claims in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to remove member from all claims: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -3225,10 +3285,12 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to set claim name in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to set claim name: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -3262,10 +3324,12 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to set claim location in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to set claim location: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -3291,7 +3355,7 @@ public class ClaimMain {
 	        	if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
 	        	if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
 	        	if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
-	        	chunks.stream().forEach(c -> listClaims.remove(c));
+	        	chunks.forEach(c -> listClaims.remove(c));
                 resetWeatherChunk(claim);
                 resetFlyChunk(claim);
                 getMapAutoForChunks(chunks);
@@ -3323,10 +3387,12 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to delete claim from database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to delete claim: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -3355,13 +3421,13 @@ public class ClaimMain {
 
                 // Delete all claims of target player, and remove him from data
 	            CustomSet<Claim> claims = playerClaims.getOrDefault(uuid, new CustomSet<>());
-                playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(claim -> {
+                playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).forEach(claim -> {
                     Set<Chunk> chunks = claim.getChunks();
                     instance.executeSync(() -> instance.getBossBars().deactivateBossBar(chunks));
                     if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().deleteMarker(chunks);
                     if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().deleteMarker(chunks);
                     if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().deleteMarker(chunks);
-                    chunks.stream().forEach(c -> listClaims.remove(c));
+                    chunks.forEach(c -> listClaims.remove(c));
                     updateWeatherChunk(claim);
                     updateFlyChunk(claim);
                     getMapAutoForChunks(chunks);
@@ -3380,12 +3446,14 @@ public class ClaimMain {
                         preparedStatement.executeUpdate();
                     }
                 } catch (SQLException e) {
+                    instance.getLogger().severe("Failed to delete all claims from database: " + e.getMessage());
                     e.printStackTrace();
                     return false;
                 }
 
                 return true;
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to delete all claims: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -3419,10 +3487,12 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to set claim description in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to set claim description: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -3457,10 +3527,12 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to set claim sale in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to set claim sale: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -3493,16 +3565,18 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to remove claim sale in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to remove claim sale: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
         });
     }
-    
+
     /**
      * Method to reset settings of player's claims
      * 
@@ -3520,7 +3594,7 @@ public class ClaimMain {
 	        	UUID uuid = owner.equals("*") ? SERVER_UUID : instance.getPlayerMain().getPlayerUUID(owner);
 
 	        	// Update perms
-	            playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).stream().forEach(c -> {
+	            playerClaims.computeIfAbsent(uuid, k -> new CustomSet<>()).forEach(c -> {
 	            	c.setPermissions(new HashMap<>(perm));
 	                updateWeatherChunk(c);
 	                updateFlyChunk(c);
@@ -3535,16 +3609,18 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to reset all owner claims settings in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to reset all owner claims settings: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
         });
     }
-    
+
     /**
      * Method to reset settings of claim
      * 
@@ -3578,16 +3654,18 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to reset claim settings in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to reset claim settings: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
         });
     }
-    
+
     /**
      * Method to reset all player claims settings
      * 
@@ -3598,7 +3676,7 @@ public class ClaimMain {
             try {
 	        	String defaultValue = instance.getSettings().getDefaultValuesCode("all");
 	        	Map<String,LinkedHashMap<String,Boolean>> perm = new HashMap<>(instance.getSettings().getDefaultValues());
-	            listClaims.values().stream().forEach(c -> {
+	            listClaims.values().forEach(c -> {
 	            	if(!c.getUUID().equals(SERVER_UUID)) {
 	                    c.setPermissions(new HashMap<>(perm));
 	    	            // Update weather and fly
@@ -3615,10 +3693,12 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to reset all player claims settings in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to reset all player claims settings: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -3714,10 +3794,12 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to sell chunk in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to sell chunk: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
@@ -3811,16 +3893,18 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to set claim owner in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to set claim owner: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
         });
     }
-    
+
     /**
      * Method to change the owner of a claim.
      *
@@ -3912,20 +3996,23 @@ public class ClaimMain {
 	                	int[] n = preparedStatement.executeBatch();
 		                return n[0]>0;
 		            } catch (SQLException e) {
+		                instance.getLogger().severe("Failed to batch set owners in database: " + e.getMessage());
 		                e.printStackTrace();
 		                return false;
 		            }
 	            } catch (Exception e) {
+	                instance.getLogger().severe("Failed to set owners for multiple claims: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to set owners: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
         });
     }
-    
+
     /**
      * Remove a chunk from a claim
      * 
@@ -3987,6 +4074,7 @@ public class ClaimMain {
         	                }
         	                return true;
         	            } catch (SQLException e) {
+        	                instance.getLogger().severe("Failed to remove claim chunk (async) in database: " + e.getMessage());
         	                e.printStackTrace();
         	                return false;
         	            }
@@ -4025,20 +4113,22 @@ public class ClaimMain {
     	                }
     	                return true;
     	            } catch (SQLException e) {
+    	                instance.getLogger().severe("Failed to remove claim chunk in database: " + e.getMessage());
     	                e.printStackTrace();
     	                return false;
     	            }
             	}
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to remove claim chunk: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
         });
     }
-    
+
     /**
      * Remove a chunk from a claim
-     * 
+     *
      * @param claim The target claim
      * @param chunk The chunk to remove
      * @return true if the merge process was initiated successfully
@@ -4078,16 +4168,18 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to remove chunk from claim in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to remove chunk from claim: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
         });
     }
-    
+
     /**
      * Add a chunk to a claim
      * 
@@ -4131,16 +4223,18 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to add chunk to claim in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to add chunk to claim: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
         });
     }
-    
+
     /**
      * Merges claims into one.
      *
@@ -4153,9 +4247,9 @@ public class ClaimMain {
             try {
 	            
 	            // Collect chunks from claims and update listClaims map and add new chunks
-	            claims.stream().forEach(claim -> {
+	            claims.forEach(claim -> {
 	            	Set<Chunk> chunks = claim.getChunks();
-	            	chunks.stream().forEach(c -> listClaims.put(c, claim1));
+	            	chunks.forEach(c -> listClaims.put(c, claim1));
 	            	claim1.addChunks(chunks);
 	            	instance.executeSync(() -> instance.getBossBars().activateBossBar(chunks));
 	                if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().updateName(claim1);
@@ -4208,16 +4302,18 @@ public class ClaimMain {
 	                }
 	                return true;
 	            } catch (SQLException e) {
+	                instance.getLogger().severe("Failed to merge claims in database: " + e.getMessage());
 	                e.printStackTrace();
 	                return false;
 	            }
             } catch (Exception e) {
+                instance.getLogger().severe("Failed to merge claims: " + e.getMessage());
                 e.printStackTrace();
                 return false;
             }
         });
     }
-    
+
     /**
      * Displays particles around the specified chunks for claiming.
      * Particles are shown only at the borders of the chunks and not between adjacent chunks.
@@ -4246,7 +4342,7 @@ public class ClaimMain {
 	                    return;
 	                }
 	                World world = player.getWorld();
-	                particleLocations.stream().forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
+	                particleLocations.forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
 	                counter[0]++;
 	            }, 0, 500, TimeUnit.MILLISECONDS);
 	        } else {
@@ -4261,7 +4357,7 @@ public class ClaimMain {
 	                        return;
 	                    }
 	                    World world = player.getWorld();
-	                    particleLocations.stream().forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
+	                    particleLocations.forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
 	                    counter++;
 	                }
 	            }.runTaskTimerAsynchronously(instance, 0, 10L);
@@ -4297,7 +4393,7 @@ public class ClaimMain {
 	                    return;
 	                }
 	                World world = player.getWorld();
-	                particleLocations.stream().forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
+	                particleLocations.forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
 	                counter[0]++;
 	            }, 0, 500, TimeUnit.MILLISECONDS);
 	        } else {
@@ -4314,7 +4410,7 @@ public class ClaimMain {
 	                        return;
 	                    }
 	                    World world = player.getWorld();
-	                    particleLocations.stream().forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
+	                    particleLocations.forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
 	                    counter++;
 	                }
 	            }.runTaskTimerAsynchronously(instance, 0, 10L);
@@ -4418,6 +4514,7 @@ public class ClaimMain {
             allOf.thenRun(() -> {
                 resultFuture.complete(locations);
             }).exceptionally(ex -> {
+                instance.getLogger().severe("Failed to get particle locations: " + ex.getMessage());
                 ex.printStackTrace();
                 resultFuture.completeExceptionally(ex);
                 return null;
@@ -4618,36 +4715,45 @@ public class ClaimMain {
      * @param playerName  The name of the player to exclude their claims.
      * @return true if there are no conflicting claims within the specified radius, false otherwise.
      */
-    public CompletableFuture<Boolean> isAreaClaimFree(Chunk centerChunk, int distance, String playerName) {
-        return CompletableFuture.supplyAsync(() -> {
-            if (distance == 0) {
-                return true;
-            }
+    public boolean isAreaClaimFreeSync(Chunk centerChunk, int distance, String playerName) {
+        if (distance == 0) {
+            return true;
+        }
 
-            World world = centerChunk.getWorld();
-            int centerX = centerChunk.getX();
-            int centerZ = centerChunk.getZ();
+        World world = centerChunk.getWorld();
+        int centerX = centerChunk.getX();
+        int centerZ = centerChunk.getZ();
 
-            // Iterate through the listClaims to find claims within the distance
-            for (Map.Entry<Chunk, Claim> entry : listClaims.entrySet()) {
-                Chunk chunk = entry.getKey();
-                Claim claim = entry.getValue();
-                if (chunk.getWorld().equals(world)) {
-                    int chunkX = chunk.getX();
-                    int chunkZ = chunk.getZ();
+        for (Map.Entry<Chunk, Claim> entry : listClaims.entrySet()) {
+            Chunk chunk = entry.getKey();
+            Claim claim = entry.getValue();
+            if (chunk.getWorld().equals(world)) {
+                int chunkX = chunk.getX();
+                int chunkZ = chunk.getZ();
 
-                    int deltaX = Math.abs(chunkX - centerX);
-                    int deltaZ = Math.abs(chunkZ - centerZ);
+                int deltaX = Math.abs(chunkX - centerX);
+                int deltaZ = Math.abs(chunkZ - centerZ);
 
-                    // Check if the chunk is within the specified distance and does not belong to the player
-                    if (deltaX <= distance && deltaZ <= distance && !claim.getOwner().equals(playerName)) {
-                        return false; // A conflicting claim is found
-                    }
+                if (deltaX <= distance && deltaZ <= distance && !claim.getOwner().equals(playerName)) {
+                    return false;
                 }
             }
+        }
 
-            return true; // No conflicting claims found
-        });
+        return true;
+    }
+
+    /**
+     * Asynchronously checks if there are no claims within a specified radius around a given chunk,
+     * excluding claims that belong to the player.
+     *
+     * @param centerChunk The central chunk from which to check.
+     * @param distance    The radius, in chunks, within which to check for claims.
+     * @param playerName  The name of the player to exclude their claims.
+     * @return A CompletableFuture that resolves to true if there are no conflicting claims, false otherwise.
+     */
+    public CompletableFuture<Boolean> isAreaClaimFree(Chunk centerChunk, int distance, String playerName) {
+        return CompletableFuture.supplyAsync(() -> isAreaClaimFreeSync(centerChunk, distance, playerName));
     }
 
     /**
@@ -4858,7 +4964,7 @@ public class ClaimMain {
     public void updateWeatherChunk(Claim claim) {
 		Set<Chunk> chunks = claim.getChunks();
 		if(instance.isFolia()) {
-	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	    	Bukkit.getOnlinePlayers().forEach(p -> {
 	    		Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
 					Chunk c = p.getLocation().getChunk();
 					if(chunks.contains(c)) {
@@ -4872,7 +4978,7 @@ public class ClaimMain {
 	    		});
 	    	});
 		} else {
-	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	    	Bukkit.getOnlinePlayers().forEach(p -> {
 				Chunk c = p.getLocation().getChunk();
 				if(chunks.contains(c)) {
 					boolean value = claim.getPermissionForPlayer("Weather", p);
@@ -4895,7 +5001,7 @@ public class ClaimMain {
     public void updateFlyChunk(Claim claim) {
 		Set<Chunk> chunks = claim.getChunks();
 		if(!instance.isFolia()) {
-	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	    	Bukkit.getOnlinePlayers().forEach(p -> {
 				Chunk c = p.getLocation().getChunk();
 				if(chunks.contains(c)) {
 					boolean value = claim.getPermissionForPlayer("Fly", p);
@@ -4924,7 +5030,7 @@ public class ClaimMain {
     public void resetWeatherChunk(Claim claim) {
 		Set<Chunk> chunks = claim.getChunks();
 		if(instance.isFolia()) {
-	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	    	Bukkit.getOnlinePlayers().forEach(p -> {
 	    		Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
 					Chunk c = p.getLocation().getChunk();
 					if(chunks.contains(c)) {
@@ -4933,7 +5039,7 @@ public class ClaimMain {
 	    		});
 	    	});
 		} else {
-	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	    	Bukkit.getOnlinePlayers().forEach(p -> {
 				Chunk c = p.getLocation().getChunk();
 				if(chunks.contains(c)) {
 	                p.resetPlayerWeather();
@@ -4951,7 +5057,7 @@ public class ClaimMain {
     public void resetFlyChunk(Claim claim) {
 		Set<Chunk> chunks = claim.getChunks();
 		if(instance.isFolia()) {
-	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	    	Bukkit.getOnlinePlayers().forEach(p -> {
 	    		Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
 					Chunk c = p.getLocation().getChunk();
 					if(chunks.contains(c)) {
@@ -4963,7 +5069,7 @@ public class ClaimMain {
 	    		});
 	    	});
 		} else {
-	    	Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	    	Bukkit.getOnlinePlayers().forEach(p -> {
 				Chunk c = p.getLocation().getChunk();
 				if(chunks.contains(c)) {
 	                CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());
@@ -4982,7 +5088,7 @@ public class ClaimMain {
      */
     public void getMapAutoForChunks(Set<Chunk> chunks) {
     	if(instance.isFolia()) {
-	        Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	        Bukkit.getOnlinePlayers().forEach(p -> {
 	        	Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
 		        	Chunk c = p.getLocation().getChunk();
 		        	if(chunks.contains(c)) {
@@ -4994,7 +5100,7 @@ public class ClaimMain {
 	        	});
 	        });
     	} else {
-	        Bukkit.getOnlinePlayers().stream().forEach(p -> {
+	        Bukkit.getOnlinePlayers().forEach(p -> {
 	        	Chunk c = p.getLocation().getChunk();
 	        	if(chunks.contains(c)) {
 	        		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(p.getUniqueId());

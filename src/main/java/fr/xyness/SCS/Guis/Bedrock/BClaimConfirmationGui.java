@@ -15,18 +15,12 @@ import fr.xyness.SCS.Commands.ClaimCommand;
 public class BClaimConfirmationGui {
 
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 
     
     /** Floodgate Player */
     private final FloodgatePlayer floodgatePlayer;
 
     
-    // ******************
-    // *  Constructors  *
-    // ******************
 
     
     /**

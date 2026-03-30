@@ -7,21 +7,8 @@ import fr.xyness.SCS.SimpleClaimSystem;
  * This class is used to initialize and provide access to the API implementation.
  */
 public class SimpleClaimSystemAPI_Provider {
-	
-	
-    // ***************
-    // *  Variables  *
-    // ***************
-	
-	
-	/** Instance of SimpleClaimSystemAPI */
+
     private static SimpleClaimSystemAPI apiInstance;
-    
-    
-    // *******************
-    // *  Other Methods  *
-    // *******************
-    
 
     /**
      * Initializes the SimpleClaimSystemAPI with the provided SimpleClaimSystem instance.
@@ -37,7 +24,6 @@ public class SimpleClaimSystemAPI_Provider {
 
     /**
      * Returns the initialized SimpleClaimSystemAPI instance.
-     * Throws an IllegalStateException if the API has not been initialized.
      *
      * @return the initialized SimpleClaimSystemAPI instance
      * @throws IllegalStateException if the API has not been initialized

@@ -37,18 +37,12 @@ import fr.xyness.SCS.Types.WorldMode;
 public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 	
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 	
 	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
     
-    // ******************
-    // *  Constructors  *
-    // ******************
     
     
     /**
@@ -61,9 +55,6 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     }
     
 	
-	// ******************
-	// *  Tab Complete  *
-	// ******************
 	
 	
     /**
@@ -97,9 +88,6 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     }
 	
 	
-	// ******************
-	// *  Main command  *
-	// ******************
     
 	
     /**
@@ -153,9 +141,6 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     }
     
     
-    // ********************
-    // *  Other Methods  *
-    // ********************
     
     
     /**
@@ -182,6 +167,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -251,6 +237,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 	                		}
 	                	})
 	                    .exceptionally(ex -> {
+	                        instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
 	                        ex.printStackTrace();
 	                        return null;
 	                    });
@@ -276,6 +263,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
                 		}
                 	})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -343,6 +331,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -437,6 +426,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     	        				}
     	        			})
     	                    .exceptionally(ex -> {
+    	                        instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
     	                        ex.printStackTrace();
     	                        return null;
     	                    });
@@ -499,6 +489,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 		    				}
 		    			})
 		                .exceptionally(ex -> {
+		                    instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
 		                    ex.printStackTrace();
 		                    return null;
 		                });
@@ -552,6 +543,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     				}
     			})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -559,8 +551,12 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     	}
     	if(args[0].equalsIgnoreCase("setname")) {
 			if (!instance.getMain().checkName(ClaimMain.SERVER_UUID,args[1])) {
-                if (args[2].contains("claim-") || !args[2].matches("^[a-zA-Z0-9]+$")) {
+                if (args[2].contains("claim-")) {
                 	player.sendMessage(instance.getLanguage().getMessage("you-cannot-use-this-name"));
+                    return;
+                }
+                if (!args[2].matches("^[a-zA-Z0-9_\\-\\s]+$")) {
+                	player.sendMessage(instance.getLanguage().getMessage("incorrect-characters-name"));
                     return;
                 }
         		if(instance.getMain().checkName(ClaimMain.SERVER_UUID,args[2])) {
@@ -574,6 +570,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             			}
             		})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -597,6 +594,10 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 				player.sendMessage(instance.getLanguage().getMessage("you-cannot-use-this-name"));
 				return;
 			}
+			if (!args[1].matches("^[a-zA-Z0-9_\\-\\s]+$")) {
+				player.sendMessage(instance.getLanguage().getMessage("incorrect-characters-name"));
+				return;
+			}
     		if(instance.getMain().checkName(ClaimMain.SERVER_UUID,args[1])) {
             	instance.getMain().setClaimName(claim, args[1])
         		.thenAccept(success -> {
@@ -607,6 +608,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
         			}
         		})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -640,6 +642,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     	    					}
     	    				})
     	                    .exceptionally(ex -> {
+    	                        instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
     	                        ex.printStackTrace();
     	                        return null;
     	                    });
@@ -690,6 +693,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             				}
             			})
                         .exceptionally(ex -> {
+                            instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
                             ex.printStackTrace();
                             return null;
                         });
@@ -732,6 +736,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
     					}
     				})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -763,6 +768,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -829,6 +835,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -846,6 +853,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 	                		}
 	                	})
 	                    .exceptionally(ex -> {
+	                        instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
 	                        ex.printStackTrace();
 	                        return null;
 	                    });
@@ -863,6 +871,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -1029,6 +1038,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
 		        		}
 		        	})
 		            .exceptionally(ex -> {
+		                instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
 		                ex.printStackTrace();
 		                return null;
 		            });
@@ -1078,6 +1088,7 @@ public class ProtectedAreaCommand implements CommandExecutor, TabCompleter {
         		}
         	})
             .exceptionally(ex -> {
+                instance.getLogger().severe("Async protected area operation failed: " + ex.getMessage());
                 ex.printStackTrace();
                 return null;
             });

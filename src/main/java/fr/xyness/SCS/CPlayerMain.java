@@ -11,7 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -43,27 +42,21 @@ import fr.xyness.SCS.Types.CustomSet;
  * This class handles CPlayer management and methods
  */
 public class CPlayerMain {
-    
-	
-    // ***************
-    // *  Variables  *
-    // ***************
-    
-	
+
     /** A map of player uuid to CPlayer instances */
-    private Map<UUID, CPlayer> players = new HashMap<>();
-    
+    private Map<UUID, CPlayer> players = new ConcurrentHashMap<>();
+
     /** A map of player uuid to players name instances */
-    private Map<UUID, String> playersName = new HashMap<>();
-    
+    private Map<UUID, String> playersName = new ConcurrentHashMap<>();
+
     /** A map of players name to players uuid instances */
-    private Map<String, UUID> playersUUID = new HashMap<>();
-    
+    private Map<String, UUID> playersUUID = new ConcurrentHashMap<>();
+
     /** A set of players in DB */
-    private Set<UUID> playersRegistered = new HashSet<>();
-    
+    private Set<UUID> playersRegistered = ConcurrentHashMap.newKeySet();
+
     /** A map of player names to their configuration settings */
-    private Map<UUID, Map<String, Double>> playersConfigSettings = new HashMap<>();
+    private Map<UUID, Map<String, Double>> playersConfigSettings = new ConcurrentHashMap<>();
     
     /** Map of ItemStacks for players head */
     private ConcurrentHashMap<String,ItemStack> playersHead = new ConcurrentHashMap<>();
@@ -121,13 +114,7 @@ public class CPlayerMain {
     
     /** Pattern for matching chunks total permissions */
     public static final Pattern CHUNKS_TOTAL_PATTERN = Pattern.compile("scs\\.chunks-total\\.(\\d+)");
-    
-    
-    // ******************
-    // *  Constructors  *
-    // ******************
-    
-    
+
     /**
      * Constructor for CPlayerMain
      *
@@ -136,13 +123,7 @@ public class CPlayerMain {
     public CPlayerMain(SimpleClaimSystem instance) {
     	this.instance = instance;
     }
-    
-    
-    // *******************
-    // *  Other methods  *
-    // *******************
-    
-    
+
     /**
      * Clears all maps and variables.
      */
@@ -162,7 +143,6 @@ public class CPlayerMain {
             String playerName = player.getName();
             String oldName = playersName.get(uuid);
 
-            // Check if the player is registered
             if (!playersRegistered.contains(uuid) || oldName == null) {
             	playersRegistered.add(uuid);
                 playersName.put(uuid, playerName);
@@ -175,7 +155,6 @@ public class CPlayerMain {
                 playersHead.put(playerName, playerHead);
                 playersHashedTexture.put(playerName, textures == null ? "none" : textures);
 
-                // Update database
                 try (Connection connection = instance.getDataSource().getConnection()) {
                     String dbProductName = connection.getMetaData().getDatabaseProductName().toLowerCase();
                     String updateQuery;
@@ -196,21 +175,19 @@ public class CPlayerMain {
                         preparedStatement.setString(5, textures == null ? "none" : textures);
                         preparedStatement.executeUpdate();
                     } catch (SQLException e) {
+                        instance.getLogger().severe("Failed to insert/update player data: " + e.getMessage());
                         e.printStackTrace();
                     }
                 } catch (SQLException e) {
+                    instance.getLogger().severe("Failed to get database connection for player registration: " + e.getMessage());
                     e.printStackTrace();
                 }
 
-                // Log this
                 instance.getLogger().info(playerName + " is now registered (" + uuid.toString() + ").");
                 return;
             }
 
-            // Check if the player has changed name (premium players)
             if (!oldName.equals(playerName)) {
-            	
-                // Log this
                 instance.getLogger().info(oldName + " changed their name to " + playerName + " (" + uuid.toString() + "), new name saved.");
                 playersUUID.remove(oldName);
                 playersName.put(uuid, playerName);
@@ -224,42 +201,39 @@ public class CPlayerMain {
                 instance.getMain().setPlayerClaims(uuid, claims);
                 
                 try (Connection connection = instance.getDataSource().getConnection()) {
-
-	                // Update database
 	                String updateQuery = "UPDATE scs_players SET player_name = ? WHERE uuid_server = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                    preparedStatement.setString(1, playerName);
 	                    preparedStatement.setString(2, uuid.toString());
 	                    preparedStatement.executeUpdate();
 	                } catch (SQLException e) {
+	                    instance.getLogger().severe("Failed to update player name in scs_players: " + e.getMessage());
 	                    e.printStackTrace();
 	                }
-	
-	                // Update database
+
 	                updateQuery = "UPDATE scs_claims_1 SET owner_name = ? WHERE owner_uuid = ?";
 	                try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
 	                    preparedStatement.setString(1, playerName);
 	                    preparedStatement.setString(2, uuid.toString());
 	                    preparedStatement.executeUpdate();
 	                } catch (SQLException e) {
+	                    instance.getLogger().severe("Failed to update owner name in scs_claims_1: " + e.getMessage());
 	                    e.printStackTrace();
 	                }
-	                
+
                 } catch (SQLException e) {
+                    instance.getLogger().severe("Failed to get database connection for name update: " + e.getMessage());
                     e.printStackTrace();
                 }
             }
 
-            // Refresh player head texture
             String uuid_mojang = getUUIDFromMojang(playerName);
             if (uuid_mojang != null) {
                 String textures = getSkinURLWithoutDelay(uuid_mojang);
                 if (textures == null) return;
                 
-                // Check if the texture is the same
                 if (textures.equals(playersHashedTexture.getOrDefault(playerName, ""))) return;
 
-                // Log this
                 instance.getLogger().info(playerName + " changed their skin (" + uuid.toString() + "), new textures saved.");
 
                 ItemStack head = createPlayerHeadWithTexture(uuid_mojang, textures);
@@ -267,18 +241,18 @@ public class CPlayerMain {
                 playersHashedTexture.put(playerName, textures);
                 
                 try (Connection connection = instance.getDataSource().getConnection()) {
-
-                    // Update database
                     String updateQuery = "UPDATE scs_players SET player_textures = ? WHERE uuid_server = ?";
                     try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
                         preparedStatement.setString(1, textures);
                         preparedStatement.setString(2, uuid.toString());
                         preparedStatement.executeUpdate();
                     } catch (SQLException e) {
+                        instance.getLogger().severe("Failed to update player textures: " + e.getMessage());
                         e.printStackTrace();
                     }
-                    
+
                 } catch (SQLException e) {
+                    instance.getLogger().severe("Failed to get database connection for texture update: " + e.getMessage());
                     e.printStackTrace();
                 }
 
@@ -294,8 +268,7 @@ public class CPlayerMain {
      * If a player already exists in the database, their name is updated.
      */
     public void loadPlayers() {
-        instance.info(" ");
-        instance.info(net.md_5.bungee.api.ChatColor.DARK_GREEN + "Loading players..");
+        instance.getLogger().info("Loading players...");
         int i = 0;
 
         try (Connection connection = instance.getDataSource().getConnection()) {
@@ -308,7 +281,7 @@ public class CPlayerMain {
                     	String uuid_mojang = resultSet.getString("uuid_mojang");
                     	String playerName = resultSet.getString("player_name");
                     	String textures = resultSet.getString("player_textures");
-                        ItemStack playerHead = createPlayerHeadWithTexture(uuid_mojang,textures);
+                        ItemStack playerHead = createPlayerHeadWithTexture(uuid_mojang, textures, playerName);
                         playersHead.put(playerName, playerHead);
                     	playersHashedTexture.put(playerName, textures);
                     	playersName.put(uuid, playerName);
@@ -317,22 +290,25 @@ public class CPlayerMain {
                     	i++;
                     }
                 } catch (SQLException e) {
+                    instance.getLogger().severe("Failed to read player result set: " + e.getMessage());
                     e.printStackTrace();
                 }
             } catch (SQLException e) {
+                instance.getLogger().severe("Failed to prepare player query: " + e.getMessage());
                 e.printStackTrace();
             }
-            
+
         } catch (SQLException e) {
+            instance.getLogger().severe("Failed to get database connection for loading players: " + e.getMessage());
             e.printStackTrace();
         }
-        instance.info(instance.getMain().getNumberSeparate(String.valueOf(i)) + " players loaded.");
+        instance.getLogger().info("Loaded " + instance.getMain().getNumberSeparate(String.valueOf(i)) + " players.");
     }
 
     /**
      * Get or create a player head with the correct texture.
      *
-     * @param player The OfflinePlayer object.
+     * @param playerName The name of the player.
      * @return The ItemStack representing the player's head.
      */
     public ItemStack getPlayerHead(String playerName) {
@@ -391,11 +367,24 @@ public class CPlayerMain {
      * @return An ItemStack representing the player's head with the applied texture.
      */
     public ItemStack createPlayerHeadWithTexture(String uuid, String texture) {
+        return createPlayerHeadWithTexture(uuid, texture, (String) null);
+    }
+
+    /**
+     * Creates an ItemStack of a player head with the specified texture and player name.
+     *
+     * @param uuid       The UUID of the player.
+     * @param texture    The texture URL of the player's head.
+     * @param playerName The name of the player (used for profile, can be null).
+     * @return An ItemStack representing the player's head with the applied texture.
+     */
+    public ItemStack createPlayerHeadWithTexture(String uuid, String texture, String playerName) {
         ItemStack head = new ItemStack(Material.PLAYER_HEAD, 1);
         SkullMeta meta = (SkullMeta) head.getItemMeta();
 
         if (meta != null && uuid != null && !uuid.isBlank() && texture != null && !texture.isBlank() && !texture.equals("none") && !uuid.equals("none")) {
-            PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString(uuid), "SCSPlayer");
+            String profileName = (playerName != null && !playerName.isBlank()) ? playerName : "SCSPlayer";
+            PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString(uuid), profileName);
             if(texture != null) {
                 try {
                 	URI uri = URI.create(texture);
@@ -414,9 +403,11 @@ public class CPlayerMain {
     }
     
     /**
-     * Creates an ItemStack of a player head with the specified texture.
+     * Creates an ItemStack of a player head with the specified texture, title, and lore.
      *
-     * @param texture The texture of the player's head
+     * @param texture The texture hash of the player's head.
+     * @param title   The display name for the item, or null for no name.
+     * @param lore    The lore lines for the item, or null/empty for no lore.
      * @return An ItemStack representing the player's head with the applied texture.
      */
     public ItemStack createPlayerHeadWithTexture(String texture, String title, List<String> lore) {
@@ -453,24 +444,28 @@ public class CPlayerMain {
     public CompletableFuture<String> getSkinURL(String uuid) {
         CompletableFuture<String> future = new CompletableFuture<>();
         scheduler.schedule(() -> {
+            HttpURLConnection connection = null;
             try {
             	URI uri = URI.create(MOJANG_PROFILE_API_URL + uuid);
                 URL url = uri.toURL();
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
 
                 if (connection.getResponseCode() == 200) {
-                    InputStreamReader reader = new InputStreamReader(connection.getInputStream());
-                    JsonObject response = JsonParser.parseReader(reader).getAsJsonObject();
-                    JsonObject properties = response.getAsJsonArray("properties").get(0).getAsJsonObject();
-                    String value = properties.get("value").getAsString();
-                    String decodedValue = new String(Base64.getDecoder().decode(value));
-                    JsonObject textureProperty = JsonParser.parseString(decodedValue).getAsJsonObject();
-                    future.complete(textureProperty.getAsJsonObject("textures").getAsJsonObject("SKIN").get("url").getAsString());
+                    try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
+                        JsonObject response = JsonParser.parseReader(reader).getAsJsonObject();
+                        JsonObject properties = response.getAsJsonArray("properties").get(0).getAsJsonObject();
+                        String value = properties.get("value").getAsString();
+                        String decodedValue = new String(Base64.getDecoder().decode(value));
+                        JsonObject textureProperty = JsonParser.parseString(decodedValue).getAsJsonObject();
+                        future.complete(textureProperty.getAsJsonObject("textures").getAsJsonObject("SKIN").get("url").getAsString());
+                    }
                 }
-                
+
             } catch (Exception e) {
-                e.printStackTrace();
+                instance.getLogger().warning("Failed to fetch skin URL from Mojang API: " + e.getMessage());
+            } finally {
+                if (connection != null) connection.disconnect();
             }
         }, requestCount++ * RATE_LIMIT, TimeUnit.MILLISECONDS);
         return future;
@@ -483,27 +478,31 @@ public class CPlayerMain {
      * @return A String representing the URL of the player's skin texture, or null if an error occurs or the texture is not found.
      */
     public String getSkinURLWithoutDelay(String uuid) {
+        HttpURLConnection connection = null;
         try {
         	URI uri = URI.create(MOJANG_PROFILE_API_URL + uuid);
             URL url = uri.toURL();
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
 
             if (connection.getResponseCode() == 200) {
-                InputStreamReader reader = new InputStreamReader(connection.getInputStream());
-                JsonObject response = JsonParser.parseReader(reader).getAsJsonObject();
-                JsonObject properties = response.getAsJsonArray("properties").get(0).getAsJsonObject();
-                String value = properties.get("value").getAsString();
-                String decodedValue = new String(Base64.getDecoder().decode(value));
-                JsonObject textureProperty = JsonParser.parseString(decodedValue).getAsJsonObject();
-                return textureProperty.getAsJsonObject("textures").getAsJsonObject("SKIN").get("url").getAsString();
+                try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
+                    JsonObject response = JsonParser.parseReader(reader).getAsJsonObject();
+                    JsonObject properties = response.getAsJsonArray("properties").get(0).getAsJsonObject();
+                    String value = properties.get("value").getAsString();
+                    String decodedValue = new String(Base64.getDecoder().decode(value));
+                    JsonObject textureProperty = JsonParser.parseString(decodedValue).getAsJsonObject();
+                    return textureProperty.getAsJsonObject("textures").getAsJsonObject("SKIN").get("url").getAsString();
+                }
             }
-            
+
             return null;
-            
+
         } catch (Exception e) {
-            e.printStackTrace();
+            instance.getLogger().warning("Failed to fetch skin URL without delay: " + e.getMessage());
             return null;
+        } finally {
+            if (connection != null) connection.disconnect();
         }
     }
 
@@ -514,10 +513,11 @@ public class CPlayerMain {
      * @return The UUID of the player as a string, or null if an error occurs.
      */
     private String getUUIDFromMojang(String playerName) {
+        HttpURLConnection connection = null;
         try {
         	URI uri = URI.create(MOJANG_API_URL + playerName);
             URL url = uri.toURL();
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+            connection = (HttpURLConnection) url.openConnection();
             connection.setRequestMethod("GET");
 
             if (connection.getResponseCode() == 200) {
@@ -527,7 +527,9 @@ public class CPlayerMain {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            instance.getLogger().warning("Failed to fetch UUID from Mojang API: " + e.getMessage());
+        } finally {
+            if (connection != null) connection.disconnect();
         }
         return null;
     }
@@ -571,14 +573,12 @@ public class CPlayerMain {
     public UUID getPlayerUUID(String targetName) {
         if (targetName == null) return null;
 
-        // Use a case-insensitive lookup in playersUUID
         UUID uuid = playersUUID.entrySet().stream()
                 .filter(entry -> entry.getKey().equalsIgnoreCase(targetName))
                 .map(Map.Entry::getValue)
                 .findFirst()
                 .orElse(null);
 
-        // Fallback to Bukkit's offline player search if no match is found
         return uuid != null ? uuid : Bukkit.getOfflinePlayer(targetName).getUniqueId();
     }
     
@@ -606,12 +606,13 @@ public class CPlayerMain {
      * Checks if a player can add a member to their claim.
      * 
      * @param player The player
-     * @param chunk The chunk
+     * @param claim The claim
      * @return True if the player can add a member, false otherwise
      */
     public boolean canAddMember(Player player, Claim claim) {
         if (player.hasPermission("scs.admin")) return true;
         CPlayer cPlayer = players.get(player.getUniqueId());
+        if (cPlayer == null) return false;
         int i = claim.getMembers().size();
         int nb_members = cPlayer.getMaxMembers();
         return nb_members == 0 || nb_members > i;
@@ -635,6 +636,7 @@ public class CPlayerMain {
      */
     public void activePlayerFly(Player player) {
         CPlayer cPlayer = players.get(player.getUniqueId());
+        if (cPlayer == null) return;
         if (!player.getAllowFlight()) {
             player.setAllowFlight(true);
         }
@@ -649,6 +651,7 @@ public class CPlayerMain {
      */
     public void removePlayerFly(Player player) {
         CPlayer cPlayer = players.get(player.getUniqueId());
+        if (cPlayer == null) return;
         if (cPlayer.getClaimFly()) {
         	GameMode pMode = player.getGameMode();
         	if(pMode.equals(GameMode.ADVENTURE) || pMode.equals(GameMode.SURVIVAL)) {

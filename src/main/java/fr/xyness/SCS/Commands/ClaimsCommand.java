@@ -15,22 +15,10 @@ import fr.xyness.SCS.Types.CPlayer;
  * Handles the /claims command, which opens a GUI for the player to view their claims.
  */
 public class ClaimsCommand implements CommandExecutor {
-	
-	
-    // ***************
-    // *  Variables  *
-    // ***************
-	
-	
+
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
-    
-    
-    // ******************
-    // *  Constructors  *
-    // ******************
-    
-    
+
     /**
      * Constructor for ClaimsCommand.
      *
@@ -39,13 +27,7 @@ public class ClaimsCommand implements CommandExecutor {
     public ClaimsCommand(SimpleClaimSystem instance) {
     	this.instance = instance;
     }
-    
-    
-    // ******************
-    // *  Main command  *
-    // ******************
-	
-    
+
     /**
      * Executes the given command, returning its success.
      *
@@ -58,17 +40,14 @@ public class ClaimsCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
     	
-        // Check if the sender is a player
         if (!(sender instanceof Player)) {
         	sender.sendMessage(instance.getLanguage().getMessage("command-only-by-players"));
             return false;
         }
 
-        // Get data
         Player player = (Player) sender;
         CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
         
-        // Open the claims GUI for the player
         cPlayer.setGuiPage(1);
         if(instance.getSettings().getBooleanSetting("floodgate")) {
         	if(FloodgateApi.getInstance().isFloodgatePlayer(player.getUniqueId())) {

@@ -15,18 +15,12 @@ import fr.xyness.SCS.Commands.UnclaimCommand;
 public class BUnclaimConfirmationGui {
 
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 
     
     /** Floodgate Player */
     private final FloodgatePlayer floodgatePlayer;
 
     
-    // ******************
-    // *  Constructors  *
-    // ******************
 
     
     /**

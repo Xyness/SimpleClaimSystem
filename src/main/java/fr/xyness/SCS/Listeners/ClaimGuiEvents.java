@@ -50,18 +50,12 @@ import fr.xyness.SCS.Types.GuiSlot;
 public class ClaimGuiEvents implements Listener {
 	
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 	
 	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
     
-    // ******************
-    // *  Constructors  *
-    // ******************
     
     
     /**
@@ -74,9 +68,6 @@ public class ClaimGuiEvents implements Listener {
     }
     
 	
-	// ******************
-	// *  EventHandler  *
-	// ******************
 
 	/**
 	 * Handles inventory close events.
@@ -112,7 +103,8 @@ public class ClaimGuiEvents implements Listener {
         	
         	InventoryHolder holder = event.getInventory().getHolder();
         	CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
-        	
+        	if (cPlayer == null) return;
+
         	if (holder instanceof ClaimMainGui) {
                 if (!inv.equals(openInventory)) {
                     event.setCancelled(true);
@@ -238,9 +230,6 @@ public class ClaimGuiEvents implements Listener {
 	}
 	
 	
-    // ********************
-    // *  Others Methods  *
-    // ********************
 	
 	
 	/**
@@ -446,6 +435,7 @@ public class ClaimGuiEvents implements Listener {
             			}
             		})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -510,6 +500,7 @@ public class ClaimGuiEvents implements Listener {
                 			}
                 		})
                         .exceptionally(ex -> {
+                            instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
                             ex.printStackTrace();
                             return null;
                         });
@@ -528,6 +519,7 @@ public class ClaimGuiEvents implements Listener {
                 		}
                 	})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -624,6 +616,7 @@ public class ClaimGuiEvents implements Listener {
         			}
         		})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -712,6 +705,7 @@ public class ClaimGuiEvents implements Listener {
 	    			}
 	    		})
 	            .exceptionally(ex -> {
+	                instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
 	                ex.printStackTrace();
 	                return null;
 	            });
@@ -806,6 +800,7 @@ public class ClaimGuiEvents implements Listener {
         			}
         		})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -887,6 +882,7 @@ public class ClaimGuiEvents implements Listener {
             			}
             		})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -1062,6 +1058,7 @@ public class ClaimGuiEvents implements Listener {
             					}
             				})
                             .exceptionally(ex -> {
+                                instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
                                 ex.printStackTrace();
                                 return null;
                             });
@@ -1173,6 +1170,7 @@ public class ClaimGuiEvents implements Listener {
 	    				}
 	    			})
 	    			.exceptionally(ex -> {
+	    				instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
 	    				ex.printStackTrace();
 	    				return null;
 	    			});
@@ -1249,6 +1247,7 @@ public class ClaimGuiEvents implements Listener {
 					}
 				})
 		        .exceptionally(ex -> {
+		            instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
 		            ex.printStackTrace();
 		            return null;
 		        });
@@ -1295,6 +1294,7 @@ public class ClaimGuiEvents implements Listener {
         			}
         		})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -1336,6 +1336,7 @@ public class ClaimGuiEvents implements Listener {
                 			}
                 		})
                         .exceptionally(ex -> {
+                            instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
                             ex.printStackTrace();
                             return null;
                         });
@@ -1354,6 +1355,7 @@ public class ClaimGuiEvents implements Listener {
                 		}
                 	})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -1419,6 +1421,7 @@ public class ClaimGuiEvents implements Listener {
     				}
     			})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -1483,6 +1486,7 @@ public class ClaimGuiEvents implements Listener {
     				}
     			})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -1547,6 +1551,7 @@ public class ClaimGuiEvents implements Listener {
         				}
         			})
         	        .exceptionally(ex -> {
+        	            instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
         	            ex.printStackTrace();
         	            return null;
         	        });
@@ -1667,6 +1672,7 @@ public class ClaimGuiEvents implements Listener {
         			}
         		})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });

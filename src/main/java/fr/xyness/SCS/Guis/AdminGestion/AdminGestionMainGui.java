@@ -24,9 +24,6 @@ import net.md_5.bungee.api.ChatColor;
 public class AdminGestionMainGui implements InventoryHolder {
 
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 
 	
     /** Inventory for the GUI. */
@@ -36,9 +33,6 @@ public class AdminGestionMainGui implements InventoryHolder {
     private SimpleClaimSystem instance;
     
 
-    // ******************
-    // *  Constructors  *
-    // ******************
 
     
     /**
@@ -58,15 +52,13 @@ public class AdminGestionMainGui implements InventoryHolder {
         	}
         })
         .exceptionally(ex -> {
+            instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
             ex.printStackTrace();
             return null;
         });
     }
 
     
-    // ********************
-    // *  Others Methods  *
-    // ********************
 
     
     /**

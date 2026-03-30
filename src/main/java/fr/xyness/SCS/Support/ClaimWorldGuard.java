@@ -16,9 +16,6 @@ import org.bukkit.entity.Player;
 public class ClaimWorldGuard {
 	
 	
-	// ***************
-	// *  Variables  *
-	// ***************
 	
 	
 	/** Indicates whether the custom flag has been registered. */
@@ -28,9 +25,6 @@ public class ClaimWorldGuard {
 	public final StateFlag SCS_CLAIM_FLAG = new StateFlag("scs-claim", true);
 	
 	
-	// ********************
-	// *  Others Methods  *
-	// ********************
 	
 	
 	/**

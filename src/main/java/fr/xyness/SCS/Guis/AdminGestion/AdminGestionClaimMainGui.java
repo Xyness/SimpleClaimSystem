@@ -20,9 +20,6 @@ import fr.xyness.SCS.Types.Claim;
 public class AdminGestionClaimMainGui implements InventoryHolder {
 
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 
 	
     /** Inventory for the GUI. */
@@ -32,9 +29,6 @@ public class AdminGestionClaimMainGui implements InventoryHolder {
     private SimpleClaimSystem instance;
 
     
-    // ******************
-    // *  Constructors  *
-    // ******************
 
     
     /**
@@ -56,15 +50,13 @@ public class AdminGestionClaimMainGui implements InventoryHolder {
         	}
         })
         .exceptionally(ex -> {
+            instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
             ex.printStackTrace();
             return null;
         });
     }
 
     
-    // ********************
-    // *  Others Methods  *
-    // ********************
 
     
     /**
