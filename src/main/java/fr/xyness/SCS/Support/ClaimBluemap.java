@@ -39,7 +39,25 @@ public class ClaimBluemap {
 	public ClaimBluemap(BlueMapAPI api, SimpleClaimSystem instance) {
 		this.api = api;
 		this.instance = instance;
-		load();
+		initMarkerSets();
+	}
+
+	/**
+	 * Initializes empty MarkerSets for each world and registers them with BlueMap.
+	 * Claims are added later during loadClaims().
+	 */
+	public void initMarkerSets() {
+		for (World w : Bukkit.getWorlds()) {
+			MarkerSet markerSet = MarkerSet.builder()
+	                .label("Claims")
+	                .build();
+			markerSets.put(w, markerSet);
+			api.getWorld(w).ifPresent(world -> {
+			    for (BlueMapMap map : world.getMaps()) {
+			        map.getMarkerSets().put("Claims", markerSet);
+			    }
+			});
+		}
 	}
 
 	/**

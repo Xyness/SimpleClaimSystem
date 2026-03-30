@@ -2103,8 +2103,10 @@ public class ClaimMain {
                             // Add chunks
                             chunks.forEach(c -> listClaims.put(c, claim));
 
-                            // Dynmap
+                            // Maps
                             if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(claim);
+                            if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createClaimZone(claim);
+                            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(claim);
 
                             // Keep chunks loaded
                             if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
