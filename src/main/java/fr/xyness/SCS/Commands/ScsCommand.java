@@ -34,18 +34,12 @@ import fr.xyness.SCS.Types.Claim;
 public class ScsCommand implements CommandExecutor, TabCompleter {
 	
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 	
 	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
     
-    // ******************
-    // *  Constructors  *
-    // ******************
     
     
     /**
@@ -58,9 +52,6 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     }
     
 	
-	// ******************
-	// *  Tab Complete  *
-	// ******************
 	
 	
     /**
@@ -105,9 +96,6 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     }
 	
 	
-	// ******************
-	// *  Main command  *
-	// ******************
     
 	
     /**
@@ -144,9 +132,6 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     }
     
     
-    // ********************
-    // *  Other Methods  *
-    // ********************
     
     
     /**
@@ -199,6 +184,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     				}
     			})
     	        .exceptionally(ex -> {
+    	            instance.getLogger().severe("Failed to reset all player claims settings: " + ex.getMessage());
     	            ex.printStackTrace();
     	            return null;
     	        });
@@ -214,6 +200,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
     				}
     			})
     	        .exceptionally(ex -> {
+    	            instance.getLogger().severe("Failed to reset admin claims settings: " + ex.getMessage());
     	            ex.printStackTrace();
     	            return null;
     	        });
@@ -248,6 +235,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         				}
         			})
         	        .exceptionally(ex -> {
+        	            instance.getLogger().severe("Failed to force unclaim all: " + ex.getMessage());
         	            ex.printStackTrace();
         	            return null;
         	        });
@@ -517,6 +505,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
         						}
         					})
         			        .exceptionally(ex -> {
+        			            instance.getLogger().severe("Failed to delete all claims: " + ex.getMessage());
         			            ex.printStackTrace();
         			            return null;
         			        });
@@ -542,6 +531,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 					}
                 				})
                 		        .exceptionally(ex -> {
+                		            instance.getLogger().severe("Failed to delete claim: " + ex.getMessage());
                 		            ex.printStackTrace();
                 		            return null;
                 		        });
@@ -583,7 +573,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                         	config.save(configFile);
                         	sender.sendMessage(instance.getLanguage().getMessage("set-player-claim-distance-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
         				} catch (IOException e) {
-        					e.printStackTrace();
+        					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
         				}
     				});
     			});
@@ -620,7 +610,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                         	config.save(configFile);
                         	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-chunks-total-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
         				} catch (IOException e) {
-        					e.printStackTrace();
+        					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
         				}
     				});
     			});
@@ -657,7 +647,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                         	config.save(configFile);
                         	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-chunks-per-claim-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
         				} catch (IOException e) {
-        					e.printStackTrace();
+        					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
         				}
     				});
     			});
@@ -694,7 +684,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                         	config.save(configFile);
                         	sender.sendMessage(instance.getLanguage().getMessage("set-player-claim-cost-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
         				} catch (IOException e) {
-        					e.printStackTrace();
+        					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
         				}
     				});
     			});
@@ -731,7 +721,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                         	config.save(configFile);
                         	sender.sendMessage(instance.getLanguage().getMessage("set-player-chunk-cost-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
         				} catch (IOException e) {
-        					e.printStackTrace();
+        					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
         				}
     				});
     			});
@@ -768,7 +758,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                         	config.save(configFile);
                         	sender.sendMessage(instance.getLanguage().getMessage("set-player-chunk-cost-multiplier-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
         				} catch (IOException e) {
-        					e.printStackTrace();
+        					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
         				}
     				});
     			});
@@ -805,7 +795,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                         	config.save(configFile);
                         	sender.sendMessage(instance.getLanguage().getMessage("set-player-claim-cost-multiplier-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
         				} catch (IOException e) {
-        					e.printStackTrace();
+        					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
         				}
     				});
     			});
@@ -842,7 +832,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                         	config.save(configFile);
                         	sender.sendMessage(instance.getLanguage().getMessage("set-player-member-limit-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
         				} catch (IOException e) {
-        					e.printStackTrace();
+        					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
         				}
     				});
     			});
@@ -879,7 +869,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                         	config.save(configFile);
                         	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-claim-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
         				} catch (IOException e) {
-        					e.printStackTrace();
+        					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
         				}
     				});
     			});
@@ -917,7 +907,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                         	config.save(configFile);
                         	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-radius-claim-success").replace("%player%", targetName).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
         				} catch (IOException e) {
-        					e.printStackTrace();
+        					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
         				}
     				});
     			});
@@ -955,7 +945,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                         	config.save(configFile);
                         	sender.sendMessage(instance.getLanguage().getMessage("set-player-teleportation-delay-success").replace("%player%", targetName).replace("%amount%", String.valueOf(args[3])));
         				} catch (IOException e) {
-        					e.printStackTrace();
+        					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
         				}
     				});
     			});
@@ -991,7 +981,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-claim-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1025,7 +1015,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-radius-claim-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1059,7 +1049,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-player-member-limit-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1093,7 +1083,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-chunks-per-claim-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1127,7 +1117,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-player-max-chunks-total-success").replace("%player%", name).replace("%amount%", instance.getMain().getNumberSeparate(String.valueOf(new_amount))));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1161,7 +1151,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-group-claim-distance-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1186,7 +1176,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-group-max-chunks-total-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1211,7 +1201,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-group-max-chunks-per-claim-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1236,7 +1226,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-group-claim-cost-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1261,7 +1251,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-group-chunk-cost-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1286,7 +1276,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-group-claim-cost-multiplier-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1311,7 +1301,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-group-chunk-cost-multiplier-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1336,7 +1326,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-group-member-limit-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1361,7 +1351,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-group-max-claim-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1386,7 +1376,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-group-max-radius-claim-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}
@@ -1411,7 +1401,7 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 	config.save(configFile);
                 	sender.sendMessage(instance.getLanguage().getMessage("set-group-teleportation-delay-success").replace("%group%", args[2]).replace("%amount%", instance.getMain().getNumberSeparate(args[3])));
 				} catch (IOException e) {
-					e.printStackTrace();
+					instance.getLogger().warning("Failed to save config file: " + e.getMessage());
 				}
                 return;
         	}

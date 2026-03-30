@@ -18,13 +18,7 @@ import fr.xyness.SCS.Types.Claim;
  * This class handles bossbar management.
  */
 public class ClaimBossBar {
-	
-	
-    // ***************
-    // *  Variables  *
-    // ***************
-    
-	
+
     /** A map to store the BossBars for each player. */
 	private final ConcurrentMap<Player, BossBar> bossBars = new ConcurrentHashMap<>();
     
@@ -43,12 +37,6 @@ public class ClaimBossBar {
     /** For sale bossbar style */
     private BarStyle saleStyle;
 
-    
-    // ******************
-    // *  Constructors  *
-    // ******************
-    
-    
     /**
      * Constructor for ClaimBossBar.
      *
@@ -57,13 +45,7 @@ public class ClaimBossBar {
     public ClaimBossBar(SimpleClaimSystem instance) {
     	this.instance = instance;
     }
-    
-    
-    // ********************
-    // *  Others Methods  *
-    // ********************
-    
-    
+
     /**
      * Loads bossbar settings
      */
@@ -169,7 +151,7 @@ public class ClaimBossBar {
      * @param color the new color for the BossBars.
      */
     public void setBossBarColor(BarColor color) {
-        bossBars.values().stream().forEach(b -> b.setColor(color));
+        bossBars.values().forEach(b -> b.setColor(color));
     }
     
     /**
@@ -178,7 +160,7 @@ public class ClaimBossBar {
      * @param style the new style for the BossBars.
      */
     public void setBossBarStyle(BarStyle style) {
-        bossBars.values().stream().forEach(b -> b.setStyle(style));
+        bossBars.values().forEach(b -> b.setStyle(style));
     }
     
     /**
@@ -245,7 +227,7 @@ public class ClaimBossBar {
     public void activateBossBar(Set<Chunk> chunks) {
     	if (!instance.getSettings().getBooleanSetting("bossbar")) return;
     	if(instance.isFolia()) {
-            Bukkit.getOnlinePlayers().stream().forEach(p -> {
+            Bukkit.getOnlinePlayers().forEach(p -> {
             	Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
                 	Chunk c = p.getLocation().getChunk();
                 	if(chunks.contains(c)) {
@@ -254,7 +236,7 @@ public class ClaimBossBar {
             	});
             });
     	} else {
-            Bukkit.getOnlinePlayers().stream().forEach(p -> {
+            Bukkit.getOnlinePlayers().forEach(p -> {
             	Chunk c = p.getLocation().getChunk();
             	if(chunks.contains(c)) {
             		activeBossBar(p,c);
@@ -271,7 +253,7 @@ public class ClaimBossBar {
     public void deactivateBossBar(Set<Chunk> chunks) {
     	if (!instance.getSettings().getBooleanSetting("bossbar")) return;
     	if(instance.isFolia()) {
-            Bukkit.getOnlinePlayers().stream().forEach(p -> {
+            Bukkit.getOnlinePlayers().forEach(p -> {
             	Bukkit.getRegionScheduler().run(instance, p.getLocation(), task -> {
                 	Chunk c = p.getLocation().getChunk();
                 	if(chunks.contains(c)) {
@@ -280,7 +262,7 @@ public class ClaimBossBar {
             	});
             });
     	} else {
-            Bukkit.getOnlinePlayers().stream().forEach(p -> {
+            Bukkit.getOnlinePlayers().forEach(p -> {
             	Chunk c = p.getLocation().getChunk();
             	if(chunks.contains(c)) {
             		disableBossBar(p);

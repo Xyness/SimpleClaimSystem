@@ -3,3 +3,18 @@
 
 # Ignore Gradle build output directory
 build
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.swp
+*.swo
+*.orig
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Local Gradle settings
+local.properties

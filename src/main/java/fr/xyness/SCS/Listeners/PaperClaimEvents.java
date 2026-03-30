@@ -28,18 +28,12 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 public class PaperClaimEvents implements Listener {
 
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 	
 	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
     
-    // ******************
-    // *  Constructors  *
-    // ******************
     
     
     /**
@@ -52,9 +46,6 @@ public class PaperClaimEvents implements Listener {
     }
     
     
-    // *******************
-    // *  EventHandlers  *
-    // *******************
     
     
 	/**
@@ -206,9 +197,6 @@ public class PaperClaimEvents implements Listener {
     }
     
     
-    // *******************
-    // *  Other methods  *
-    // *******************
     
     
     /**
@@ -326,6 +314,7 @@ public class PaperClaimEvents implements Listener {
 	        		}
 	        	})
 	            .exceptionally(ex -> {
+	                instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
 	                ex.printStackTrace();
 	                return null;
 	            });
@@ -420,6 +409,7 @@ public class PaperClaimEvents implements Listener {
                         		}
                         	})
                             .exceptionally(ex -> {
+                                instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                                 ex.printStackTrace();
                                 return null;
                             });
@@ -429,6 +419,7 @@ public class PaperClaimEvents implements Listener {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -467,6 +458,7 @@ public class PaperClaimEvents implements Listener {
             			}
             		})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -487,6 +479,7 @@ public class PaperClaimEvents implements Listener {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -520,7 +513,7 @@ public class PaperClaimEvents implements Listener {
             }
             
             // Check if there is chunk near
-            if(!instance.getMain().isAreaClaimFree(chunk, cPlayer.getClaimDistance(), playerName).join()) {
+            if(!instance.getMain().isAreaClaimFreeSync(chunk, cPlayer.getClaimDistance(), playerName)) {
             	player.sendMessage(instance.getLanguage().getMessage("cannot-claim-because-claim-near"));
             	return;
             }
@@ -557,6 +550,7 @@ public class PaperClaimEvents implements Listener {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });

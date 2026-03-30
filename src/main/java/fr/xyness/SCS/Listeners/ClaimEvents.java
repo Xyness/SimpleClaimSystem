@@ -25,8 +25,14 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.GlowItemFrame;
 import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Ghast;
+import org.bukkit.entity.Hoglin;
+import org.bukkit.entity.MagmaCube;
 import org.bukkit.entity.Monster;
 import org.bukkit.entity.Phantom;
+import org.bukkit.entity.PigZombie;
+import org.bukkit.entity.Shulker;
+import org.bukkit.entity.Slime;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.ThrownPotion;
@@ -89,13 +95,7 @@ import fr.xyness.SCS.Types.WorldMode;
  * Event listener for claim-related events.
  */
 public class ClaimEvents implements Listener {
-	
-	
-    // ***************
-    // *  Variables  *
-    // ***************
-	
-	
+
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
@@ -104,13 +104,7 @@ public class ClaimEvents implements Listener {
     
     /** Bukkit version */
     private final String bukkitVersion = Bukkit.getVersion();
-    
-    
-    // ******************
-    // *  Constructors  *
-    // ******************
-    
-    
+
     /**
      * Constructor for ClaimEvents.
      *
@@ -134,13 +128,7 @@ public class ClaimEvents implements Listener {
     		NEGATIVE_EFFECTS.add(PotionEffectType.DARKNESS);
     	}
     }
-	
-    
-	// *******************
-	// *  EventHandlers  *
-	// *******************
-	
-	
+
     /**
      * Handles player command pre process.
      * 
@@ -337,16 +325,14 @@ public class ClaimEvents implements Listener {
 		Chunk chunk = event.getLocation().getChunk();
 		if(instance.getMain().checkIfClaimExists(chunk)) {
 			Claim claim = instance.getMain().getClaim(chunk);
-			Entity entity = event.getEntity();
-			if(entity instanceof Monster || entity instanceof Phantom) {
+			if(isHostileMob(event.getEntity())) {
 				if(!claim.getPermission("Monsters", "Natural")) {
 					event.setCancelled(true);
 					return;
 				}
 			}
 		} else if (mode == WorldMode.SURVIVAL_REQUIRING_CLAIMS && !instance.getSettings().getSettingSRC("Monsters")) {
-			Entity entity = event.getEntity();
-			if(entity instanceof Monster || entity instanceof Phantom) {
+			if(isHostileMob(event.getEntity())) {
 				event.setCancelled(true);
 			}
         }
@@ -1605,19 +1591,31 @@ public class ClaimEvents implements Listener {
             }
         }
     }
-    
-    
-    // *******************
-    // *  Other methods  *
-    // *******************
-    
-    
+
     /**
      * Checks if the block needs to be blocked.
      * 
      * @param block The block.
      * @return True if need block, false otherwise.
      */
+    /**
+     * Checks if an entity is a hostile mob.
+     * Includes all hostile mobs that don't implement the Monster interface
+     * (Ghast, MagmaCube, Slime, Hoglin, Zombified Piglin, Phantom, Shulker).
+     *
+     * @param entity The entity to check.
+     * @return true if the entity is a hostile mob.
+     */
+    private boolean isHostileMob(Entity entity) {
+        return entity instanceof Monster
+            || entity instanceof Phantom
+            || entity instanceof Ghast
+            || entity instanceof Slime
+            || entity instanceof Hoglin
+            || entity instanceof Shulker
+            || entity instanceof PigZombie;
+    }
+
     private boolean hasCrossChunkRedstoneSourceAndNeedBlock(Block block) {
         Chunk currentChunk = block.getChunk();
 
@@ -1769,6 +1767,7 @@ public class ClaimEvents implements Listener {
 	        		}
 	        	})
 	            .exceptionally(ex -> {
+	                instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
 	                ex.printStackTrace();
 	                return null;
 	            });
@@ -1857,6 +1856,7 @@ public class ClaimEvents implements Listener {
                         		}
                         	})
                             .exceptionally(ex -> {
+                                instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                                 ex.printStackTrace();
                                 return null;
                             });
@@ -1866,6 +1866,7 @@ public class ClaimEvents implements Listener {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -1904,6 +1905,7 @@ public class ClaimEvents implements Listener {
             			}
             		})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -1924,6 +1926,7 @@ public class ClaimEvents implements Listener {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -1951,7 +1954,7 @@ public class ClaimEvents implements Listener {
             }
             
             // Check if there is chunk near
-            if(!instance.getMain().isAreaClaimFree(chunk, cPlayer.getClaimDistance(), playerName).join()) {
+            if(!instance.getMain().isAreaClaimFreeSync(chunk, cPlayer.getClaimDistance(), playerName)) {
             	player.sendMessage(instance.getLanguage().getMessage("cannot-claim-because-claim-near"));
             	return;
             }
@@ -1988,6 +1991,7 @@ public class ClaimEvents implements Listener {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });

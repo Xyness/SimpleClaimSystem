@@ -28,24 +28,12 @@ import fr.xyness.SCS.Types.WorldMode;
  */
 public class UnclaimCommand implements CommandExecutor, TabCompleter {
 
-	
-    // ***************
-    // *  Variables  *
-    // ***************
-	
-	
     /** A map of players currently in the process of deleting a claim. */
     public static Map<Player, String> isOnDelete = new HashMap<>();
 	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
-    
-    
-    // ******************
-    // *  Constructors  *
-    // ******************
-    
-    
+
     /**
      * Constructor for UnclaimCommand.
      *
@@ -54,13 +42,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
     public UnclaimCommand(SimpleClaimSystem instance) {
     	this.instance = instance;
     }
-    
-    
-    // ******************
-    // *  Tab Complete  *
-    // ******************
 
-    
     /**
      * Provides tab completion suggestions for the /unclaim command.
      *
@@ -89,18 +71,13 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
         });
 
         try {
-            return future.get(); // Return the result from the CompletableFuture
+            return future.get();
         } catch (ExecutionException | InterruptedException e) {
             return new ArrayList<>();
         }
     }
 
-	
-    // ******************
-    // *  Main command  *
-    // ******************
 
-	
     /**
      * Executes the given command, returning its success.
      *
@@ -113,13 +90,11 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         
-    	// If the sender is not a player
         if (!(sender instanceof Player)) {
             sender.sendMessage(instance.getLanguage().getMessage("command-only-by-players"));
             return true;
         }
 
-        // Get data
         Player player = (Player) sender;
         String playerName = player.getName();
         CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
@@ -157,6 +132,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
 	                    		}
 	                    	})
 	                        .exceptionally(ex -> {
+	                            instance.getLogger().severe("Async unclaim operation failed: " + ex.getMessage());
 	                            ex.printStackTrace();
 	                            return null;
 	                        });
@@ -180,6 +156,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
                 		}
                 	})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async unclaim operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -203,6 +180,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
     	            		}
     	            	})
     	                .exceptionally(ex -> {
+    	                    instance.getLogger().severe("Async unclaim operation failed: " + ex.getMessage());
     	                    ex.printStackTrace();
     	                    return null;
     	                });
@@ -226,6 +204,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
 	            		}
 	            	})
 	                .exceptionally(ex -> {
+	                    instance.getLogger().severe("Async unclaim operation failed: " + ex.getMessage());
 	                    ex.printStackTrace();
 	                    return null;
 	                });
@@ -253,6 +232,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
         			}
         		})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async unclaim operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -276,6 +256,7 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
 	            		}
 	            	})
 	                .exceptionally(ex -> {
+	                    instance.getLogger().severe("Async unclaim operation failed: " + ex.getMessage());
 	                    ex.printStackTrace();
 	                    return null;
 	                });
@@ -299,21 +280,15 @@ public class UnclaimCommand implements CommandExecutor, TabCompleter {
         		}
         	})
             .exceptionally(ex -> {
+                instance.getLogger().severe("Async unclaim operation failed: " + ex.getMessage());
                 ex.printStackTrace();
                 return null;
             });
         }
 
-        
         return true;
     }
-    
-    
-    // ********************
-    // *  Other Methods  *
-    // ********************
-    
-    
+
     /**
      * Gets the primary completions for the first argument.
      *

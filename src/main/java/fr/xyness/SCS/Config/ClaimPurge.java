@@ -2,6 +2,7 @@ package fr.xyness.SCS.Config;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -19,12 +20,6 @@ import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
  */
 public class ClaimPurge {
 
-	
-    // ***************
-    // *  Variables  *
-    // ***************
-
-	
     /** The time threshold for purging claims, in milliseconds. */
     private long offlineTime;
     
@@ -36,13 +31,7 @@ public class ClaimPurge {
     
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
-    
-    
-    // ******************
-    // *  Constructors  *
-    // ******************
-    
-    
+
     /**
      * Constructor for ClaimPurge.
      *
@@ -52,12 +41,6 @@ public class ClaimPurge {
         this.instance = instance;
     }
 
-    
-    // ********************
-    // *  Others Methods  *
-    // ********************
-
-    
     /**
      * Checks if a player has been offline for the duration set in the configuration.
      * If true, the system will delete all their claims.
@@ -120,7 +103,9 @@ public class ClaimPurge {
     public void purgeClaims() {
         Map<String, String> players = new HashMap<>();
         for (String owner : instance.getMain().getClaimsOwners()) {
-        	OfflinePlayer p = Bukkit.getOfflinePlayer(owner);
+        	UUID uuid = instance.getPlayerMain().getPlayerUUID(owner);
+        	if (uuid == null) continue;
+        	OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
             if (hasBeenOfflineFor(p)) {
                 int nb = instance.getMain().getPlayerClaimsCount(p.getUniqueId());
                 players.put(owner, String.valueOf(nb));
@@ -150,7 +135,9 @@ public class ClaimPurge {
     public void purgeClaims(Player player) {
         Map<String, String> players = new HashMap<>();
         for (String owner : instance.getMain().getClaimsOwners()) {
-        	OfflinePlayer p = Bukkit.getOfflinePlayer(owner);
+        	UUID uuid = instance.getPlayerMain().getPlayerUUID(owner);
+        	if (uuid == null) continue;
+        	OfflinePlayer p = Bukkit.getOfflinePlayer(uuid);
             if (hasBeenOfflineFor(p)) {
                 int nb = instance.getMain().getPlayerClaimsCount(p.getUniqueId());
                 players.put(owner, String.valueOf(nb));

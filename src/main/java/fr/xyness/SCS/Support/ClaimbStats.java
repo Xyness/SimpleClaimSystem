@@ -8,18 +8,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class ClaimbStats {
 	
 	
-	// ***************
-	// *  Variables  *
-	// ***************
 	
 	
 	/** The Metrics instance for bStats integration. */
 	public Metrics metrics;
 	
 	
-	// ********************
-	// *  Others Methods  *
-	// ********************
 	
 	
 	/**

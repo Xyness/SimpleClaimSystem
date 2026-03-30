@@ -11,18 +11,12 @@ import net.milkbowl.vault.economy.Economy;
 public class ClaimVault {
 	
 	
-	// ***************
-	// *  Variables  *
-	// ***************
 	
 	
 	/** The economy instance provided by Vault. */
 	private Economy econ;
 	
 	
-	// ********************
-	// *  Others Methods  *
-	// ********************
 	
 	
 	/**

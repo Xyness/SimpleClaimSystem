@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,12 +21,6 @@ import fr.xyness.SCS.Types.WorldMode;
  */
 public class ClaimSettings {
 
-	
-    // ***************
-    // *  Variables  *
-    // ***************
-
-	
     /** List of restricted items. */
     private List<Material> restrictedItems = new ArrayList<>();
     
@@ -45,10 +40,10 @@ public class ClaimSettings {
     private List<Material> PlaceBlocksIgnore = new ArrayList<>();
     
     /** Map of aliases, key for aliase, value for real command */
-    private Map<String,String> aliases = new HashMap<>();
-    
+    private Map<String,String> aliases = new ConcurrentHashMap<>();
+
     /** Default values for settings. */
-    private Map<String,LinkedHashMap<String, Boolean>> defaultValues = new HashMap<>();
+    private Map<String,LinkedHashMap<String, Boolean>> defaultValues = new ConcurrentHashMap<>();
     
     /** Code for default values for natural. */
     private String defaultValuesCode_Natural;
@@ -60,35 +55,29 @@ public class ClaimSettings {
     private String defaultValuesCode_Members;
     
     /** Enabled settings map. */
-    private Map<String, Boolean> enabledSettings = new HashMap<>();
-    
+    private Map<String, Boolean> enabledSettings = new ConcurrentHashMap<>();
+
     /** SurvivalRequiringClaims settings map. */
-    private Map<String, Boolean> SurvivalRequiringClaimsSettings = new HashMap<>();
-    
+    private Map<String, Boolean> SurvivalRequiringClaimsSettings = new ConcurrentHashMap<>();
+
     /** General settings map. */
-    private Map<String, String> settings = new HashMap<>();
+    private Map<String, String> settings = new ConcurrentHashMap<>();
     
     /** Groups and their corresponding values. */
     private LinkedHashMap<String, String> groups = new LinkedHashMap<>();
     
     /** Group settings map. */
-    private Map<String, Map<String, Double>> groupsSettings = new HashMap<>();
-    
+    private Map<String, Map<String, Double>> groupsSettings = new ConcurrentHashMap<>();
+
     /** Map of mode of worlds. */
-    private Map<String,WorldMode> worlds = new HashMap<>();
-    
+    private Map<String,WorldMode> worlds = new ConcurrentHashMap<>();
+
     /** Map of worlds aliases. */
-    private Map<String,String> worldsAliases = new HashMap<>();
+    private Map<String,String> worldsAliases = new ConcurrentHashMap<>();
     
     /** Location of the expulsion */
     private Location expulsionLocation;
 
-    
-    // ********************
-    // *  Others Methods  *
-    // ********************
-
-    
     /**
      * Clears all settings and configurations.
      */
@@ -493,7 +482,7 @@ public class ClaimSettings {
         mat.stream()
             .map(Material::matchMaterial)
             .filter(Objects::nonNull)
-            .forEach(restrictedItems::add); // Utilisation de forEach ici
+            .forEach(restrictedItems::add);
     }
 
     /**
@@ -506,7 +495,7 @@ public class ClaimSettings {
         mat.stream()
             .map(Material::matchMaterial)
             .filter(Objects::nonNull)
-            .forEach(restrictedInteractBlocks::add); // Utilisation de forEach ici
+            .forEach(restrictedInteractBlocks::add);
     }
 
     /**
@@ -519,7 +508,7 @@ public class ClaimSettings {
         mat.stream()
             .map(EntityType::fromName)
             .filter(Objects::nonNull)
-            .forEach(restrictedEntityType::add); // Utilisation de forEach ici
+            .forEach(restrictedEntityType::add);
     }
 
     /**
@@ -532,7 +521,7 @@ public class ClaimSettings {
         mat.stream()
             .map(Material::matchMaterial)
             .filter(Objects::nonNull)
-            .forEach(specialBlocks::add); // Utilisation de forEach ici
+            .forEach(specialBlocks::add);
     }
 
     /**
@@ -545,7 +534,7 @@ public class ClaimSettings {
         mat.stream()
             .map(Material::matchMaterial)
             .filter(Objects::nonNull)
-            .forEach(BreakBlocksIgnore::add); // Utilisation de forEach ici
+            .forEach(BreakBlocksIgnore::add);
     }
 
     /**
@@ -558,7 +547,7 @@ public class ClaimSettings {
         mat.stream()
             .map(Material::matchMaterial)
             .filter(Objects::nonNull)
-            .forEach(PlaceBlocksIgnore::add); // Utilisation de forEach ici
+            .forEach(PlaceBlocksIgnore::add);
     }
 
     /**

@@ -19,9 +19,6 @@ import fr.xyness.SCS.Types.Claim;
 public class BClaimSettingsGui {
 
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 
     
     /** Instance of SimpleClaimSystem */
@@ -31,9 +28,6 @@ public class BClaimSettingsGui {
     private final FloodgatePlayer floodgatePlayer;
 
     
-    // ******************
-    // *  Constructors  *
-    // ******************
 
     
     /**
@@ -88,6 +82,7 @@ public class BClaimSettingsGui {
 	        			}
 	        		})
 	                .exceptionally(ex -> {
+	                    instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
 	                    ex.printStackTrace();
 	                    return null;
 	                });

@@ -29,18 +29,12 @@ import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 public class FoliaClaimEvents implements Listener {
 
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 	
 	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
     
-    // ******************
-    // *  Constructors  *
-    // ******************
     
     
     /**
@@ -53,9 +47,6 @@ public class FoliaClaimEvents implements Listener {
     }
     
     
-    // *******************
-    // *  EventHandlers  *
-    // *******************
     
     
     /**
@@ -107,11 +98,15 @@ public class FoliaClaimEvents implements Listener {
 		Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
 			if(player != null && player.isOnline()) {
 				if(!player.isDead()) {
-					instance.executeSync(() -> {
-                        Location currentLocation = player.getLocation();
-                        PlayerRespawnEvent e = new PlayerRespawnEvent(player, currentLocation, false);
-			    		Bukkit.getPluginManager().callEvent(e);
-					});
+					player.getScheduler().execute(instance, () -> {
+                        Chunk to = player.getLocation().getChunk();
+                        String ownerTO = instance.getMain().getOwnerInClaim(to);
+                        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
+                        if(cPlayer == null) { task.cancel(); return; }
+                        handleWeatherSettings(player, to, null);
+                        instance.getBossBars().activeBossBar(player, to);
+                        handleAutoFly(player, cPlayer, to, ownerTO);
+					}, null, 0);
 					task.cancel();
 				}
 			} else {
@@ -241,9 +236,6 @@ public class FoliaClaimEvents implements Listener {
     }
     
     
-    // *******************
-    // *  Other methods  *
-    // *******************
     
     
     /**
@@ -357,6 +349,7 @@ public class FoliaClaimEvents implements Listener {
 	        		}
 	        	})
 	            .exceptionally(ex -> {
+	                instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
 	                ex.printStackTrace();
 	                return null;
 	            });
@@ -451,6 +444,7 @@ public class FoliaClaimEvents implements Listener {
                         		}
                         	})
                             .exceptionally(ex -> {
+                                instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                                 ex.printStackTrace();
                                 return null;
                             });
@@ -460,6 +454,7 @@ public class FoliaClaimEvents implements Listener {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -498,6 +493,7 @@ public class FoliaClaimEvents implements Listener {
             			}
             		})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -518,6 +514,7 @@ public class FoliaClaimEvents implements Listener {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -551,7 +548,7 @@ public class FoliaClaimEvents implements Listener {
             }
             
             // Check if there is chunk near
-            if(!instance.getMain().isAreaClaimFree(chunk, cPlayer.getClaimDistance(), playerName).join()) {
+            if(!instance.getMain().isAreaClaimFreeSync(chunk, cPlayer.getClaimDistance(), playerName)) {
             	player.sendMessage(instance.getLanguage().getMessage("cannot-claim-because-claim-near"));
             	return;
             }
@@ -588,6 +585,7 @@ public class FoliaClaimEvents implements Listener {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim event operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });

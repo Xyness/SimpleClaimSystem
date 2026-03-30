@@ -9,6 +9,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -33,11 +34,6 @@ import net.md_5.bungee.api.ChatColor;
  * Manages GUI settings and operations for the claim system.
  */
 public class ClaimGuis {
-
-	
-    // ***************
-    // *  Variables  *
-    // ***************
 
     /** Stores permissions for clicked slots in GUIs */
     private static Map<String,Map<Integer, String>> guis_items_perms_clicked_slots_admin = new HashMap<>();
@@ -113,7 +109,7 @@ public class ClaimGuis {
     }
     
     /** Stores permissions for clicked slots in GUIs */
-    private Map<String,Map<Integer, String>> guis_items_perms_clicked_slots = new HashMap<>();
+    private Map<String,Map<Integer, String>> guis_items_perms_clicked_slots = new ConcurrentHashMap<>();
     
     /**
      * A map containing the key-to-slot mappings.
@@ -126,20 +122,14 @@ public class ClaimGuis {
     public static final Map<String, Material> keyToMaterialMap = new HashMap<>();
     
     /** Set of settings names */
-    private Map<String,LinkedHashSet<String>> settings_name = new HashMap<>();
+    private Map<String,LinkedHashSet<String>> settings_name = new ConcurrentHashMap<>();
     
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
     
-    public static Map<String,List<GuiSlot>> gui_slots = new HashMap<>();
-    public static Map<String,GuiSettings> gui_settings = new HashMap<>();
-    
-    
-    // ******************
-    // *  Constructors  *
-    // ******************
-    
-    
+    public static Map<String,List<GuiSlot>> gui_slots = new ConcurrentHashMap<>();
+    public static Map<String,GuiSettings> gui_settings = new ConcurrentHashMap<>();
+
     /**
      * Constructor for ClaimGuis.
      *
@@ -148,7 +138,6 @@ public class ClaimGuis {
     public ClaimGuis(SimpleClaimSystem instance) {
     	this.instance = instance;
     	
-    	// Set settings_name
     	LinkedHashSet<String> permissions = new LinkedHashSet<>();
     	permissions.addAll(List.of("Build", "Destroy", "Buttons", "Items", "InteractBlocks", "Levers", "Plates", "Doors", 
     	    "Trapdoors", "Fencegates", "Tripwires", "RepeatersComparators", "Bells", "Entities", "Frostwalker", "Teleportations", 
@@ -164,8 +153,7 @@ public class ClaimGuis {
     	permissions = new LinkedHashSet<>();
     	permissions.addAll(List.of("Explosions","Liquids","Redstone","Firespread","Monsters","Pvp"));
     	settings_name.put("natural", permissions);
-        
-        // Admin
+
         keyToSlotMap.put("Build", 1);
         keyToSlotMap.put("Destroy", 2);
         keyToSlotMap.put("Buttons", 3);
@@ -236,13 +224,7 @@ public class ClaimGuis {
         keyToMaterialMap.put("Windcharges", Material.WHITE_DYE);
         
     }
-    
 
-    // ********************
-    // *  Others Methods  *
-    // ********************
-    
-    
     public GuiSlot getGuiSlotByClickedSlot(String menu, int clickedSlot) {
         return gui_slots.get(menu).stream()
             .filter(slot -> slot.getSlot() == clickedSlot)
@@ -269,7 +251,6 @@ public class ClaimGuis {
             for (File file : guiFiles) {
                 YamlConfiguration config = YamlConfiguration.loadConfiguration((File)file);
                 
-                // Get GUI settings
                 String gui_name = file.getName().replace(".yml", "");
                 int rows = config.getInt("rows");
                 String title = instance.getLanguage().getMessage(config.getString("gui-title"));
@@ -283,7 +264,6 @@ public class ClaimGuis {
                 GuiSettings guiSettings = new GuiSettings(id_settings++,rows,title,slots);
                 gui_settings.put(gui_name, guiSettings);
                 
-                // Get GUI items
                 ConfigurationSection configSection = config.getConfigurationSection("items");
                 for (String key : configSection.getKeys(false)) {
                 	boolean custom_head = false;

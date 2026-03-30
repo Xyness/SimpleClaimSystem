@@ -21,9 +21,6 @@ import fr.xyness.SCS.Types.GuiSlot;
 public class ClaimsOwnerGui implements InventoryHolder {
 
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 	
 	
     /** The inventory for this GUI. */
@@ -36,9 +33,6 @@ public class ClaimsOwnerGui implements InventoryHolder {
     private final SimpleClaimSystem instance;
     
     
-    // ******************
-    // *  Constructors  *
-    // ******************
     
 
     /**
@@ -72,6 +66,7 @@ public class ClaimsOwnerGui implements InventoryHolder {
         	}
         })
         .exceptionally(ex -> {
+            instance.getLogger().severe("Async GUI operation failed: " + ex.getMessage());
             ex.printStackTrace();
             return null;
         });

@@ -15,24 +15,9 @@ import org.bukkit.scoreboard.Scoreboard;
  * Class to manage scoreboard
  */
 public class CScoreboard {
-	
-	
-    // ***************
-    // *  Variables  *
-    // ***************
-	
-	
-	/* The scoreboard instance */
+
     private Scoreboard scoreboard;
-    
-    /* The objective instance */
     private Objective objective;
-    
-    
-    // ******************
-    // *  Constructors  *
-    // ******************
-    
 
     /**
      * Initializes a new scoreboard and creates an objective for it.
@@ -44,12 +29,6 @@ public class CScoreboard {
         objective = scoreboard.registerNewObjective(" ", " ", title);
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
     }
-    
-    
-    // *******************
-    // *  Other methods  *
-    // *******************
-    
 
     /**
      * Adds a line to the scoreboard with a specific score.

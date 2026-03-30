@@ -14,43 +14,31 @@ import fr.xyness.SCS.Types.Claim;
  * This class handles the integration with Dynmap for visualizing claims on the map.
  */
 public class ClaimDynmap {
-	
-	
-	// ***************
-	// *  Variables  *
-	// ***************
 
-    
-    /** The MarkerSet instance to manage markers on the Dynmap. */
     private MarkerSet markerSet;
-    
-    /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
-    
-    
-	// ******************
-	// *  Constructors  *
-	// ******************
-    
-    
+
     /**
-     * Constructor to initialize the ClaimDynmap class with Dynmap and Marker API instances.
+     * Constructor to initialize the ClaimDynmap class.
      *
-     * @param d  the Dynmap API instance.
-     * @param m  the Marker API instance.
-     * @param m2 the MarkerSet instance.
+     * @param m2       the MarkerSet instance.
+     * @param instance the SimpleClaimSystem instance.
      */
     public ClaimDynmap(MarkerSet m2, SimpleClaimSystem instance) {
     	this.markerSet = m2;
     	this.instance = instance;
     }
-    
-    
-	// ********************
-	// *  Others Methods  *
-	// ********************
-    
-    
+
+    /**
+     * Clears all claim markers from the Dynmap.
+     * Used during plugin reload to reset map state.
+     */
+    public void clearMarkers() {
+        if (markerSet != null) {
+            markerSet.getAreaMarkers().forEach(marker -> marker.deleteMarker());
+        }
+    }
+
     /**
      * Creates an area marker on the Dynmap for given claim.
      *
@@ -63,7 +51,8 @@ public class ClaimDynmap {
     			.replace("%owner%", claim.getOwner());
     	int linestyle = Integer.parseInt(instance.getSettings().getSetting("dynmap-claim-border-color"), 16);
     	int fillstyle = Integer.parseInt(instance.getSettings().getSetting("dynmap-claim-fill-color"), 16);
-    	claim.getChunks().parallelStream().forEach(chunk -> {
+    	double opacity = Double.parseDouble(instance.getSettings().getSetting("dynmap-claim-opacity"));
+    	claim.getChunks().forEach(chunk -> {
     		String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
     	    AreaMarker existingMarker = markerSet.findAreaMarker(markerId);
     	    if (existingMarker != null) return;
@@ -82,7 +71,7 @@ public class ClaimDynmap {
     	        false
     	    );
     	    marker.setLineStyle(3, 1.0, linestyle);
-    	    marker.setFillStyle(0.5, fillstyle);
+    	    marker.setFillStyle(opacity, fillstyle);
     	});
 	}
 	
@@ -96,7 +85,7 @@ public class ClaimDynmap {
     	String t = instance.getSettings().getSetting("dynmap-claim-hover-text")
     			.replace("%claim-name%", claim.getName())
     			.replace("%owner%", claim.getOwner());
-		claim.getChunks().parallelStream().forEach(chunk -> {
+		claim.getChunks().forEach(chunk -> {
 			String markerId = "chunk_" + chunk.getX() + "_" + chunk.getZ();
 			AreaMarker marker = markerSet.findAreaMarker(markerId);
 		    if (marker != null) {

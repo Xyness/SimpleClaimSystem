@@ -63,9 +63,6 @@ import fr.xyness.SCS.Guis.ClaimMainGui;
 public class ClaimCommand implements CommandExecutor, TabCompleter {
 	
 	
-    // ***************
-    // *  Variables  *
-    // ***************
 	
 	
     /** A map of players currently in the process of creating a claim. */
@@ -86,9 +83,6 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             "main", "delchunk", "addchunk", "chunks", "kick", "buy", "autounclaim", "autoaddchunk", "autodelchunk", "accept", "deny", "cancelinv");
     
     
-    // ******************
-    // *  Constructors  *
-    // ******************
     
     
     /**
@@ -101,9 +95,6 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     }
 
     
-    // ******************
-    // *  Tab Complete  *
-    // ******************
 
     
     /**
@@ -154,9 +145,6 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     }
     
     
-    // ******************
-    // *  Main command  *
-    // ******************
 
     
     /**
@@ -210,9 +198,6 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
     }
     
     
-    // ********************
-    // *  Other Methods  *
-    // ********************
     
     
     /**
@@ -243,6 +228,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -320,6 +306,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	                		}
 	                	})
 	                    .exceptionally(ex -> {
+	                        instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
 	                        ex.printStackTrace();
 	                        return null;
 	                    });
@@ -345,6 +332,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 		}
                 	})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -414,6 +402,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -439,6 +428,10 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 }
                 if (instance.getMain().checkName(player.getUniqueId(), args[2])) {
                 	Claim claim = instance.getMain().getClaimByName(args[1], player);
+                	if (claim == null) {
+                		player.sendMessage(instance.getLanguage().getMessage("claim-player-not-found"));
+                		return;
+                	}
                 	instance.getMain().setClaimName(claim, args[2])
                 		.thenAccept(success -> {
                 			if (success) {
@@ -448,6 +441,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 			}
                 		})
                         .exceptionally(ex -> {
+                            instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                             ex.printStackTrace();
                             return null;
                         });
@@ -557,6 +551,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         		}
                         	})
                             .exceptionally(ex -> {
+                                instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                                 ex.printStackTrace();
                                 return null;
                             });
@@ -620,6 +615,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     		}
                     	})
                         .exceptionally(ex -> {
+                            instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                             ex.printStackTrace();
                             return null;
                         });
@@ -671,6 +667,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         		}
                         	})
                             .exceptionally(ex -> {
+                                instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                                 ex.printStackTrace();
                                 return null;
                             });
@@ -714,6 +711,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -768,7 +766,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     message.addExtra(acceptButton);
                     message.addExtra(space);
                     message.addExtra(denyButton);
-                	target.sendMessage(message);
+                	target.spigot().sendMessage(message);
                 	
                 	instance.executeAsyncLater(() -> {
                 		
@@ -821,6 +819,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                             		}
                             	})
                                 .exceptionally(ex -> {
+                                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                                     ex.printStackTrace();
                                     return null;
                                 });
@@ -888,7 +887,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 denyButton.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder(instance.getLanguage().getMessage("player-invite-deny-button-hover")).create()));
                 message.addExtra(acceptButton);
                 message.addExtra(denyButton);
-            	target.sendMessage(message);
+            	target.spigot().sendMessage(message);
             	
             	instance.executeAsyncLater(() -> {
             		
@@ -946,6 +945,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         		}
                         	})
                             .exceptionally(ex -> {
+                                instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                                 ex.printStackTrace();
                                 return null;
                             });
@@ -997,6 +997,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 		}
                 	})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -1032,6 +1033,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -1081,6 +1083,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	            		}
 	            	})
 	                .exceptionally(ex -> {
+	                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
 	                    ex.printStackTrace();
 	                    return null;
 	                });
@@ -1125,6 +1128,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -1155,13 +1159,14 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 	.thenAccept(success -> {
                 		if (success) {
                 			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("claim-for-sale-success").replace("%name%", args[1]).replace("%price%", instance.getMain().getPrice(args[2])).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol"))));
-                            instance.executeSync(() -> Bukkit.getOnlinePlayers().stream().forEach(p -> p.sendMessage(instance.getLanguage().getMessage("claim-for-sale-success-broadcast").replace("%name%", args[1]).replace("%price%", instance.getMain().getPrice(args[2])).replace("%player%", playerName).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")))));
+                            instance.executeSync(() -> Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(instance.getLanguage().getMessage("claim-for-sale-success-broadcast").replace("%name%", args[1]).replace("%price%", instance.getMain().getPrice(args[2])).replace("%player%", playerName).replace("%money-symbol%", instance.getLanguage().getMessage("money-symbol")))));
                             instance.getBossBars().activateBossBar(claim.getChunks());
                 		} else {
                 			instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("error")));
                 		}
                 	})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -1249,6 +1254,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	                		}
 	                	})
 	                    .exceptionally(ex -> {
+	                        instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
 	                        ex.printStackTrace();
 	                        return null;
 	                    });
@@ -1269,6 +1275,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	                		}
 	                	})
 	                    .exceptionally(ex -> {
+	                        instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
 	                        ex.printStackTrace();
 	                        return null;
 	                    });
@@ -1415,6 +1422,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 	            		}
                 	            	})
                 	                .exceptionally(ex -> {
+                	                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                 	                    ex.printStackTrace();
                 	                    return null;
                 	                });
@@ -1447,6 +1455,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	            		}
             	            	})
             	                .exceptionally(ex -> {
+            	                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
             	                    ex.printStackTrace();
             	                    return null;
             	                });
@@ -1457,6 +1466,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -1552,6 +1562,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                     		}
                     	})
                         .exceptionally(ex -> {
+                            instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                             ex.printStackTrace();
                             return null;
                         });
@@ -1609,6 +1620,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -1709,6 +1721,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -1773,7 +1786,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 message.addExtra(acceptButton);
                 message.addExtra(space);
                 message.addExtra(denyButton);
-            	target.sendMessage(message);
+            	target.spigot().sendMessage(message);
             	
             	instance.executeAsyncLater(() -> {
             		
@@ -1832,6 +1845,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                         		}
                         	})
                             .exceptionally(ex -> {
+                                instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                                 ex.printStackTrace();
                                 return null;
                             });
@@ -2054,6 +2068,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             			}
             		})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -2128,6 +2143,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	            					}
 	            				})
 	                            .exceptionally(ex -> {
+	                                instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
 	                                ex.printStackTrace();
 	                                return null;
 	                            });
@@ -2138,6 +2154,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 		}
                 	})
                     .exceptionally(ex -> {
+                        instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                         ex.printStackTrace();
                         return null;
                     });
@@ -2370,6 +2387,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         			}
         		})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -2591,6 +2609,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	        	                    		}
 	        	                    	})
 	                	                .exceptionally(ex -> {
+	                	                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
 	                	                    ex.printStackTrace();
 	                	                    return null;
 	                	                });
@@ -2629,6 +2648,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	                        		}
 	                        	})
 	        	                .exceptionally(ex -> {
+	        	                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
 	        	                    ex.printStackTrace();
 	        	                    return null;
 	        	                });
@@ -2638,16 +2658,21 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
 	            		}
 	            	})
 	                .exceptionally(ex -> {
+	                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
 	                    ex.printStackTrace();
 	                    return null;
 	                });
             });
             return;
         } catch (NumberFormatException e) {
-        	if(commands.contains(args[0].toLowerCase()) && player.hasPermission("scs.command.claim."+args[0].toLowerCase())) {
-        		instance.getMain().getHelp(player, args[0], "claim");
+        	if(commands.contains(args[0].toLowerCase())) {
+        		if(player.hasPermission("scs.command.claim."+args[0].toLowerCase())) {
+        			instance.getMain().getHelp(player, args[0], "claim");
+        		} else {
+        			player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
+        		}
         	} else {
-        		player.sendMessage(instance.getLanguage().getMessage("cmd-no-permission"));
+        		instance.getMain().getHelp(player, args[0], "claim");
         	}
         }
     }
@@ -2746,6 +2771,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             	            		}
             	            	})
             	                .exceptionally(ex -> {
+            	                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
             	                    ex.printStackTrace();
             	                    return null;
             	                });
@@ -2765,6 +2791,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             		}
             	})
                 .exceptionally(ex -> {
+                    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                     ex.printStackTrace();
                     return null;
                 });
@@ -2813,6 +2840,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         		        		}
         		        	})
         		            .exceptionally(ex -> {
+        		                instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
         		                ex.printStackTrace();
         		                return null;
         		            });
@@ -2822,6 +2850,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
         			}
         		})
 				.exceptionally(ex -> {
+				    instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
 				    ex.printStackTrace();
 				    return null;
 				});
@@ -3050,6 +3079,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                                         }
                                     })
                                     .exceptionally(ex -> {
+                                        instance.getLogger().severe("Async claim operation failed: " + ex.getMessage());
                                         ex.printStackTrace();
                                         return null;
                                     })))
