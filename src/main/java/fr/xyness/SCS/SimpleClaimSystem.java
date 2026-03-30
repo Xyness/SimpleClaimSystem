@@ -599,6 +599,7 @@ public class SimpleClaimSystem extends JavaPlugin {
             if(configC.equalsIgnoreCase("true") && claimSettingsInstance.getBooleanSetting("bluemap")) {
                 if (reload && bluemapInstance != null) {
                     bluemapInstance.clearMarkers();
+                    bluemapInstance.initMarkerSets();
                 } else if (!reload) {
                     Optional<BlueMapAPI> apiO = BlueMapAPI.getInstance();
                     if(apiO.isPresent()) {
@@ -609,6 +610,7 @@ public class SimpleClaimSystem extends JavaPlugin {
                     		if(apiCheck.isPresent()) {
                     			claimSettingsInstance.addSetting("bluemap", "true");
                     			bluemapInstance = new ClaimBluemap(apiCheck.get(),this);
+                    			bluemapInstance.load();
                     		}
                     	});
                     	claimSettingsInstance.addSetting("bluemap", "false");
