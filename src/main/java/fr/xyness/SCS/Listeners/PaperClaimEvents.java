@@ -142,36 +142,40 @@ public class PaperClaimEvents implements Listener {
         Chunk to = event.getTo().getChunk();
         Chunk from = event.getFrom().getChunk();
         Player player = event.getPlayer();
+        UUID playerId = player.getUniqueId();
+        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
+
         if (!instance.getMain().checkIfClaimExists(to)) {
         	instance.getBossBars().disableBossBar(player);
+        	if (cPlayer != null) {
+        		instance.getPlayerMain().removePlayerFly(player);
+        	}
         	return;
         }
 
-        UUID playerId = player.getUniqueId();
-        CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
         if(cPlayer == null) return;
-        
+
         String ownerTO = instance.getMain().getOwnerInClaim(to);
         String ownerFROM = instance.getMain().getOwnerInClaim(from);
-        
+
         Claim claim = instance.getMain().getClaim(to);
         if(claim != null) {
 	        if (instance.getMain().checkBan(claim, player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.ban")) {
 	            cancelTeleport(event, player, "player-banned");
 	            return;
 	        }
-	        
+
 	        if (!claim.getPermissionForPlayer("Enter",player) && !instance.getPlayerMain().checkPermPlayer(player, "scs.bypass.enter")) {
 	            cancelTeleport(event, player, "enter");
 	            return;
 	        }
-	
+
 	        if (isTeleportBlocked(event, player, claim)) {
 	            cancelTeleport(event, player, "teleportations");
 	            return;
 	        }
         }
-        
+
         instance.getBossBars().activeBossBar(player, to);
         handleAutoFly(player, cPlayer, to, ownerTO);
         handleWeatherSettings(player, to, from);

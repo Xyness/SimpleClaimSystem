@@ -67,7 +67,7 @@ cd SimpleClaimSystem
 ./gradlew shadowJar
 ```
 
-The output JAR will be at `build/libs/SimpleClaimSystem-1.13.jar`.
+The output JAR will be at `build/libs/SimpleClaimSystem-1.13.0.2.jar`.
 
 ## API Usage
 
@@ -80,7 +80,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.github.Xyness:SimpleClaimSystem:1.13")
+    compileOnly("com.github.Xyness:SimpleClaimSystem:1.13.0.2")
 }
 ```
 
@@ -94,7 +94,7 @@ dependencies {
 <dependency>
     <groupId>com.github.Xyness</groupId>
     <artifactId>SimpleClaimSystem</artifactId>
-    <version>1.13</version>
+    <version>1.13.0.2</version>
     <scope>provided</scope>
 </dependency>
 ```
@@ -140,7 +140,7 @@ api.addPlayerToClaimAsync(claim, "PlayerName").thenAccept(success -> {
 
 ## Links
 
-- **Wiki:** [xyness.gitbook.io/simpleclaimsystem](https://xyness.gitbook.io/simpleclaimsystem)
+- **Wiki:** [Documentation](https://celestis.dev/plugins/simpleclaimsystem/wiki/getting-started)
 - **Discord:** [Join](https://discord.gg/6sRTGprM95)
 - **Issues:** [GitHub Issues](https://github.com/Xyness/SimpleClaimSystem/issues)
 

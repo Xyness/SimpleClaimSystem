@@ -2739,10 +2739,7 @@ public class ClaimMain {
     public CompletableFuture<Boolean> updatePermsBedrock(Claim claim, Map<String, LinkedHashMap<String, Boolean>> permissionsMap) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-            	// Get the owner's name
-                String owner = claim.getOwner();
-
-                // Updates perms
+            	// Updates perms
                 claim.setPermissions(new HashMap<>(permissionsMap));
 
                 // Check if permission is Weather, then update weather for players in the chunks
@@ -2754,8 +2751,8 @@ public class ClaimMain {
                     });
                 });
 
-                // Get the UUID of the owner
-                String uuid = owner.equals("*") ? SERVER_UUID.toString() : instance.getPlayerMain().getPlayerUUID(owner).toString();
+                // Get the UUID of the owner directly from the claim
+                String uuid = claim.getUUID().toString();
 
                 // Build the perms string
                 String permissionsString = permissionsMap.entrySet().stream()
@@ -2771,8 +2768,11 @@ public class ClaimMain {
                     preparedStatement.setString(1, permissionsString);
                     preparedStatement.setString(2, uuid);
                     preparedStatement.setString(3, claim.getName());
-                    preparedStatement.executeUpdate();
-                    return true;
+                    int rowsAffected = preparedStatement.executeUpdate();
+                    if (rowsAffected == 0) {
+                        instance.getLogger().warning("No rows affected when updating bedrock permissions for claim '" + claim.getName() + "' (owner_uuid: " + uuid + ")");
+                    }
+                    return rowsAffected > 0;
                 } catch (SQLException e) {
                     instance.getLogger().severe("Failed to update bedrock permissions in database: " + e.getMessage());
                     e.printStackTrace();
@@ -2798,17 +2798,14 @@ public class ClaimMain {
     public CompletableFuture<Boolean> updatePerm(Claim claim, String permission, boolean value, String role) {
         return CompletableFuture.supplyAsync(() -> {
             try {
-                // Get the owner's name
-                String owner = claim.getOwner();
-                
                 // Get the current permissions map for the specified role
                 String roleKey = (role == null ? "natural" : role.toLowerCase());
                 LinkedHashMap<String, Boolean> currentPermissions = claim.getPermissions().get(roleKey);
-                
+
                 // Clone the current permissions map to avoid affecting other claims
                 LinkedHashMap<String, Boolean> newPermissions = new LinkedHashMap<>(currentPermissions);
                 newPermissions.put(permission, value);
-                
+
                 // Update the permissions map in the claim with the cloned and updated map
                 claim.getPermissions().put(roleKey, newPermissions);
 
@@ -2816,17 +2813,17 @@ public class ClaimMain {
                 if (permission.equals("Weather")) updateWeatherChunk(claim);
                 // Check if permission is Fly, then update fly for players in the chunks
                 if (permission.equals("Fly")) updateFlyChunk(claim);
-                
-                // Get the UUID of the owner
-                String uuid = owner.equals("*") ? SERVER_UUID.toString() : instance.getPlayerMain().getPlayerUUID(owner).toString();
-        
+
+                // Get the UUID of the owner directly from the claim
+                String uuid = claim.getUUID().toString();
+
                 // Build the perms string
                 String permissions = claim.getPermissions().entrySet().stream()
                         .map(entry -> entry.getKey() + ":" + entry.getValue().entrySet().stream()
                                 .map(subEntry -> subEntry.getValue() ? "1" : "0")
                                 .collect(Collectors.joining()))
                         .collect(Collectors.joining(";"));
-                
+
                 // Update the database
                 String updateQuery = "UPDATE scs_claims_1 SET permissions = ? WHERE owner_uuid = ? AND claim_name = ?";
                 try (Connection connection = instance.getDataSource().getConnection();
@@ -2834,8 +2831,11 @@ public class ClaimMain {
                     preparedStatement.setString(1, permissions);
                     preparedStatement.setString(2, uuid);
                     preparedStatement.setString(3, claim.getName());
-                    preparedStatement.executeUpdate();
-                    return true;
+                    int rowsAffected = preparedStatement.executeUpdate();
+                    if (rowsAffected == 0) {
+                        instance.getLogger().warning("No rows affected when updating permission for claim '" + claim.getName() + "' (owner_uuid: " + uuid + ")");
+                    }
+                    return rowsAffected > 0;
                 } catch (SQLException e) {
                     instance.getLogger().severe("Failed to update claim permission in database: " + e.getMessage());
                     e.printStackTrace();
