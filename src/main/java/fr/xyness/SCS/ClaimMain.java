@@ -2818,7 +2818,8 @@ public class ClaimMain {
                 if (permission.equals("Fly")) updateFlyChunk(claim);
                 
                 // Get the UUID of the owner
-                String uuid = owner.equals("*") ? SERVER_UUID.toString() : instance.getPlayerMain().getPlayerUUID(owner).toString();
+                //String uuid = owner.equals("*") ? SERVER_UUID.toString() : instance.getPlayerMain().getPlayerUUID(owner).toString();
+            	UUID uuid = claim.getUUID();
         
                 // Build the perms string
                 String permissions = claim.getPermissions().entrySet().stream()
@@ -2832,7 +2833,7 @@ public class ClaimMain {
                 try (Connection connection = instance.getDataSource().getConnection();
                      PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
                     preparedStatement.setString(1, permissions);
-                    preparedStatement.setString(2, uuid);
+                    preparedStatement.setString(2, uuid.toString());
                     preparedStatement.setString(3, claim.getName());
                     preparedStatement.executeUpdate();
                     return true;
