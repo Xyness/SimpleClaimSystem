@@ -176,13 +176,17 @@ public class FoliaClaimEvents implements Listener {
     			Chunk from = event.getFrom().getChunk();
     			Bukkit.getGlobalRegionScheduler().run(instance, maintask -> {
     				Player player = event.getPlayer();
+                    UUID playerId = player.getUniqueId();
+                    CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
+
                     if (!instance.getMain().checkIfClaimExists(to)) {
                     	instance.getBossBars().disableBossBar(player);
+                    	if (cPlayer != null) {
+                    		instance.getPlayerMain().removePlayerFly(player);
+                    	}
                     	return;
                     }
 
-                    UUID playerId = player.getUniqueId();
-                    CPlayer cPlayer = instance.getPlayerMain().getCPlayer(playerId);
                     if(cPlayer == null) return;
                     
                     String ownerTO = instance.getMain().getOwnerInClaim(to);
