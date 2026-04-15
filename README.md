@@ -59,7 +59,7 @@ A powerful and fully configurable chunk-based land protection plugin for Minecra
 
 ## Building from source
 
-**Requirements:** Java 22+, Gradle 8.9+
+**Requirements:** Java 21+, Gradle 8.9+
 
 ```bash
 git clone https://github.com/Xyness/SimpleClaimSystem.git
@@ -67,7 +67,7 @@ cd SimpleClaimSystem
 ./gradlew shadowJar
 ```
 
-The output JAR will be at `build/libs/SimpleClaimSystem-1.13.0.2.jar`.
+The output JAR will be at `build/libs/SimpleClaimSystem-1.13.0.3.jar`.
 
 ## API Usage
 
@@ -80,7 +80,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.github.Xyness:SimpleClaimSystem:1.13.0.2")
+    compileOnly("com.github.Xyness:SimpleClaimSystem:1.13.0.3")
 }
 ```
 
@@ -94,7 +94,7 @@ dependencies {
 <dependency>
     <groupId>com.github.Xyness</groupId>
     <artifactId>SimpleClaimSystem</artifactId>
-    <version>1.13.0.2</version>
+    <version>1.13.0.3</version>
     <scope>provided</scope>
 </dependency>
 ```
