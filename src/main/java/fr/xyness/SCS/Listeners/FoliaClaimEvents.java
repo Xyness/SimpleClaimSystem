@@ -27,15 +27,9 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 public class FoliaClaimEvents implements Listener {
-
-	
-	
 	
     /** Instance of SimpleClaimSystem */
     private SimpleClaimSystem instance;
-    
-    
-    
     
     /**
      * Constructor for ClaimEventsEnterLeave.
@@ -45,9 +39,6 @@ public class FoliaClaimEvents implements Listener {
     public FoliaClaimEvents(SimpleClaimSystem instance) {
     	this.instance = instance;
     }
-    
-    
-    
     
     /**
      * Handles the player post respawn event.
@@ -284,9 +275,9 @@ public class FoliaClaimEvents implements Listener {
     private void handleWeatherSettings(Player player, Chunk to, Chunk from) {
     	Claim claimTo = instance.getMain().getClaim(to);
     	Claim claimFrom = instance.getMain().getClaim(from);
-        if (instance.getMain().checkIfClaimExists(to) && !claimTo.getPermissionForPlayer("Weather",player)) {
+        if (claimTo != null && !claimTo.getPermissionForPlayer("Weather",player)) {
             player.setPlayerWeather(WeatherType.CLEAR);
-        } else if (instance.getMain().checkIfClaimExists(from) && !claimFrom.getPermissionForPlayer("Weather",player)) {
+        } else if (claimFrom != null && !claimFrom.getPermissionForPlayer("Weather",player)) {
             player.resetPlayerWeather();
         }
     }
