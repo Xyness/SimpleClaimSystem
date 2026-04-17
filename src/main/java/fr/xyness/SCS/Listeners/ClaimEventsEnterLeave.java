@@ -449,7 +449,7 @@ public class ClaimEventsEnterLeave implements Listener {
             player.sendMessage(instance.getLanguage().getMessage("autoaddchunk-world-disabled").replace("%world%", world));
             cPlayer.setClaimAuto("");
         } else {
-            if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaim(player)) {
+            if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaimInChunk(chunk)) {
                 player.sendMessage(instance.getLanguage().getMessage("worldguard-cannot-claim-in-region"));
                 return;
             }
@@ -614,7 +614,7 @@ public class ClaimEventsEnterLeave implements Listener {
         } else {
         	String playerName = player.getName();
         	
-            if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaim(player)) {
+            if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaimInChunk(chunk)) {
                 player.sendMessage(instance.getLanguage().getMessage("worldguard-cannot-claim-in-region"));
                 return;
             }

@@ -50,11 +50,6 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
 public class ClaimMain {
-
-	
-
-
-
 	
     /** List of claims by chunk. */
     private Map<Chunk, Claim> listClaims = new ConcurrentHashMap<>();
@@ -96,11 +91,6 @@ public class ClaimMain {
     /** Instance of instance. */
     private SimpleClaimSystem instance;
     
-    
-
-
-    
-    
     /**
      * Constructor for 
      *
@@ -109,11 +99,6 @@ public class ClaimMain {
     public ClaimMain(SimpleClaimSystem instance) {
     	this.instance = instance;
     }
-
-    
-
-
-
     
     /**
      * Clears all maps and variables.

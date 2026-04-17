@@ -2539,13 +2539,19 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
                 return;
             }
             getChunksInRadius(player, player.getLocation(), radius, instance).thenAccept(chunks -> {
-            	
+
 	            // Check if all claims are free to claim
 	            CustomSet<Chunk> chunksToClaim = chunks.stream()
 	                    .filter(c -> !instance.getMain().checkIfClaimExists(c))
 	                    .collect(Collectors.toCollection(CustomSet::new));
 	            if (chunks.size() != chunksToClaim.size()) {
 	            	instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("cant-radius-claim-already-claim")));
+	                return;
+	            }
+
+	            // Check WorldGuard flag on every chunk in the radius
+	            if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaimInChunks(chunks)) {
+	            	instance.executeEntitySync(player, () -> player.sendMessage(instance.getLanguage().getMessage("worldguard-cannot-claim-in-region")));
 	                return;
 	            }
 	            
@@ -2715,7 +2721,7 @@ public class ClaimCommand implements CommandExecutor, TabCompleter {
             return;
         }
 
-        if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaim(player)) {
+        if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaimInChunk(chunk)) {
             player.sendMessage(instance.getLanguage().getMessage("worldguard-cannot-claim-in-region"));
             return;
         }

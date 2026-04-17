@@ -238,8 +238,8 @@ public class PaperClaimEvents implements Listener {
      * @param chunk  The chunk.
      */
     private void handleWeatherSettings(Player player, Chunk to, Chunk from) {
-    	Claim claimTo = instance.getMain().getClaim(to);
-    	Claim claimFrom = instance.getMain().getClaim(from);
+    	Claim claimTo = to == null ? null : instance.getMain().getClaim(to);
+    	Claim claimFrom = from == null ? null : instance.getMain().getClaim(from);
         if (claimTo != null && !claimTo.getPermissionForPlayer("Weather",player)) {
             player.setPlayerWeather(WeatherType.CLEAR);
         } else if (claimFrom != null && !claimFrom.getPermissionForPlayer("Weather",player)) {
@@ -330,11 +330,11 @@ public class PaperClaimEvents implements Listener {
             cPlayer.setClaimAuto("");
         } else {
         	
-            if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaim(player)) {
+            if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaimInChunk(chunk)) {
                 player.sendMessage(instance.getLanguage().getMessage("worldguard-cannot-claim-in-region"));
                 return;
             }
-        	
+
         	String playerName = player.getName();
         	Claim claim = cPlayer.getTargetClaimChunk();
         	if(claim == null) return;
@@ -495,12 +495,12 @@ public class PaperClaimEvents implements Listener {
             cPlayer.setClaimAuto("");
         } else {
         	String playerName = player.getName();
-        	
-            if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaim(player)) {
+
+            if (instance.getSettings().getBooleanSetting("worldguard") && !instance.getWorldGuard().checkFlagClaimInChunk(chunk)) {
                 player.sendMessage(instance.getLanguage().getMessage("worldguard-cannot-claim-in-region"));
                 return;
             }
-        	
+
         	// Check if the chunk is already claimed
             if (instance.getMain().checkIfClaimExists(chunk)) {
             	instance.getMain().handleClaimConflict(player, chunk);
