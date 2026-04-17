@@ -253,7 +253,8 @@ public class ClaimEvents implements Listener {
 	 */
 	@EventHandler
 	public void onPlayerDamage(EntityDamageEvent event) {
-		if(!(event.getEntity() instanceof Player player) || player == null) return;
+		if(!(event.getEntity() instanceof Player player)) return;
+		if(!player.isOnline() || player.hasMetadata("NPC")) return;
 		if(!instance.getSettings().getBooleanSetting("claim-fly-disabled-on-damage")) return;
 		CPlayer cPlayer = instance.getPlayerMain().getCPlayer(player.getUniqueId());
     	if(cPlayer != null && cPlayer.getClaimFly()) {

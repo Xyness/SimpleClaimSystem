@@ -235,8 +235,8 @@ public class SpigotClaimEvents implements Listener {
      * @param chunk  The chunk.
      */
     private void handleWeatherSettings(Player player, Chunk to, Chunk from) {
-    	Claim claimTo = instance.getMain().getClaim(to);
-    	Claim claimFrom = instance.getMain().getClaim(from);
+    	Claim claimTo = to == null ? null : instance.getMain().getClaim(to);
+    	Claim claimFrom = from == null ? null : instance.getMain().getClaim(from);
         if (claimTo != null && !claimTo.getPermissionForPlayer("Weather",player)) {
             player.setPlayerWeather(WeatherType.CLEAR);
         } else if (claimFrom != null && !claimFrom.getPermissionForPlayer("Weather",player)) {
