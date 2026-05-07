@@ -80,7 +80,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.github.Xyness:SimpleClaimSystem:1.13.0.4")
+    compileOnly("com.github.Xyness:SimpleClaimSystem:1.13.0.6")
 }
 ```
 
@@ -94,7 +94,7 @@ dependencies {
 <dependency>
     <groupId>com.github.Xyness</groupId>
     <artifactId>SimpleClaimSystem</artifactId>
-    <version>1.13.0.4</version>
+    <version>1.13.0.6</version>
     <scope>provided</scope>
 </dependency>
 ```

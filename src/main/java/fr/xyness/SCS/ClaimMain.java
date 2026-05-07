@@ -1543,7 +1543,7 @@ public class ClaimMain {
                     String chunksData = serializeChunks(chunks);
                     try (Connection connection = instance.getDataSource().getConnection();
                             PreparedStatement stmt = connection.prepareStatement(
-                                    "INSERT INTO scs_claims_1 (id_claim, owner_uuid, owner_name, claim_name, claim_description, chunks, world_name, location, members, permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                                    "INSERT INTO scs_claims_1 (id_claim, owner_uuid, owner_name, claim_name, claim_description, chunks, world_name, location, members, permissions, bans) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                            stmt.setInt(1, id);
                        	   stmt.setString(2, owner);
                            stmt.setString(3, owner_name);
@@ -1554,6 +1554,7 @@ public class ClaimMain {
                            stmt.setString(8, getLocationString(loc));
                            stmt.setString(9, users);
                            stmt.setString(10, instance.getSettings().getDefaultValuesCode("all"));
+                           stmt.setString(11, "");
                            stmt.executeUpdate();
                            i[0]++;
                        } catch (SQLException e) {
@@ -1642,7 +1643,7 @@ public class ClaimMain {
                 // Update database
                 try (Connection connection = instance.getDataSource().getConnection();
                         PreparedStatement stmt = connection.prepareStatement(
-                                "INSERT INTO scs_claims_1 (id_claim, owner_uuid, owner_name, claim_name, claim_description, chunks, world_name, location, members, permissions) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                                "INSERT INTO scs_claims_1 (id_claim, owner_uuid, owner_name, claim_name, claim_description, chunks, world_name, location, members, permissions, bans) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
                        stmt.setInt(1, id);
                    	   stmt.setString(2, uuid);
                        stmt.setString(3, owner);
@@ -1653,6 +1654,7 @@ public class ClaimMain {
                        stmt.setString(8, getLocationString(loc));
                        stmt.setString(9, owner);
                        stmt.setString(10, instance.getSettings().getDefaultValuesCode("all"));
+                       stmt.setString(11, "");
                        stmt.executeUpdate();
                        i[0]++;
                    } catch (SQLException e) {
