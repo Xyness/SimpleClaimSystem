@@ -313,7 +313,7 @@ public class CPlayerMain {
      */
     public ItemStack getPlayerHead(String playerName) {
         ItemStack player_head = playersHead.computeIfAbsent(playerName, p -> {
-        	
+
         	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         	SkullMeta meta = (SkullMeta) head.getItemMeta();
         	if(meta != null) {
@@ -324,9 +324,9 @@ public class CPlayerMain {
         		head.setItemMeta(meta);
         	}
         	return head;
-        	
+
         });
-        
+
         if(player_head == null) {
         	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         	SkullMeta meta = (SkullMeta) head.getItemMeta();
@@ -339,7 +339,7 @@ public class CPlayerMain {
         	}
         	return head;
         } else {
-        	return player_head;
+        	return player_head.clone();
         }
     }
     
