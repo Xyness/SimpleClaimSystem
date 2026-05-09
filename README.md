@@ -1,4 +1,8 @@
 <p align="center">
+  <img src="banner.png" alt="SimpleClaimSystem"/>
+</p>
+
+<p align="center">
   <img src="https://img.shields.io/badge/Minecraft-1.18+-green?style=for-the-badge&logo=minecraft" alt="Minecraft 1.18+"/>
   <img src="https://img.shields.io/badge/API-Spigot-orange?style=for-the-badge" alt="Spigot API"/>
   <img src="https://img.shields.io/github/v/release/Xyness/SimpleClaimSystem?style=for-the-badge&label=Version" alt="Version"/>
@@ -67,7 +71,7 @@ cd SimpleClaimSystem
 ./gradlew shadowJar
 ```
 
-The output JAR will be at `build/libs/SimpleClaimSystem-1.13.0.4.jar`.
+The output JAR will be at `build/libs/SimpleClaimSystem-1.13.0.7.jar`.
 
 ## API Usage
 
@@ -80,7 +84,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.github.Xyness:SimpleClaimSystem:1.13.0.6")
+    compileOnly("com.github.Xyness:SimpleClaimSystem:1.13.0.7")
 }
 ```
 
@@ -94,7 +98,7 @@ dependencies {
 <dependency>
     <groupId>com.github.Xyness</groupId>
     <artifactId>SimpleClaimSystem</artifactId>
-    <version>1.13.0.6</version>
+    <version>1.13.0.7</version>
     <scope>provided</scope>
 </dependency>
 ```
