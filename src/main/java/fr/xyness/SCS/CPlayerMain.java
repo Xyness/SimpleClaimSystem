@@ -550,7 +550,11 @@ public class CPlayerMain {
      * @return The CPlayer instance, or null if not found
      */
     public CPlayer getCPlayer(UUID targetUUID) {
-        return players.computeIfAbsent(targetUUID, k -> new CPlayer(Bukkit.getPlayer(targetUUID), targetUUID, instance.getMain().getPlayerClaimsCount(targetUUID),instance));
+        return players.computeIfAbsent(targetUUID, k -> {
+            Player p = Bukkit.getPlayer(targetUUID);
+            if (p == null) return null;
+            return new CPlayer(p, targetUUID, instance.getMain().getPlayerClaimsCount(targetUUID), instance);
+        });
     }
     
     /**
