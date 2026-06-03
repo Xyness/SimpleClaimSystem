@@ -261,12 +261,12 @@ public class ScsCommand implements CommandExecutor, TabCompleter {
                 // Create runnable
                 Runnable task = () -> {
                 	instance.executeSync(() -> {
-                		Chunk chunk = player.getLocation().getChunk();
-                		if(!instance.getMain().checkIfClaimExists(chunk)) {
+                		Location loc = player.getLocation();
+                		Claim claim = instance.getMain().getClaim(loc.getWorld().getName(), loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
+                		if(claim == null) {
                 			player.sendMessage(instance.getLanguage().getMessage("free-territory"));
                 			return;
                 		}
-                		Claim claim = instance.getMain().getClaim(chunk);
                 		instance.getMain().setOwner(targetName[0], claim)
                 			.thenAccept(success -> {
                 				if (success) {

@@ -51,8 +51,8 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 public class ClaimMain {
 	
-    /** List of claims by chunk. */
-    private Map<Chunk, Claim> listClaims = new ConcurrentHashMap<>();
+    /** List of claims by chunk (also keeps a parallel coordinate index for thread-safe lookups). */
+    private final ClaimChunkMap listClaims = new ClaimChunkMap();
 
     /** Mapping of player uuid to their claims. */
     private Map<UUID, CustomSet<Claim>> playerClaims = new ConcurrentHashMap<>();
@@ -362,6 +362,18 @@ public class ClaimMain {
      */
     public Claim getClaim(Chunk chunk) {
         return listClaims.get(chunk);
+    }
+
+    /**
+     * Gets a claim by chunk coordinates, without loading the chunk (safe from any thread).
+     *
+     * @param worldName the world name
+     * @param chunkX    the chunk X coordinate
+     * @param chunkZ    the chunk Z coordinate
+     * @return the claim at those coordinates, or null if none exists
+     */
+    public Claim getClaim(String worldName, int chunkX, int chunkZ) {
+        return listClaims.getByCoords(worldName, chunkX, chunkZ);
     }
     
     /**
@@ -1067,6 +1079,69 @@ public class ClaimMain {
         int maxY = world.getHighestBlockYAt(centerX, centerZ);
         return new Location(world, centerX, maxY, centerZ);
     }
+
+    /**
+     * Computes a chunk's center location (highest block Y) on the chunk's region thread,
+     * blocking the calling thread until done. Must be called from an async thread (never a
+     * region or main thread) to avoid deadlock.
+     *
+     * @param chunk the chunk
+     * @return the center location, or the chunk center at y=0 if it could not be computed
+     */
+    private Location getCenterLocationOfChunkSync(Chunk chunk) {
+        CompletableFuture<Location> future = new CompletableFuture<>();
+        Location regionLoc = new Location(chunk.getWorld(), (chunk.getX() << 4) + 8, 0, (chunk.getZ() << 4) + 8);
+        instance.executeAsyncLocation(() -> future.complete(getCenterLocationOfChunk(chunk)), regionLoc);
+        try {
+            return future.get(10, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            return regionLoc;
+        }
+    }
+
+    /**
+     * Packs chunk coordinates into a single long key.
+     *
+     * @param cx the chunk X coordinate
+     * @param cz the chunk Z coordinate
+     * @return the packed key
+     */
+    private static long chunkKey(int cx, int cz) {
+        return (((long) cx) << 32) | (cz & 0xFFFFFFFFL);
+    }
+
+    /**
+     * Groups particle locations by the chunk that owns them.
+     *
+     * @param locations the particle locations
+     * @return a map of packed chunk key to the locations within that chunk
+     */
+    private Map<Long, List<Location>> groupLocationsByChunk(Set<Location> locations) {
+        Map<Long, List<Location>> byChunk = new HashMap<>();
+        for (Location loc : locations) {
+            byChunk.computeIfAbsent(chunkKey(loc.getBlockX() >> 4, loc.getBlockZ() >> 4), k -> new ArrayList<>()).add(loc);
+        }
+        return byChunk;
+    }
+
+    /**
+     * Spawns particle locations on Folia, dispatching each group to its chunk's region thread.
+     *
+     * @param world       the world
+     * @param byChunk     the particle locations grouped by chunk key
+     * @param dustOptions the dust options
+     */
+    private void spawnParticlesByRegion(World world, Map<Long, List<Location>> byChunk, Particle.DustOptions dustOptions) {
+        byChunk.forEach((key, locs) -> {
+            int cx = (int) (key >> 32);
+            int cz = key.intValue();
+            Bukkit.getRegionScheduler().execute(instance, world, cx, cz, () -> {
+                for (Location loc : locs) {
+                    world.spawnParticle(Particle.REDSTONE, loc, 1, 0, 0, 0, 0, dustOptions);
+                }
+            });
+        });
+    }
     
     /**
      * Replaces the character at the specified index in the given string with the specified new character.
@@ -1539,7 +1614,7 @@ public class ClaimMain {
                 
                 Runnable task = () -> {
             		
-                    Location loc = getCenterLocationOfChunk(chunks.iterator().next());
+                    Location loc = getCenterLocationOfChunkSync(chunks.iterator().next());
                     String chunksData = serializeChunks(chunks);
                     try (Connection connection = instance.getDataSource().getConnection();
                             PreparedStatement stmt = connection.prepareStatement(
@@ -1587,7 +1662,7 @@ public class ClaimMain {
                 }
 
                 CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-                allOf.thenRun(() -> {
+                allOf.thenRunAsync(() -> {
                     task.run();
                 }).exceptionally(ex -> {
                     instance.getLogger().severe("Failed to complete XClaims import task: " + ex.getMessage());
@@ -1634,8 +1709,8 @@ public class ClaimMain {
         		if(check) continue;
         		
         		// Check if the selected chunk is not null, even get chunk data
-        		if(last_chunk == null);
-        		Location loc = getCenterLocationOfChunk(last_chunk);
+        		if(last_chunk == null) continue;
+        		Location loc = getCenterLocationOfChunkSync(last_chunk);
         		String world = last_chunk.getWorld().getName();
                 
                 String chunksData = serializeChunks(chunks);
@@ -2091,9 +2166,9 @@ public class ClaimMain {
                             chunks.forEach(c -> listClaims.put(c, claim));
 
                             // Maps
-                            if (instance.getSettings().getBooleanSetting("dynmap")) instance.getDynmap().createClaimZone(claim);
-                            if (instance.getSettings().getBooleanSetting("bluemap")) instance.getBluemap().createClaimZone(claim);
-                            if (instance.getSettings().getBooleanSetting("pl3xmap")) instance.getPl3xMap().createClaimZone(claim);
+                            if (instance.getSettings().getBooleanSetting("dynmap") && instance.getDynmap() != null) instance.getDynmap().createClaimZone(claim);
+                            if (instance.getSettings().getBooleanSetting("bluemap") && instance.getBluemap() != null) instance.getBluemap().createClaimZone(claim);
+                            if (instance.getSettings().getBooleanSetting("pl3xmap") && instance.getPl3xMap() != null) instance.getPl3xMap().createClaimZone(claim);
 
                             // Keep chunks loaded
                             if (instance.getSettings().getBooleanSetting("keep-chunks-loaded")) {
@@ -2567,6 +2642,18 @@ public class ClaimMain {
      */
     public boolean checkIfClaimExists(Chunk chunk) {
         return listClaims.containsKey(chunk);
+    }
+
+    /**
+     * Checks if a claim exists at the given chunk coordinates, without loading the chunk (safe from any thread).
+     *
+     * @param worldName the world name
+     * @param chunkX    the chunk X coordinate
+     * @param chunkZ    the chunk Z coordinate
+     * @return true if a claim exists there, false otherwise
+     */
+    public boolean checkIfClaimExists(String worldName, int chunkX, int chunkZ) {
+        return listClaims.containsCoords(worldName, chunkX, chunkZ);
     }
     
     /**
@@ -4323,6 +4410,8 @@ public class ClaimMain {
         
         futureLocations.thenAccept(particleLocations -> {
 	        if (instance.isFolia()) {
+	            final World world = player.getWorld();
+	            final Map<Long, List<Location>> byChunk = groupLocationsByChunk(particleLocations);
 	            final int[] counter = {0};
 	            Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
 	                if (counter[0] >= 10) {
@@ -4330,8 +4419,7 @@ public class ClaimMain {
 	                    chunksParticles.removeAll(chunks);
 	                    return;
 	                }
-	                World world = player.getWorld();
-	                particleLocations.forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
+	                spawnParticlesByRegion(world, byChunk, dustOptions);
 	                counter[0]++;
 	            }, 0, 500, TimeUnit.MILLISECONDS);
 	        } else {
@@ -4374,6 +4462,8 @@ public class ClaimMain {
         
         futureLocations.thenAccept(particleLocations -> {
 	        if (instance.isFolia()) {
+	            final World world = player.getWorld();
+	            final Map<Long, List<Location>> byChunk = groupLocationsByChunk(particleLocations);
 	            final int[] counter = {0};
 	            Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
 	                if (counter[0] >= 10) {
@@ -4381,8 +4471,7 @@ public class ClaimMain {
 	                    chunksParticles.removeAll(chunks);
 	                    return;
 	                }
-	                World world = player.getWorld();
-	                particleLocations.forEach(location -> world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, dustOptions));
+	                spawnParticlesByRegion(world, byChunk, dustOptions);
 	                counter[0]++;
 	            }, 0, 500, TimeUnit.MILLISECONDS);
 	        } else {
@@ -4444,113 +4533,56 @@ public class ClaimMain {
      */
     private CompletableFuture<Set<Location>> getParticleLocations(Set<Chunk> chunks) {
         CustomSet<Location> locations = new CustomSet<>();
-        CompletableFuture<Set<Location>> resultFuture = new CompletableFuture<>();
 
-        if (instance.isFolia()) {
-            List<CompletableFuture<Void>> futures = new ArrayList<>();
-            for (Chunk chunk : chunks) {
-                World world = chunk.getWorld();
-                int xStart = chunk.getX() << 4;
-                int zStart = chunk.getZ() << 4;
-                int xEnd = xStart + 15;
-                int zEnd = zStart + 15;
-                int yStart = world.getMinHeight();
-                int yEnd = world.getMaxHeight() - 1;
-
-                // Asynchronously add border locations only if adjacent chunks are not present
-                futures.add(world.getChunkAtAsync(chunk.getX() - 1, chunk.getZ()).thenAccept(adjChunk -> {
-                    if (!chunks.contains(adjChunk)) {
-                        for (int y = yStart; y <= yEnd; y += 2) {
-                            for (int z = zStart; z <= zEnd; z += 2) {
-                                locations.add(new Location(world, xStart, y, z));
-                            }
-                        }
-                    }
-                }));
-
-                futures.add(world.getChunkAtAsync(chunk.getX() + 1, chunk.getZ()).thenAccept(adjChunk -> {
-                    if (!chunks.contains(adjChunk)) {
-                        for (int y = yStart; y <= yEnd; y += 2) {
-                            for (int z = zStart; z <= zEnd; z += 2) {
-                                locations.add(new Location(world, xEnd + 1, y, z));
-                            }
-                        }
-                    }
-                }));
-
-                futures.add(world.getChunkAtAsync(chunk.getX(), chunk.getZ() - 1).thenAccept(adjChunk -> {
-                    if (!chunks.contains(adjChunk)) {
-                        for (int y = yStart; y <= yEnd; y += 2) {
-                            for (int x = xStart; x <= xEnd; x += 2) {
-                                locations.add(new Location(world, x, y, zStart));
-                            }
-                        }
-                    }
-                }));
-
-                futures.add(world.getChunkAtAsync(chunk.getX(), chunk.getZ() + 1).thenAccept(adjChunk -> {
-                    if (!chunks.contains(adjChunk)) {
-                        for (int y = yStart; y <= yEnd; y += 2) {
-                            for (int x = xStart; x <= xEnd; x += 2) {
-                                locations.add(new Location(world, x, y, zEnd + 1));
-                            }
-                        }
-                    }
-                }));
-            }
-            // Wait for all async chunk loads to complete
-            CompletableFuture<Void> allOf = CompletableFuture.allOf(futures.toArray(new CompletableFuture[0]));
-            allOf.thenRun(() -> {
-                resultFuture.complete(locations);
-            }).exceptionally(ex -> {
-                instance.getLogger().severe("Failed to get particle locations: " + ex.getMessage());
-                ex.printStackTrace();
-                resultFuture.completeExceptionally(ex);
-                return null;
-            });
-        } else {
-            for (Chunk chunk : chunks) {
-                World world = chunk.getWorld();
-                int xStart = chunk.getX() << 4;
-                int zStart = chunk.getZ() << 4;
-                int xEnd = xStart + 15;
-                int zEnd = zStart + 15;
-                int yStart = world.getMinHeight();
-                int yEnd = world.getMaxHeight() - 1;
-
-                if (!chunks.contains(world.getChunkAt(chunk.getX() - 1, chunk.getZ()))) {
-                    for (int y = yStart; y <= yEnd; y += 2) {
-                        for (int z = zStart; z <= zEnd; z += 2) {
-                            locations.add(new Location(world, xStart, y, z));
-                        }
-                    }
-                }
-                if (!chunks.contains(world.getChunkAt(chunk.getX() + 1, chunk.getZ()))) {
-                    for (int y = yStart; y <= yEnd; y += 2) {
-                        for (int z = zStart; z <= zEnd; z += 2) {
-                            locations.add(new Location(world, xEnd + 1, y, z));
-                        }
-                    }
-                }
-                if (!chunks.contains(world.getChunkAt(chunk.getX(), chunk.getZ() - 1))) {
-                    for (int y = yStart; y <= yEnd; y += 2) {
-                        for (int x = xStart; x <= xEnd; x += 2) {
-                            locations.add(new Location(world, x, y, zStart));
-                        }
-                    }
-                }
-                if (!chunks.contains(world.getChunkAt(chunk.getX(), chunk.getZ() + 1))) {
-                    for (int y = yStart; y <= yEnd; y += 2) {
-                        for (int x = xStart; x <= xEnd; x += 2) {
-                            locations.add(new Location(world, x, y, zEnd + 1));
-                        }
-                    }
-                }
-            }
-            resultFuture.complete(locations); // Complete the result future with the locations set
+        // Coordinate set of the claim's chunks (no chunk loading needed: a border side is drawn
+        // only where the adjacent chunk is not part of the claim, which is a pure coordinate test).
+        Set<Long> chunkKeys = new HashSet<>();
+        for (Chunk chunk : chunks) {
+            chunkKeys.add(chunkKey(chunk.getX(), chunk.getZ()));
         }
 
-        return resultFuture;
+        for (Chunk chunk : chunks) {
+            World world = chunk.getWorld();
+            int cx = chunk.getX();
+            int cz = chunk.getZ();
+            int xStart = cx << 4;
+            int zStart = cz << 4;
+            int xEnd = xStart + 15;
+            int zEnd = zStart + 15;
+            int yStart = world.getMinHeight();
+            int yEnd = world.getMaxHeight() - 1;
+
+            if (!chunkKeys.contains(chunkKey(cx - 1, cz))) {
+                for (int y = yStart; y <= yEnd; y += 2) {
+                    for (int z = zStart; z <= zEnd; z += 2) {
+                        locations.add(new Location(world, xStart, y, z));
+                    }
+                }
+            }
+            if (!chunkKeys.contains(chunkKey(cx + 1, cz))) {
+                for (int y = yStart; y <= yEnd; y += 2) {
+                    for (int z = zStart; z <= zEnd; z += 2) {
+                        locations.add(new Location(world, xEnd + 1, y, z));
+                    }
+                }
+            }
+            if (!chunkKeys.contains(chunkKey(cx, cz - 1))) {
+                for (int y = yStart; y <= yEnd; y += 2) {
+                    for (int x = xStart; x <= xEnd; x += 2) {
+                        locations.add(new Location(world, x, y, zStart));
+                    }
+                }
+            }
+            if (!chunkKeys.contains(chunkKey(cx, cz + 1))) {
+                for (int y = yStart; y <= yEnd; y += 2) {
+                    for (int x = xStart; x <= xEnd; x += 2) {
+                        locations.add(new Location(world, x, y, zEnd + 1));
+                    }
+                }
+            }
+        }
+
+        return CompletableFuture.completedFuture(locations);
     }
 
 
@@ -4568,7 +4600,7 @@ public class ClaimMain {
             	if(chunksParticles.contains(centralChunk)) return;
             	chunksParticles.add(centralChunk);
         		final int[] counter = {0};
-                Bukkit.getAsyncScheduler().runAtFixedRate(instance, task -> {
+                Bukkit.getRegionScheduler().runAtFixedRate(instance, player.getLocation(), task -> {
                     if (counter[0] >= 10) {
                         task.cancel();
                         chunksParticles.remove(centralChunk);
@@ -4592,7 +4624,7 @@ public class ClaimMain {
                         }
                     }
                     counter[0]++;
-                }, 0, 500, TimeUnit.MILLISECONDS);
+                }, 1, 10);
         	});
             return;
         }

@@ -109,7 +109,7 @@ public class SimpleClaimSystem extends JavaPlugin {
     private SimpleClaimSystem instance;
     
     /** The version of the plugin */
-    private String Version = "1.13.0.8";
+    private String Version = "1.13.0.9";
     
     /** Data source for database connections */
     private HikariDataSource dataSource;
@@ -584,6 +584,8 @@ public class SimpleClaimSystem extends JavaPlugin {
                             markerSet = markerAPI.createMarkerSet("SimpleClaimSystem", "Claims", null, false);
                         }
                         dynmapInstance = new ClaimDynmap(markerSet, this);
+                    } else {
+                        claimSettingsInstance.addSetting("dynmap", "false");
                     }
                 }
             } else {
@@ -630,7 +632,11 @@ public class SimpleClaimSystem extends JavaPlugin {
                 if (reload && pl3xmapInstance != null) {
                     pl3xmapInstance.clearMarkers();
                 } else if (!reload) {
-                    pl3xmapInstance = new ClaimPl3xMap(this);
+                    try {
+                        pl3xmapInstance = new ClaimPl3xMap(this);
+                    } catch (Throwable t) {
+                        claimSettingsInstance.addSetting("pl3xmap", "false");
+                    }
                 }
             } else {
             	claimSettingsInstance.addSetting("pl3xmap", "false");
@@ -907,7 +913,12 @@ public class SimpleClaimSystem extends JavaPlugin {
             
             // Register protection listener
             getServer().getPluginManager().registerEvents(new ClaimEvents(this), this);
-            
+
+            // Register copper golem protection
+            if (new CopperGolemEvents(this).register()) {
+                info("Copper golem protection enabled.");
+            }
+
             // Register commands
             getCommand("claim").setExecutor(new ClaimCommand(this));
             getCommand("unclaim").setExecutor(new UnclaimCommand(this));
@@ -924,7 +935,12 @@ public class SimpleClaimSystem extends JavaPlugin {
 
             // Load claims system
             claimInstance.loadClaims();
-            
+
+            // Load BlueMap markers
+            if (bluemapInstance != null && claimSettingsInstance.getBooleanSetting("bluemap")) {
+                bluemapInstance.load();
+            }
+
             // Load players
             cPlayerMainInstance.loadPlayers();
             

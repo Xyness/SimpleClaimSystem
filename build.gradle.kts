@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "fr.xyness"
-version = "1.13.0.8"
+version = "1.13.0.9"
 
 java {
     toolchain {

@@ -11,6 +11,9 @@ build
 *.swp
 *.swo
 *.orig
+.project
+.classpath
+.settings
 
 # OS files
 .DS_Store

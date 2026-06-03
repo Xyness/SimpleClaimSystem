@@ -422,6 +422,7 @@ permissions-on-SurvivalRequiringClaims:
 # https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/Material.html
 blocked-interact-blocks:
 - FURNACE
+- COPPER_CHEST
 - BLAST_FURNACE
 - ANVIL
 - DAMAGED_ANVIL
