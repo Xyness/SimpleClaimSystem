@@ -71,7 +71,7 @@ cd SimpleClaimSystem
 ./gradlew shadowJar
 ```
 
-The output JAR will be at `build/libs/SimpleClaimSystem-1.13.0.8.jar`.
+The output JAR will be at `build/libs/SimpleClaimSystem-1.13.0.9.jar`.
 
 ## API Usage
 
@@ -84,7 +84,7 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.github.Xyness:SimpleClaimSystem:1.13.0.8")
+    compileOnly("com.github.Xyness:SimpleClaimSystem:1.13.0.9")
 }
 ```
 
@@ -98,7 +98,7 @@ dependencies {
 <dependency>
     <groupId>com.github.Xyness</groupId>
     <artifactId>SimpleClaimSystem</artifactId>
-    <version>1.13.0.8</version>
+    <version>1.13.0.9</version>
     <scope>provided</scope>
 </dependency>
 ```
