@@ -72,7 +72,10 @@ public class CPlayerMain {
     
     /** Link of the mojang profile API */
     private final String MOJANG_PROFILE_API_URL = "https://sessionserver.mojang.com/session/minecraft/profile/";
-    
+
+    /** Link of the GeyserMC global skin API (Bedrock players, keyed by xuid) */
+    private final String GEYSER_SKIN_API_URL = "https://api.geysermc.org/v2/skin/";
+
     /** Defines the rate limit for requests in milliseconds */
     private static final int RATE_LIMIT = 50;
 
@@ -148,10 +151,18 @@ public class CPlayerMain {
                 playersName.put(uuid, playerName);
                 playersUUID.put(playerName, uuid);
 
-                String uuid_mojang = getUUIDFromMojang(playerName);
-
-                String textures = getSkinURLWithoutDelay(uuid_mojang);
-                ItemStack playerHead = createPlayerHeadWithTexture(uuid_mojang, textures);
+                String uuid_mojang;
+                String textures;
+                ItemStack playerHead;
+                if (isBedrockPlayer(uuid)) {
+                    uuid_mojang = "none";
+                    textures = getBedrockSkinURL(uuid);
+                    playerHead = createPlayerHeadWithTexture(uuid.toString(), textures, (String) null);
+                } else {
+                    uuid_mojang = getUUIDFromMojang(playerName);
+                    textures = getSkinURLWithoutDelay(uuid_mojang);
+                    playerHead = createPlayerHeadWithTexture(uuid_mojang, textures);
+                }
                 playersHead.put(playerName, playerHead);
                 playersHashedTexture.put(playerName, textures == null ? "none" : textures);
 
@@ -227,6 +238,40 @@ public class CPlayerMain {
                 }
             }
 
+            if (isBedrockPlayer(uuid)) {
+                String textures = getBedrockSkinURL(uuid);
+                if (textures == null) {
+                    if (!playersHead.containsKey(playerName)) {
+                        playersHead.put(playerName, new ItemStack(Material.PLAYER_HEAD));
+                    }
+                    return;
+                }
+
+                if (textures.equals(playersHashedTexture.getOrDefault(playerName, "")) && playersHead.containsKey(playerName)) return;
+
+                instance.getLogger().info(playerName + " (Bedrock) skin updated (" + uuid.toString() + "), new textures saved.");
+
+                ItemStack head = createPlayerHeadWithTexture(uuid.toString(), textures, (String) null);
+                playersHead.put(playerName, head);
+                playersHashedTexture.put(playerName, textures);
+
+                try (Connection connection = instance.getDataSource().getConnection()) {
+                    String updateQuery = "UPDATE scs_players SET player_textures = ? WHERE uuid_server = ?";
+                    try (PreparedStatement preparedStatement = connection.prepareStatement(updateQuery)) {
+                        preparedStatement.setString(1, textures);
+                        preparedStatement.setString(2, uuid.toString());
+                        preparedStatement.executeUpdate();
+                    } catch (SQLException e) {
+                        instance.getLogger().severe("Failed to update Bedrock player textures: " + e.getMessage());
+                        e.printStackTrace();
+                    }
+                } catch (SQLException e) {
+                    instance.getLogger().severe("Failed to get database connection for Bedrock texture update: " + e.getMessage());
+                    e.printStackTrace();
+                }
+                return;
+            }
+
             String uuid_mojang = getUUIDFromMojang(playerName);
             if (uuid_mojang != null) {
                 String textures = getSkinURLWithoutDelay(uuid_mojang);
@@ -281,7 +326,9 @@ public class CPlayerMain {
                     	String uuid_mojang = resultSet.getString("uuid_mojang");
                     	String playerName = resultSet.getString("player_name");
                     	String textures = resultSet.getString("player_textures");
-                        ItemStack playerHead = createPlayerHeadWithTexture(uuid_mojang, textures, playerName);
+                        ItemStack playerHead = isBedrockPlayer(uuid)
+                                ? createPlayerHeadWithTexture(uuid.toString(), textures, (String) null)
+                                : createPlayerHeadWithTexture(uuid_mojang, textures, playerName);
                         playersHead.put(playerName, playerHead);
                     	playersHashedTexture.put(playerName, textures);
                     	playersName.put(uuid, playerName);
@@ -317,9 +364,13 @@ public class CPlayerMain {
         	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         	SkullMeta meta = (SkullMeta) head.getItemMeta();
         	if(meta != null) {
-        		PlayerProfile profile = Bukkit.createPlayerProfile(playerName);
-        		if(profile != null) {
-        			meta.setOwnerProfile(profile);
+        		try {
+        			PlayerProfile profile = Bukkit.createPlayerProfile(playerName);
+        			if(profile != null) {
+        				meta.setOwnerProfile(profile);
+        			}
+        		} catch (IllegalArgumentException ignored) {
+        			// Invalid name (e.g. a Bedrock '.' prefix) — keep a plain head
         		}
         		head.setItemMeta(meta);
         	}
@@ -331,9 +382,13 @@ public class CPlayerMain {
         	ItemStack head = new ItemStack(Material.PLAYER_HEAD);
         	SkullMeta meta = (SkullMeta) head.getItemMeta();
         	if(meta != null) {
-        		PlayerProfile profile = Bukkit.createPlayerProfile(playerName);
-        		if(profile != null) {
-        			meta.setOwnerProfile(profile);
+        		try {
+        			PlayerProfile profile = Bukkit.createPlayerProfile(playerName);
+        			if(profile != null) {
+        				meta.setOwnerProfile(profile);
+        			}
+        		} catch (IllegalArgumentException ignored) {
+        			// Invalid name (e.g. a Bedrock '.' prefix) — keep a plain head
         		}
         		head.setItemMeta(meta);
         	}
@@ -535,8 +590,58 @@ public class CPlayerMain {
     }
     
     /**
+     * Checks whether the given uuid belongs to a Bedrock player.
+     * Floodgate builds the Java-side uuid as {@code new UUID(0, xuid)}, so the most
+     * significant bits are always 0. This detection does not require Floodgate to be present.
+     *
+     * @param uuid The player uuid.
+     * @return true if the uuid is a Bedrock (Floodgate) uuid, false otherwise.
+     */
+    public boolean isBedrockPlayer(UUID uuid) {
+        return uuid != null && uuid.getMostSignificantBits() == 0L;
+    }
+
+    /**
+     * Retrieves the skin texture URL of a Bedrock player from the GeyserMC global API.
+     * The xuid is the least significant bits of the Floodgate uuid.
+     *
+     * @param uuid The Bedrock (Floodgate) uuid of the player.
+     * @return The skin texture URL, or null if it could not be fetched.
+     */
+    public String getBedrockSkinURL(UUID uuid) {
+        if (uuid == null) return null;
+        String xuid = Long.toUnsignedString(uuid.getLeastSignificantBits());
+        HttpURLConnection connection = null;
+        try {
+            URI uri = URI.create(GEYSER_SKIN_API_URL + xuid);
+            URL url = uri.toURL();
+            connection = (HttpURLConnection) url.openConnection();
+            connection.setRequestMethod("GET");
+
+            if (connection.getResponseCode() == 200) {
+                try (InputStreamReader reader = new InputStreamReader(connection.getInputStream())) {
+                    JsonObject response = JsonParser.parseReader(reader).getAsJsonObject();
+                    if (response.has("value") && !response.get("value").isJsonNull()) {
+                        String decodedValue = new String(Base64.getDecoder().decode(response.get("value").getAsString()));
+                        JsonObject textureProperty = JsonParser.parseString(decodedValue).getAsJsonObject();
+                        return textureProperty.getAsJsonObject("textures").getAsJsonObject("SKIN").get("url").getAsString();
+                    }
+                    if (response.has("texture_id") && !response.get("texture_id").isJsonNull()) {
+                        return "http://textures.minecraft.net/texture/" + response.get("texture_id").getAsString();
+                    }
+                }
+            }
+        } catch (Exception e) {
+            instance.getLogger().warning("Failed to fetch Bedrock skin from GeyserMC API: " + e.getMessage());
+        } finally {
+            if (connection != null) connection.disconnect();
+        }
+        return null;
+    }
+
+    /**
      * Removes the CPlayer instance associated with the given player uuid.
-     * 
+     *
      * @param targetUUID The uuid of the player
      */
     public void removeCPlayer(UUID targetUUID) {
